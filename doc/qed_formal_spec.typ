@@ -283,6 +283,52 @@ Failure clauses:
 2. middle-term mismatch;
 3. type inconsistency in chained equality.
 
+== Rule Schema: `MK_COMB`
+
+Input:
+
+- theorem `A ⊢ f = g`;
+- theorem `B ⊢ x = y`.
+
+Output:
+
+- theorem `A union B ⊢ f x = g y`.
+
+Side conditions:
+
+1. both premise conclusions must be equalities;
+2. `f` and `g` must have function type with argument type matching `x` and `y`;
+3. codomain types of `f` and `g` must coincide.
+
+Failure clauses:
+
+1. non-equality premise theorem;
+2. function-domain mismatch for application;
+3. codomain inconsistency across the two function sides.
+
+== Rule Schema: `ABS`
+
+Input:
+
+- variable term `x`;
+- theorem `A ⊢ s = t`.
+
+Output:
+
+- theorem `A ⊢ λ (x : tau). s = λ (x : tau). t`.
+
+Side conditions:
+
+1. `x` must be a variable term;
+2. premise conclusion must be an equality;
+3. `x` must not occur free in assumptions `A`.
+
+Failure clauses:
+
+1. non-variable abstraction binder;
+2. non-equality premise theorem;
+3. free-variable violation in assumption set.
+
 = Soundness Strategy
 
 The project-level soundness story is divided into three obligations.
