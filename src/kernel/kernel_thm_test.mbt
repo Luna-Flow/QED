@@ -374,6 +374,32 @@ test "thm inst_type applies non-empty substitution" {
 }
 
 ///|
+test "thm inst_type deduplicates hypotheses after substitution" {
+  let a = mk_tyvar("A")
+  let b = mk_tyvar("B")
+  let x_a = mk_var("x", a)
+  let x_b = mk_var("x", b)
+  let pa = mk_eq(x_a, x_a)
+  let pb = mk_eq(x_b, x_b)
+  let tha = assume(pa)
+  let thb = assume(pb)
+  assert_true((tha, thb) is (Some(_), Some(_)))
+
+  match (tha, thb) {
+    (Some(ta), Some(tb)) => {
+      let th = deduct_antisym_rule(ta, tb)
+      let out = inst_type([("B", a)], th)
+      assert_true(out is Some(_))
+      match out {
+        Some(Sequent(hs, _)) => assert_eq(hs.length(), 1)
+        None => assert_false(true)
+      }
+    }
+    _ => assert_false(true)
+  }
+}
+
+///|
 test "thm inst accepts empty substitution" {
   let p = mk_const("P", bool_ty())
   let th = assume(p)
@@ -399,6 +425,31 @@ test "thm inst applies non-empty substitution" {
     Some(Sequent(_, concl)) =>
       assert_true(term_to_string(concl).contains("Var(y : A)"))
     None => assert_false(true)
+  }
+}
+
+///|
+test "thm inst deduplicates hypotheses after substitution" {
+  let p = mk_var("p", bool_ty())
+  let q = mk_var("q", bool_ty())
+  let thp = assume(p)
+  let thq = assume(q)
+  assert_true((thp, thq) is (Some(_), Some(_)))
+
+  match (thp, thq) {
+    (Some(tp), Some(tq)) => {
+      let th = deduct_antisym_rule(tp, tq)
+      let out = inst([(p, q)], th)
+      assert_true(out is Some(_))
+      match out {
+        Some(Sequent(hs, concl)) => {
+          assert_eq(hs.length(), 1)
+          assert_true(term_to_string(concl).contains("Var(q : bool)"))
+        }
+        None => assert_false(true)
+      }
+    }
+    _ => assert_false(true)
   }
 }
 

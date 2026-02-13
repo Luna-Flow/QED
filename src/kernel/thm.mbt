@@ -168,6 +168,11 @@ fn hyps_union(a : Array[Term], b : Array[Term]) -> Array[Term] {
 }
 
 ///|
+fn hyps_dedup(hs : Array[Term]) -> Array[Term] {
+  hyps_union([], hs)
+}
+
+///|
 fn hyps_remove(hs : Array[Term], t : Term) -> Array[Term] {
   hs.filter(fn(h) { !alpha_eq(h, t) })
 }
@@ -309,7 +314,7 @@ pub fn deduct_antisym_rule(th1 : Thm, th2 : Thm) -> Thm {
 pub fn inst_type(subst : Array[(String, HolType)], th : Thm) -> Thm? {
   match th {
     Sequent(hs, c) => {
-      let hs2 = hs.map(fn(h) { apply_ty_subst_to_term(subst, h) })
+      let hs2 = hyps_dedup(hs.map(fn(h) { apply_ty_subst_to_term(subst, h) }))
       let c2 = apply_ty_subst_to_term(subst, c)
       Some(Sequent(hs2, c2))
     }
@@ -323,7 +328,7 @@ pub fn inst(subst : Array[(Term, Term)], th : Thm) -> Thm? {
   }
   match th {
     Sequent(hs, c) => {
-      let hs2 = hs.map(fn(h) { apply_term_subst_to_term(subst, h) })
+      let hs2 = hyps_dedup(hs.map(fn(h) { apply_term_subst_to_term(subst, h) }))
       let c2 = apply_term_subst_to_term(subst, c)
       Some(Sequent(hs2, c2))
     }
