@@ -1,0 +1,16 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Luna-Flow/QED/logic"
+
+// Values
+pub fn logic_bool_phase0_ready() -> Bool
+
+pub fn logic_equal_phase0_ready() -> Bool
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
+

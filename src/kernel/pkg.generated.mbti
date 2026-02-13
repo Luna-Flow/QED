@@ -1,0 +1,18 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Luna-Flow/QED/kernel"
+
+// Values
+pub fn kernel_terms_phase0_ready() -> Bool
+
+pub fn kernel_thm_phase0_ready() -> Bool
+
+pub fn kernel_types_phase0_ready() -> Bool
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
+

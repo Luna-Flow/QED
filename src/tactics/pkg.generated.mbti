@@ -1,0 +1,16 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Luna-Flow/QED/tactics"
+
+// Values
+pub fn tactics_engine_phase0_ready() -> Bool
+
+pub fn tactics_goal_phase0_ready() -> Bool
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
+
