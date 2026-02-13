@@ -58,3 +58,45 @@ test "terms abs type_of" {
   let lam = mk_abs(x, k)
   assert_true(type_of(lam) is TyApp("fun", [TyVal("A"), TyVal("B")]))
 }
+
+///|
+test "terms predicates" {
+  let a = mk_tyvar("A")
+  let x = mk_var("x", a)
+  let c = mk_const("c", a)
+  let app = mk_comb(c, x)
+  let lam = mk_abs(x, c)
+
+  assert_true(is_var(x))
+  assert_false(is_var(c))
+
+  assert_true(is_const(c))
+  assert_false(is_const(app))
+
+  assert_true(is_comb(app))
+  assert_false(is_comb(lam))
+
+  assert_true(is_abs(lam))
+  assert_false(is_abs(x))
+}
+
+///|
+test "terms destructors" {
+  let a = mk_tyvar("A")
+  let x = mk_var("x", a)
+  let c = mk_const("c", a)
+  let app = mk_comb(c, x)
+  let lam = mk_abs(x, c)
+
+  assert_true(dest_var(x) is Some(("x", _)))
+  assert_true(dest_var(c) is None)
+
+  assert_true(dest_const(c) is Some(("c", _)))
+  assert_true(dest_const(x) is None)
+
+  assert_true(dest_comb(app) is Some((_, _)))
+  assert_true(dest_comb(lam) is None)
+
+  assert_true(dest_abs(lam) is Some((_, _)))
+  assert_true(dest_abs(app) is None)
+}
