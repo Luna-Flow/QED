@@ -168,6 +168,34 @@ fn db_to_thm_or(db_th : DbSequent, fallback : Thm) -> Thm {
 }
 
 ///|
+fn lift_db_rule1(th : Thm, rule : (DbSequent) -> DbSequent?) -> Thm? {
+  match thm_to_db(th) {
+    Some(db_th) =>
+      match rule(db_th) {
+        Some(db_out) => db_to_thm(db_out)
+        None => None
+      }
+    None => None
+  }
+}
+
+///|
+fn lift_db_rule2(
+  th1 : Thm,
+  th2 : Thm,
+  rule : (DbSequent, DbSequent) -> DbSequent?,
+) -> Thm? {
+  match (thm_to_db(th1), thm_to_db(th2)) {
+    (Some(db1), Some(db2)) =>
+      match rule(db1, db2) {
+        Some(db_out) => db_to_thm(db_out)
+        None => None
+      }
+    _ => None
+  }
+}
+
+///|
 pub fn refl(t : Term) -> Thm {
   match to_db_term(t) {
     Some(db_t) => db_to_thm_or(db_rule_refl(db_t), Sequent([], mk_eq(t, t)))
@@ -343,14 +371,7 @@ fn db_rule_assume(p : DbTerm) -> DbSequent? {
 
 ///|
 pub fn trans(th1 : Thm, th2 : Thm) -> Thm? {
-  match (thm_to_db(th1), thm_to_db(th2)) {
-    (Some(db1), Some(db2)) =>
-      match db_rule_trans(db1, db2) {
-        Some(db_out) => db_to_thm(db_out)
-        None => None
-      }
-    _ => None
-  }
+  lift_db_rule2(th1, th2, db_rule_trans)
 }
 
 ///|
@@ -379,14 +400,7 @@ pub fn beta_rule(t : Term) -> Thm? {
 
 ///|
 pub fn eq_mp(th_eq : Thm, th_p : Thm) -> Thm? {
-  match (thm_to_db(th_eq), thm_to_db(th_p)) {
-    (Some(db_eq), Some(db_p)) =>
-      match db_rule_eq_mp(db_eq, db_p) {
-        Some(db_out) => db_to_thm(db_out)
-        None => None
-      }
-    _ => None
-  }
+  lift_db_rule2(th_eq, th_p, db_rule_eq_mp)
 }
 
 ///|
@@ -425,10 +439,7 @@ pub fn inst_type(subst : Array[(String, HolType)], th : Thm) -> Thm? {
   if has_duplicate_ty_subst_keys(subst) {
     return None
   }
-  match thm_to_db(th) {
-    Some(db_th) => db_to_thm(db_rule_inst_type(subst, db_th))
-    None => None
-  }
+  lift_db_rule1(th, fn(db_th) { Some(db_rule_inst_type(subst, db_th)) })
 }
 
 ///|
@@ -444,22 +455,12 @@ pub fn inst(subst : Array[(Term, Term)], th : Thm) -> Thm? {
   if !is_valid_db_term_subst(db_subst) {
     return None
   }
-  match thm_to_db(th) {
-    Some(db_th) => db_to_thm(db_rule_inst(db_subst, db_th))
-    None => None
-  }
+  lift_db_rule1(th, fn(db_th) { Some(db_rule_inst(db_subst, db_th)) })
 }
 
 ///|
 pub fn mk_comb_rule(th_fg : Thm, th_xy : Thm) -> Thm? {
-  match (thm_to_db(th_fg), thm_to_db(th_xy)) {
-    (Some(db_fg), Some(db_xy)) =>
-      match db_rule_mk_comb(db_fg, db_xy) {
-        Some(db_out) => db_to_thm(db_out)
-        None => None
-      }
-    _ => None
-  }
+  lift_db_rule2(th_fg, th_xy, db_rule_mk_comb)
 }
 
 ///|
