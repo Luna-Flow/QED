@@ -94,13 +94,25 @@ pub fn sig_add_const(GlobalSig, String, HolType) -> GlobalSig?
 
 pub fn sig_add_const_idempotent(GlobalSig, String, HolType) -> GlobalSig?
 
+pub fn sig_add_const_idempotent_e(GlobalSig, String, HolType) -> Result[GlobalSig, SigError]
+
 pub fn sig_define_const(GlobalSig, String, Term) -> (GlobalSig, Term)?
+
+pub fn sig_define_const_e(GlobalSig, String, Term) -> Result[(GlobalSig, Term), SigError]
 
 pub fn sig_has_const(GlobalSig, String) -> Bool
 
 pub fn sig_lookup_const(GlobalSig, String) -> HolType?
 
 pub fn sig_mk_const(GlobalSig, String) -> Term?
+
+pub fn sig_mk_const_e(GlobalSig, String) -> Result[Term, SigError]
+
+pub fn sig_pop_scope(GlobalSig) -> GlobalSig?
+
+pub fn sig_pop_scope_e(GlobalSig) -> Result[GlobalSig, SigError]
+
+pub fn sig_push_scope(GlobalSig) -> GlobalSig
 
 pub fn term_alpha_eq(Term, Term) -> Bool
 
@@ -124,12 +136,19 @@ pub enum DbTerm {
 }
 
 pub enum GlobalSig {
-  Sig(Array[(String, HolType)])
+  Sig(Array[Array[(String, HolType)]])
 }
 
 pub enum HolType {
   TyVal(String)
   TyApp(String, Array[HolType])
+}
+
+pub enum SigError {
+  DuplicateConstName
+  ConstTypeConflict
+  UnknownConst
+  ScopeUnderflow
 }
 
 pub enum Term {

@@ -126,3 +126,77 @@ test "kernel sig idempotent add rejects conflicting type" {
     None => assert_false(true)
   }
 }
+
+///|
+test "kernel sig result api returns typed errors" {
+  let sig0 = empty_sig()
+  let a = mk_tyvar("A")
+  let b = mk_tyvar("B")
+  let s1 = sig_add_const_idempotent_e(sig0, "C", a)
+  assert_true(s1 is Ok(_))
+  match s1 {
+    Ok(sig1) => {
+      assert_true(sig_mk_const_e(sig1, "D") is Err(UnknownConst))
+      assert_true(
+        sig_add_const_idempotent_e(sig1, "C", b) is Err(ConstTypeConflict),
+      )
+      let p = mk_const("P", bool_ty())
+      assert_true(sig_define_const_e(sig1, "Q", p) is Ok(_))
+    }
+    Err(_) => assert_false(true)
+  }
+}
+
+///|
+test "kernel sig supports shadowing across scopes" {
+  let sig0 = empty_sig()
+  let a = mk_tyvar("A")
+  let b = mk_tyvar("B")
+  let s1 = sig_add_const(sig0, "C", a)
+  assert_true(s1 is Some(_))
+  match s1 {
+    Some(sig1) => {
+      let sig2 = sig_push_scope(sig1)
+      let s3 = sig_add_const(sig2, "C", b)
+      assert_true(s3 is Some(_))
+      match s3 {
+        Some(sig3) =>
+          assert_true(sig_lookup_const(sig3, "C") is Some(TyVal("B")))
+        None => assert_false(true)
+      }
+    }
+    None => assert_false(true)
+  }
+}
+
+///|
+test "kernel sig pop_scope restores outer binding" {
+  let sig0 = empty_sig()
+  let a = mk_tyvar("A")
+  let b = mk_tyvar("B")
+  let s1 = sig_add_const(sig0, "C", a)
+  assert_true(s1 is Some(_))
+  match s1 {
+    Some(sig1) => {
+      let sig2 = sig_push_scope(sig1)
+      let s3 = sig_add_const(sig2, "C", b)
+      assert_true(s3 is Some(_))
+      match s3 {
+        Some(sig3) =>
+          match sig_pop_scope(sig3) {
+            Some(sig4) =>
+              assert_true(sig_lookup_const(sig4, "C") is Some(TyVal("A")))
+            None => assert_false(true)
+          }
+        None => assert_false(true)
+      }
+    }
+    None => assert_false(true)
+  }
+}
+
+///|
+test "kernel sig pop_scope rejects root underflow" {
+  assert_true(sig_pop_scope(empty_sig()) is None)
+  assert_true(sig_pop_scope_e(empty_sig()) is Err(ScopeUnderflow))
+}
