@@ -126,3 +126,54 @@ pub fn term_to_string(term : Term) -> String {
       "Abs(" + term_to_string(var_term) + ", " + term_to_string(body) + ")"
   }
 }
+
+///|
+fn lookup_db_index(stack : Array[String], name : String) -> Int? {
+  let mut i = 0
+  let n = stack.length()
+  while i < n {
+    let idx = n - 1 - i
+    if stack[idx] == name {
+      return Some(i)
+    }
+    i = i + 1
+  }
+  None
+}
+
+///|
+fn db_string_with_env(term : Term, env : Array[String]) -> String {
+  match term {
+    Var(name, ty) =>
+      match lookup_db_index(env, name) {
+        Some(i) =>
+          "BVar(" + i.to_string() + " : " + hol_type_to_string(ty) + ")"
+        None => "FVar(" + name + " : " + hol_type_to_string(ty) + ")"
+      }
+    Const(name, ty) => "Const(" + name + " : " + hol_type_to_string(ty) + ")"
+    Comb(f, x) =>
+      "Comb(" +
+      db_string_with_env(f, env) +
+      ", " +
+      db_string_with_env(x, env) +
+      ")"
+    Abs(v, body) =>
+      match v {
+        Var(name, ty) => {
+          let env2 = env.copy()
+          env2.push(name)
+          "Abs(" +
+          hol_type_to_string(ty) +
+          ". " +
+          db_string_with_env(body, env2) +
+          ")"
+        }
+        _ => "Abs(? . " + db_string_with_env(body, env) + ")"
+      }
+  }
+}
+
+///|
+pub fn db_string(term : Term) -> String {
+  db_string_with_env(term, [])
+}

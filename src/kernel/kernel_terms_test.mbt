@@ -114,3 +114,16 @@ test "terms pretty printer" {
   assert_true(rendered.contains("Comb("))
   assert_true(rendered.contains("Var(x : A)"))
 }
+
+///|
+test "terms debruijn string keeps alpha shape" {
+  let a = mk_tyvar("A")
+  let x = mk_var("x", a)
+  let y = mk_var("y", a)
+
+  let t1 = mk_abs(x, x)
+  let t2 = mk_abs(y, y)
+
+  assert_eq(db_string(t1), db_string(t2))
+  assert_true(db_string(t1).contains("BVar(0 : A)"))
+}
