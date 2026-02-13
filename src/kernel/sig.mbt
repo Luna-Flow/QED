@@ -61,3 +61,20 @@ pub fn sig_mk_const(sig : GlobalSig, name : String) -> Term? {
     None => None
   }
 }
+
+///|
+pub fn sig_define_const(
+  sig : GlobalSig,
+  name : String,
+  rhs : Term,
+) -> (GlobalSig, Term)? {
+  let ty = type_of(rhs)
+  match sig_add_const(sig, name, ty) {
+    Some(sig2) =>
+      match sig_mk_const(sig2, name) {
+        Some(c) => Some((sig2, mk_eq(c, rhs)))
+        None => None
+      }
+    None => None
+  }
+}

@@ -45,3 +45,35 @@ test "kernel sig mk_const only for registered names" {
     None => assert_false(true)
   }
 }
+
+///|
+test "kernel sig define_const creates definitional equation term" {
+  let sig0 = empty_sig()
+  let p = mk_const("P", bool_ty())
+  let out = sig_define_const(sig0, "Q", p)
+  assert_true(out is Some(_))
+  match out {
+    Some((sig1, def_eq)) => {
+      assert_true(sig_has_const(sig1, "Q"))
+      assert_true(
+        def_eq is Comb(Comb(Const("=", _), Const("Q", _)), Const("P", _)),
+      )
+    }
+    None => assert_false(true)
+  }
+}
+
+///|
+test "kernel sig define_const rejects duplicate names" {
+  let sig0 = empty_sig()
+  let p = mk_const("P", bool_ty())
+  let out1 = sig_define_const(sig0, "Q", p)
+  assert_true(out1 is Some(_))
+  match out1 {
+    Some((sig1, _)) => {
+      let out2 = sig_define_const(sig1, "Q", p)
+      assert_true(out2 is None)
+    }
+    None => assert_false(true)
+  }
+}
