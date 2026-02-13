@@ -44,11 +44,15 @@ pub fn mk_comb(Term, Term) -> Term
 
 pub fn mk_const(String, HolType) -> Term
 
+pub fn mk_eq(Term, Term) -> Term
+
 pub fn mk_tyapp(String, Array[HolType]) -> HolType
 
 pub fn mk_tyvar(String) -> HolType
 
 pub fn mk_var(String, HolType) -> Term
+
+pub fn refl(Term) -> Thm
 
 pub fn term_to_string(Term) -> String
 
@@ -67,6 +71,10 @@ pub enum Term {
   Const(String, HolType)
   Comb(Term, Term)
   Abs(Term, Term)
+}
+
+pub enum Thm {
+  Sequent(Array[Term], Term)
 }
 
 // Type aliases
