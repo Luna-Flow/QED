@@ -69,7 +69,7 @@ fn is_valid_term_subst(subst : Array[(Term, Term)]) -> Bool {
     if !ty_eq(type_of(k), type_of(v)) {
       return false
     }
-    if keys.any(fn(x) { alpha_eq(x, k) }) {
+    if keys.any(fn(x) { term_alpha_eq(x, k) }) {
       return false
     }
     keys.push(k)
@@ -91,11 +91,6 @@ pub fn dest_eq(t : Term) -> (Term, Term)? {
     Comb(Comb(Const("=", _), lhs), rhs) => Some((lhs, rhs))
     _ => None
   }
-}
-
-///|
-fn alpha_eq(t1 : Term, t2 : Term) -> Bool {
-  term_alpha_eq(t1, t2)
 }
 
 ///|
@@ -121,7 +116,7 @@ pub fn assume(p : Term) -> Thm? {
 fn hyps_union(a : Array[Term], b : Array[Term]) -> Array[Term] {
   let out = a.copy()
   for h in b {
-    if !out.any(fn(x) { alpha_eq(x, h) }) {
+    if !out.any(fn(x) { term_alpha_eq(x, h) }) {
       out.push(h)
     }
   }
@@ -135,7 +130,7 @@ fn hyps_dedup(hs : Array[Term]) -> Array[Term] {
 
 ///|
 fn hyps_remove(hs : Array[Term], t : Term) -> Array[Term] {
-  hs.filter(fn(h) { !alpha_eq(h, t) })
+  hs.filter(fn(h) { !term_alpha_eq(h, t) })
 }
 
 ///|
@@ -159,7 +154,7 @@ pub fn trans(th1 : Thm, th2 : Thm) -> Thm? {
         Sequent(h2, c2) =>
           match (dest_eq(c1), dest_eq(c2)) {
             (Some((l1, r1)), Some((l2, r2))) =>
-              if alpha_eq(r1, l2) {
+              if term_alpha_eq(r1, l2) {
                 Some(Sequent(hyps_union(h1, h2), mk_eq(l1, r2)))
               } else {
                 None
@@ -222,7 +217,7 @@ pub fn eq_mp(th_eq : Thm, th_p : Thm) -> Thm? {
             Some((lhs, rhs)) => {
               let ok_l = is_bool_ty(type_of(lhs))
               let ok_r = is_bool_ty(type_of(rhs))
-              let ok_m = alpha_eq(lhs, c_p)
+              let ok_m = term_alpha_eq(lhs, c_p)
               let ok = ok_l && ok_r && ok_m
               if ok {
                 Some(Sequent(hyps_union(h_eq, h_p), rhs))
