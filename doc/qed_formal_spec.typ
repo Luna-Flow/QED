@@ -218,12 +218,12 @@ Lemma (Alpha-Invariant Lowering):
 $
   (" "t_1 equiv_alpha t_2" ")
   /
-  ("Term" _arrow.b " " t_1 = "Term" _arrow.b " " t_2)
+  ("Term" _arrow.b t_1 = "Term" _arrow.b t_2)
 $
 
 Lemma (Round-Trip Stability up to Alpha):
 $
-  (" ""Term" _arrow.b " " t = d and "Term" _arrow.t " " d = t'" ")
+  (" ""Term" _arrow.b t = d and "Term" _arrow.t d = t'" ")
   /
   (t' equiv_alpha t)
 $
@@ -235,7 +235,7 @@ $
 $
 then the lifted rule
 $
-  R " " x = "Thm" _arrow.t " " (R_d " " ("Thm" _arrow.b " " x))
+  R x = "Thm" _arrow.t (R_d ("Thm" _arrow.b x))
 $
 preserves assumption/conclusion structure modulo alpha-equivalence whenever conversions succeed.
 
