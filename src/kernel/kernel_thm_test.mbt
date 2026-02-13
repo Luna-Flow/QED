@@ -150,6 +150,31 @@ test "thm mk_comb_rule fails on argument type mismatch" {
 }
 
 ///|
+test "thm mk_comb_rule fails on non-equality premise" {
+  let a = mk_tyvar("A")
+  let b = mk_tyvar("B")
+  let fty = fun_ty(a, b)
+  let x = mk_var("x", a)
+  let y = mk_var("y", a)
+  let p = mk_const("P", bool_ty())
+  let f = mk_const("f", fty)
+  let g = mk_const("g", fty)
+
+  let th_bad = assume(p)
+  let th_xy = assume(mk_eq(x, y))
+  let th_fg = assume(mk_eq(f, g))
+  assert_true((th_bad, th_xy, th_fg) is (Some(_), Some(_), Some(_)))
+
+  match (th_bad, th_xy, th_fg) {
+    (Some(tb), Some(txy), Some(tfg)) => {
+      assert_true(mk_comb_rule(tb, txy) is None)
+      assert_true(mk_comb_rule(tfg, tb) is None)
+    }
+    _ => assert_false(true)
+  }
+}
+
+///|
 test "thm abs_rule abstracts equality theorem" {
   let a = mk_tyvar("A")
   let x = mk_var("x", a)
@@ -179,6 +204,20 @@ test "thm abs_rule fails when binder free in assumptions" {
       let out = abs_rule(x, t)
       assert_true(out is None)
     }
+    None => assert_false(true)
+  }
+}
+
+///|
+test "thm abs_rule fails for non-variable binder" {
+  let a = mk_tyvar("A")
+  let c = mk_const("c", a)
+  let x = mk_var("x", a)
+  let y = mk_var("y", a)
+  let th = assume(mk_eq(x, y))
+  assert_true(th is Some(_))
+  match th {
+    Some(t) => assert_true(abs_rule(c, t) is None)
     None => assert_false(true)
   }
 }
