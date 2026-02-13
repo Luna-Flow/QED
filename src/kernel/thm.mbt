@@ -319,6 +319,17 @@ fn db_rule_inst(subst : Array[(DbTerm, DbTerm)], th : DbSequent) -> DbSequent {
 }
 
 ///|
+fn db_rule_deduct_antisym(th1 : DbSequent, th2 : DbSequent) -> DbSequent {
+  match (th1, th2) {
+    (DbSeq(h1, p), DbSeq(h2, q)) =>
+      DbSeq(
+        db_hyps_union(db_hyps_remove(h1, q), db_hyps_remove(h2, p)),
+        db_mk_eq(p, q),
+      )
+  }
+}
+
+///|
 pub fn trans(th1 : Thm, th2 : Thm) -> Thm? {
   match (thm_to_db(th1), thm_to_db(th2)) {
     (Some(db1), Some(db2)) =>
@@ -391,14 +402,8 @@ pub fn deduct_antisym_rule(th1 : Thm, th2 : Thm) -> Thm {
   }
 
   match (thm_to_db(th1), thm_to_db(th2)) {
-    (Some(DbSeq(h1, p)), Some(DbSeq(h2, q))) =>
-      db_to_thm_or(
-        DbSeq(
-          db_hyps_union(db_hyps_remove(h1, q), db_hyps_remove(h2, p)),
-          db_mk_eq(p, q),
-        ),
-        named_fallback(th1, th2),
-      )
+    (Some(db1), Some(db2)) =>
+      db_to_thm_or(db_rule_deduct_antisym(db1, db2), named_fallback(th1, th2))
     _ => named_fallback(th1, th2)
   }
 }
