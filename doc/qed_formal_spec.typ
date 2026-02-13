@@ -478,6 +478,36 @@ $
   (theta(A_p) tack.r theta(p))
 $
 
+== Rule Schema: `INST`
+
+Input:
+
+- term substitution $sigma$;
+- theorem $A_p tack.r p$.
+
+Output:
+
+- theorem $sigma(A_p) tack.r sigma(p)$.
+
+Side conditions:
+
+1. substitution domain must contain only variable terms;
+2. each mapped term in $sigma$ must have the same type as its source variable;
+3. substitution must be capture-avoiding and applied in parallel.
+
+Failure clauses:
+
+1. non-variable key in substitution map;
+2. type mismatch in substitution pair;
+3. variable capture or malformed substitution application.
+
+Antecedent form:
+$
+  (" "A_p tack.r p and "valid(sigma)"" ")
+  /
+  (sigma(A_p) tack.r sigma(p))
+$
+
 = Soundness Strategy
 
 The project-level soundness story is divided into three obligations.
@@ -497,6 +527,19 @@ The formal clauses above map to implementation modules as follows.
 - `src/kernel/thm.mbt`: theorem abstraction and primitive rule implementation.
 
 A development task is complete only when the mathematical clause and its implementation clause are both updated.
+
+== Rule-to-Implementation Mapping (Current)
+
+- `REFL` -> `src/kernel/thm.mbt` (planned primitive rule function).
+- `ASSUME` -> `src/kernel/thm.mbt` (planned primitive rule function).
+- `TRANS` -> `src/kernel/thm.mbt` (planned primitive rule function).
+- `MK_COMB` -> `src/kernel/thm.mbt` (planned primitive rule function).
+- `ABS` -> `src/kernel/thm.mbt` (planned primitive rule function).
+- `BETA` -> `src/kernel/thm.mbt` (planned primitive rule function).
+- `EQ_MP` -> `src/kernel/thm.mbt` (planned primitive rule function).
+- `DEDUCT_ANTISYM_RULE` -> `src/kernel/thm.mbt` (planned primitive rule function).
+- `INST_TYPE` -> `src/kernel/thm.mbt` (planned primitive rule function).
+- `INST` -> `src/kernel/thm.mbt` (planned primitive rule function).
 
 = Documentation Roadmap
 
