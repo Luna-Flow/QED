@@ -52,16 +52,37 @@ fn is_valid_db_term_subst(subst : Array[(DbTerm, DbTerm)]) -> Bool {
 ///|
 /// Theorem constructors and primitive rules
 pub fn mk_eq(lhs : Term, rhs : Term) -> Term {
-  let eq_ty = fun_ty(type_of(lhs), fun_ty(type_of(rhs), bool_ty()))
-  let eq_const = mk_const("=", eq_ty)
-  mk_comb(mk_comb(eq_const, lhs), rhs)
+  match (to_db_term(lhs), to_db_term(rhs)) {
+    (Some(l), Some(r)) =>
+      match from_db_term(db_mk_eq(l, r)) {
+        Some(t) => t
+        None => {
+          let eq_ty = fun_ty(type_of(lhs), fun_ty(type_of(rhs), bool_ty()))
+          let eq_const = mk_const("=", eq_ty)
+          mk_comb(mk_comb(eq_const, lhs), rhs)
+        }
+      }
+    _ => {
+      let eq_ty = fun_ty(type_of(lhs), fun_ty(type_of(rhs), bool_ty()))
+      let eq_const = mk_const("=", eq_ty)
+      mk_comb(mk_comb(eq_const, lhs), rhs)
+    }
+  }
 }
 
 ///|
 pub fn dest_eq(t : Term) -> (Term, Term)? {
-  match t {
-    Comb(Comb(Const("=", _), lhs), rhs) => Some((lhs, rhs))
-    _ => None
+  match to_db_term(t) {
+    Some(db_t) =>
+      match db_dest_eq(db_t) {
+        Some((l, r)) =>
+          match (from_db_term(l), from_db_term(r)) {
+            (Some(l2), Some(r2)) => Some((l2, r2))
+            _ => None
+          }
+        None => None
+      }
+    None => None
   }
 }
 
