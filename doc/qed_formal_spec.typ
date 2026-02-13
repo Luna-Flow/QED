@@ -116,30 +116,30 @@ The abstraction constructor is intended to bind occurrences of the variable comp
 
 The type system is syntax-directed and is presented as a judgment of the form
 $
-  Gamma ⊢ t : tau
+  Gamma tack.r t : tau
 $
 where $Gamma$ is a typing context for free variables.
 
 The intended rules are the standard STLC-style rules over simple types:
 
 $
-  (" "(x : tau) in Gamma" ") / (Gamma ⊢ x : tau)
+  (" "(x : tau) in Gamma" ") / (Gamma tack.r x : tau)
 $
 
 $
-  (" "Sigma_c(c) = tau" ") / (Gamma ⊢ c : tau)
+  (" "Sigma_c(c) = tau" ") / (Gamma tack.r c : tau)
 $
 
 $
-  (" "Gamma ⊢ f : "fun"(tau_1, tau_2) and Gamma ⊢ x : tau_1" ")
+  (" "Gamma tack.r f : "fun"(tau_1, tau_2) and Gamma tack.r x : tau_1" ")
   /
-  (Gamma ⊢ f x : tau_2)
+  (Gamma tack.r f x : tau_2)
 $
 
 $
-  (Gamma, x : tau_1 ⊢ t : tau_2)
+  (Gamma, x : tau_1 tack.r t : tau_2)
   /
-  (" "Gamma ⊢ λ (x : tau_1). t : "fun"(tau_1, tau_2)" ")
+  (" "Gamma tack.r λ (x : tau_1). t : "fun"(tau_1, tau_2)" ")
 $
 
 The implementation-level helper `type_of(t)` is expected to agree with this judgment for well-formed terms.
@@ -174,9 +174,9 @@ Alpha-equivalence, written $t_1 equiv_alpha t_2$, identifies terms up to systema
 
 A theorem is represented mathematically as a sequent
 $
-  Gamma ⊢ p
+  Gamma_p tack.r p
 $
-with $p$ a boolean term and $Gamma$ a finite set of boolean assumptions.
+with $p$ a boolean term and $Gamma_p$ a finite set of boolean assumptions.
 
 The trusted boundary condition is:
 
@@ -204,19 +204,19 @@ Each primitive rule must be specified by:
 
 For example, selected rules can be presented in antecedent style:
 
-- `REFL`: for any term $t$, conclude $⊢ t = t$.
-- `ASSUME`: for any boolean proposition $p$, conclude $p ⊢ p$.
+- `REFL`: for any term $t$, conclude $tack.r t = t$.
+- `ASSUME`: for any boolean proposition $p$, conclude $p tack.r p$.
 
 $ 
-  (" "A ⊢ s = t and B ⊢ t = u" ")
+  (" "A_p tack.r s = t and B_p tack.r t = u" ")
   /
-  (A union B ⊢ s = u)
+  (A_p union B_p tack.r s = u)
 $
 
 $ 
-  (" "A ⊢ p = q and B ⊢ p" ")
+  (" "A_p tack.r p = q and B_p tack.r p" ")
   /
-  (A union B ⊢ q)
+  (A_p union B_p tack.r q)
 $
 
 Detailed formal side conditions are maintained in parallel with implementation updates.
@@ -229,7 +229,7 @@ Input:
 
 Output:
 
-- theorem $⊢ t = t$.
+- theorem $tack.r t = t$.
 
 Side conditions:
 
@@ -241,6 +241,11 @@ Failure clauses:
 1. malformed term input;
 2. type construction failure in equality formation.
 
+Antecedent form:
+$
+  (" "Gamma tack.r t : T" ") / (tack.r t = t)
+$
+
 == Rule Schema: `ASSUME`
 
 Input:
@@ -249,7 +254,7 @@ Input:
 
 Output:
 
-- theorem $p ⊢ p$.
+- theorem $p tack.r p$.
 
 Side conditions:
 
@@ -261,16 +266,21 @@ Failure clauses:
 1. non-boolean proposition;
 2. invalid assumption-set insertion.
 
+Antecedent form:
+$
+  (" "Gamma_p tack.r p : "bool"" ") / (p tack.r p)
+$
+
 == Rule Schema: `TRANS`
 
 Input:
 
-- theorem $A ⊢ s = t$;
-- theorem $B ⊢ t = u$.
+- theorem $A_p tack.r s = t$;
+- theorem $B_p tack.r t = u$.
 
 Output:
 
-- theorem $A union B ⊢ s = u$.
+- theorem $A_p union B_p tack.r s = u$.
 
 Side conditions:
 
@@ -283,16 +293,23 @@ Failure clauses:
 2. middle-term mismatch;
 3. type inconsistency in chained equality.
 
+Antecedent form:
+$
+  (" "A_p tack.r s = t and B_p tack.r t = u" ")
+  /
+  (A_p union B_p tack.r s = u)
+$
+
 == Rule Schema: `MK_COMB`
 
 Input:
 
-- theorem $A ⊢ f = g$;
-- theorem $B ⊢ x = y$.
+- theorem $A_p tack.r f = g$;
+- theorem $B_p tack.r x = y$.
 
 Output:
 
-- theorem $A union B ⊢ f x = g y$.
+- theorem $A_p union B_p tack.r f x = g y$.
 
 Side conditions:
 
@@ -306,28 +323,42 @@ Failure clauses:
 2. function-domain mismatch for application;
 3. codomain inconsistency across the two function sides.
 
+Antecedent form:
+$
+  (" "A_p tack.r f = g and B_p tack.r x = y" ")
+  /
+  (A_p union B_p tack.r f x = g y)
+$
+
 == Rule Schema: `ABS`
 
 Input:
 
 - variable term $x$;
-- theorem $A ⊢ s = t$.
+- theorem $A_p tack.r s = t$.
 
 Output:
 
-- theorem $A ⊢ λ (x : tau). s = λ (x : tau). t$.
+- theorem $A_p tack.r λ (x : tau). s = λ (x : tau). t$.
 
 Side conditions:
 
 1. $x$ must be a variable term;
 2. premise conclusion must be an equality;
-3. $x$ must not occur free in assumptions $A$.
+3. $x$ must not occur free in assumptions $A_p$.
 
 Failure clauses:
 
 1. non-variable abstraction binder;
 2. non-equality premise theorem;
 3. free-variable violation in assumption set.
+
+Antecedent form:
+$
+  (A_p tack.r s = t)
+  /
+  (" "A_p tack.r λ (x : tau). s = λ (x : tau). t" ")
+$
 
 = Soundness Strategy
 
