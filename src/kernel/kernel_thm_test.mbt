@@ -233,12 +233,23 @@ test "thm beta_rule succeeds on trivial beta redex" {
 }
 
 ///|
-test "thm beta_rule rejects nontrivial redex" {
+test "thm beta_rule reduces nontrivial redex with safe substitution" {
   let a = mk_tyvar("A")
   let x = mk_var("x", a)
   let y = mk_var("y", a)
   let z = mk_var("z", a)
   let redex = mk_comb(mk_abs(x, y), z)
+  let out = beta_rule(redex)
+  assert_true(out is Some(Sequent(_, _)))
+}
+
+///|
+test "thm beta_rule rejects capture-risk substitution" {
+  let a = mk_tyvar("A")
+  let x = mk_var("x", a)
+  let y = mk_var("y", a)
+  let body = mk_abs(y, x)
+  let redex = mk_comb(mk_abs(x, body), y)
   let out = beta_rule(redex)
   assert_true(out is None)
 }

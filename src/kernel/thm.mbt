@@ -184,6 +184,33 @@ fn vfree_in_hyps(v : Term, hs : Array[Term]) -> Bool {
 }
 
 ///|
+fn subst_var_safe(v : Term, repl : Term, t : Term) -> Term? {
+  match t {
+    Var(_, _) => if alpha_eq(t, v) { Some(repl) } else { Some(t) }
+    Const(_, _) => Some(t)
+    Comb(f, x) =>
+      match (subst_var_safe(v, repl, f), subst_var_safe(v, repl, x)) {
+        (Some(f2), Some(x2)) => Some(Comb(f2, x2))
+        _ => None
+      }
+    Abs(bv, body) =>
+      if alpha_eq(bv, v) {
+        Some(t)
+      } else {
+        let capture_risk = vfree_in(bv, repl) && vfree_in(v, body)
+        if capture_risk {
+          None
+        } else {
+          match subst_var_safe(v, repl, body) {
+            Some(body2) => Some(Abs(bv, body2))
+            None => None
+          }
+        }
+      }
+  }
+}
+
+///|
 pub fn trans(th1 : Thm, th2 : Thm) -> Thm? {
   match th1 {
     Sequent(h1, c1) =>
@@ -224,10 +251,13 @@ pub fn abs_rule(x : Term, th : Thm) -> Thm? {
 pub fn beta_rule(t : Term) -> Thm? {
   match t {
     Comb(Abs(v, body), arg) =>
-      if alpha_eq(v, arg) {
-        Some(Sequent([], mk_eq(t, body)))
-      } else {
+      if !is_var(v) || !ty_eq(type_of(v), type_of(arg)) {
         None
+      } else {
+        match subst_var_safe(v, arg, body) {
+          Some(out) => Some(Sequent([], mk_eq(t, out)))
+          None => None
+        }
       }
     _ => None
   }
