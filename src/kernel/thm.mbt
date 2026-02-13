@@ -253,25 +253,23 @@ pub fn beta_rule(t : Term) -> Thm? {
 
 ///|
 pub fn eq_mp(th_eq : Thm, th_p : Thm) -> Thm? {
-  match th_eq {
-    Sequent(h_eq, c_eq) =>
-      match th_p {
-        Sequent(h_p, c_p) =>
-          match dest_eq(c_eq) {
-            Some((lhs, rhs)) => {
-              let ok_l = is_bool_ty(type_of(lhs))
-              let ok_r = is_bool_ty(type_of(rhs))
-              let ok_m = term_alpha_eq(lhs, c_p)
-              let ok = ok_l && ok_r && ok_m
-              if ok {
-                Some(Sequent(hyps_union(h_eq, h_p), rhs))
-              } else {
-                None
-              }
-            }
-            _ => None
+  match (thm_to_db(th_eq), thm_to_db(th_p)) {
+    (Some(DbSeq(h_eq, c_eq)), Some(DbSeq(h_p, c_p))) =>
+      match db_dest_eq(c_eq) {
+        Some((lhs, rhs)) => {
+          let ok_l = is_bool_ty(db_type_of(lhs))
+          let ok_r = is_bool_ty(db_type_of(rhs))
+          let ok_m = db_term_eq(lhs, c_p)
+          let ok = ok_l && ok_r && ok_m
+          if ok {
+            db_to_thm(DbSeq(db_hyps_union(h_eq, h_p), rhs))
+          } else {
+            None
           }
+        }
+        None => None
       }
+    _ => None
   }
 }
 
