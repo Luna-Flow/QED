@@ -348,14 +348,10 @@ fn db_subst_walk(j : Int, s : DbTerm, cutoff : Int, term : DbTerm) -> DbTerm {
 }
 
 ///|
-fn lookup_db_free_subst(
-  subst : Array[(String, HolType, DbTerm)],
-  name : String,
-  ty : HolType,
-) -> DbTerm? {
+fn lookup_db_subst(subst : Array[(DbTerm, DbTerm)], key : DbTerm) -> DbTerm? {
   for entry in subst {
-    let (k, kty, v) = entry
-    if k == name && hol_type_to_string(kty) == hol_type_to_string(ty) {
+    let (k, v) = entry
+    if db_term_eq(k, key) {
       return Some(v)
     }
   }
@@ -365,17 +361,13 @@ fn lookup_db_free_subst(
 ///|
 pub fn db_subst_free_parallel(
   term : DbTerm,
-  subst : Array[(String, HolType, DbTerm)],
+  subst : Array[(DbTerm, DbTerm)],
 ) -> DbTerm {
-  fn walk(
-    depth : Int,
-    t : DbTerm,
-    subst : Array[(String, HolType, DbTerm)],
-  ) -> DbTerm {
+  fn walk(depth : Int, t : DbTerm, subst : Array[(DbTerm, DbTerm)]) -> DbTerm {
     match t {
       DbBound(_, _) => t
-      DbFree(name, ty) =>
-        match lookup_db_free_subst(subst, name, ty) {
+      DbFree(_, _) =>
+        match lookup_db_subst(subst, t) {
           Some(repl) => db_shift_walk(depth, 0, repl)
           None => t
         }

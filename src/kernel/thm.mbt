@@ -264,11 +264,11 @@ pub fn inst(subst : Array[(Term, Term)], th : Thm) -> Thm? {
   if !is_valid_term_subst(subst) {
     return None
   }
-  let db_subst : Array[(String, HolType, DbTerm)] = []
+  let db_subst : Array[(DbTerm, DbTerm)] = []
   for pair in subst {
     let (k, v) = pair
-    match (dest_var(k), to_db_term(v)) {
-      (Some((name, ty)), Some(v_db)) => db_subst.push((name, ty, v_db))
+    match (to_db_term(k), to_db_term(v)) {
+      (Some(k_db), Some(v_db)) => db_subst.push((k_db, v_db))
       _ => return None
     }
   }

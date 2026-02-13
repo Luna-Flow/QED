@@ -16,7 +16,7 @@ pub fn db_has_free_var(DbTerm, String, HolType) -> Bool
 
 pub fn db_string(Term) -> String
 
-pub fn db_subst_free_parallel(DbTerm, Array[(String, HolType, DbTerm)]) -> DbTerm
+pub fn db_subst_free_parallel(DbTerm, Array[(DbTerm, DbTerm)]) -> DbTerm
 
 pub fn db_term_eq(DbTerm, DbTerm) -> Bool
 
