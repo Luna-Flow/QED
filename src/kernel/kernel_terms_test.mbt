@@ -274,36 +274,6 @@ test "terms db_subst_free_parallel is capture-avoiding" {
 }
 
 ///|
-test "terms db_has_free_var detects free occurrence" {
-  let a = mk_tyvar("A")
-  let x = mk_var("x", a)
-  let y = mk_var("y", a)
-  let t = mk_comb(x, y)
-  let db = to_db_term(t)
-  assert_true(db is Some(_))
-  match db {
-    Some(d) => {
-      assert_true(db_has_free_var(d, "x", a))
-      assert_false(db_has_free_var(d, "z", a))
-    }
-    None => assert_false(true)
-  }
-}
-
-///|
-test "terms db_has_free_var does not count bound occurrence" {
-  let a = mk_tyvar("A")
-  let x = mk_var("x", a)
-  let t = mk_abs(x, x)
-  let db = to_db_term(t)
-  assert_true(db is Some(_))
-  match db {
-    Some(d) => assert_false(db_has_free_var(d, "x", a))
-    None => assert_false(true)
-  }
-}
-
-///|
 test "terms db_has_free matches free needle term" {
   let a = mk_tyvar("A")
   let x = mk_var("x", a)
@@ -318,6 +288,20 @@ test "terms db_has_free matches free needle term" {
       assert_true(db_has_free(tt, dx))
       assert_false(db_has_free(tt, dz))
     }
+    _ => assert_false(true)
+  }
+}
+
+///|
+test "terms db_has_free does not count bound occurrence" {
+  let a = mk_tyvar("A")
+  let x = mk_var("x", a)
+  let t = mk_abs(x, x)
+  let d_t = to_db_term(t)
+  let d_x = to_db_term(x)
+  assert_true((d_t, d_x) is (Some(_), Some(_)))
+  match (d_t, d_x) {
+    (Some(tt), Some(dx)) => assert_false(db_has_free(tt, dx))
     _ => assert_false(true)
   }
 }

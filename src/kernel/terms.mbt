@@ -308,17 +308,6 @@ pub fn db_term_eq(lhs : DbTerm, rhs : DbTerm) -> Bool {
 }
 
 ///|
-pub fn db_has_free_var(term : DbTerm, name : String, ty : HolType) -> Bool {
-  match term {
-    DbBound(_, _) => false
-    DbFree(n, t) => n == name && hol_type_to_string(t) == hol_type_to_string(ty)
-    DbConst(_, _) => false
-    DbComb(f, x) => db_has_free_var(f, name, ty) || db_has_free_var(x, name, ty)
-    DbAbs(_, body) => db_has_free_var(body, name, ty)
-  }
-}
-
-///|
 pub fn db_has_free(term : DbTerm, needle : DbTerm) -> Bool {
   match term {
     DbBound(_, _) => false
