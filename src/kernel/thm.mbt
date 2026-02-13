@@ -274,6 +274,28 @@ pub fn eq_mp(th_eq : Thm, th_p : Thm) -> Thm? {
 
 ///|
 pub fn deduct_antisym_rule(th1 : Thm, th2 : Thm) -> Thm {
+  fn named_fallback(a : Thm, b : Thm) -> Thm {
+    fn remove_h(hs : Array[Term], t : Term) -> Array[Term] {
+      hs.filter(fn(h) { !term_alpha_eq(h, t) })
+    }
+    fn union_h(x : Array[Term], y : Array[Term]) -> Array[Term] {
+      let out = x.copy()
+      for h in y {
+        if !out.any(fn(k) { term_alpha_eq(k, h) }) {
+          out.push(h)
+        }
+      }
+      out
+    }
+    match a {
+      Sequent(h1, p) =>
+        match b {
+          Sequent(h2, q) =>
+            Sequent(union_h(remove_h(h1, q), remove_h(h2, p)), mk_eq(p, q))
+        }
+    }
+  }
+
   match (thm_to_db(th1), thm_to_db(th2)) {
     (Some(DbSeq(h1, p)), Some(DbSeq(h2, q))) =>
       match
@@ -284,9 +306,9 @@ pub fn deduct_antisym_rule(th1 : Thm, th2 : Thm) -> Thm {
           ),
         ) {
         Some(out) => out
-        None => th1
+        None => named_fallback(th1, th2)
       }
-    _ => th1
+    _ => named_fallback(th1, th2)
   }
 }
 
