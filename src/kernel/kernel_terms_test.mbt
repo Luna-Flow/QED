@@ -123,9 +123,16 @@ test "terms debruijn string keeps alpha shape" {
 
   let t1 = mk_abs(x, x)
   let t2 = mk_abs(y, y)
-
-  assert_eq(db_string(t1), db_string(t2))
-  assert_true(db_string(t1).contains("BVar(0 : A)"))
+  let d1 = to_db_term(t1)
+  let d2 = to_db_term(t2)
+  assert_true((d1, d2) is (Some(_), Some(_)))
+  match (d1, d2) {
+    (Some(v1), Some(v2)) => {
+      assert_eq(db_term_to_string(v1), db_term_to_string(v2))
+      assert_true(db_term_to_string(v1).contains("BVar(0 : A)"))
+    }
+    _ => assert_false(true)
+  }
 }
 
 ///|
