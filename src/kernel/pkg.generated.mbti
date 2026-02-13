@@ -36,6 +36,8 @@ pub fn dest_var(Term) -> (String, HolType)?
 
 pub fn eq_mp(Thm, Thm) -> Thm?
 
+pub fn from_db_term(DbTerm) -> Term?
+
 pub fn fun_ty(HolType, HolType) -> HolType
 
 pub fn hol_type_to_string(HolType) -> String

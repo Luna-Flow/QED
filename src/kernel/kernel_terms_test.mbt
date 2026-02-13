@@ -223,3 +223,26 @@ test "terms db_beta_reduce_once avoids capture by construction" {
     None => assert_false(true)
   }
 }
+
+///|
+test "terms from_db_term round-trips up to alpha equivalence" {
+  let a = mk_tyvar("A")
+  let x = mk_var("x", a)
+  let y = mk_var("y", a)
+  let t = mk_abs(x, mk_comb(x, y))
+
+  let db = to_db_term(t)
+  assert_true(db is Some(_))
+  match db {
+    Some(dt) =>
+      match from_db_term(dt) {
+        Some(t2) =>
+          match (to_db_term(t), to_db_term(t2)) {
+            (Some(d1), Some(d2)) => assert_true(db_term_eq(d1, d2))
+            _ => assert_false(true)
+          }
+        None => assert_false(true)
+      }
+    None => assert_false(true)
+  }
+}

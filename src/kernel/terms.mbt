@@ -186,6 +186,90 @@ pub fn to_db_term(term : Term) -> DbTerm? {
 }
 
 ///|
+fn collect_db_free_names(term : DbTerm, out : Array[String]) -> Unit {
+  match term {
+    DbBound(_, _) => ()
+    DbFree(name, _) => if !out.contains(name) { out.push(name) }
+    DbConst(_, _) => ()
+    DbComb(f, x) => {
+      collect_db_free_names(f, out)
+      collect_db_free_names(x, out)
+    }
+    DbAbs(_, body) => collect_db_free_names(body, out)
+  }
+}
+
+///|
+fn fresh_bound_name(
+  forbidden : Array[String],
+  used : Array[String],
+  seed : Int,
+) -> String {
+  let mut i = seed
+  while true {
+    let candidate = "_b" + i.to_string()
+    if !forbidden.contains(candidate) && !used.contains(candidate) {
+      return candidate
+    }
+    i = i + 1
+  }
+  "_b0"
+}
+
+///|
+fn from_db_term_with_env(
+  term : DbTerm,
+  env : Array[(String, HolType)],
+  forbidden : Array[String],
+  used : Array[String],
+) -> Term? {
+  match term {
+    DbBound(i, ty) => {
+      let n = env.length()
+      if i < 0 || i >= n {
+        None
+      } else {
+        let (name, ty2) = env[n - 1 - i]
+        if hol_type_to_string(ty) == hol_type_to_string(ty2) {
+          Some(Var(name, ty))
+        } else {
+          None
+        }
+      }
+    }
+    DbFree(name, ty) => Some(Var(name, ty))
+    DbConst(name, ty) => Some(Const(name, ty))
+    DbComb(f, x) =>
+      match
+        (
+          from_db_term_with_env(f, env, forbidden, used),
+          from_db_term_with_env(x, env, forbidden, used),
+        ) {
+        (Some(f2), Some(x2)) => Some(Comb(f2, x2))
+        _ => None
+      }
+    DbAbs(ty, body) => {
+      let name = fresh_bound_name(forbidden, used, used.length())
+      let env2 = env.copy()
+      env2.push((name, ty))
+      let used2 = used.copy()
+      used2.push(name)
+      match from_db_term_with_env(body, env2, forbidden, used2) {
+        Some(body2) => Some(Abs(Var(name, ty), body2))
+        None => None
+      }
+    }
+  }
+}
+
+///|
+pub fn from_db_term(term : DbTerm) -> Term? {
+  let forbidden : Array[String] = []
+  collect_db_free_names(term, forbidden)
+  from_db_term_with_env(term, [], forbidden, [])
+}
+
+///|
 pub fn db_term_to_string(term : DbTerm) -> String {
   match term {
     DbBound(i, ty) =>
