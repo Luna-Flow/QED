@@ -340,6 +340,24 @@ test "thm eq_mp fails when lhs does not match premise" {
 }
 
 ///|
+test "thm eq_mp accepts alpha-equivalent lhs premise" {
+  let a = mk_tyvar("A")
+  let x = mk_var("x", a)
+  let y = mk_var("y", a)
+  let p = mk_eq(mk_abs(x, x), mk_abs(x, x))
+  let p2 = mk_eq(mk_abs(y, y), mk_abs(y, y))
+  let q = mk_const("Q", bool_ty())
+  let th_eq = assume(mk_eq(p, q))
+  let th_p = assume(p2)
+  assert_true((th_eq, th_p) is (Some(_), Some(_)))
+
+  match (th_eq, th_p) {
+    (Some(teq), Some(tp)) => assert_true(eq_mp(teq, tp) is Some(_))
+    _ => assert_false(true)
+  }
+}
+
+///|
 test "thm deduct_antisym_rule builds equality theorem" {
   let p = mk_const("P", bool_ty())
   let q = mk_const("Q", bool_ty())
