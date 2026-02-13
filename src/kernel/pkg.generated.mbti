@@ -12,6 +12,8 @@ pub fn bool_ty() -> HolType
 
 pub fn db_beta_reduce_once(DbTerm) -> DbTerm?
 
+pub fn db_has_free_var(DbTerm, String, HolType) -> Bool
+
 pub fn db_string(Term) -> String
 
 pub fn db_subst_free_parallel(DbTerm, Array[(String, HolType, DbTerm)]) -> DbTerm

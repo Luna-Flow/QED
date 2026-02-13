@@ -300,6 +300,17 @@ pub fn db_term_eq(lhs : DbTerm, rhs : DbTerm) -> Bool {
 }
 
 ///|
+pub fn db_has_free_var(term : DbTerm, name : String, ty : HolType) -> Bool {
+  match term {
+    DbBound(_, _) => false
+    DbFree(n, t) => n == name && hol_type_to_string(t) == hol_type_to_string(ty)
+    DbConst(_, _) => false
+    DbComb(f, x) => db_has_free_var(f, name, ty) || db_has_free_var(x, name, ty)
+    DbAbs(_, body) => db_has_free_var(body, name, ty)
+  }
+}
+
+///|
 fn db_shift_walk(delta : Int, cutoff : Int, term : DbTerm) -> DbTerm {
   match term {
     DbBound(i, ty) => if i >= cutoff { DbBound(i + delta, ty) } else { term }
