@@ -294,6 +294,20 @@ fn db_rule_beta(t : DbTerm) -> DbSequent? {
 }
 
 ///|
+fn db_rule_inst_type(
+  subst : Array[(String, HolType)],
+  th : DbSequent,
+) -> DbSequent {
+  match th {
+    DbSeq(hs, c) =>
+      DbSeq(
+        hs.map(fn(h) { db_apply_ty_subst(subst, h) }),
+        db_apply_ty_subst(subst, c),
+      )
+  }
+}
+
+///|
 pub fn trans(th1 : Thm, th2 : Thm) -> Thm? {
   match (thm_to_db(th1), thm_to_db(th2)) {
     (Some(db1), Some(db2)) =>
@@ -384,13 +398,7 @@ pub fn inst_type(subst : Array[(String, HolType)], th : Thm) -> Thm? {
     return None
   }
   match thm_to_db(th) {
-    Some(DbSeq(hs, c)) =>
-      db_to_thm(
-        DbSeq(
-          hs.map(fn(h) { db_apply_ty_subst(subst, h) }),
-          db_apply_ty_subst(subst, c),
-        ),
-      )
+    Some(db_th) => db_to_thm(db_rule_inst_type(subst, db_th))
     None => None
   }
 }
