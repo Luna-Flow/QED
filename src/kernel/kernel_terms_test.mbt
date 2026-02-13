@@ -182,3 +182,44 @@ test "terms db_term_eq checks structural equality" {
     _ => assert_false(true)
   }
 }
+
+///|
+test "terms db_beta_reduce_once reduces identity application" {
+  let a = mk_tyvar("A")
+  let x = mk_var("x", a)
+  let y = mk_var("y", a)
+  let redex = mk_comb(mk_abs(x, x), y)
+
+  let db_redex = to_db_term(redex)
+  let db_y = to_db_term(y)
+  assert_true((db_redex, db_y) is (Some(_), Some(_)))
+
+  match (db_redex, db_y) {
+    (Some(r), Some(y2)) =>
+      match db_beta_reduce_once(r) {
+        Some(out) => assert_true(db_term_eq(out, y2))
+        None => assert_false(true)
+      }
+    _ => assert_false(true)
+  }
+}
+
+///|
+test "terms db_beta_reduce_once avoids capture by construction" {
+  let a = mk_tyvar("A")
+  let x = mk_var("x", a)
+  let y = mk_var("y", a)
+  let body = mk_abs(y, x)
+  let redex = mk_comb(mk_abs(x, body), y)
+
+  let db_redex = to_db_term(redex)
+  assert_true(db_redex is Some(_))
+  match db_redex {
+    Some(r) =>
+      match db_beta_reduce_once(r) {
+        Some(out) => assert_true(db_term_to_string(out).contains("FVar(y : A)"))
+        None => assert_false(true)
+      }
+    None => assert_false(true)
+  }
+}

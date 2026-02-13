@@ -216,6 +216,47 @@ pub fn db_term_eq(lhs : DbTerm, rhs : DbTerm) -> Bool {
 }
 
 ///|
+fn db_shift_walk(delta : Int, cutoff : Int, term : DbTerm) -> DbTerm {
+  match term {
+    DbBound(i, ty) => if i >= cutoff { DbBound(i + delta, ty) } else { term }
+    DbFree(_, _) => term
+    DbConst(_, _) => term
+    DbComb(f, x) =>
+      DbComb(db_shift_walk(delta, cutoff, f), db_shift_walk(delta, cutoff, x))
+    DbAbs(ty, body) => DbAbs(ty, db_shift_walk(delta, cutoff + 1, body))
+  }
+}
+
+///|
+fn db_subst_walk(j : Int, s : DbTerm, cutoff : Int, term : DbTerm) -> DbTerm {
+  match term {
+    DbBound(i, _) =>
+      if i == j + cutoff {
+        db_shift_walk(cutoff, 0, s)
+      } else {
+        term
+      }
+    DbFree(_, _) => term
+    DbConst(_, _) => term
+    DbComb(f, x) =>
+      DbComb(db_subst_walk(j, s, cutoff, f), db_subst_walk(j, s, cutoff, x))
+    DbAbs(ty, body) => DbAbs(ty, db_subst_walk(j, s, cutoff + 1, body))
+  }
+}
+
+///|
+pub fn db_beta_reduce_once(term : DbTerm) -> DbTerm? {
+  match term {
+    DbComb(DbAbs(_, body), arg) => {
+      let arg1 = db_shift_walk(1, 0, arg)
+      let body1 = db_subst_walk(0, arg1, 0, body)
+      Some(db_shift_walk(-1, 0, body1))
+    }
+    _ => None
+  }
+}
+
+///|
 fn db_string_with_env(term : Term, env : Array[String]) -> String {
   match term {
     Var(name, ty) =>
