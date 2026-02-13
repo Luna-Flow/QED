@@ -296,10 +296,15 @@ test "thm beta_rule keeps inner shadowed binder unchanged" {
   assert_true(out is Some(_))
 
   match out {
-    Some(Sequent(_, concl)) => {
-      let s = term_to_string(concl)
-      assert_true(s.contains("Abs(Var(x : A), Var(x : A))"))
-    }
+    Some(Sequent(_, concl)) =>
+      match concl {
+        Comb(Comb(Const("=", _), _), rhs) =>
+          match (to_db_term(rhs), to_db_term(inner)) {
+            (Some(d1), Some(d2)) => assert_true(db_term_eq(d1, d2))
+            _ => assert_false(true)
+          }
+        _ => assert_false(true)
+      }
     None => assert_false(true)
   }
 }

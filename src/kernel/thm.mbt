@@ -223,11 +223,7 @@ pub fn beta_rule(t : Term) -> Thm? {
             None
           } else {
             match db_beta_reduce_once(db_t) {
-              Some(db_out) =>
-                match from_db_term(db_out) {
-                  Some(out) => Some(Sequent([], mk_eq(t, out)))
-                  None => None
-                }
+              Some(db_out) => db_to_thm(DbSeq([], db_mk_eq(db_t, db_out)))
               None => None
             }
           }
