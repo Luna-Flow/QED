@@ -170,8 +170,7 @@ fn db_to_thm_or(db_th : DbSequent, fallback : Thm) -> Thm {
 ///|
 pub fn refl(t : Term) -> Thm {
   match to_db_term(t) {
-    Some(db_t) =>
-      db_to_thm_or(DbSeq([], db_mk_eq(db_t, db_t)), Sequent([], mk_eq(t, t)))
+    Some(db_t) => db_to_thm_or(db_rule_refl(db_t), Sequent([], mk_eq(t, t)))
     None => Sequent([], mk_eq(t, t))
   }
 }
@@ -180,10 +179,9 @@ pub fn refl(t : Term) -> Thm {
 pub fn assume(p : Term) -> Thm? {
   match to_db_term(p) {
     Some(db_p) =>
-      if is_bool_ty(db_type_of(db_p)) {
-        db_to_thm(DbSeq([db_p], db_p))
-      } else {
-        None
+      match db_rule_assume(db_p) {
+        Some(db_out) => db_to_thm(db_out)
+        None => None
       }
     None => None
   }
@@ -326,6 +324,20 @@ fn db_rule_deduct_antisym(th1 : DbSequent, th2 : DbSequent) -> DbSequent {
         db_hyps_union(db_hyps_remove(h1, q), db_hyps_remove(h2, p)),
         db_mk_eq(p, q),
       )
+  }
+}
+
+///|
+fn db_rule_refl(t : DbTerm) -> DbSequent {
+  DbSeq([], db_mk_eq(t, t))
+}
+
+///|
+fn db_rule_assume(p : DbTerm) -> DbSequent? {
+  if is_bool_ty(db_type_of(p)) {
+    Some(DbSeq([p], p))
+  } else {
+    None
   }
 }
 
