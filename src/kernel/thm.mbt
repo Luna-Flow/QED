@@ -5,6 +5,45 @@ pub enum Thm {
 }
 
 ///|
+fn lookup_ty_subst(subst : Array[(String, HolType)], name : String) -> HolType? {
+  for kv in subst {
+    let (k, v) = kv
+    if k == name {
+      return Some(v)
+    }
+  }
+  None
+}
+
+///|
+fn apply_ty_subst_to_type(
+  subst : Array[(String, HolType)],
+  ty : HolType,
+) -> HolType {
+  match ty {
+    TyVal(name) =>
+      match lookup_ty_subst(subst, name) {
+        Some(t) => t
+        None => ty
+      }
+    TyApp(tycon, args) =>
+      TyApp(tycon, args.map(fn(a) { apply_ty_subst_to_type(subst, a) }))
+  }
+}
+
+///|
+fn apply_ty_subst_to_term(subst : Array[(String, HolType)], t : Term) -> Term {
+  match t {
+    Var(name, ty) => Var(name, apply_ty_subst_to_type(subst, ty))
+    Const(name, ty) => Const(name, apply_ty_subst_to_type(subst, ty))
+    Comb(f, x) =>
+      Comb(apply_ty_subst_to_term(subst, f), apply_ty_subst_to_term(subst, x))
+    Abs(v, body) =>
+      Abs(apply_ty_subst_to_term(subst, v), apply_ty_subst_to_term(subst, body))
+  }
+}
+
+///|
 pub fn mk_eq(lhs : Term, rhs : Term) -> Term {
   let eq_ty = fun_ty(type_of(lhs), fun_ty(type_of(rhs), bool_ty()))
   let eq_const = mk_const("=", eq_ty)
@@ -164,10 +203,12 @@ pub fn deduct_antisym_rule(th1 : Thm, th2 : Thm) -> Thm {
 
 ///|
 pub fn inst_type(subst : Array[(String, HolType)], th : Thm) -> Thm? {
-  if subst.length() == 0 {
-    Some(th)
-  } else {
-    None
+  match th {
+    Sequent(hs, c) => {
+      let hs2 = hs.map(fn(h) { apply_ty_subst_to_term(subst, h) })
+      let c2 = apply_ty_subst_to_term(subst, c)
+      Some(Sequent(hs2, c2))
+    }
   }
 }
 

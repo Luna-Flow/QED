@@ -263,16 +263,20 @@ test "thm inst_type accepts empty substitution" {
 }
 
 ///|
-test "thm inst_type rejects non-empty substitution for now" {
+test "thm inst_type applies non-empty substitution" {
   let p = mk_const("P", bool_ty())
-  let th = assume(p)
   let a = mk_tyvar("A")
-  assert_true(th is Some(_))
-  match th {
-    Some(t) => {
-      let out = inst_type([("A", a)], t)
-      assert_true(out is None)
-    }
+  let x = mk_var("x", a)
+  let th = refl(x)
+  let out = inst_type([("A", bool_ty())], th)
+  assert_true(out is Some(_))
+  match out {
+    Some(Sequent(_, concl)) =>
+      match concl {
+        Comb(Comb(Const("=", _), lhs), _) =>
+          assert_true(type_of(lhs) is TyApp("bool", []))
+        _ => assert_false(true)
+      }
     None => assert_false(true)
   }
 }
