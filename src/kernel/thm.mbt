@@ -107,7 +107,7 @@ pub fn dest_eq(t : Term) -> (Term, Term)? {
 
 ///|
 fn alpha_eq(t1 : Term, t2 : Term) -> Bool {
-  term_to_string(t1) == term_to_string(t2)
+  db_string(t1) == db_string(t2)
 }
 
 ///|

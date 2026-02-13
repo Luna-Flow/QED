@@ -78,6 +78,31 @@ test "thm trans fails on mismatch middle term" {
 }
 
 ///|
+test "thm trans accepts alpha-equivalent middle term" {
+  let a = mk_tyvar("A")
+  let b = mk_tyvar("B")
+  let x = mk_var("x", a)
+  let y = mk_var("y", a)
+  let z = mk_var("z", b)
+
+  let id_x = mk_abs(x, x)
+  let id_y = mk_abs(y, y)
+  let k = mk_abs(x, z)
+
+  let th1 = assume(mk_eq(k, id_x))
+  let th2 = assume(mk_eq(id_y, k))
+  assert_true((th1, th2) is (Some(_), Some(_)))
+
+  match (th1, th2) {
+    (Some(t1), Some(t2)) => {
+      let out = trans(t1, t2)
+      assert_true(out is Some(_))
+    }
+    _ => assert_false(true)
+  }
+}
+
+///|
 test "thm mk_comb_rule combines function and argument equalities" {
   let a = mk_tyvar("A")
   let b = mk_tyvar("B")
