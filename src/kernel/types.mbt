@@ -27,6 +27,31 @@ pub fn fun_ty(dom : HolType, cod : HolType) -> HolType {
 }
 
 ///|
+/// Destructors
+pub fn dest_tyapp(ty : HolType) -> (String, Array[HolType])? {
+  match ty {
+    TyApp(tycon, args) => Some((tycon, args))
+    _ => None
+  }
+}
+
+///|
+pub fn dest_fun_ty(ty : HolType) -> (HolType, HolType)? {
+  match ty {
+    TyApp("fun", [dom, cod]) => Some((dom, cod))
+    _ => None
+  }
+}
+
+///|
+pub fn is_bool_ty(ty : HolType) -> Bool {
+  match ty {
+    TyApp("bool", []) => true
+    _ => false
+  }
+}
+
+///|
 /// Predicates
 pub fn is_tyvar(ty : HolType) -> Bool {
   match ty {

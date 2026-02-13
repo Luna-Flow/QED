@@ -4,7 +4,13 @@ package "Luna-Flow/QED/kernel"
 // Values
 pub fn bool_ty() -> HolType
 
+pub fn dest_fun_ty(HolType) -> (HolType, HolType)?
+
+pub fn dest_tyapp(HolType) -> (String, Array[HolType])?
+
 pub fn fun_ty(HolType, HolType) -> HolType
+
+pub fn is_bool_ty(HolType) -> Bool
 
 pub fn is_tyapp(HolType) -> Bool
 
