@@ -10,6 +10,8 @@ pub fn beta_rule(Term) -> Thm?
 
 pub fn bool_ty() -> HolType
 
+pub fn db_apply_ty_subst(Array[(String, HolType)], DbTerm) -> DbTerm
+
 pub fn db_beta_reduce_once(DbTerm) -> DbTerm?
 
 pub fn db_has_free(DbTerm, DbTerm) -> Bool

@@ -6,17 +6,6 @@ pub enum Thm {
 
 ///|
 /// Type-substitution helpers
-fn lookup_ty_subst(subst : Array[(String, HolType)], name : String) -> HolType? {
-  for kv in subst {
-    let (k, v) = kv
-    if k == name {
-      return Some(v)
-    }
-  }
-  None
-}
-
-///|
 fn has_duplicate_ty_subst_keys(subst : Array[(String, HolType)]) -> Bool {
   let seen : Array[String] = []
   for kv in subst {
@@ -27,34 +16,6 @@ fn has_duplicate_ty_subst_keys(subst : Array[(String, HolType)]) -> Bool {
     seen.push(k)
   }
   false
-}
-
-///|
-fn apply_ty_subst_to_type(
-  subst : Array[(String, HolType)],
-  ty : HolType,
-) -> HolType {
-  match ty {
-    TyVal(name) =>
-      match lookup_ty_subst(subst, name) {
-        Some(t) => t
-        None => ty
-      }
-    TyApp(tycon, args) =>
-      TyApp(tycon, args.map(fn(a) { apply_ty_subst_to_type(subst, a) }))
-  }
-}
-
-///|
-fn apply_ty_subst_to_term(subst : Array[(String, HolType)], t : Term) -> Term {
-  match t {
-    Var(name, ty) => Var(name, apply_ty_subst_to_type(subst, ty))
-    Const(name, ty) => Const(name, apply_ty_subst_to_type(subst, ty))
-    Comb(f, x) =>
-      Comb(apply_ty_subst_to_term(subst, f), apply_ty_subst_to_term(subst, x))
-    Abs(v, body) =>
-      Abs(apply_ty_subst_to_term(subst, v), apply_ty_subst_to_term(subst, body))
-  }
 }
 
 ///|
@@ -266,8 +227,26 @@ pub fn inst_type(subst : Array[(String, HolType)], th : Thm) -> Thm? {
   }
   match th {
     Sequent(hs, c) => {
-      let hs2 = hyps_dedup(hs.map(fn(h) { apply_ty_subst_to_term(subst, h) }))
-      let c2 = apply_ty_subst_to_term(subst, c)
+      let hs2_raw : Array[Term] = []
+      for h in hs {
+        match to_db_term(h) {
+          Some(h_db) =>
+            match from_db_term(db_apply_ty_subst(subst, h_db)) {
+              Some(h2) => hs2_raw.push(h2)
+              None => return None
+            }
+          None => return None
+        }
+      }
+      let hs2 = hyps_dedup(hs2_raw)
+      let c2 = match to_db_term(c) {
+        Some(c_db) =>
+          match from_db_term(db_apply_ty_subst(subst, c_db)) {
+            Some(c_out) => c_out
+            None => return None
+          }
+        None => return None
+      }
       Some(Sequent(hs2, c2))
     }
   }

@@ -359,6 +359,52 @@ fn lookup_db_subst(subst : Array[(DbTerm, DbTerm)], key : DbTerm) -> DbTerm? {
 }
 
 ///|
+fn lookup_ty_subst(subst : Array[(String, HolType)], name : String) -> HolType? {
+  for kv in subst {
+    let (k, v) = kv
+    if k == name {
+      return Some(v)
+    }
+  }
+  None
+}
+
+///|
+fn db_apply_ty_subst_to_type(
+  subst : Array[(String, HolType)],
+  ty : HolType,
+) -> HolType {
+  match ty {
+    TyVal(name) =>
+      match lookup_ty_subst(subst, name) {
+        Some(t) => t
+        None => ty
+      }
+    TyApp(tycon, args) =>
+      TyApp(tycon, args.map(fn(a) { db_apply_ty_subst_to_type(subst, a) }))
+  }
+}
+
+///|
+pub fn db_apply_ty_subst(
+  subst : Array[(String, HolType)],
+  term : DbTerm,
+) -> DbTerm {
+  match term {
+    DbBound(i, ty) => DbBound(i, db_apply_ty_subst_to_type(subst, ty))
+    DbFree(name, ty) => DbFree(name, db_apply_ty_subst_to_type(subst, ty))
+    DbConst(name, ty) => DbConst(name, db_apply_ty_subst_to_type(subst, ty))
+    DbComb(f, x) =>
+      DbComb(db_apply_ty_subst(subst, f), db_apply_ty_subst(subst, x))
+    DbAbs(ty, body) =>
+      DbAbs(
+        db_apply_ty_subst_to_type(subst, ty),
+        db_apply_ty_subst(subst, body),
+      )
+  }
+}
+
+///|
 pub fn db_subst_free_parallel(
   term : DbTerm,
   subst : Array[(DbTerm, DbTerm)],

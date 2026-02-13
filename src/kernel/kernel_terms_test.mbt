@@ -296,6 +296,24 @@ test "terms db_type_of follows function application typing" {
 }
 
 ///|
+test "terms db_apply_ty_subst rewrites embedded types" {
+  let a = mk_tyvar("A")
+  let b = mk_tyvar("B")
+  let x = mk_var("x", a)
+  let t = mk_abs(x, x)
+  let dt = to_db_term(t)
+  assert_true(dt is Some(_))
+  match dt {
+    Some(v) => {
+      let out = db_apply_ty_subst([("A", b)], v)
+      assert_true(db_term_to_string(out).contains("B"))
+      assert_false(db_term_to_string(out).contains(" : A"))
+    }
+    None => assert_false(true)
+  }
+}
+
+///|
 test "terms db_has_free matches free needle term" {
   let a = mk_tyvar("A")
   let x = mk_var("x", a)
