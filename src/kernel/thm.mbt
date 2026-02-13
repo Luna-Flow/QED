@@ -31,8 +31,9 @@ fn is_valid_db_term_subst(subst : Array[(DbTerm, DbTerm)]) -> Bool {
     let (k_db, v_db) = pair
     match k_db {
       DbFree(_, _) => {
-        if !ty_eq(db_type_of(k_db), db_type_of(v_db)) {
-          return false
+        match (db_type_of(k_db), db_type_of(v_db)) {
+          (Some(ty_k), Some(ty_v)) => if !ty_eq(ty_k, ty_v) { return false }
+          _ => return false
         }
         if keys.any(fn(x) { db_term_eq(x, k_db) }) {
           return false
@@ -51,22 +52,28 @@ fn is_valid_db_term_subst(subst : Array[(DbTerm, DbTerm)]) -> Bool {
 
 ///|
 /// Theorem constructors and primitive rules
-pub fn mk_eq(lhs : Term, rhs : Term) -> Term {
+pub fn mk_eq(lhs : Term, rhs : Term) -> Term? {
+  let mk_named = fn() -> Term? {
+    match (type_of(lhs), type_of(rhs)) {
+      (Some(ty_l), Some(ty_r)) => {
+        let eq_ty = fun_ty(ty_l, fun_ty(ty_r, bool_ty()))
+        let eq_const = mk_const("=", eq_ty)
+        Some(mk_comb(mk_comb(eq_const, lhs), rhs))
+      }
+      _ => None
+    }
+  }
   match (to_db_term(lhs), to_db_term(rhs)) {
     (Some(l), Some(r)) =>
-      match from_db_term(db_mk_eq(l, r)) {
-        Some(t) => t
-        None => {
-          let eq_ty = fun_ty(type_of(lhs), fun_ty(type_of(rhs), bool_ty()))
-          let eq_const = mk_const("=", eq_ty)
-          mk_comb(mk_comb(eq_const, lhs), rhs)
-        }
+      match db_mk_eq(l, r) {
+        Some(db_eq) =>
+          match from_db_term(db_eq) {
+            Some(t) => Some(t)
+            None => mk_named()
+          }
+        None => mk_named()
       }
-    _ => {
-      let eq_ty = fun_ty(type_of(lhs), fun_ty(type_of(rhs), bool_ty()))
-      let eq_const = mk_const("=", eq_ty)
-      mk_comb(mk_comb(eq_const, lhs), rhs)
-    }
+    _ => mk_named()
   }
 }
 
@@ -87,11 +94,6 @@ pub fn dest_eq(t : Term) -> (Term, Term)? {
 }
 
 ///|
-fn ty_eq(t1 : HolType, t2 : HolType) -> Bool {
-  hol_type_to_string(t1) == hol_type_to_string(t2)
-}
-
-///|
 fn db_dest_eq(t : DbTerm) -> (DbTerm, DbTerm)? {
   match t {
     DbComb(DbComb(DbConst("=", _), lhs), rhs) => Some((lhs, rhs))
@@ -100,9 +102,14 @@ fn db_dest_eq(t : DbTerm) -> (DbTerm, DbTerm)? {
 }
 
 ///|
-fn db_mk_eq(lhs : DbTerm, rhs : DbTerm) -> DbTerm {
-  let eq_ty = fun_ty(db_type_of(lhs), fun_ty(db_type_of(rhs), bool_ty()))
-  DbComb(DbComb(DbConst("=", eq_ty), lhs), rhs)
+fn db_mk_eq(lhs : DbTerm, rhs : DbTerm) -> DbTerm? {
+  match (db_type_of(lhs), db_type_of(rhs)) {
+    (Some(ty_l), Some(ty_r)) => {
+      let eq_ty = fun_ty(ty_l, fun_ty(ty_r, bool_ty()))
+      Some(DbComb(DbComb(DbConst("=", eq_ty), lhs), rhs))
+    }
+    _ => None
+  }
 }
 
 ///|
@@ -156,14 +163,6 @@ fn db_to_thm(db_th : DbSequent) -> Thm? {
         None => None
       }
     }
-  }
-}
-
-///|
-fn db_to_thm_or(db_th : DbSequent, fallback : Thm) -> Thm {
-  match db_to_thm(db_th) {
-    Some(th) => th
-    None => fallback
   }
 }
 
@@ -224,10 +223,14 @@ fn lift_db_term_thm_rule(
 }
 
 ///|
-pub fn refl(t : Term) -> Thm {
+pub fn refl(t : Term) -> Thm? {
   match to_db_term(t) {
-    Some(db_t) => db_to_thm_or(db_rule_refl(db_t), Sequent([], mk_eq(t, t)))
-    None => Sequent([], mk_eq(t, t))
+    Some(db_t) =>
+      match db_rule_refl(db_t) {
+        Some(db_out) => db_to_thm(db_out)
+        None => None
+      }
+    None => None
   }
 }
 
@@ -255,7 +258,10 @@ fn db_rule_trans(th1 : DbSequent, th2 : DbSequent) -> DbSequent? {
       match (db_dest_eq(c1), db_dest_eq(c2)) {
         (Some((l1, r1)), Some((l2, r2))) =>
           if db_term_eq(r1, l2) {
-            Some(DbSeq(db_hyps_union(h1, h2), db_mk_eq(l1, r2)))
+            match db_mk_eq(l1, r2) {
+              Some(eq) => Some(DbSeq(db_hyps_union(h1, h2), eq))
+              None => None
+            }
           } else {
             None
           }
@@ -269,17 +275,21 @@ fn db_rule_eq_mp(th_eq : DbSequent, th_p : DbSequent) -> DbSequent? {
   match (th_eq, th_p) {
     (DbSeq(h_eq, c_eq), DbSeq(h_p, c_p)) =>
       match db_dest_eq(c_eq) {
-        Some((lhs, rhs)) => {
-          let ok_l = is_bool_ty(db_type_of(lhs))
-          let ok_r = is_bool_ty(db_type_of(rhs))
-          let ok_m = db_term_eq(lhs, c_p)
-          let ok = ok_l && ok_r && ok_m
-          if ok {
-            Some(DbSeq(db_hyps_union(h_eq, h_p), rhs))
-          } else {
-            None
+        Some((lhs, rhs)) =>
+          match (db_type_of(lhs), db_type_of(rhs)) {
+            (Some(ty_l), Some(ty_r)) => {
+              let ok_l = is_bool_ty(ty_l)
+              let ok_r = is_bool_ty(ty_r)
+              let ok_m = db_term_eq(lhs, c_p)
+              let ok = ok_l && ok_r && ok_m
+              if ok {
+                Some(DbSeq(db_hyps_union(h_eq, h_p), rhs))
+              } else {
+                None
+              }
+            }
+            _ => None
           }
-        }
         None => None
       }
   }
@@ -291,23 +301,25 @@ fn db_rule_mk_comb(th_fg : DbSequent, th_xy : DbSequent) -> DbSequent? {
     (DbSeq(hfg, cfg), DbSeq(hxy, cxy)) =>
       match (db_dest_eq(cfg), db_dest_eq(cxy)) {
         (Some((f, g)), Some((x, y))) =>
-          match (dest_fun_ty(db_type_of(f)), dest_fun_ty(db_type_of(g))) {
-            (Some((dom_f, cod_f)), Some((dom_g, cod_g))) => {
-              let ok_dom_f = ty_eq(dom_f, db_type_of(x))
-              let ok_dom_g = ty_eq(dom_g, db_type_of(y))
-              let ok_cod = ty_eq(cod_f, cod_g)
-              let ok = ok_dom_f && ok_dom_g && ok_cod
-              if ok {
-                Some(
-                  DbSeq(
-                    db_hyps_union(hfg, hxy),
-                    db_mk_eq(DbComb(f, x), DbComb(g, y)),
-                  ),
-                )
-              } else {
-                None
+          match (db_type_of(f), db_type_of(g), db_type_of(x), db_type_of(y)) {
+            (Some(ty_f), Some(ty_g), Some(ty_x), Some(ty_y)) =>
+              match (dest_fun_ty(ty_f), dest_fun_ty(ty_g)) {
+                (Some((dom_f, cod_f)), Some((dom_g, cod_g))) => {
+                  let ok_dom_f = ty_eq(dom_f, ty_x)
+                  let ok_dom_g = ty_eq(dom_g, ty_y)
+                  let ok_cod = ty_eq(cod_f, cod_g)
+                  let ok = ok_dom_f && ok_dom_g && ok_cod
+                  if ok {
+                    match db_mk_eq(DbComb(f, x), DbComb(g, y)) {
+                      Some(eq) => Some(DbSeq(db_hyps_union(hfg, hxy), eq))
+                      None => None
+                    }
+                  } else {
+                    None
+                  }
+                }
+                _ => None
               }
-            }
             _ => None
           }
         _ => None
@@ -323,7 +335,11 @@ fn db_rule_abs(x : DbTerm, th : DbSequent) -> DbSequent? {
         None
       } else {
         match db_dest_eq(concl) {
-          Some((l, r)) => Some(DbSeq(hs, db_mk_eq(DbAbs(ty, l), DbAbs(ty, r))))
+          Some((l, r)) =>
+            match db_mk_eq(DbAbs(ty, l), DbAbs(ty, r)) {
+              Some(eq) => Some(DbSeq(hs, eq))
+              None => None
+            }
           _ => None
         }
       }
@@ -335,13 +351,21 @@ fn db_rule_abs(x : DbTerm, th : DbSequent) -> DbSequent? {
 fn db_rule_beta(t : DbTerm) -> DbSequent? {
   match t {
     DbComb(DbAbs(dom, _), arg) =>
-      if !ty_eq(dom, db_type_of(arg)) {
-        None
-      } else {
-        match db_beta_reduce_once(t) {
-          Some(out) => Some(DbSeq([], db_mk_eq(t, out)))
-          None => None
-        }
+      match db_type_of(arg) {
+        Some(arg_ty) =>
+          if !ty_eq(dom, arg_ty) {
+            None
+          } else {
+            match db_beta_reduce_once(t) {
+              Some(out) =>
+                match db_mk_eq(t, out) {
+                  Some(eq) => Some(DbSeq([], eq))
+                  None => None
+                }
+              None => None
+            }
+          }
+        None => None
       }
     _ => None
   }
@@ -373,27 +397,35 @@ fn db_rule_inst(subst : Array[(DbTerm, DbTerm)], th : DbSequent) -> DbSequent {
 }
 
 ///|
-fn db_rule_deduct_antisym(th1 : DbSequent, th2 : DbSequent) -> DbSequent {
+fn db_rule_deduct_antisym(th1 : DbSequent, th2 : DbSequent) -> DbSequent? {
   match (th1, th2) {
     (DbSeq(h1, p), DbSeq(h2, q)) =>
-      DbSeq(
-        db_hyps_union(db_hyps_remove(h1, q), db_hyps_remove(h2, p)),
-        db_mk_eq(p, q),
-      )
+      match db_mk_eq(p, q) {
+        Some(eq) =>
+          Some(
+            DbSeq(
+              db_hyps_union(db_hyps_remove(h1, q), db_hyps_remove(h2, p)),
+              eq,
+            ),
+          )
+        None => None
+      }
   }
 }
 
 ///|
-fn db_rule_refl(t : DbTerm) -> DbSequent {
-  DbSeq([], db_mk_eq(t, t))
+fn db_rule_refl(t : DbTerm) -> DbSequent? {
+  match db_mk_eq(t, t) {
+    Some(eq) => Some(DbSeq([], eq))
+    None => None
+  }
 }
 
 ///|
 fn db_rule_assume(p : DbTerm) -> DbSequent? {
-  if is_bool_ty(db_type_of(p)) {
-    Some(DbSeq([p], p))
-  } else {
-    None
+  match db_type_of(p) {
+    Some(ty) => if is_bool_ty(ty) { Some(DbSeq([p], p)) } else { None }
+    None => None
   }
 }
 
@@ -418,12 +450,8 @@ pub fn eq_mp(th_eq : Thm, th_p : Thm) -> Thm? {
 }
 
 ///|
-pub fn deduct_antisym_rule(th1 : Thm, th2 : Thm) -> Thm {
-  match (thm_to_db(th1), thm_to_db(th2)) {
-    (Some(db1), Some(db2)) =>
-      db_to_thm_or(db_rule_deduct_antisym(db1, db2), th1)
-    _ => th1
-  }
+pub fn deduct_antisym_rule(th1 : Thm, th2 : Thm) -> Thm? {
+  lift_db_rule2(th1, th2, db_rule_deduct_antisym)
 }
 
 ///|

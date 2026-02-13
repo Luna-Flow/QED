@@ -22,9 +22,9 @@ pub fn db_term_eq(DbTerm, DbTerm) -> Bool
 
 pub fn db_term_to_string(DbTerm) -> String
 
-pub fn db_type_of(DbTerm) -> HolType
+pub fn db_type_of(DbTerm) -> HolType?
 
-pub fn deduct_antisym_rule(Thm, Thm) -> Thm
+pub fn deduct_antisym_rule(Thm, Thm) -> Thm?
 
 pub fn dest_abs(Term) -> (Term, Term)?
 
@@ -80,7 +80,7 @@ pub fn mk_comb_rule(Thm, Thm) -> Thm?
 
 pub fn mk_const(String, HolType) -> Term
 
-pub fn mk_eq(Term, Term) -> Term
+pub fn mk_eq(Term, Term) -> Term?
 
 pub fn mk_tyapp(String, Array[HolType]) -> HolType
 
@@ -88,7 +88,7 @@ pub fn mk_tyvar(String) -> HolType
 
 pub fn mk_var(String, HolType) -> Term
 
-pub fn refl(Term) -> Thm
+pub fn refl(Term) -> Thm?
 
 pub fn sig_add_const(GlobalSig, String, HolType) -> GlobalSig?
 
@@ -122,7 +122,9 @@ pub fn to_db_term(Term) -> DbTerm?
 
 pub fn trans(Thm, Thm) -> Thm?
 
-pub fn type_of(Term) -> HolType
+pub fn ty_eq(HolType, HolType) -> Bool
+
+pub fn type_of(Term) -> HolType?
 
 // Errors
 
@@ -149,6 +151,7 @@ pub enum SigError {
   ConstTypeConflict
   UnknownConst
   ScopeUnderflow
+  InvalidConstRhs
 }
 
 pub enum Term {

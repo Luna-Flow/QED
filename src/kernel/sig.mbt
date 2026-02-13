@@ -10,6 +10,7 @@ pub enum SigError {
   ConstTypeConflict
   UnknownConst
   ScopeUnderflow
+  InvalidConstRhs
 }
 
 ///|
@@ -179,11 +180,18 @@ pub fn sig_define_const(
   name : String,
   rhs : Term,
 ) -> (GlobalSig, Term)? {
-  let ty = type_of(rhs)
-  match sig_add_const_idempotent(sig, name, ty) {
-    Some(sig2) =>
-      match sig_mk_const(sig2, name) {
-        Some(c) => Some((sig2, mk_eq(c, rhs)))
+  match type_of(rhs) {
+    Some(ty) =>
+      match sig_add_const_idempotent(sig, name, ty) {
+        Some(sig2) =>
+          match sig_mk_const(sig2, name) {
+            Some(c) =>
+              match mk_eq(c, rhs) {
+                Some(eq) => Some((sig2, eq))
+                None => None
+              }
+            None => None
+          }
         None => None
       }
     None => None
@@ -196,13 +204,20 @@ pub fn sig_define_const_e(
   name : String,
   rhs : Term,
 ) -> Result[(GlobalSig, Term), SigError] {
-  let ty = type_of(rhs)
-  match sig_add_const_idempotent_e(sig, name, ty) {
-    Ok(sig2) =>
-      match sig_mk_const_e(sig2, name) {
-        Ok(c) => Ok((sig2, mk_eq(c, rhs)))
+  match type_of(rhs) {
+    Some(ty) =>
+      match sig_add_const_idempotent_e(sig, name, ty) {
+        Ok(sig2) =>
+          match sig_mk_const_e(sig2, name) {
+            Ok(c) =>
+              match mk_eq(c, rhs) {
+                Some(eq) => Ok((sig2, eq))
+                None => Err(InvalidConstRhs)
+              }
+            Err(e) => Err(e)
+          }
         Err(e) => Err(e)
       }
-    Err(e) => Err(e)
+    None => Err(InvalidConstRhs)
   }
 }

@@ -106,16 +106,29 @@ pub fn dest_abs(term : Term) -> (Term, Term)? {
 
 ///|
 /// Returns the type of a term.
-pub fn type_of(term : Term) -> HolType {
+pub fn type_of(term : Term) -> HolType? {
   match term {
-    Var(_, ty) => ty
-    Const(_, ty) => ty
-    Comb(fn_term, _) =>
-      match type_of(fn_term) {
-        TyApp("fun", [_, cod]) => cod
-        _ => bool_ty()
+    Var(_, ty) => Some(ty)
+    Const(_, ty) => Some(ty)
+    Comb(fn_term, arg_term) =>
+      match (type_of(fn_term), type_of(arg_term)) {
+        (Some(TyApp("fun", [dom, cod])), Some(arg_ty)) =>
+          if ty_eq(dom, arg_ty) {
+            Some(cod)
+          } else {
+            None
+          }
+        _ => None
       }
-    Abs(var_term, body) => fun_ty(type_of(var_term), type_of(body))
+    Abs(var_term, body) =>
+      match var_term {
+        Var(_, ty) =>
+          match type_of(body) {
+            Some(body_ty) => Some(fun_ty(ty, body_ty))
+            None => None
+          }
+        _ => None
+      }
   }
 }
 
@@ -427,17 +440,26 @@ pub fn db_subst_free_parallel(
 }
 
 ///|
-pub fn db_type_of(term : DbTerm) -> HolType {
+pub fn db_type_of(term : DbTerm) -> HolType? {
   match term {
-    DbBound(_, ty) => ty
-    DbFree(_, ty) => ty
-    DbConst(_, ty) => ty
-    DbComb(f, _) =>
-      match db_type_of(f) {
-        TyApp("fun", [_, cod]) => cod
-        _ => bool_ty()
+    DbBound(_, ty) => Some(ty)
+    DbFree(_, ty) => Some(ty)
+    DbConst(_, ty) => Some(ty)
+    DbComb(f, arg) =>
+      match (db_type_of(f), db_type_of(arg)) {
+        (Some(TyApp("fun", [dom, cod])), Some(arg_ty)) =>
+          if ty_eq(dom, arg_ty) {
+            Some(cod)
+          } else {
+            None
+          }
+        _ => None
       }
-    DbAbs(ty, body) => fun_ty(ty, db_type_of(body))
+    DbAbs(ty, body) =>
+      match db_type_of(body) {
+        Some(body_ty) => Some(fun_ty(ty, body_ty))
+        None => None
+      }
   }
 }
 

@@ -69,6 +69,11 @@ pub fn is_tyapp(ty : HolType) -> Bool {
 }
 
 ///|
+pub fn ty_eq(t1 : HolType, t2 : HolType) -> Bool {
+  hol_type_to_string(t1) == hol_type_to_string(t2)
+}
+
+///|
 /// Pretty printer for debug and test output.
 pub fn hol_type_to_string(ty : HolType) -> String {
   match ty {
