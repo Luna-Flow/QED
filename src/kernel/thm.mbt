@@ -33,7 +33,7 @@ fn is_valid_term_subst(subst : Array[(Term, Term)]) -> Bool {
       (Some(k_db), Some(v_db)) =>
         match k_db {
           DbFree(_, _) => {
-            if !ty_eq(type_of(k), type_of(v)) {
+            if !ty_eq(db_type_of(k_db), db_type_of(v_db)) {
               return false
             }
             if keys.any(fn(x) { db_term_eq(x, k_db) }) {
@@ -100,6 +100,11 @@ fn db_hyps_union(a : Array[DbTerm], b : Array[DbTerm]) -> Array[DbTerm] {
 }
 
 ///|
+fn db_hyps_dedup(hs : Array[DbTerm]) -> Array[DbTerm] {
+  db_hyps_union([], hs)
+}
+
+///|
 fn thm_to_db(th : Thm) -> DbSequent? {
   match th {
     Sequent(hs, c) => {
@@ -123,14 +128,14 @@ fn db_to_thm(db_th : DbSequent) -> Thm? {
   match db_th {
     DbSeq(hs, c) => {
       let hs2 : Array[Term] = []
-      for h in hs {
+      for h in db_hyps_dedup(hs) {
         match from_db_term(h) {
           Some(h2) => hs2.push(h2)
           None => return None
         }
       }
       match from_db_term(c) {
-        Some(c2) => Some(Sequent(hyps_dedup(hs2), c2))
+        Some(c2) => Some(Sequent(hs2, c2))
         None => None
       }
     }
@@ -160,22 +165,6 @@ pub fn assume(p : Term) -> Thm? {
       }
     None => None
   }
-}
-
-///|
-fn hyps_union(a : Array[Term], b : Array[Term]) -> Array[Term] {
-  let out = a.copy()
-  for h in b {
-    if !out.any(fn(x) { term_alpha_eq(x, h) }) {
-      out.push(h)
-    }
-  }
-  out
-}
-
-///|
-fn hyps_dedup(hs : Array[Term]) -> Array[Term] {
-  hyps_union([], hs)
 }
 
 ///|
