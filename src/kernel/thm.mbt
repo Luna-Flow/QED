@@ -262,6 +262,22 @@ fn db_rule_mk_comb(th_fg : DbSequent, th_xy : DbSequent) -> DbSequent? {
 }
 
 ///|
+fn db_rule_abs(x : DbTerm, th : DbSequent) -> DbSequent? {
+  match (x, th) {
+    (DbFree(_, ty), DbSeq(hs, concl)) =>
+      if hs.any(fn(h) { db_has_free(h, x) }) {
+        None
+      } else {
+        match db_dest_eq(concl) {
+          Some((l, r)) => Some(DbSeq(hs, db_mk_eq(DbAbs(ty, l), DbAbs(ty, r))))
+          _ => None
+        }
+      }
+    _ => None
+  }
+}
+
+///|
 pub fn trans(th1 : Thm, th2 : Thm) -> Thm? {
   match (thm_to_db(th1), thm_to_db(th2)) {
     (Some(db1), Some(db2)) =>
@@ -276,19 +292,10 @@ pub fn trans(th1 : Thm, th2 : Thm) -> Thm? {
 ///|
 pub fn abs_rule(x : Term, th : Thm) -> Thm? {
   match (to_db_term(x), thm_to_db(th)) {
-    (Some(x_db), Some(DbSeq(hs, concl))) =>
-      match x_db {
-        DbFree(_, ty) =>
-          if hs.any(fn(h) { db_has_free(h, x_db) }) {
-            None
-          } else {
-            match db_dest_eq(concl) {
-              Some((l, r)) =>
-                db_to_thm(DbSeq(hs, db_mk_eq(DbAbs(ty, l), DbAbs(ty, r))))
-              _ => None
-            }
-          }
-        _ => None
+    (Some(x_db), Some(db_th)) =>
+      match db_rule_abs(x_db, db_th) {
+        Some(db_out) => db_to_thm(db_out)
+        None => None
       }
     _ => None
   }
