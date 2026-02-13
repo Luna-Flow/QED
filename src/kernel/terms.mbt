@@ -29,6 +29,72 @@ pub fn mk_abs(var_term : Term, body : Term) -> Term {
 }
 
 ///|
+/// Predicates
+pub fn is_var(term : Term) -> Bool {
+  match term {
+    Var(_, _) => true
+    _ => false
+  }
+}
+
+///|
+pub fn is_const(term : Term) -> Bool {
+  match term {
+    Const(_, _) => true
+    _ => false
+  }
+}
+
+///|
+pub fn is_comb(term : Term) -> Bool {
+  match term {
+    Comb(_, _) => true
+    _ => false
+  }
+}
+
+///|
+pub fn is_abs(term : Term) -> Bool {
+  match term {
+    Abs(_, _) => true
+    _ => false
+  }
+}
+
+///|
+/// Destructors
+pub fn dest_var(term : Term) -> (String, HolType)? {
+  match term {
+    Var(name, ty) => Some((name, ty))
+    _ => None
+  }
+}
+
+///|
+pub fn dest_const(term : Term) -> (String, HolType)? {
+  match term {
+    Const(name, ty) => Some((name, ty))
+    _ => None
+  }
+}
+
+///|
+pub fn dest_comb(term : Term) -> (Term, Term)? {
+  match term {
+    Comb(fn_term, arg_term) => Some((fn_term, arg_term))
+    _ => None
+  }
+}
+
+///|
+pub fn dest_abs(term : Term) -> (Term, Term)? {
+  match term {
+    Abs(var_term, body) => Some((var_term, body))
+    _ => None
+  }
+}
+
+///|
 /// Returns the type of a term.
 pub fn type_of(term : Term) -> HolType {
   match term {

@@ -4,17 +4,33 @@ package "Luna-Flow/QED/kernel"
 // Values
 pub fn bool_ty() -> HolType
 
+pub fn dest_abs(Term) -> (Term, Term)?
+
+pub fn dest_comb(Term) -> (Term, Term)?
+
+pub fn dest_const(Term) -> (String, HolType)?
+
 pub fn dest_fun_ty(HolType) -> (HolType, HolType)?
 
 pub fn dest_tyapp(HolType) -> (String, Array[HolType])?
 
+pub fn dest_var(Term) -> (String, HolType)?
+
 pub fn fun_ty(HolType, HolType) -> HolType
 
+pub fn is_abs(Term) -> Bool
+
 pub fn is_bool_ty(HolType) -> Bool
+
+pub fn is_comb(Term) -> Bool
+
+pub fn is_const(Term) -> Bool
 
 pub fn is_tyapp(HolType) -> Bool
 
 pub fn is_tyvar(HolType) -> Bool
+
+pub fn is_var(Term) -> Bool
 
 pub fn kernel_terms_phase0_ready() -> Bool
 
