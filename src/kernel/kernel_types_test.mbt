@@ -45,3 +45,12 @@ test "types bool predicate" {
   let a = mk_tyvar("A")
   assert_false(is_bool_ty(a))
 }
+
+///|
+test "types pretty printer" {
+  let a = mk_tyvar("A")
+  let b = mk_tyvar("B")
+  let fn_ty = fun_ty(a, b)
+  let rendered = hol_type_to_string(fn_ty)
+  assert_eq(rendered, "fun(A, B)")
+}

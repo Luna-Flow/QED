@@ -100,3 +100,17 @@ test "terms destructors" {
   assert_true(dest_abs(lam) is Some((_, _)))
   assert_true(dest_abs(app) is None)
 }
+
+///|
+test "terms pretty printer" {
+  let a = mk_tyvar("A")
+  let x = mk_var("x", a)
+  let c = mk_const("c", a)
+  let app = mk_comb(c, x)
+  let lam = mk_abs(x, app)
+
+  let rendered = term_to_string(lam)
+  assert_true(rendered.contains("Abs("))
+  assert_true(rendered.contains("Comb("))
+  assert_true(rendered.contains("Var(x : A)"))
+}
