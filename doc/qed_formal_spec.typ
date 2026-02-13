@@ -186,29 +186,29 @@ QED currently uses a two-layer boundary:
 Boundary conversion functions are used with the following Haskell-style signatures:
 
 $
-  "Term" _arrow.b :: "Term" arrow.r "DbTerm"?
+  "Term"_arrow.b :: "Term" arrow.r "DbTerm"?
 $
 $
-  "Term" _arrow.t :: "DbTerm" arrow.r "Term"?
+  "Term"_arrow.t :: "DbTerm" arrow.r "Term"?
 $
 $
-  "Thm" _arrow.b :: "Thm" arrow.r "DbSequent"?
+  "Thm"_arrow.b :: "Thm" arrow.r "DbSequent"?
 $
 $
-  "Thm" _arrow.t :: "DbSequent" arrow.r "Thm"?
+  "Thm"_arrow.t :: "DbSequent" arrow.r "Thm"?
 $
 
-Here $"Term" _arrow.b$ lowers named terms to De Bruijn terms, and $"Term" _arrow.t$ reconstructs named terms from De Bruijn terms. Likewise, $"Thm" _arrow.b$ lowers named sequents to De Bruijn sequents, and $"Thm" _arrow.t$ lifts De Bruijn sequents back to named boundary objects. All four conversions are partial and may fail at the boundary.
+Here $"Term"_arrow.b$ lowers named terms to De Bruijn terms, and $"Term"_arrow.t$ reconstructs named terms from De Bruijn terms. Likewise, $"Thm"_arrow.b$ lowers named sequents to De Bruijn sequents, and $"Thm"_arrow.t$ lifts De Bruijn sequents back to named boundary objects. All four conversions are partial and may fail at the boundary.
 
 For theorem objects:
 $
-  "Thm" _arrow.b " " (A_p tack.r p) = A_d tack.r p_d
+  "Thm"_arrow.b " " (A_p tack.r p) = A_d tack.r p_d
 $
 and
 $
-  "Thm" _arrow.t " " (A_d tack.r p_d) = A_p' tack.r p'
+  "Thm"_arrow.t " " (A_d tack.r p_d) = A_p' tack.r p'
 $
-defined pointwise by $"Term" _arrow.b$ and $"Term" _arrow.t$ on assumptions and conclusion.
+defined pointwise by $"Term"_arrow.b$ and $"Term"_arrow.t$ on assumptions and conclusion.
 
 == Boundary Conversion Properties
 
@@ -218,12 +218,12 @@ Lemma (Alpha-Invariant Lowering):
 $
   (" "t_1 equiv_alpha t_2" ")
   /
-  ("Term" _arrow.b t_1 = "Term" _arrow.b t_2)
+  ("Term"_arrow.b t_1 = "Term"_arrow.b t_2)
 $
 
 Lemma (Round-Trip Stability up to Alpha):
 $
-  (" ""Term" _arrow.b t = d and "Term" _arrow.t d = t'" ")
+  (" ""Term"_arrow.b t = d and "Term"_arrow.t d = t'" ")
   /
   (t' equiv_alpha t)
 $
@@ -235,7 +235,7 @@ $
 $
 then the lifted rule
 $
-  R x = "Thm" _arrow.t (R_d ("Thm" _arrow.b x))
+  R" "x = "Thm"_arrow.t" "R_d" "("Thm"_arrow.b" "x)
 $
 preserves assumption/conclusion structure modulo alpha-equivalence whenever conversions succeed.
 
