@@ -195,20 +195,28 @@ fn db_hyps_remove(hs : Array[DbTerm], t : DbTerm) -> Array[DbTerm] {
 }
 
 ///|
-pub fn trans(th1 : Thm, th2 : Thm) -> Thm? {
-  match (thm_to_db(th1), thm_to_db(th2)) {
-    (Some(DbSeq(h1, c1)), Some(DbSeq(h2, c2))) =>
+fn db_rule_trans(th1 : DbSequent, th2 : DbSequent) -> DbSequent? {
+  match (th1, th2) {
+    (DbSeq(h1, c1), DbSeq(h2, c2)) =>
       match (db_dest_eq(c1), db_dest_eq(c2)) {
         (Some((l1, r1)), Some((l2, r2))) =>
           if db_term_eq(r1, l2) {
-            match db_to_thm(DbSeq(db_hyps_union(h1, h2), db_mk_eq(l1, r2))) {
-              Some(th) => Some(th)
-              None => None
-            }
+            Some(DbSeq(db_hyps_union(h1, h2), db_mk_eq(l1, r2)))
           } else {
             None
           }
         _ => None
+      }
+  }
+}
+
+///|
+pub fn trans(th1 : Thm, th2 : Thm) -> Thm? {
+  match (thm_to_db(th1), thm_to_db(th2)) {
+    (Some(db1), Some(db2)) =>
+      match db_rule_trans(db1, db2) {
+        Some(db_out) => db_to_thm(db_out)
+        None => None
       }
     _ => None
   }
