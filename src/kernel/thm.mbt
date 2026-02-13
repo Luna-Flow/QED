@@ -25,6 +25,11 @@ fn alpha_eq(t1 : Term, t2 : Term) -> Bool {
 }
 
 ///|
+fn ty_eq(t1 : HolType, t2 : HolType) -> Bool {
+  hol_type_to_string(t1) == hol_type_to_string(t2)
+}
+
+///|
 pub fn refl(t : Term) -> Thm {
   Sequent([], mk_eq(t, t))
 }
@@ -61,6 +66,39 @@ pub fn trans(th1 : Thm, th2 : Thm) -> Thm? {
                 Some(Sequent(hyps_union(h1, h2), mk_eq(l1, r2)))
               } else {
                 None
+              }
+            _ => None
+          }
+      }
+  }
+}
+
+///|
+pub fn mk_comb_rule(th_fg : Thm, th_xy : Thm) -> Thm? {
+  match th_fg {
+    Sequent(hfg, cfg) =>
+      match th_xy {
+        Sequent(hxy, cxy) =>
+          match (dest_eq(cfg), dest_eq(cxy)) {
+            (Some((f, g)), Some((x, y))) =>
+              match (dest_fun_ty(type_of(f)), dest_fun_ty(type_of(g))) {
+                (Some((dom_f, cod_f)), Some((dom_g, cod_g))) => {
+                  let ok_dom_f = ty_eq(dom_f, type_of(x))
+                  let ok_dom_g = ty_eq(dom_g, type_of(y))
+                  let ok_cod = ty_eq(cod_f, cod_g)
+                  let ok = ok_dom_f && ok_dom_g && ok_cod
+                  if ok {
+                    Some(
+                      Sequent(
+                        hyps_union(hfg, hxy),
+                        mk_eq(mk_comb(f, x), mk_comb(g, y)),
+                      ),
+                    )
+                  } else {
+                    None
+                  }
+                }
+                _ => None
               }
             _ => None
           }

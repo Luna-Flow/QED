@@ -76,3 +76,50 @@ test "thm trans fails on mismatch middle term" {
     _ => assert_false(true)
   }
 }
+
+///|
+test "thm mk_comb_rule combines function and argument equalities" {
+  let a = mk_tyvar("A")
+  let b = mk_tyvar("B")
+  let fty = fun_ty(a, b)
+  let x = mk_var("x", a)
+  let y = mk_var("y", a)
+  let f = mk_const("f", fty)
+  let g = mk_const("g", fty)
+
+  let th_fg = assume(mk_eq(f, g))
+  let th_xy = assume(mk_eq(x, y))
+  assert_true((th_fg, th_xy) is (Some(_), Some(_)))
+
+  match (th_fg, th_xy) {
+    (Some(tfg), Some(txy)) => {
+      let out = mk_comb_rule(tfg, txy)
+      assert_true(out is Some(Sequent(_, _)))
+    }
+    _ => assert_false(true)
+  }
+}
+
+///|
+test "thm mk_comb_rule fails on argument type mismatch" {
+  let a = mk_tyvar("A")
+  let b = mk_tyvar("B")
+  let c = mk_tyvar("C")
+  let fty = fun_ty(a, b)
+  let x = mk_var("x", c)
+  let y = mk_var("y", c)
+  let f = mk_const("f", fty)
+  let g = mk_const("g", fty)
+
+  let th_fg = assume(mk_eq(f, g))
+  let th_xy = assume(mk_eq(x, y))
+  assert_true((th_fg, th_xy) is (Some(_), Some(_)))
+
+  match (th_fg, th_xy) {
+    (Some(tfg), Some(txy)) => {
+      let out = mk_comb_rule(tfg, txy)
+      assert_true(out is None)
+    }
+    _ => assert_false(true)
+  }
+}

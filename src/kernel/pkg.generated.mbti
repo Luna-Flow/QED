@@ -46,6 +46,8 @@ pub fn mk_abs(Term, Term) -> Term
 
 pub fn mk_comb(Term, Term) -> Term
 
+pub fn mk_comb_rule(Thm, Thm) -> Thm?
+
 pub fn mk_const(String, HolType) -> Term
 
 pub fn mk_eq(Term, Term) -> Term
