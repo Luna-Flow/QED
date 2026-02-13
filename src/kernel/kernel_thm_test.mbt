@@ -411,3 +411,28 @@ test "thm inst blocks substitution that would capture binder" {
     None => assert_false(true)
   }
 }
+
+///|
+test "thm inst ignores irrelevant risky pair under binder" {
+  let a = mk_tyvar("A")
+  let x = mk_var("x", a)
+  let y = mk_var("y", a)
+  let z = mk_var("z", a)
+  let w = mk_var("w", a)
+  let u = mk_var("u", a)
+
+  let body = mk_comb(x, z)
+  let lam = mk_abs(y, body)
+  let th = refl(lam)
+  let out = inst([(x, w), (u, y)], th)
+  assert_true(out is Some(_))
+
+  match out {
+    Some(Sequent(_, concl)) => {
+      let s = term_to_string(concl)
+      assert_true(s.contains("Var(w : A)"))
+      assert_false(s.contains("Var(x : A), Var(z : A)"))
+    }
+    None => assert_false(true)
+  }
+}

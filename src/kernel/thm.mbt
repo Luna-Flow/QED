@@ -100,12 +100,16 @@ fn apply_term_subst_to_term(subst : Array[(Term, Term)], t : Term) -> Term {
         Abs(v, body) => {
           let should_block = subst.any(fn(pair) {
             let (k, val) = pair
-            alpha_eq(k, v) || vfree_local(v, val)
+            !alpha_eq(k, v) && vfree_local(k, body) && vfree_local(v, val)
           })
           if should_block {
             Abs(v, body)
           } else {
-            Abs(v, apply_term_subst_to_term(subst, body))
+            let subst2 = subst.filter(fn(pair) {
+              let (k, _) = pair
+              !alpha_eq(k, v)
+            })
+            Abs(v, apply_term_subst_to_term(subst2, body))
           }
         }
       }
