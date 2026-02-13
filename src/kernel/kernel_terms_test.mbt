@@ -295,3 +295,17 @@ test "terms db_has_free_var does not count bound occurrence" {
     None => assert_false(true)
   }
 }
+
+///|
+test "terms term_alpha_eq uses debruijn semantics" {
+  let a = mk_tyvar("A")
+  let x = mk_var("x", a)
+  let y = mk_var("y", a)
+  let z = mk_var("z", a)
+  let t1 = mk_abs(x, mk_comb(x, y))
+  let t2 = mk_abs(z, mk_comb(z, y))
+  let t3 = mk_abs(z, mk_comb(y, z))
+
+  assert_true(term_alpha_eq(t1, t2))
+  assert_false(term_alpha_eq(t1, t3))
+}

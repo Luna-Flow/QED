@@ -86,6 +86,8 @@ pub fn mk_var(String, HolType) -> Term
 
 pub fn refl(Term) -> Thm
 
+pub fn term_alpha_eq(Term, Term) -> Bool
+
 pub fn term_to_string(Term) -> String
 
 pub fn to_db_term(Term) -> DbTerm?

@@ -270,6 +270,14 @@ pub fn from_db_term(term : DbTerm) -> Term? {
 }
 
 ///|
+pub fn term_alpha_eq(lhs : Term, rhs : Term) -> Bool {
+  match (to_db_term(lhs), to_db_term(rhs)) {
+    (Some(d1), Some(d2)) => db_term_eq(d1, d2)
+    _ => false
+  }
+}
+
+///|
 pub fn db_term_to_string(term : DbTerm) -> String {
   match term {
     DbBound(i, ty) =>

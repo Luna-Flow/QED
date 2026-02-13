@@ -95,10 +95,7 @@ pub fn dest_eq(t : Term) -> (Term, Term)? {
 
 ///|
 fn alpha_eq(t1 : Term, t2 : Term) -> Bool {
-  match (to_db_term(t1), to_db_term(t2)) {
-    (Some(d1), Some(d2)) => db_term_eq(d1, d2)
-    _ => false
-  }
+  term_alpha_eq(t1, t2)
 }
 
 ///|
