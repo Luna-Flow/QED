@@ -67,3 +67,18 @@ pub fn is_tyapp(ty : HolType) -> Bool {
     _ => false
   }
 }
+
+///|
+/// Pretty printer for debug and test output.
+pub fn hol_type_to_string(ty : HolType) -> String {
+  match ty {
+    TyVal(name) => name
+    TyApp(tycon, args) =>
+      if args.length() == 0 {
+        tycon
+      } else {
+        let rendered = args.map(fn(arg) { hol_type_to_string(arg) }).join(", ")
+        tycon + "(" + rendered + ")"
+      }
+  }
+}

@@ -18,6 +18,8 @@ pub fn dest_var(Term) -> (String, HolType)?
 
 pub fn fun_ty(HolType, HolType) -> HolType
 
+pub fn hol_type_to_string(HolType) -> String
+
 pub fn is_abs(Term) -> Bool
 
 pub fn is_bool_ty(HolType) -> Bool
@@ -47,6 +49,8 @@ pub fn mk_tyapp(String, Array[HolType]) -> HolType
 pub fn mk_tyvar(String) -> HolType
 
 pub fn mk_var(String, HolType) -> Term
+
+pub fn term_to_string(Term) -> String
 
 pub fn type_of(Term) -> HolType
 

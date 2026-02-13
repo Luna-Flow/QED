@@ -113,3 +113,16 @@ pub fn type_of(term : Term) -> HolType {
 pub fn kernel_terms_phase0_ready() -> Bool {
   true
 }
+
+///|
+/// Pretty printer for debug and test output.
+pub fn term_to_string(term : Term) -> String {
+  match term {
+    Var(name, ty) => "Var(" + name + " : " + hol_type_to_string(ty) + ")"
+    Const(name, ty) => "Const(" + name + " : " + hol_type_to_string(ty) + ")"
+    Comb(fn_term, arg_term) =>
+      "Comb(" + term_to_string(fn_term) + ", " + term_to_string(arg_term) + ")"
+    Abs(var_term, body) =>
+      "Abs(" + term_to_string(var_term) + ", " + term_to_string(body) + ")"
+  }
+}
