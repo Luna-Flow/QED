@@ -33,3 +33,46 @@ test "thm assume rejects non-bool term" {
   let th = assume(x)
   assert_true(th is None)
 }
+
+///|
+test "thm trans combines equalities" {
+  let a = mk_tyvar("A")
+  let x = mk_var("x", a)
+  let y = mk_var("y", a)
+  let z = mk_var("z", a)
+
+  let eq1 = mk_eq(x, y)
+  let eq2 = mk_eq(y, z)
+
+  let th1 = Some(assume(eq1))
+  let th2 = Some(assume(eq2))
+  assert_true((th1, th2) is (Some(Some(_)), Some(Some(_))))
+
+  match (th1, th2) {
+    (Some(Some(t1)), Some(Some(t2))) => {
+      let out = trans(t1, t2)
+      assert_true(out is Some(Sequent(_, _)))
+    }
+    _ => assert_false(true)
+  }
+}
+
+///|
+test "thm trans fails on mismatch middle term" {
+  let a = mk_tyvar("A")
+  let x = mk_var("x", a)
+  let y = mk_var("y", a)
+  let z = mk_var("z", a)
+
+  let th1 = assume(mk_eq(x, y))
+  let th2 = assume(mk_eq(z, x))
+  assert_true((th1, th2) is (Some(_), Some(_)))
+
+  match (th1, th2) {
+    (Some(t1), Some(t2)) => {
+      let out = trans(t1, t2)
+      assert_true(out is None)
+    }
+    _ => assert_false(true)
+  }
+}

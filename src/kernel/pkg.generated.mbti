@@ -12,6 +12,8 @@ pub fn dest_comb(Term) -> (Term, Term)?
 
 pub fn dest_const(Term) -> (String, HolType)?
 
+pub fn dest_eq(Term) -> (Term, Term)?
+
 pub fn dest_fun_ty(HolType) -> (HolType, HolType)?
 
 pub fn dest_tyapp(HolType) -> (String, Array[HolType])?
@@ -57,6 +59,8 @@ pub fn mk_var(String, HolType) -> Term
 pub fn refl(Term) -> Thm
 
 pub fn term_to_string(Term) -> String
+
+pub fn trans(Thm, Thm) -> Thm?
 
 pub fn type_of(Term) -> HolType
 
