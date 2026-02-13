@@ -183,17 +183,23 @@ QED currently uses a two-layer boundary:
 - external-facing terms/theorems are in named syntax;
 - kernel rule cores execute on De Bruijn syntax.
 
-Let
-$
-  #math.italic("Term")_arrow.b(t)
-$
-denote named-to-De-Bruijn conversion (`to_db_term`) and
-$
-  #math.italic("Term")_arrow.t(d)
-$
-denote De-Bruijn-to-named reconstruction (`from_db_term`).
+Boundary conversion functions are used with the following Haskell-style signatures:
 
-For theorem objects, let:
+```text
+termDown :: Term -> DbTerm?
+termUp   :: DbTerm -> Term?
+thmDown  :: Thm -> DbSequent?
+thmUp    :: DbSequent -> Thm?
+```
+
+We write:
+
+- $#math.italic("Term")_arrow.b$ for `termDown`,
+- $#math.italic("Term")_arrow.t$ for `termUp`,
+- $#math.italic("Thm")_arrow.b$ for `thmDown`,
+- $#math.italic("Thm")_arrow.t$ for `thmUp`.
+
+For theorem objects:
 $
   #math.italic("Thm")_arrow.b(A_p tack.r p) = A_d tack.r p_d
 $
