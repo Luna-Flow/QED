@@ -139,7 +139,14 @@ fn db_to_thm(db_th : DbSequent) -> Thm? {
 
 ///|
 pub fn refl(t : Term) -> Thm {
-  Sequent([], mk_eq(t, t))
+  match to_db_term(t) {
+    Some(db_t) =>
+      match db_to_thm(DbSeq([], db_mk_eq(db_t, db_t))) {
+        Some(th) => th
+        None => Sequent([], mk_eq(t, t))
+      }
+    None => Sequent([], mk_eq(t, t))
+  }
 }
 
 ///|
