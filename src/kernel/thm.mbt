@@ -172,6 +172,15 @@ pub fn inst_type(subst : Array[(String, HolType)], th : Thm) -> Thm? {
 }
 
 ///|
+pub fn inst(subst : Array[(Term, Term)], th : Thm) -> Thm? {
+  if subst.length() == 0 {
+    Some(th)
+  } else {
+    None
+  }
+}
+
+///|
 pub fn mk_comb_rule(th_fg : Thm, th_xy : Thm) -> Thm? {
   match th_fg {
     Sequent(hfg, cfg) =>

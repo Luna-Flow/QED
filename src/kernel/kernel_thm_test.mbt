@@ -276,3 +276,34 @@ test "thm inst_type rejects non-empty substitution for now" {
     None => assert_false(true)
   }
 }
+
+///|
+test "thm inst accepts empty substitution" {
+  let p = mk_const("P", bool_ty())
+  let th = assume(p)
+  assert_true(th is Some(_))
+  match th {
+    Some(t) => {
+      let out = inst([], t)
+      assert_true(out is Some(_))
+    }
+    None => assert_false(true)
+  }
+}
+
+///|
+test "thm inst rejects non-empty substitution for now" {
+  let a = mk_tyvar("A")
+  let x = mk_var("x", a)
+  let y = mk_var("y", a)
+  let p = mk_const("P", bool_ty())
+  let th = assume(p)
+  assert_true(th is Some(_))
+  match th {
+    Some(t) => {
+      let out = inst([(x, y)], t)
+      assert_true(out is None)
+    }
+    None => assert_false(true)
+  }
+}
