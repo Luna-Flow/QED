@@ -304,6 +304,25 @@ test "terms db_has_free_var does not count bound occurrence" {
 }
 
 ///|
+test "terms db_has_free matches free needle term" {
+  let a = mk_tyvar("A")
+  let x = mk_var("x", a)
+  let y = mk_var("y", a)
+  let t = mk_comb(x, y)
+  let d_t = to_db_term(t)
+  let d_x = to_db_term(x)
+  let d_z = to_db_term(mk_var("z", a))
+  assert_true((d_t, d_x, d_z) is (Some(_), Some(_), Some(_)))
+  match (d_t, d_x, d_z) {
+    (Some(tt), Some(dx), Some(dz)) => {
+      assert_true(db_has_free(tt, dx))
+      assert_false(db_has_free(tt, dz))
+    }
+    _ => assert_false(true)
+  }
+}
+
+///|
 test "terms term_alpha_eq uses debruijn semantics" {
   let a = mk_tyvar("A")
   let x = mk_var("x", a)

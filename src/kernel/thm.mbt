@@ -135,8 +135,12 @@ fn hyps_remove(hs : Array[Term], t : Term) -> Array[Term] {
 
 ///|
 fn vfree_in(v : Term, t : Term) -> Bool {
-  match (dest_var(v), to_db_term(t)) {
-    (Some((name, ty)), Some(db_t)) => db_has_free_var(db_t, name, ty)
+  match (to_db_term(v), to_db_term(t)) {
+    (Some(v_db), Some(db_t)) =>
+      match v_db {
+        DbFree(_, _) => db_has_free(db_t, v_db)
+        _ => false
+      }
     _ => false
   }
 }

@@ -319,6 +319,17 @@ pub fn db_has_free_var(term : DbTerm, name : String, ty : HolType) -> Bool {
 }
 
 ///|
+pub fn db_has_free(term : DbTerm, needle : DbTerm) -> Bool {
+  match term {
+    DbBound(_, _) => false
+    DbFree(_, _) => db_term_eq(term, needle)
+    DbConst(_, _) => false
+    DbComb(f, x) => db_has_free(f, needle) || db_has_free(x, needle)
+    DbAbs(_, body) => db_has_free(body, needle)
+  }
+}
+
+///|
 fn db_shift_walk(delta : Int, cutoff : Int, term : DbTerm) -> DbTerm {
   match term {
     DbBound(i, ty) => if i >= cutoff { DbBound(i + delta, ty) } else { term }
