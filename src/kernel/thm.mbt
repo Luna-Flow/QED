@@ -232,6 +232,36 @@ fn db_rule_eq_mp(th_eq : DbSequent, th_p : DbSequent) -> DbSequent? {
 }
 
 ///|
+fn db_rule_mk_comb(th_fg : DbSequent, th_xy : DbSequent) -> DbSequent? {
+  match (th_fg, th_xy) {
+    (DbSeq(hfg, cfg), DbSeq(hxy, cxy)) =>
+      match (db_dest_eq(cfg), db_dest_eq(cxy)) {
+        (Some((f, g)), Some((x, y))) =>
+          match (dest_fun_ty(db_type_of(f)), dest_fun_ty(db_type_of(g))) {
+            (Some((dom_f, cod_f)), Some((dom_g, cod_g))) => {
+              let ok_dom_f = ty_eq(dom_f, db_type_of(x))
+              let ok_dom_g = ty_eq(dom_g, db_type_of(y))
+              let ok_cod = ty_eq(cod_f, cod_g)
+              let ok = ok_dom_f && ok_dom_g && ok_cod
+              if ok {
+                Some(
+                  DbSeq(
+                    db_hyps_union(hfg, hxy),
+                    db_mk_eq(DbComb(f, x), DbComb(g, y)),
+                  ),
+                )
+              } else {
+                None
+              }
+            }
+            _ => None
+          }
+        _ => None
+      }
+  }
+}
+
+///|
 pub fn trans(th1 : Thm, th2 : Thm) -> Thm? {
   match (thm_to_db(th1), thm_to_db(th2)) {
     (Some(db1), Some(db2)) =>
@@ -378,29 +408,10 @@ pub fn inst(subst : Array[(Term, Term)], th : Thm) -> Thm? {
 ///|
 pub fn mk_comb_rule(th_fg : Thm, th_xy : Thm) -> Thm? {
   match (thm_to_db(th_fg), thm_to_db(th_xy)) {
-    (Some(DbSeq(hfg, cfg)), Some(DbSeq(hxy, cxy))) =>
-      match (db_dest_eq(cfg), db_dest_eq(cxy)) {
-        (Some((f, g)), Some((x, y))) =>
-          match (dest_fun_ty(db_type_of(f)), dest_fun_ty(db_type_of(g))) {
-            (Some((dom_f, cod_f)), Some((dom_g, cod_g))) => {
-              let ok_dom_f = ty_eq(dom_f, db_type_of(x))
-              let ok_dom_g = ty_eq(dom_g, db_type_of(y))
-              let ok_cod = ty_eq(cod_f, cod_g)
-              let ok = ok_dom_f && ok_dom_g && ok_cod
-              if ok {
-                db_to_thm(
-                  DbSeq(
-                    db_hyps_union(hfg, hxy),
-                    db_mk_eq(DbComb(f, x), DbComb(g, y)),
-                  ),
-                )
-              } else {
-                None
-              }
-            }
-            _ => None
-          }
-        _ => None
+    (Some(db_fg), Some(db_xy)) =>
+      match db_rule_mk_comb(db_fg, db_xy) {
+        Some(db_out) => db_to_thm(db_out)
+        None => None
       }
     _ => None
   }
