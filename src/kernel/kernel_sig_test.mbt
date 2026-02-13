@@ -28,3 +28,20 @@ test "kernel sig rejects duplicate constant names" {
     None => assert_false(true)
   }
 }
+
+///|
+test "kernel sig mk_const only for registered names" {
+  let sig0 = empty_sig()
+  let a = mk_tyvar("A")
+  let sig1 = sig_add_const(sig0, "C", a)
+  assert_true(sig1 is Some(_))
+  match sig1 {
+    Some(sig) => {
+      let c = sig_mk_const(sig, "C")
+      let d = sig_mk_const(sig, "D")
+      assert_true(c is Some(Const("C", _)))
+      assert_true(d is None)
+    }
+    None => assert_false(true)
+  }
+}

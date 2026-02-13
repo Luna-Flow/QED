@@ -96,6 +96,8 @@ pub fn sig_has_const(GlobalSig, String) -> Bool
 
 pub fn sig_lookup_const(GlobalSig, String) -> HolType?
 
+pub fn sig_mk_const(GlobalSig, String) -> Term?
+
 pub fn term_alpha_eq(Term, Term) -> Bool
 
 pub fn term_to_string(Term) -> String

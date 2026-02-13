@@ -53,3 +53,11 @@ pub fn sig_add_const(
     }
   }
 }
+
+///|
+pub fn sig_mk_const(sig : GlobalSig, name : String) -> Term? {
+  match sig_lookup_const(sig, name) {
+    Some(ty) => Some(mk_const(name, ty))
+    None => None
+  }
+}
