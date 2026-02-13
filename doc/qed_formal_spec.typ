@@ -360,6 +360,64 @@ $
   (" "A_p tack.r λ (x : tau). s = λ (x : tau). t" ")
 $
 
+== Rule Schema: `BETA`
+
+Input:
+
+- a beta-redex term of shape $(λ (x : tau). s) x$.
+
+Output:
+
+- theorem $tack.r ((λ (x : tau). s) x) = s$.
+
+Side conditions:
+
+1. the argument term must match the binder variable;
+2. the redex must be well-typed.
+
+Failure clauses:
+
+1. input is not a beta-redex of the required shape;
+2. binder and argument mismatch;
+3. type inconsistency in redex construction.
+
+Antecedent form:
+$
+  (" "t = (λ (x : tau). s) x" ")
+  /
+  (tack.r t = s)
+$
+
+== Rule Schema: `EQ_MP`
+
+Input:
+
+- theorem $A_p tack.r p = q$;
+- theorem $B_p tack.r p$.
+
+Output:
+
+- theorem $A_p union B_p tack.r q$.
+
+Side conditions:
+
+1. first premise must conclude an equality proposition;
+2. left side of equality must match the second premise conclusion up to alpha-equivalence;
+3. all involved terms must be boolean propositions.
+
+Failure clauses:
+
+1. first premise is not an equality theorem;
+2. proposition mismatch between equality lhs and premise theorem;
+3. non-boolean proposition in premises.
+
+Antecedent form:
+$
+  (" "A_p tack.r p = q and B_p tack.r p" ")
+  /
+  (A_p union B_p tack.r q)
+$
+
 = Soundness Strategy
 
 The project-level soundness story is divided into three obligations.
