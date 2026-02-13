@@ -86,7 +86,7 @@ pub fn sig_define_const(
   rhs : Term,
 ) -> (GlobalSig, Term)? {
   let ty = type_of(rhs)
-  match sig_add_const(sig, name, ty) {
+  match sig_add_const_idempotent(sig, name, ty) {
     Some(sig2) =>
       match sig_mk_const(sig2, name) {
         Some(c) => Some((sig2, mk_eq(c, rhs)))

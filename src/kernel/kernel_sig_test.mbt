@@ -64,7 +64,23 @@ test "kernel sig define_const creates definitional equation term" {
 }
 
 ///|
-test "kernel sig define_const rejects duplicate names" {
+test "kernel sig define_const rejects conflicting duplicate type" {
+  let sig0 = empty_sig()
+  let p = mk_const("P", bool_ty())
+  let out1 = sig_define_const(sig0, "Q", p)
+  assert_true(out1 is Some(_))
+  match out1 {
+    Some((sig1, _)) => {
+      let x = mk_var("x", mk_tyvar("A"))
+      let out2 = sig_define_const(sig1, "Q", x)
+      assert_true(out2 is None)
+    }
+    None => assert_false(true)
+  }
+}
+
+///|
+test "kernel sig define_const is replayable with same rhs type" {
   let sig0 = empty_sig()
   let p = mk_const("P", bool_ty())
   let out1 = sig_define_const(sig0, "Q", p)
@@ -72,7 +88,7 @@ test "kernel sig define_const rejects duplicate names" {
   match out1 {
     Some((sig1, _)) => {
       let out2 = sig_define_const(sig1, "Q", p)
-      assert_true(out2 is None)
+      assert_true(out2 is Some(_))
     }
     None => assert_false(true)
   }
