@@ -69,6 +69,12 @@ Let $Sigma_t$ be a type-constructor signature. Each constructor $k in Sigma_t$ h
 
 Let $Sigma_c$ be a term-constant signature. Each constant $c in Sigma_c$ is assigned a simple type.
 
+In the current QED kernel, $Sigma_c$ is managed by a scoped signature stack:
+
+- each scope stores a finite partial map from constant names to types;
+- lookup proceeds from the innermost scope to the outermost scope;
+- same-name insertion is rejected inside one scope but allowed in a nested scope (shadowing).
+
 QED reserves two distinguished type constructors:
 
 - $"bool"$ with arity $0$.
@@ -169,6 +175,91 @@ Term substitution is a finite map from variables to terms. It must satisfy two c
 == Alpha-Equivalence
 
 Alpha-equivalence, written $t_1 equiv_alpha t_2$, identifies terms up to systematic renaming of bound variables. It is required by multiple kernel operations, including theorem transitivity-style checks where structural syntax should not distinguish alpha-variants.
+
+= Boundary Conversion and Scoped Shadowing
+
+QED currently uses a two-layer boundary:
+
+- external-facing terms/theorems are in named syntax;
+- kernel rule cores execute on De Bruijn syntax.
+
+Let $("down")(t)$ denote named-to-De-Bruijn conversion (`to_db_term`) and $("up")(d)$ denote De-Bruijn-to-named reconstruction (`from_db_term`).
+
+For theorem objects, let:
+$
+  ("down_t")(A_p tack.r p) = A_d tack.r p_d
+$
+and
+$
+  ("up_t")(A_d tack.r p_d) = A_p' tack.r p'
+$
+defined pointwise by $("down")$ and $("up")$ on assumptions and conclusion.
+
+== Boundary Conversion Properties
+
+The kernel implementation relies on the following invariants.
+
+Lemma (Alpha-Invariant Lowering):
+$
+  (" "t_1 equiv_alpha t_2" ")
+  /
+  (("down")(t_1) = ("down")(t_2))
+$
+
+Lemma (Round-Trip Stability up to Alpha):
+$
+  (" "("down")(t) = d and ("up")(d) = t'" ")
+  /
+  (t' equiv_alpha t)
+$
+
+Lemma (Rule Lifting Safety):
+if a primitive core rule $R_d$ satisfies
+$
+  R_d : "DbSequent"^n -> "DbSequent"?
+$
+then the lifted rule
+$
+  R(x) = ("up_t")(R_d(("down_t")(x)))
+$
+preserves assumption/conclusion structure modulo alpha-equivalence whenever conversions succeed.
+
+#keyblock("info", [Boundary Discipline], [
+  Primitive rules are implemented on `DbSequent`. Named `Thm` values are boundary objects. Conversion failure is treated as boundary failure, not as logical success.
+])
+
+== Scoped Shadowing Properties
+
+Let a signature state be a stack
+$
+  S = [S_0, S_1, ..., S_n]
+$
+where $S_n$ is the innermost scope.
+
+Lookup is defined by:
+$
+  ("lookup")(S, c) = S_j(c)
+$
+where $j$ is the greatest index such that $c in "dom"(S_j)$.
+
+Insertion in current scope:
+$
+  ("add")(S, c : tau)
+$
+is allowed iff $c ∉ "dom"(S_n)$.
+
+From these definitions:
+
+Proposition (Shadowing Determinism):
+if $c$ is defined in innermost scope $S_n$, then $("lookup")(S, c) = S_n(c)$.
+
+Proposition (Outer Restoration by Pop):
+if $S' = ("push")(S)$, $("add")(S', c : tau_1) = S''$, and $("pop")(S'') = S$, then $("lookup")(S, c) = ("lookup")(("pop")(S''), c)$.
+
+Proposition (Scope-Local Uniqueness):
+if $c$ is already defined in innermost scope $S_n$, then $("add")(S, c : tau)$ fails.
+
+These properties specify the intended behavior of `sig_push_scope`, `sig_pop_scope`, `sig_lookup_const`, and scoped insertion APIs.
 
 = Theorem Object and Trust Boundary
 
@@ -364,28 +455,28 @@ $
 
 Input:
 
-- a beta-redex term of shape $(λ (x : tau). s) x$.
+- a typed beta-redex term of shape $(λ (x : tau). s) u$.
 
 Output:
 
-- theorem $tack.r ((λ (x : tau). s) x) = s$.
+- theorem $tack.r ((λ (x : tau). s) u) = s[u/x]$.
 
 Side conditions:
 
-1. the argument term must match the binder variable;
-2. the redex must be well-typed.
+1. the redex must be well-typed;
+2. substitution is capture-avoiding.
 
 Failure clauses:
 
 1. input is not a beta-redex of the required shape;
-2. binder and argument mismatch;
-3. type inconsistency in redex construction.
+2. type inconsistency in redex construction;
+3. boundary reconstruction failure.
 
 Antecedent form:
 $
-  (" "t = (λ (x : tau). s) x" ")
+  (" "t = (λ (x : tau). s) u and "welltyped(t)"" ")
   /
-  (tack.r t = s)
+  (tack.r t = s[u/x])
 $
 
 == Rule Schema: `EQ_MP`
@@ -525,21 +616,37 @@ The formal clauses above map to implementation modules as follows.
 - `src/kernel/types.mbt`: type constructors, decomposers, predicates, and type-level operators.
 - `src/kernel/terms.mbt`: term constructors, decomposers, typing helper, and term-level operators.
 - `src/kernel/thm.mbt`: theorem abstraction and primitive rule implementation.
+- `src/kernel/sig.mbt`: scoped signature stack, constant registration, and definitional signature operations.
 
 A development task is complete only when the mathematical clause and its implementation clause are both updated.
 
 == Rule-to-Implementation Mapping (Current)
 
-- `REFL` -> `src/kernel/thm.mbt` (planned primitive rule function).
-- `ASSUME` -> `src/kernel/thm.mbt` (planned primitive rule function).
-- `TRANS` -> `src/kernel/thm.mbt` (planned primitive rule function).
-- `MK_COMB` -> `src/kernel/thm.mbt` (planned primitive rule function).
-- `ABS` -> `src/kernel/thm.mbt` (planned primitive rule function).
-- `BETA` -> `src/kernel/thm.mbt` (planned primitive rule function).
-- `EQ_MP` -> `src/kernel/thm.mbt` (planned primitive rule function).
-- `DEDUCT_ANTISYM_RULE` -> `src/kernel/thm.mbt` (planned primitive rule function).
-- `INST_TYPE` -> `src/kernel/thm.mbt` (planned primitive rule function).
-- `INST` -> `src/kernel/thm.mbt` (planned primitive rule function).
+- `REFL` -> `src/kernel/thm.mbt` (implemented; De Bruijn core + boundary lift).
+- `ASSUME` -> `src/kernel/thm.mbt` (implemented; De Bruijn core + boundary lift).
+- `TRANS` -> `src/kernel/thm.mbt` (implemented; De Bruijn core + boundary lift).
+- `MK_COMB` -> `src/kernel/thm.mbt` (implemented; De Bruijn core + boundary lift).
+- `ABS` -> `src/kernel/thm.mbt` (implemented; De Bruijn core + boundary lift).
+- `BETA` -> `src/kernel/thm.mbt` (implemented; De Bruijn beta core + boundary lift).
+- `EQ_MP` -> `src/kernel/thm.mbt` (implemented; De Bruijn core + boundary lift).
+- `DEDUCT_ANTISYM_RULE` -> `src/kernel/thm.mbt` (implemented; De Bruijn core + boundary lift).
+- `INST_TYPE` -> `src/kernel/thm.mbt` (implemented; De Bruijn substitution core + boundary lift).
+- `INST` -> `src/kernel/thm.mbt` (implemented; De Bruijn substitution core + boundary lift).
+
+== Design Delta vs HOL Light
+
+QED and HOL Light share the LCF principle and primitive-rule trust model, but QED currently differs in two engineering choices:
+
+1. Rule execution layer:
+   HOL Light executes directly over named terms; QED executes rule cores over De Bruijn objects and lifts results to named boundaries.
+2. Constant signature policy:
+   HOL Light uses globally unique constant naming; QED currently uses scoped signature stacks with explicit shadowing.
+
+These deltas are intentional and must be read as implementation-level policy choices, not changes to the object-logic proposition/equality calculus.
+
+#keyblock("warning", [Error Semantics Status], [
+  Full kernel-wide structured error propagation is still in migration. Current interfaces mix option-style failures with typed error returns in selected modules.
+])
 
 = Documentation Roadmap
 
