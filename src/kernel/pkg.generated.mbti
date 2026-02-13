@@ -6,6 +6,8 @@ pub fn abs_rule(Term, Thm) -> Thm?
 
 pub fn assume(Term) -> Thm?
 
+pub fn beta_rule(Term) -> Thm?
+
 pub fn bool_ty() -> HolType
 
 pub fn dest_abs(Term) -> (Term, Term)?

@@ -157,3 +157,24 @@ test "thm abs_rule fails when binder free in assumptions" {
     None => assert_false(true)
   }
 }
+
+///|
+test "thm beta_rule succeeds on trivial beta redex" {
+  let a = mk_tyvar("A")
+  let x = mk_var("x", a)
+  let y = mk_var("y", a)
+  let redex = mk_comb(mk_abs(x, y), x)
+  let out = beta_rule(redex)
+  assert_true(out is Some(Sequent(_, _)))
+}
+
+///|
+test "thm beta_rule rejects nontrivial redex" {
+  let a = mk_tyvar("A")
+  let x = mk_var("x", a)
+  let y = mk_var("y", a)
+  let z = mk_var("z", a)
+  let redex = mk_comb(mk_abs(x, y), z)
+  let out = beta_rule(redex)
+  assert_true(out is None)
+}

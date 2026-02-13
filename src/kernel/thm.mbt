@@ -107,6 +107,19 @@ pub fn abs_rule(x : Term, th : Thm) -> Thm? {
 }
 
 ///|
+pub fn beta_rule(t : Term) -> Thm? {
+  match t {
+    Comb(Abs(v, body), arg) =>
+      if alpha_eq(v, arg) {
+        Some(Sequent([], mk_eq(t, body)))
+      } else {
+        None
+      }
+    _ => None
+  }
+}
+
+///|
 pub fn mk_comb_rule(th_fg : Thm, th_xy : Thm) -> Thm? {
   match th_fg {
     Sequent(hfg, cfg) =>
