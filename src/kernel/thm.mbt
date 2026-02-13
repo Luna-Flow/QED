@@ -17,6 +17,15 @@ pub fn refl(t : Term) -> Thm {
 }
 
 ///|
+pub fn assume(p : Term) -> Thm? {
+  if is_bool_ty(type_of(p)) {
+    Some(Sequent([p], p))
+  } else {
+    None
+  }
+}
+
+///|
 pub fn kernel_thm_phase0_ready() -> Bool {
   true
 }
