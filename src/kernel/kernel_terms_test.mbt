@@ -281,6 +281,21 @@ test "terms db_subst_free_parallel is capture-avoiding" {
 }
 
 ///|
+test "terms db_type_of follows function application typing" {
+  let a = mk_tyvar("A")
+  let b = mk_tyvar("B")
+  let f = mk_var("f", fun_ty(a, b))
+  let x = mk_var("x", a)
+  let app = mk_comb(f, x)
+  let d_app = to_db_term(app)
+  assert_true(d_app is Some(_))
+  match d_app {
+    Some(v) => assert_true(db_type_of(v) is TyVal("B"))
+    None => assert_false(true)
+  }
+}
+
+///|
 test "terms db_has_free matches free needle term" {
   let a = mk_tyvar("A")
   let x = mk_var("x", a)

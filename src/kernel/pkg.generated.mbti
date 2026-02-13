@@ -20,6 +20,8 @@ pub fn db_term_eq(DbTerm, DbTerm) -> Bool
 
 pub fn db_term_to_string(DbTerm) -> String
 
+pub fn db_type_of(DbTerm) -> HolType
+
 pub fn deduct_antisym_rule(Thm, Thm) -> Thm
 
 pub fn dest_abs(Term) -> (Term, Term)?

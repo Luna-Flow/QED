@@ -381,6 +381,21 @@ pub fn db_subst_free_parallel(
 }
 
 ///|
+pub fn db_type_of(term : DbTerm) -> HolType {
+  match term {
+    DbBound(_, ty) => ty
+    DbFree(_, ty) => ty
+    DbConst(_, ty) => ty
+    DbComb(f, _) =>
+      match db_type_of(f) {
+        TyApp("fun", [_, cod]) => cod
+        _ => bool_ty()
+      }
+    DbAbs(ty, body) => fun_ty(ty, db_type_of(body))
+  }
+}
+
+///|
 pub fn db_beta_reduce_once(term : DbTerm) -> DbTerm? {
   match term {
     DbComb(DbAbs(_, body), arg) => {

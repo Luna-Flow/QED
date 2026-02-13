@@ -199,13 +199,13 @@ pub fn abs_rule(x : Term, th : Thm) -> Thm? {
 
 ///|
 pub fn beta_rule(t : Term) -> Thm? {
-  match t {
-    Comb(Abs(v, _), arg) =>
-      if !is_var(v) || !ty_eq(type_of(v), type_of(arg)) {
-        None
-      } else {
-        match to_db_term(t) {
-          Some(db_t) =>
+  match to_db_term(t) {
+    Some(db_t) =>
+      match db_t {
+        DbComb(DbAbs(dom, _), arg) =>
+          if !ty_eq(dom, db_type_of(arg)) {
+            None
+          } else {
             match db_beta_reduce_once(db_t) {
               Some(db_out) =>
                 match from_db_term(db_out) {
@@ -214,10 +214,10 @@ pub fn beta_rule(t : Term) -> Thm? {
                 }
               None => None
             }
-          None => None
-        }
+          }
+        _ => None
       }
-    _ => None
+    None => None
   }
 }
 
