@@ -59,17 +59,6 @@ fn apply_ty_subst_to_term(subst : Array[(String, HolType)], t : Term) -> Term {
 
 ///|
 /// Term-substitution helpers
-fn lookup_term_subst(subst : Array[(Term, Term)], src : Term) -> Term? {
-  for pair in subst {
-    let (k, v) = pair
-    if alpha_eq(k, src) {
-      return Some(v)
-    }
-  }
-  None
-}
-
-///|
 fn is_valid_term_subst(subst : Array[(Term, Term)]) -> Bool {
   let keys : Array[Term] = []
   for pair in subst {
@@ -86,52 +75,6 @@ fn is_valid_term_subst(subst : Array[(Term, Term)]) -> Bool {
     keys.push(k)
   }
   true
-}
-
-///|
-fn apply_term_subst_to_term(subst : Array[(Term, Term)], t : Term) -> Term {
-  fn vfree_local(v : Term, tm : Term) -> Bool {
-    match tm {
-      Var(_, _) => alpha_eq(v, tm)
-      Const(_, _) => false
-      Comb(f, x) => vfree_local(v, f) || vfree_local(v, x)
-      Abs(bv, body) =>
-        if alpha_eq(v, bv) {
-          false
-        } else {
-          vfree_local(v, body)
-        }
-    }
-  }
-
-  match lookup_term_subst(subst, t) {
-    Some(v) => v
-    None =>
-      match t {
-        Var(_, _) => t
-        Const(_, _) => t
-        Comb(f, x) =>
-          Comb(
-            apply_term_subst_to_term(subst, f),
-            apply_term_subst_to_term(subst, x),
-          )
-        Abs(v, body) => {
-          let should_block = subst.any(fn(pair) {
-            let (k, val) = pair
-            !alpha_eq(k, v) && vfree_local(k, body) && vfree_local(v, val)
-          })
-          if should_block {
-            Abs(v, body)
-          } else {
-            let subst2 = subst.filter(fn(pair) {
-              let (k, _) = pair
-              !alpha_eq(k, v)
-            })
-            Abs(v, apply_term_subst_to_term(subst2, body))
-          }
-        }
-      }
-  }
 }
 
 ///|
@@ -331,10 +274,36 @@ pub fn inst(subst : Array[(Term, Term)], th : Thm) -> Thm? {
   if !is_valid_term_subst(subst) {
     return None
   }
+  let db_subst : Array[(String, HolType, DbTerm)] = []
+  for pair in subst {
+    let (k, v) = pair
+    match (dest_var(k), to_db_term(v)) {
+      (Some((name, ty)), Some(v_db)) => db_subst.push((name, ty, v_db))
+      _ => return None
+    }
+  }
   match th {
     Sequent(hs, c) => {
-      let hs2 = hyps_dedup(hs.map(fn(h) { apply_term_subst_to_term(subst, h) }))
-      let c2 = apply_term_subst_to_term(subst, c)
+      let hs2_raw : Array[Term] = []
+      for h in hs {
+        match to_db_term(h) {
+          Some(h_db) =>
+            match from_db_term(db_subst_free_parallel(h_db, db_subst)) {
+              Some(h2) => hs2_raw.push(h2)
+              None => return None
+            }
+          None => return None
+        }
+      }
+      let hs2 = hyps_dedup(hs2_raw)
+      let c2 = match to_db_term(c) {
+        Some(c_db) =>
+          match from_db_term(db_subst_free_parallel(c_db, db_subst)) {
+            Some(c_out) => c_out
+            None => return None
+          }
+        None => return None
+      }
       Some(Sequent(hs2, c2))
     }
   }

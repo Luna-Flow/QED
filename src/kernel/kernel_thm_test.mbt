@@ -516,7 +516,7 @@ test "thm inst rejects duplicate substitution keys" {
 }
 
 ///|
-test "thm inst blocks substitution that would capture binder" {
+test "thm inst performs capture-avoiding substitution under binder" {
   let a = mk_tyvar("A")
   let x = mk_var("x", a)
   let y = mk_var("y", a)
@@ -526,10 +526,18 @@ test "thm inst blocks substitution that would capture binder" {
   assert_true(out is Some(_))
 
   match out {
-    Some(Sequent(_, concl)) => {
-      let s = term_to_string(concl)
-      assert_true(s.contains("Abs(Var(y : A), Var(x : A))"))
-    }
+    Some(Sequent(_, concl)) =>
+      match concl {
+        Comb(Comb(Const("=", _), lhs), rhs) =>
+          match (to_db_term(lhs), to_db_term(rhs), to_db_term(mk_abs(x, y))) {
+            (Some(d1), Some(d2), Some(dexp)) => {
+              assert_true(db_term_eq(d1, dexp))
+              assert_true(db_term_eq(d2, dexp))
+            }
+            _ => assert_false(true)
+          }
+        _ => assert_false(true)
+      }
     None => assert_false(true)
   }
 }
