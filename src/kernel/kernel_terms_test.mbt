@@ -246,3 +246,22 @@ test "terms from_db_term round-trips up to alpha equivalence" {
     None => assert_false(true)
   }
 }
+
+///|
+test "terms db_subst_free_parallel is capture-avoiding" {
+  let a = mk_tyvar("A")
+  let x = mk_var("x", a)
+  let y = mk_var("y", a)
+  let term = mk_abs(y, x)
+
+  let d_term = to_db_term(term)
+  let d_repl = to_db_term(y)
+  assert_true((d_term, d_repl) is (Some(_), Some(_)))
+  match (d_term, d_repl) {
+    (Some(tdb), Some(rdb)) => {
+      let out = db_subst_free_parallel(tdb, [("x", a, rdb)])
+      assert_true(db_term_to_string(out).contains("FVar(y : A)"))
+    }
+    _ => assert_false(true)
+  }
+}

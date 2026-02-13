@@ -329,6 +329,47 @@ fn db_subst_walk(j : Int, s : DbTerm, cutoff : Int, term : DbTerm) -> DbTerm {
 }
 
 ///|
+fn lookup_db_free_subst(
+  subst : Array[(String, HolType, DbTerm)],
+  name : String,
+  ty : HolType,
+) -> DbTerm? {
+  for entry in subst {
+    let (k, kty, v) = entry
+    if k == name && hol_type_to_string(kty) == hol_type_to_string(ty) {
+      return Some(v)
+    }
+  }
+  None
+}
+
+///|
+pub fn db_subst_free_parallel(
+  term : DbTerm,
+  subst : Array[(String, HolType, DbTerm)],
+) -> DbTerm {
+  fn walk(
+    depth : Int,
+    t : DbTerm,
+    subst : Array[(String, HolType, DbTerm)],
+  ) -> DbTerm {
+    match t {
+      DbBound(_, _) => t
+      DbFree(name, ty) =>
+        match lookup_db_free_subst(subst, name, ty) {
+          Some(repl) => db_shift_walk(depth, 0, repl)
+          None => t
+        }
+      DbConst(_, _) => t
+      DbComb(f, x) => DbComb(walk(depth, f, subst), walk(depth, x, subst))
+      DbAbs(ty, body) => DbAbs(ty, walk(depth + 1, body, subst))
+    }
+  }
+
+  walk(0, term, subst)
+}
+
+///|
 pub fn db_beta_reduce_once(term : DbTerm) -> DbTerm? {
   match term {
     DbComb(DbAbs(_, body), arg) => {
