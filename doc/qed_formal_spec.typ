@@ -418,6 +418,66 @@ $
   (A_p union B_p tack.r q)
 $
 
+== Rule Schema: `DEDUCT_ANTISYM_RULE`
+
+Input:
+
+- theorem $A_p tack.r p$;
+- theorem $B_p tack.r q$.
+
+Output:
+
+- theorem $(A_p - {q}) union (B_p - {p}) tack.r p = q$.
+
+Side conditions:
+
+1. both premises must conclude propositions;
+2. subtraction from assumption sets must be defined by alpha-aware proposition equality;
+3. resulting assumption set must remain finite.
+
+Failure clauses:
+
+1. malformed assumption-set subtraction;
+2. proposition mismatch in set-removal targets;
+3. non-propositional premise conclusion.
+
+Antecedent form:
+$
+  (" "A_p tack.r p and B_p tack.r q" ")
+  /
+  ((A_p - {q}) union (B_p - {p}) tack.r p = q)
+$
+
+== Rule Schema: `INST_TYPE`
+
+Input:
+
+- type substitution $theta$;
+- theorem $A_p tack.r p$.
+
+Output:
+
+- theorem $theta(A_p) tack.r theta(p)$.
+
+Side conditions:
+
+1. substitution domain must contain only type variables;
+2. substitution application must preserve term well-typedness;
+3. theorem structure must be preserved under parallel type substitution.
+
+Failure clauses:
+
+1. invalid substitution mapping;
+2. typing failure after substitution;
+3. malformed theorem structure under substitution.
+
+Antecedent form:
+$
+  (" "A_p tack.r p and "valid(theta)"" ")
+  /
+  (theta(A_p) tack.r theta(p))
+$
+
 = Soundness Strategy
 
 The project-level soundness story is divided into three obligations.
