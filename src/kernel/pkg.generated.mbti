@@ -32,6 +32,8 @@ pub fn fun_ty(HolType, HolType) -> HolType
 
 pub fn hol_type_to_string(HolType) -> String
 
+pub fn inst_type(Array[(String, HolType)], Thm) -> Thm?
+
 pub fn is_abs(Term) -> Bool
 
 pub fn is_bool_ty(HolType) -> Bool

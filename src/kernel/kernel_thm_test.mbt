@@ -247,3 +247,32 @@ test "thm deduct_antisym_rule removes opposite assumptions" {
     _ => assert_false(true)
   }
 }
+
+///|
+test "thm inst_type accepts empty substitution" {
+  let p = mk_const("P", bool_ty())
+  let th = assume(p)
+  assert_true(th is Some(_))
+  match th {
+    Some(t) => {
+      let out = inst_type([], t)
+      assert_true(out is Some(_))
+    }
+    None => assert_false(true)
+  }
+}
+
+///|
+test "thm inst_type rejects non-empty substitution for now" {
+  let p = mk_const("P", bool_ty())
+  let th = assume(p)
+  let a = mk_tyvar("A")
+  assert_true(th is Some(_))
+  match th {
+    Some(t) => {
+      let out = inst_type([("A", a)], t)
+      assert_true(out is None)
+    }
+    None => assert_false(true)
+  }
+}
