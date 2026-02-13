@@ -173,23 +173,6 @@ fn hyps_remove(hs : Array[Term], t : Term) -> Array[Term] {
 }
 
 ///|
-fn vfree_in(v : Term, t : Term) -> Bool {
-  match (to_db_term(v), to_db_term(t)) {
-    (Some(v_db), Some(db_t)) =>
-      match v_db {
-        DbFree(_, _) => db_has_free(db_t, v_db)
-        _ => false
-      }
-    _ => false
-  }
-}
-
-///|
-fn vfree_in_hyps(v : Term, hs : Array[Term]) -> Bool {
-  hs.any(fn(h) { vfree_in(v, h) })
-}
-
-///|
 pub fn trans(th1 : Thm, th2 : Thm) -> Thm? {
   match (thm_to_db(th1), thm_to_db(th2)) {
     (Some(DbSeq(h1, c1)), Some(DbSeq(h2, c2))) =>
@@ -211,19 +194,22 @@ pub fn trans(th1 : Thm, th2 : Thm) -> Thm? {
 
 ///|
 pub fn abs_rule(x : Term, th : Thm) -> Thm? {
-  if !is_var(x) {
-    return None
-  }
-  match th {
-    Sequent(hs, concl) =>
-      if vfree_in_hyps(x, hs) {
-        None
-      } else {
-        match dest_eq(concl) {
-          Some((l, r)) => Some(Sequent(hs, mk_eq(mk_abs(x, l), mk_abs(x, r))))
-          _ => None
-        }
+  match (to_db_term(x), thm_to_db(th)) {
+    (Some(x_db), Some(DbSeq(hs, concl))) =>
+      match x_db {
+        DbFree(_, ty) =>
+          if hs.any(fn(h) { db_has_free(h, x_db) }) {
+            None
+          } else {
+            match db_dest_eq(concl) {
+              Some((l, r)) =>
+                db_to_thm(DbSeq(hs, db_mk_eq(DbAbs(ty, l), DbAbs(ty, r))))
+              _ => None
+            }
+          }
+        _ => None
       }
+    _ => None
   }
 }
 
