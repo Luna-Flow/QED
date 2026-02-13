@@ -75,6 +75,31 @@ fn ty_eq(t1 : HolType, t2 : HolType) -> Bool {
 }
 
 ///|
+fn db_dest_eq(t : DbTerm) -> (DbTerm, DbTerm)? {
+  match t {
+    DbComb(DbComb(DbConst("=", _), lhs), rhs) => Some((lhs, rhs))
+    _ => None
+  }
+}
+
+///|
+fn db_mk_eq(lhs : DbTerm, rhs : DbTerm) -> DbTerm {
+  let eq_ty = fun_ty(db_type_of(lhs), fun_ty(db_type_of(rhs), bool_ty()))
+  DbComb(DbComb(DbConst("=", eq_ty), lhs), rhs)
+}
+
+///|
+fn db_hyps_union(a : Array[DbTerm], b : Array[DbTerm]) -> Array[DbTerm] {
+  let out = a.copy()
+  for h in b {
+    if !out.any(fn(x) { db_term_eq(x, h) }) {
+      out.push(h)
+    }
+  }
+  out
+}
+
+///|
 fn thm_to_db(th : Thm) -> DbSequent? {
   match th {
     Sequent(hs, c) => {
@@ -166,20 +191,21 @@ fn vfree_in_hyps(v : Term, hs : Array[Term]) -> Bool {
 
 ///|
 pub fn trans(th1 : Thm, th2 : Thm) -> Thm? {
-  match th1 {
-    Sequent(h1, c1) =>
-      match th2 {
-        Sequent(h2, c2) =>
-          match (dest_eq(c1), dest_eq(c2)) {
-            (Some((l1, r1)), Some((l2, r2))) =>
-              if term_alpha_eq(r1, l2) {
-                Some(Sequent(hyps_union(h1, h2), mk_eq(l1, r2)))
-              } else {
-                None
-              }
-            _ => None
+  match (thm_to_db(th1), thm_to_db(th2)) {
+    (Some(DbSeq(h1, c1)), Some(DbSeq(h2, c2))) =>
+      match (db_dest_eq(c1), db_dest_eq(c2)) {
+        (Some((l1, r1)), Some((l2, r2))) =>
+          if db_term_eq(r1, l2) {
+            match db_to_thm(DbSeq(db_hyps_union(h1, h2), db_mk_eq(l1, r2))) {
+              Some(th) => Some(th)
+              None => None
+            }
+          } else {
+            None
           }
+        _ => None
       }
+    _ => None
   }
 }
 
