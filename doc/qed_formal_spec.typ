@@ -202,11 +202,11 @@ Here $"Term"_arrow.b$ lowers named terms to De Bruijn terms, and $"Term"_arrow.t
 
 For theorem objects:
 $
-  "Thm"_arrow.b " " (A_p tack.r p) = A_d tack.r p_d
+  "Thm"_arrow.b" "(A_p tack.r p) = A_d tack.r p_d
 $
 and
 $
-  "Thm"_arrow.t " " (A_d tack.r p_d) = A_p' tack.r p'
+  "Thm"_arrow.t" "(A_d tack.r p_d) = A_p' tack.r p'
 $
 defined pointwise by $"Term"_arrow.b$ and $"Term"_arrow.t$ on assumptions and conclusion.
 
@@ -218,12 +218,12 @@ Lemma (Alpha-Invariant Lowering):
 $
   (" "t_1 equiv_alpha t_2" ")
   /
-  ("Term"_arrow.b t_1 = "Term"_arrow.b t_2)
+  ("Term"_arrow.b" "t_1 = "Term"_arrow.b" "t_2)
 $
 
 Lemma (Round-Trip Stability up to Alpha):
 $
-  (" ""Term"_arrow.b t = d and "Term"_arrow.t d = t'" ")
+  ("Term"_arrow.b" "t = d and "Term"_arrow.t" "d = t')
   /
   (t' equiv_alpha t)
 $
@@ -231,11 +231,11 @@ $
 Lemma (Rule Lifting Safety):
 if a primitive core rule $R_d$ satisfies
 $
-  R_d : "DbSequent"^n -> "DbSequent"?
+  R_d : "DbSequent"^n arrow.r "DbSequent"?
 $
 then the lifted rule
 $
-  R" "x = "Thm"_arrow.t" "R_d" "("Thm"_arrow.b" "x)
+  R" "x = "Thm"_arrow.t" "(R_d" "("Thm"_arrow.b" "x))
 $
 preserves assumption/conclusion structure modulo alpha-equivalence whenever conversions succeed.
 
@@ -250,6 +250,14 @@ $
   S = [S_0, S_1, ..., S_n]
 $
 where $S_n$ is the innermost scope.
+
+Notation and intent:
+
+- $P(S)$ denotes pushing a fresh, empty scope.
+- $A(S, c : tau)$ denotes inserting a constant into the current scope.
+- $Q(S)$ denotes popping the innermost scope.
+
+These operators are the logical counterparts of scope push/add/pop in the implementation.
 
 Lookup is defined by:
 $
@@ -470,11 +478,13 @@ $
 
 Input:
 
-- a typed beta-redex term of shape $(λ (x : tau). s) u$.
+- a typed De Bruijn beta-redex term of shape $(λ. t) u$.
 
 Output:
 
-- theorem $tack.r ((λ (x : tau). s) u) = s[u/x]$.
+- theorem $tack.r ((λ. t) u) = t[0 := u]$.
+
+This is the De Bruijn substitution form (with the usual shift and shift-back to avoid capture). It corresponds to the named rule $tack.r ((λ (x : tau). s) u) = s[u\/x]$ under boundary conversion.
 
 Side conditions:
 
@@ -489,9 +499,9 @@ Failure clauses:
 
 Antecedent form:
 $
-  (" "t = (λ (x : tau). s) u and "welltyped(t)"" ")
+  (" "r = (λ. t) u and "welltyped(r)"" ")
   /
-  (tack.r t = s[u/x])
+  (tack.r r = t[0 := u])
 $
 
 == Rule Schema: `EQ_MP`
