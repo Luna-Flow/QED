@@ -264,7 +264,6 @@ test "thm inst_type accepts empty substitution" {
 
 ///|
 test "thm inst_type applies non-empty substitution" {
-  let p = mk_const("P", bool_ty())
   let a = mk_tyvar("A")
   let x = mk_var("x", a)
   let th = refl(x)
