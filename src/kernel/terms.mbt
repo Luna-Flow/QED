@@ -4,6 +4,7 @@ pub enum Term {
   Var(String, HolType)
   Const(String, HolType)
   Comb(Term, Term)
+  Abs(Term, Term)
 }
 
 ///|
@@ -23,6 +24,11 @@ pub fn mk_comb(fn_term : Term, arg_term : Term) -> Term {
 }
 
 ///|
+pub fn mk_abs(var_term : Term, body : Term) -> Term {
+  Abs(var_term, body)
+}
+
+///|
 /// Returns the type of a term.
 pub fn type_of(term : Term) -> HolType {
   match term {
@@ -33,6 +39,7 @@ pub fn type_of(term : Term) -> HolType {
         TyApp("fun", [_, cod]) => cod
         _ => bool_ty()
       }
+    Abs(var_term, body) => fun_ty(type_of(var_term), type_of(body))
   }
 }
 
