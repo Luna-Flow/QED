@@ -55,6 +55,21 @@ fn hyps_union(a : Array[Term], b : Array[Term]) -> Array[Term] {
 }
 
 ///|
+fn vfree_in(v : Term, t : Term) -> Bool {
+  match t {
+    Var(_, _) => alpha_eq(v, t)
+    Const(_, _) => false
+    Comb(f, x) => vfree_in(v, f) || vfree_in(v, x)
+    Abs(bv, body) => if alpha_eq(v, bv) { false } else { vfree_in(v, body) }
+  }
+}
+
+///|
+fn vfree_in_hyps(v : Term, hs : Array[Term]) -> Bool {
+  hs.any(fn(h) { vfree_in(v, h) })
+}
+
+///|
 pub fn trans(th1 : Thm, th2 : Thm) -> Thm? {
   match th1 {
     Sequent(h1, c1) =>
@@ -69,6 +84,24 @@ pub fn trans(th1 : Thm, th2 : Thm) -> Thm? {
               }
             _ => None
           }
+      }
+  }
+}
+
+///|
+pub fn abs_rule(x : Term, th : Thm) -> Thm? {
+  if !is_var(x) {
+    return None
+  }
+  match th {
+    Sequent(hs, concl) =>
+      if vfree_in_hyps(x, hs) {
+        None
+      } else {
+        match dest_eq(concl) {
+          Some((l, r)) => Some(Sequent(hs, mk_eq(mk_abs(x, l), mk_abs(x, r))))
+          _ => None
+        }
       }
   }
 }

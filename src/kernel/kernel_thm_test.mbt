@@ -123,3 +123,37 @@ test "thm mk_comb_rule fails on argument type mismatch" {
     _ => assert_false(true)
   }
 }
+
+///|
+test "thm abs_rule abstracts equality theorem" {
+  let a = mk_tyvar("A")
+  let x = mk_var("x", a)
+  let y = mk_var("y", a)
+  let z = mk_var("z", a)
+
+  let th = assume(mk_eq(y, z))
+  assert_true(th is Some(_))
+  match th {
+    Some(t) => {
+      let out = abs_rule(x, t)
+      assert_true(out is Some(Sequent(_, _)))
+    }
+    None => assert_false(true)
+  }
+}
+
+///|
+test "thm abs_rule fails when binder free in assumptions" {
+  let a = mk_tyvar("A")
+  let x = mk_var("x", a)
+  let y = mk_var("y", a)
+  let th = assume(mk_eq(x, y))
+  assert_true(th is Some(_))
+  match th {
+    Some(t) => {
+      let out = abs_rule(x, t)
+      assert_true(out is None)
+    }
+    None => assert_false(true)
+  }
+}

@@ -2,6 +2,8 @@
 package "Luna-Flow/QED/kernel"
 
 // Values
+pub fn abs_rule(Term, Thm) -> Thm?
+
 pub fn assume(Term) -> Thm?
 
 pub fn bool_ty() -> HolType
