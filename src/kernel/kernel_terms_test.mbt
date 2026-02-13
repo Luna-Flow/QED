@@ -14,10 +14,10 @@ test "terms type_of" {
   let a = mk_tyvar("A")
 
   let v = mk_var("x", a)
-  assert_true(type_of(v) is TyVal("A"))
+  assert_true(type_of(v) is Some(TyVal("A")))
 
   let c = mk_const("k", bool_ty())
-  assert_true(type_of(c) is TyApp("bool", []))
+  assert_true(type_of(c) is Some(TyApp("bool", [])))
 }
 
 ///|
@@ -37,7 +37,7 @@ test "terms comb type_of" {
   let f = mk_const("f", fun_ty(a, b))
   let x = mk_var("x", a)
   let app = mk_comb(f, x)
-  assert_true(type_of(app) is TyVal("B"))
+  assert_true(type_of(app) is Some(TyVal("B")))
 }
 
 ///|
@@ -56,7 +56,7 @@ test "terms abs type_of" {
   let x = mk_var("x", a)
   let k = mk_const("k", b)
   let lam = mk_abs(x, k)
-  assert_true(type_of(lam) is TyApp("fun", [TyVal("A"), TyVal("B")]))
+  assert_true(type_of(lam) is Some(TyApp("fun", [TyVal("A"), TyVal("B")])))
 }
 
 ///|
@@ -290,7 +290,7 @@ test "terms db_type_of follows function application typing" {
   let d_app = to_db_term(app)
   assert_true(d_app is Some(_))
   match d_app {
-    Some(v) => assert_true(db_type_of(v) is TyVal("B"))
+    Some(v) => assert_true(db_type_of(v) is Some(TyVal("B")))
     None => assert_false(true)
   }
 }
