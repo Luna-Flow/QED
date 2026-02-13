@@ -251,14 +251,27 @@ test "thm beta_rule reduces nontrivial redex with safe substitution" {
 }
 
 ///|
-test "thm beta_rule rejects capture-risk substitution" {
+test "thm beta_rule reduces capture-risk case via debruijn" {
   let a = mk_tyvar("A")
   let x = mk_var("x", a)
   let y = mk_var("y", a)
   let body = mk_abs(y, x)
   let redex = mk_comb(mk_abs(x, body), y)
   let out = beta_rule(redex)
-  assert_true(out is None)
+  assert_true(out is Some(Sequent(_, _)))
+
+  match out {
+    Some(Sequent(_, concl)) =>
+      match concl {
+        Comb(Comb(Const("=", _), _), rhs) =>
+          match (to_db_term(rhs), to_db_term(mk_abs(x, y))) {
+            (Some(d1), Some(d2)) => assert_true(db_term_eq(d1, d2))
+            _ => assert_false(true)
+          }
+        _ => assert_false(true)
+      }
+    None => assert_false(true)
+  }
 }
 
 ///|
