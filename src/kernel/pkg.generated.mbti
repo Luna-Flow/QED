@@ -40,6 +40,8 @@ pub fn dest_tyapp(HolType) -> (String, Array[HolType])?
 
 pub fn dest_var(Term) -> (String, HolType)?
 
+pub fn empty_sig() -> GlobalSig
+
 pub fn eq_mp(Thm, Thm) -> Thm?
 
 pub fn from_db_term(DbTerm) -> Term?
@@ -88,6 +90,12 @@ pub fn mk_var(String, HolType) -> Term
 
 pub fn refl(Term) -> Thm
 
+pub fn sig_add_const(GlobalSig, String, HolType) -> GlobalSig?
+
+pub fn sig_has_const(GlobalSig, String) -> Bool
+
+pub fn sig_lookup_const(GlobalSig, String) -> HolType?
+
 pub fn term_alpha_eq(Term, Term) -> Bool
 
 pub fn term_to_string(Term) -> String
@@ -107,6 +115,10 @@ pub enum DbTerm {
   DbConst(String, HolType)
   DbComb(DbTerm, DbTerm)
   DbAbs(HolType, DbTerm)
+}
+
+pub enum GlobalSig {
+  Sig(Array[(String, HolType)])
 }
 
 pub enum HolType {
