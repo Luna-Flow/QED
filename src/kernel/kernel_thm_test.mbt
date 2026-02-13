@@ -424,6 +424,38 @@ test "thm inst_type applies non-empty substitution" {
 }
 
 ///|
+test "thm inst_type rewrites binder types through debruijn path" {
+  let a = mk_tyvar("A")
+  let b = mk_tyvar("B")
+  let x = mk_var("x", a)
+  let lam = mk_abs(x, x)
+  let th = refl(lam)
+  let out = inst_type([("A", b)], th)
+  assert_true(out is Some(_))
+
+  match out {
+    Some(Sequent(_, concl)) =>
+      match concl {
+        Comb(Comb(Const("=", _), lhs), rhs) =>
+          match
+            (
+              to_db_term(lhs),
+              to_db_term(rhs),
+              to_db_term(mk_abs(mk_var("x", b), mk_var("x", b))),
+            ) {
+            (Some(d1), Some(d2), Some(dexp)) => {
+              assert_true(db_term_eq(d1, dexp))
+              assert_true(db_term_eq(d2, dexp))
+            }
+            _ => assert_false(true)
+          }
+        _ => assert_false(true)
+      }
+    None => assert_false(true)
+  }
+}
+
+///|
 test "thm inst_type rejects duplicate substitution keys" {
   let a = mk_tyvar("A")
   let b = mk_tyvar("B")
