@@ -5,6 +5,7 @@ pub enum Thm {
 }
 
 ///|
+/// Type-substitution helpers
 fn lookup_ty_subst(subst : Array[(String, HolType)], name : String) -> HolType? {
   for kv in subst {
     let (k, v) = kv
@@ -44,6 +45,7 @@ fn apply_ty_subst_to_term(subst : Array[(String, HolType)], t : Term) -> Term {
 }
 
 ///|
+/// Term-substitution helpers
 fn lookup_term_subst(subst : Array[(Term, Term)], src : Term) -> Term? {
   for pair in subst {
     let (k, v) = pair
@@ -111,6 +113,7 @@ fn apply_term_subst_to_term(subst : Array[(Term, Term)], t : Term) -> Term {
 }
 
 ///|
+/// Theorem constructors and primitive rules
 pub fn mk_eq(lhs : Term, rhs : Term) -> Term {
   let eq_ty = fun_ty(type_of(lhs), fun_ty(type_of(rhs), bool_ty()))
   let eq_const = mk_const("=", eq_ty)
