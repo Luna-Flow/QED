@@ -200,6 +200,22 @@ pub fn db_term_to_string(term : DbTerm) -> String {
 }
 
 ///|
+pub fn db_term_eq(lhs : DbTerm, rhs : DbTerm) -> Bool {
+  match (lhs, rhs) {
+    (DbBound(i1, ty1), DbBound(i2, ty2)) =>
+      i1 == i2 && hol_type_to_string(ty1) == hol_type_to_string(ty2)
+    (DbFree(n1, ty1), DbFree(n2, ty2)) =>
+      n1 == n2 && hol_type_to_string(ty1) == hol_type_to_string(ty2)
+    (DbConst(n1, ty1), DbConst(n2, ty2)) =>
+      n1 == n2 && hol_type_to_string(ty1) == hol_type_to_string(ty2)
+    (DbComb(f1, x1), DbComb(f2, x2)) => db_term_eq(f1, f2) && db_term_eq(x1, x2)
+    (DbAbs(ty1, b1), DbAbs(ty2, b2)) =>
+      hol_type_to_string(ty1) == hol_type_to_string(ty2) && db_term_eq(b1, b2)
+    _ => false
+  }
+}
+
+///|
 fn db_string_with_env(term : Term, env : Array[String]) -> String {
   match term {
     Var(name, ty) =>

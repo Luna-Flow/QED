@@ -158,3 +158,27 @@ test "terms to_db_term rejects non-variable binder" {
   let bad = mk_abs(c, x)
   assert_true(to_db_term(bad) is None)
 }
+
+///|
+test "terms db_term_eq checks structural equality" {
+  let a = mk_tyvar("A")
+  let x = mk_var("x", a)
+  let y = mk_var("y", a)
+  let z = mk_var("z", a)
+  let t1 = mk_abs(x, mk_comb(x, y))
+  let t2 = mk_abs(z, mk_comb(z, y))
+  let t3 = mk_abs(z, mk_comb(y, z))
+
+  let d1 = to_db_term(t1)
+  let d2 = to_db_term(t2)
+  let d3 = to_db_term(t3)
+  assert_true((d1, d2, d3) is (Some(_), Some(_), Some(_)))
+
+  match (d1, d2, d3) {
+    (Some(v1), Some(v2), Some(v3)) => {
+      assert_true(db_term_eq(v1, v2))
+      assert_false(db_term_eq(v1, v3))
+    }
+    _ => assert_false(true)
+  }
+}
