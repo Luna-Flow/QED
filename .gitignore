@@ -3,3 +3,5 @@ _build/
 .mooncakes/
 .moonagent/
 PLAN.md
+*.pdf
+*.typ
