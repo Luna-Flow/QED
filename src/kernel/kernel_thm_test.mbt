@@ -374,6 +374,17 @@ test "thm inst_type applies non-empty substitution" {
 }
 
 ///|
+test "thm inst_type rejects duplicate substitution keys" {
+  let a = mk_tyvar("A")
+  let b = mk_tyvar("B")
+  let c = mk_tyvar("C")
+  let x = mk_var("x", a)
+  let th = refl(x)
+  let out = inst_type([("A", b), ("A", c)], th)
+  assert_true(out is None)
+}
+
+///|
 test "thm inst_type deduplicates hypotheses after substitution" {
   let a = mk_tyvar("A")
   let b = mk_tyvar("B")
@@ -459,6 +470,16 @@ test "thm inst rejects invalid substitution key" {
   let x = mk_var("x", a)
   let c = mk_const("C", a)
   let out = inst([(c, x)], refl(x))
+  assert_true(out is None)
+}
+
+///|
+test "thm inst rejects duplicate substitution keys" {
+  let a = mk_tyvar("A")
+  let x = mk_var("x", a)
+  let y = mk_var("y", a)
+  let z = mk_var("z", a)
+  let out = inst([(x, y), (x, z)], refl(x))
   assert_true(out is None)
 }
 

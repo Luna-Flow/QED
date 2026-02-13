@@ -17,6 +17,19 @@ fn lookup_ty_subst(subst : Array[(String, HolType)], name : String) -> HolType? 
 }
 
 ///|
+fn has_duplicate_ty_subst_keys(subst : Array[(String, HolType)]) -> Bool {
+  let seen : Array[String] = []
+  for kv in subst {
+    let (k, _) = kv
+    if seen.contains(k) {
+      return true
+    }
+    seen.push(k)
+  }
+  false
+}
+
+///|
 fn apply_ty_subst_to_type(
   subst : Array[(String, HolType)],
   ty : HolType,
@@ -58,6 +71,7 @@ fn lookup_term_subst(subst : Array[(Term, Term)], src : Term) -> Term? {
 
 ///|
 fn is_valid_term_subst(subst : Array[(Term, Term)]) -> Bool {
+  let keys : Array[Term] = []
   for pair in subst {
     let (k, v) = pair
     if !is_var(k) {
@@ -66,6 +80,10 @@ fn is_valid_term_subst(subst : Array[(Term, Term)]) -> Bool {
     if !ty_eq(type_of(k), type_of(v)) {
       return false
     }
+    if keys.any(fn(x) { alpha_eq(x, k) }) {
+      return false
+    }
+    keys.push(k)
   }
   true
 }
@@ -312,6 +330,9 @@ pub fn deduct_antisym_rule(th1 : Thm, th2 : Thm) -> Thm {
 
 ///|
 pub fn inst_type(subst : Array[(String, HolType)], th : Thm) -> Thm? {
+  if has_duplicate_ty_subst_keys(subst) {
+    return None
+  }
   match th {
     Sequent(hs, c) => {
       let hs2 = hyps_dedup(hs.map(fn(h) { apply_ty_subst_to_term(subst, h) }))
