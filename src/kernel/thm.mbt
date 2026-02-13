@@ -144,10 +144,14 @@ pub fn refl(t : Term) -> Thm {
 
 ///|
 pub fn assume(p : Term) -> Thm? {
-  if is_bool_ty(type_of(p)) {
-    Some(Sequent([p], p))
-  } else {
-    None
+  match to_db_term(p) {
+    Some(db_p) =>
+      if is_bool_ty(db_type_of(db_p)) {
+        db_to_thm(DbSeq([db_p], db_p))
+      } else {
+        None
+      }
+    None => None
   }
 }
 
