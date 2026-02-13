@@ -5,6 +5,11 @@ pub enum Thm {
 }
 
 ///|
+priv enum DbSequent {
+  DbSeq(Array[DbTerm], DbTerm)
+}
+
+///|
 /// Type-substitution helpers
 fn has_duplicate_ty_subst_keys(subst : Array[(String, HolType)]) -> Bool {
   let seen : Array[String] = []
@@ -67,6 +72,44 @@ pub fn dest_eq(t : Term) -> (Term, Term)? {
 ///|
 fn ty_eq(t1 : HolType, t2 : HolType) -> Bool {
   hol_type_to_string(t1) == hol_type_to_string(t2)
+}
+
+///|
+fn thm_to_db(th : Thm) -> DbSequent? {
+  match th {
+    Sequent(hs, c) => {
+      let hs2 : Array[DbTerm] = []
+      for h in hs {
+        match to_db_term(h) {
+          Some(h_db) => hs2.push(h_db)
+          None => return None
+        }
+      }
+      match to_db_term(c) {
+        Some(c_db) => Some(DbSeq(hs2, c_db))
+        None => None
+      }
+    }
+  }
+}
+
+///|
+fn db_to_thm(db_th : DbSequent) -> Thm? {
+  match db_th {
+    DbSeq(hs, c) => {
+      let hs2 : Array[Term] = []
+      for h in hs {
+        match from_db_term(h) {
+          Some(h2) => hs2.push(h2)
+          None => return None
+        }
+      }
+      match from_db_term(c) {
+        Some(c2) => Some(Sequent(hyps_dedup(hs2), c2))
+        None => None
+      }
+    }
+  }
 }
 
 ///|
@@ -225,30 +268,15 @@ pub fn inst_type(subst : Array[(String, HolType)], th : Thm) -> Thm? {
   if has_duplicate_ty_subst_keys(subst) {
     return None
   }
-  match th {
-    Sequent(hs, c) => {
-      let hs2_raw : Array[Term] = []
-      for h in hs {
-        match to_db_term(h) {
-          Some(h_db) =>
-            match from_db_term(db_apply_ty_subst(subst, h_db)) {
-              Some(h2) => hs2_raw.push(h2)
-              None => return None
-            }
-          None => return None
-        }
-      }
-      let hs2 = hyps_dedup(hs2_raw)
-      let c2 = match to_db_term(c) {
-        Some(c_db) =>
-          match from_db_term(db_apply_ty_subst(subst, c_db)) {
-            Some(c_out) => c_out
-            None => return None
-          }
-        None => return None
-      }
-      Some(Sequent(hs2, c2))
-    }
+  match thm_to_db(th) {
+    Some(DbSeq(hs, c)) =>
+      db_to_thm(
+        DbSeq(
+          hs.map(fn(h) { db_apply_ty_subst(subst, h) }),
+          db_apply_ty_subst(subst, c),
+        ),
+      )
+    None => None
   }
 }
 
@@ -265,30 +293,15 @@ pub fn inst(subst : Array[(Term, Term)], th : Thm) -> Thm? {
       _ => return None
     }
   }
-  match th {
-    Sequent(hs, c) => {
-      let hs2_raw : Array[Term] = []
-      for h in hs {
-        match to_db_term(h) {
-          Some(h_db) =>
-            match from_db_term(db_subst_free_parallel(h_db, db_subst)) {
-              Some(h2) => hs2_raw.push(h2)
-              None => return None
-            }
-          None => return None
-        }
-      }
-      let hs2 = hyps_dedup(hs2_raw)
-      let c2 = match to_db_term(c) {
-        Some(c_db) =>
-          match from_db_term(db_subst_free_parallel(c_db, db_subst)) {
-            Some(c_out) => c_out
-            None => return None
-          }
-        None => return None
-      }
-      Some(Sequent(hs2, c2))
-    }
+  match thm_to_db(th) {
+    Some(DbSeq(hs, c)) =>
+      db_to_thm(
+        DbSeq(
+          hs.map(fn(h) { db_subst_free_parallel(h, db_subst) }),
+          db_subst_free_parallel(c, db_subst),
+        ),
+      )
+    None => None
   }
 }
 

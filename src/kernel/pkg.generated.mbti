@@ -101,6 +101,8 @@ pub fn type_of(Term) -> HolType
 // Errors
 
 // Types and methods
+type DbSequent
+
 pub enum DbTerm {
   DbBound(Int, HolType)
   DbFree(String, HolType)
