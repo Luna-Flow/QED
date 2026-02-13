@@ -211,6 +211,27 @@ fn db_rule_trans(th1 : DbSequent, th2 : DbSequent) -> DbSequent? {
 }
 
 ///|
+fn db_rule_eq_mp(th_eq : DbSequent, th_p : DbSequent) -> DbSequent? {
+  match (th_eq, th_p) {
+    (DbSeq(h_eq, c_eq), DbSeq(h_p, c_p)) =>
+      match db_dest_eq(c_eq) {
+        Some((lhs, rhs)) => {
+          let ok_l = is_bool_ty(db_type_of(lhs))
+          let ok_r = is_bool_ty(db_type_of(rhs))
+          let ok_m = db_term_eq(lhs, c_p)
+          let ok = ok_l && ok_r && ok_m
+          if ok {
+            Some(DbSeq(db_hyps_union(h_eq, h_p), rhs))
+          } else {
+            None
+          }
+        }
+        None => None
+      }
+  }
+}
+
+///|
 pub fn trans(th1 : Thm, th2 : Thm) -> Thm? {
   match (thm_to_db(th1), thm_to_db(th2)) {
     (Some(db1), Some(db2)) =>
@@ -266,19 +287,9 @@ pub fn beta_rule(t : Term) -> Thm? {
 ///|
 pub fn eq_mp(th_eq : Thm, th_p : Thm) -> Thm? {
   match (thm_to_db(th_eq), thm_to_db(th_p)) {
-    (Some(DbSeq(h_eq, c_eq)), Some(DbSeq(h_p, c_p))) =>
-      match db_dest_eq(c_eq) {
-        Some((lhs, rhs)) => {
-          let ok_l = is_bool_ty(db_type_of(lhs))
-          let ok_r = is_bool_ty(db_type_of(rhs))
-          let ok_m = db_term_eq(lhs, c_p)
-          let ok = ok_l && ok_r && ok_m
-          if ok {
-            db_to_thm(DbSeq(db_hyps_union(h_eq, h_p), rhs))
-          } else {
-            None
-          }
-        }
+    (Some(db_eq), Some(db_p)) =>
+      match db_rule_eq_mp(db_eq, db_p) {
+        Some(db_out) => db_to_thm(db_out)
         None => None
       }
     _ => None
