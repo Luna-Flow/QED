@@ -273,6 +273,25 @@ test "thm beta_rule rejects argument type mismatch in redex" {
 }
 
 ///|
+test "thm beta_rule keeps inner shadowed binder unchanged" {
+  let a = mk_tyvar("A")
+  let x = mk_var("x", a)
+  let y = mk_var("y", a)
+  let inner = mk_abs(x, x)
+  let redex = mk_comb(mk_abs(x, inner), y)
+  let out = beta_rule(redex)
+  assert_true(out is Some(_))
+
+  match out {
+    Some(Sequent(_, concl)) => {
+      let s = term_to_string(concl)
+      assert_true(s.contains("Abs(Var(x : A), Var(x : A))"))
+    }
+    None => assert_false(true)
+  }
+}
+
+///|
 test "thm eq_mp derives rhs from equality and lhs proof" {
   let p = mk_const("P", bool_ty())
   let q = mk_const("Q", bool_ty())

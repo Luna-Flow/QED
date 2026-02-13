@@ -214,30 +214,49 @@ fn vfree_in_hyps(v : Term, hs : Array[Term]) -> Bool {
 }
 
 ///|
-fn subst_var_safe(v : Term, repl : Term, t : Term) -> Term? {
+fn subst_var_safe_with_scope(
+  v : Term,
+  repl : Term,
+  t : Term,
+  blocked : Bool,
+) -> Term? {
   match t {
-    Var(_, _) => if alpha_eq(t, v) { Some(repl) } else { Some(t) }
+    Var(_, _) => if !blocked && alpha_eq(t, v) { Some(repl) } else { Some(t) }
     Const(_, _) => Some(t)
     Comb(f, x) =>
-      match (subst_var_safe(v, repl, f), subst_var_safe(v, repl, x)) {
+      match
+        (
+          subst_var_safe_with_scope(v, repl, f, blocked),
+          subst_var_safe_with_scope(v, repl, x, blocked),
+        ) {
         (Some(f2), Some(x2)) => Some(Comb(f2, x2))
         _ => None
       }
-    Abs(bv, body) =>
-      if alpha_eq(bv, v) {
-        Some(t)
+    Abs(bv, body) => {
+      let blocked2 = blocked || alpha_eq(bv, v)
+      if blocked2 {
+        match subst_var_safe_with_scope(v, repl, body, blocked2) {
+          Some(body2) => Some(Abs(bv, body2))
+          None => None
+        }
       } else {
         let capture_risk = vfree_in(bv, repl) && vfree_in(v, body)
         if capture_risk {
           None
         } else {
-          match subst_var_safe(v, repl, body) {
+          match subst_var_safe_with_scope(v, repl, body, blocked2) {
             Some(body2) => Some(Abs(bv, body2))
             None => None
           }
         }
       }
+    }
   }
+}
+
+///|
+fn subst_var_safe(v : Term, repl : Term, t : Term) -> Term? {
+  subst_var_safe_with_scope(v, repl, t, false)
 }
 
 ///|
