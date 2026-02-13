@@ -20,9 +20,15 @@ pub fn kernel_terms_phase0_ready() -> Bool
 
 pub fn kernel_thm_phase0_ready() -> Bool
 
+pub fn mk_const(String, HolType) -> Term
+
 pub fn mk_tyapp(String, Array[HolType]) -> HolType
 
 pub fn mk_tyvar(String) -> HolType
+
+pub fn mk_var(String, HolType) -> Term
+
+pub fn type_of(Term) -> HolType
 
 // Errors
 
@@ -30,6 +36,11 @@ pub fn mk_tyvar(String) -> HolType
 pub enum HolType {
   TyVal(String)
   TyApp(String, Array[HolType])
+}
+
+pub enum Term {
+  Var(String, HolType)
+  Const(String, HolType)
 }
 
 // Type aliases
