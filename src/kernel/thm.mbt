@@ -44,6 +44,53 @@ fn apply_ty_subst_to_term(subst : Array[(String, HolType)], t : Term) -> Term {
 }
 
 ///|
+fn lookup_term_subst(subst : Array[(Term, Term)], src : Term) -> Term? {
+  for pair in subst {
+    let (k, v) = pair
+    if alpha_eq(k, src) {
+      return Some(v)
+    }
+  }
+  None
+}
+
+///|
+fn is_valid_term_subst(subst : Array[(Term, Term)]) -> Bool {
+  for pair in subst {
+    let (k, v) = pair
+    if !is_var(k) {
+      return false
+    }
+    if !ty_eq(type_of(k), type_of(v)) {
+      return false
+    }
+  }
+  true
+}
+
+///|
+fn apply_term_subst_to_term(subst : Array[(Term, Term)], t : Term) -> Term {
+  match lookup_term_subst(subst, t) {
+    Some(v) => v
+    None =>
+      match t {
+        Var(_, _) => t
+        Const(_, _) => t
+        Comb(f, x) =>
+          Comb(
+            apply_term_subst_to_term(subst, f),
+            apply_term_subst_to_term(subst, x),
+          )
+        Abs(v, body) =>
+          match lookup_term_subst(subst, v) {
+            Some(_) => Abs(v, body)
+            None => Abs(v, apply_term_subst_to_term(subst, body))
+          }
+      }
+  }
+}
+
+///|
 pub fn mk_eq(lhs : Term, rhs : Term) -> Term {
   let eq_ty = fun_ty(type_of(lhs), fun_ty(type_of(rhs), bool_ty()))
   let eq_const = mk_const("=", eq_ty)
@@ -214,10 +261,15 @@ pub fn inst_type(subst : Array[(String, HolType)], th : Thm) -> Thm? {
 
 ///|
 pub fn inst(subst : Array[(Term, Term)], th : Thm) -> Thm? {
-  if subst.length() == 0 {
-    Some(th)
-  } else {
-    None
+  if !is_valid_term_subst(subst) {
+    return None
+  }
+  match th {
+    Sequent(hs, c) => {
+      let hs2 = hs.map(fn(h) { apply_term_subst_to_term(subst, h) })
+      let c2 = apply_term_subst_to_term(subst, c)
+      Some(Sequent(hs2, c2))
+    }
   }
 }
 

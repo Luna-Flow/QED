@@ -296,18 +296,25 @@ test "thm inst accepts empty substitution" {
 }
 
 ///|
-test "thm inst rejects non-empty substitution for now" {
+test "thm inst applies non-empty substitution" {
   let a = mk_tyvar("A")
   let x = mk_var("x", a)
   let y = mk_var("y", a)
-  let p = mk_const("P", bool_ty())
-  let th = assume(p)
-  assert_true(th is Some(_))
-  match th {
-    Some(t) => {
-      let out = inst([(x, y)], t)
-      assert_true(out is None)
-    }
+  let th = refl(x)
+  let out = inst([(x, y)], th)
+  assert_true(out is Some(_))
+  match out {
+    Some(Sequent(_, concl)) =>
+      assert_true(term_to_string(concl).contains("Var(y : A)"))
     None => assert_false(true)
   }
+}
+
+///|
+test "thm inst rejects invalid substitution key" {
+  let a = mk_tyvar("A")
+  let x = mk_var("x", a)
+  let c = mk_const("C", a)
+  let out = inst([(c, x)], refl(x))
+  assert_true(out is None)
 }
