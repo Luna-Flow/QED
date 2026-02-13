@@ -183,17 +183,25 @@ QED currently uses a two-layer boundary:
 - external-facing terms/theorems are in named syntax;
 - kernel rule cores execute on De Bruijn syntax.
 
-Let $("down")(t)$ denote named-to-De-Bruijn conversion (`to_db_term`) and $("up")(d)$ denote De-Bruijn-to-named reconstruction (`from_db_term`).
+Let
+$
+  #math.italic("Term")_arrow.b(t)
+$
+denote named-to-De-Bruijn conversion (`to_db_term`) and
+$
+  #math.italic("Term")_arrow.t(d)
+$
+denote De-Bruijn-to-named reconstruction (`from_db_term`).
 
 For theorem objects, let:
 $
-  ("down_t")(A_p tack.r p) = A_d tack.r p_d
+  #math.italic("Thm")_arrow.b(A_p tack.r p) = A_d tack.r p_d
 $
 and
 $
-  ("up_t")(A_d tack.r p_d) = A_p' tack.r p'
+  #math.italic("Thm")_arrow.t(A_d tack.r p_d) = A_p' tack.r p'
 $
-defined pointwise by $("down")$ and $("up")$ on assumptions and conclusion.
+defined pointwise by $#math.italic("Term")_arrow.b$ and $#math.italic("Term")_arrow.t$ on assumptions and conclusion.
 
 == Boundary Conversion Properties
 
@@ -203,12 +211,12 @@ Lemma (Alpha-Invariant Lowering):
 $
   (" "t_1 equiv_alpha t_2" ")
   /
-  (("down")(t_1) = ("down")(t_2))
+  (#math.italic("Term")_arrow.b(t_1) = #math.italic("Term")_arrow.b(t_2))
 $
 
 Lemma (Round-Trip Stability up to Alpha):
 $
-  (" "("down")(t) = d and ("up")(d) = t'" ")
+  (" "#math.italic("Term")_arrow.b(t) = d and #math.italic("Term")_arrow.t(d) = t'" ")
   /
   (t' equiv_alpha t)
 $
@@ -220,7 +228,7 @@ $
 $
 then the lifted rule
 $
-  R(x) = ("up_t")(R_d(("down_t")(x)))
+  R(x) = #math.italic("Thm")_arrow.t(R_d(#math.italic("Thm")_arrow.b(x)))
 $
 preserves assumption/conclusion structure modulo alpha-equivalence whenever conversions succeed.
 
@@ -238,26 +246,26 @@ where $S_n$ is the innermost scope.
 
 Lookup is defined by:
 $
-  ("lookup")(S, c) = S_j(c)
+  L(S, c) = S_j(c)
 $
 where $j$ is the greatest index such that $c in "dom"(S_j)$.
 
 Insertion in current scope:
 $
-  ("add")(S, c : tau)
+  A(S, c : tau)
 $
 is allowed iff $c ∉ "dom"(S_n)$.
 
 From these definitions:
 
 Proposition (Shadowing Determinism):
-if $c$ is defined in innermost scope $S_n$, then $("lookup")(S, c) = S_n(c)$.
+if $c$ is defined in innermost scope $S_n$, then $L(S, c) = S_n(c)$.
 
 Proposition (Outer Restoration by Pop):
-if $S' = ("push")(S)$, $("add")(S', c : tau_1) = S''$, and $("pop")(S'') = S$, then $("lookup")(S, c) = ("lookup")(("pop")(S''), c)$.
+if $S' = P(S)$, $A(S', c : tau_1) = S''$, and $Q(S'') = S$, then $L(S, c) = L(Q(S''), c)$.
 
 Proposition (Scope-Local Uniqueness):
-if $c$ is already defined in innermost scope $S_n$, then $("add")(S, c : tau)$ fails.
+if $c$ is already defined in innermost scope $S_n$, then $A(S, c : tau)$ fails.
 
 These properties specify the intended behavior of `sig_push_scope`, `sig_pop_scope`, `sig_lookup_const`, and scoped insertion APIs.
 
@@ -298,13 +306,13 @@ For example, selected rules can be presented in antecedent style:
 - `REFL`: for any term $t$, conclude $tack.r t = t$.
 - `ASSUME`: for any boolean proposition $p$, conclude $p tack.r p$.
 
-$ 
+$
   (" "A_p tack.r s = t and B_p tack.r t = u" ")
   /
   (A_p union B_p tack.r s = u)
 $
 
-$ 
+$
   (" "A_p tack.r p = q and B_p tack.r p" ")
   /
   (A_p union B_p tack.r q)
@@ -638,9 +646,9 @@ A development task is complete only when the mathematical clause and its impleme
 QED and HOL Light share the LCF principle and primitive-rule trust model, but QED currently differs in two engineering choices:
 
 1. Rule execution layer:
-   HOL Light executes directly over named terms; QED executes rule cores over De Bruijn objects and lifts results to named boundaries.
+  HOL Light executes directly over named terms; QED executes rule cores over De Bruijn objects and lifts results to named boundaries.
 2. Constant signature policy:
-   HOL Light uses globally unique constant naming; QED currently uses scoped signature stacks with explicit shadowing.
+  HOL Light uses globally unique constant naming; QED currently uses scoped signature stacks with explicit shadowing.
 
 These deltas are intentional and must be read as implementation-level policy choices, not changes to the object-logic proposition/equality calculus.
 
