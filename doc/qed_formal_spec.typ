@@ -137,7 +137,7 @@ $
 $
 
 $
-  (" "Gamma tack.r f : "fun"(tau_1, tau_2) and Gamma tack.r x : tau_1" ")
+  (" "Gamma tack.r f : "fun"(tau_1, tau_2) ," "Gamma tack.r x : tau_1" ")
   /
   (Gamma tack.r f x : tau_2)
 $
@@ -172,6 +172,30 @@ Term substitution is a finite map from variables to terms. It must satisfy two c
 1. Type preservation: replacement terms match the declared type of replaced variables.
 2. Capture avoidance: bound variables may require renaming before substitution under abstraction.
 
+== De Bruijn Shifting (for `BETA`)
+
+To make the beta rule operationally precise, we fix two recursive operators on De Bruijn terms: `shift` and `subst`.
+
+For shift, written $"shift"(delta, c, d)$ with increment $delta$ and cutoff $c$:
+
+- $"shift"(delta, c, "BVar"(k)) = "BVar"(k)$, when $k < c$.
+- $"shift"(delta, c, "BVar"(k)) = "BVar"(k + delta)$, when $k >= c$.
+- $"shift"(delta, c, "Comb"(f, x)) = "Comb"("shift"(delta, c, f), "shift"(delta, c, x))$.
+- $"shift"(delta, c, "Abs"(t)) = "Abs"("shift"(delta, c + 1, t))$.
+
+For substitution, written $"subst"(j, s, d)$:
+
+- $"subst"(j, s, "BVar"(k)) = s$, when $k = j$.
+- $"subst"(j, s, "BVar"(k)) = "BVar"(k)$, when $k != j$.
+- $"subst"(j, s, "Comb"(f, x)) = "Comb"("subst"(j, s, f), "subst"(j, s, x))$.
+- $"subst"(j, s, "Abs"(t)) = "Abs"("subst"(j + 1, "shift"(1, 0, s), t))$.
+
+Then the De Bruijn beta contraction used by the kernel is fixed as
+$
+  "beta"((λ. t) u) = "shift"(-1, 0, "subst"(0, "shift"(1, 0, u), t))
+$
+which is exactly the "shift and shift-back" discipline referenced by the `BETA` rule schema.
+
 == Alpha-Equivalence
 
 Alpha-equivalence, written $t_1 equiv_alpha t_2$, identifies terms up to systematic renaming of bound variables. It is required by multiple kernel operations, including theorem transitivity-style checks where structural syntax should not distinguish alpha-variants.
@@ -202,11 +226,11 @@ Here $"Term"_arrow.b$ lowers named terms to De Bruijn terms, and $"Term"_arrow.t
 
 For theorem objects:
 $
-  "Thm"_arrow.b" "(A_p tack.r p) = A_d tack.r p_d
+  "Thm"_arrow.b" "A_p tack.r p = A_d tack.r p_d
 $
 and
 $
-  "Thm"_arrow.t" "(A_d tack.r p_d) = A_p' tack.r p'
+  "Thm"_arrow.t" "A_d tack.r p_d = A_p' tack.r p'
 $
 defined pointwise by $"Term"_arrow.b$ and $"Term"_arrow.t$ on assumptions and conclusion.
 
@@ -218,12 +242,12 @@ Lemma (Alpha-Invariant Lowering):
 $
   (" "t_1 equiv_alpha t_2" ")
   /
-  ("Term"_arrow.b" "t_1 = "Term"_arrow.b" "t_2)
+  ("Term"_arrow.b" "t_1 tilde.equiv "Term"_arrow.b" "t_2)
 $
 
 Lemma (Round-Trip Stability up to Alpha):
 $
-  ("Term"_arrow.b" "t = d and "Term"_arrow.t" "d = t')
+  ("Term"_arrow.b" "t mapsto d ," Term"_arrow.t" "d mapsto t')
   /
   (t' equiv_alpha t)
 $
@@ -322,13 +346,13 @@ For example, selected rules can be presented in antecedent style:
 - `ASSUME`: for any boolean proposition $p$, conclude $p tack.r p$.
 
 $
-  (" "A_p tack.r s = t and B_p tack.r t = u" ")
+  (" "A_p tack.r s = t ," "B_p tack.r t = u" ")
   /
   (A_p union B_p tack.r s = u)
 $
 
 $
-  (" "A_p tack.r p = q and B_p tack.r p" ")
+  (" "A_p tack.r p = q ," "B_p tack.r p" ")
   /
   (A_p union B_p tack.r q)
 $
@@ -382,7 +406,7 @@ Failure clauses:
 
 Antecedent form:
 $
-  (" "Gamma_p tack.r p : "bool"" ") / (p tack.r p)
+  (" "Gamma_p tack.r p : "bool ") / (p tack.r p)
 $
 
 == Rule Schema: `TRANS`
@@ -409,7 +433,7 @@ Failure clauses:
 
 Antecedent form:
 $
-  (" "A_p tack.r s = t and B_p tack.r t = u" ")
+  (" "A_p tack.r s = t ," "B_p tack.r t = u" ")
   /
   (A_p union B_p tack.r s = u)
 $
@@ -439,7 +463,7 @@ Failure clauses:
 
 Antecedent form:
 $
-  (" "A_p tack.r f = g and B_p tack.r x = y" ")
+  (" "A_p tack.r f = g ," "B_p tack.r x = y" ")
   /
   (A_p union B_p tack.r f x = g y)
 $
@@ -499,7 +523,7 @@ Failure clauses:
 
 Antecedent form:
 $
-  (" "r = (λ. t) u and "welltyped(r)"" ")
+  (" "r = (λ. t) u ," welltyped"(r)" ")
   /
   (tack.r r = t[0 := u])
 $
@@ -529,7 +553,7 @@ Failure clauses:
 
 Antecedent form:
 $
-  (" "A_p tack.r p = q and B_p tack.r p" ")
+  (" "A_p tack.r p = q ," "B_p tack.r p" ")
   /
   (A_p union B_p tack.r q)
 $
@@ -559,7 +583,7 @@ Failure clauses:
 
 Antecedent form:
 $
-  (" "A_p tack.r p and B_p tack.r q" ")
+  (" "A_p tack.r p ," "B_p tack.r q" ")
   /
   ((A_p - {q}) union (B_p - {p}) tack.r p = q)
 $
@@ -589,7 +613,7 @@ Failure clauses:
 
 Antecedent form:
 $
-  (" "A_p tack.r p and "valid(theta)"" ")
+  (" "A_p tack.r p ," valid"(theta)" ")
   /
   (theta(A_p) tack.r theta(p))
 $
@@ -619,7 +643,7 @@ Failure clauses:
 
 Antecedent form:
 $
-  (" "A_p tack.r p and "valid(sigma)"" ")
+  (" "A_p tack.r p ," valid"(sigma)" ")
   /
   (sigma(A_p) tack.r sigma(p))
 $
@@ -633,6 +657,22 @@ The project-level soundness story is divided into three obligations.
 3. Derivation closure: any finite derivation tree built from primitive rules is sound.
 
 This decomposition is practical: it aligns the formal argument with module boundaries and test responsibilities.
+
+== Type Preservation Sketch for `MK_COMB`
+
+Assume premises $A_p tack.r f = g$ and $B_p tack.r x = y$, with
+$
+  (" "Gamma tack.r f : "fun"(tau_1, tau_2) ∧ Gamma tack.r g : "fun"(tau_1, tau_2) ∧ Gamma tack.r x : tau_1 ∧ Gamma tack.r y : tau_1" ")
+$
+Then by application typing,
+$
+  (" "Gamma tack.r f" "x : tau_2 ∧ Gamma tack.r g" "y : tau_2" ")
+$
+and therefore
+$
+  Gamma tack.r (f" "x = g" "y) : "bool"
+$
+So the output proposition in `MK_COMB` is well-typed as a boolean formula, which is exactly the theorem-object invariant.
 
 = Engineering Correspondence
 
@@ -672,6 +712,27 @@ These deltas are intentional and must be read as implementation-level policy cho
 #keyblock("warning", [Error Semantics Status], [
   Full kernel-wide structured error propagation is still in migration. Current interfaces mix option-style failures with typed error returns in selected modules.
 ])
+
+== Target Error Taxonomy (`LogicError`)
+
+The target kernel-facing error type is:
+$
+  "LogicError" ::= "TypeMismatch" | "VariableCaptured" | "NotAnEquality" | "NotBoolTerm" | "AlphaMismatch" | "InvalidInstantiation" | "VarFreeInHyp" | "NotTrivialBetaRedex" | "BoundaryFailure"
+$
+
+Intended alignment with rule-level failure clauses:
+
+- `REFL`: malformed term or equality formation failure -> `BoundaryFailure` or `TypeMismatch`.
+- `ASSUME`: non-boolean proposition -> `NotBoolTerm`.
+- `TRANS`: non-equality premise -> `NotAnEquality`; middle mismatch -> `AlphaMismatch`; chain typing failure -> `TypeMismatch`.
+- `MK_COMB`: non-equality premise -> `NotAnEquality`; function or argument typing mismatch -> `TypeMismatch`.
+- `ABS`: non-variable binder -> `InvalidInstantiation`; binder free in assumptions -> `VarFreeInHyp`.
+- `BETA`: non-redex input -> `NotTrivialBetaRedex`; redex typing failure -> `TypeMismatch`.
+- `EQ_MP`: equality premise malformed -> `NotAnEquality`; lhs/premise mismatch -> `AlphaMismatch`; non-boolean proposition -> `NotBoolTerm`.
+- `DEDUCT_ANTISYM_RULE`: set-removal target mismatch -> `AlphaMismatch`; non-propositional premise -> `NotBoolTerm`.
+- `INST_TYPE` and `INST`: invalid substitution shape -> `InvalidInstantiation`; capture-risk boundary -> `VariableCaptured`; post-substitution typing failure -> `TypeMismatch`.
+
+This mapping is normative for the final migrated API and gives a direct bridge from prose failure clauses to machine-checkable error constructors.
 
 = Documentation Roadmap
 
