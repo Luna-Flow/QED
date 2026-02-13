@@ -25,28 +25,24 @@ fn has_duplicate_ty_subst_keys(subst : Array[(String, HolType)]) -> Bool {
 
 ///|
 /// Term-substitution helpers
-fn is_valid_term_subst(subst : Array[(Term, Term)]) -> Bool {
+fn is_valid_db_term_subst(subst : Array[(DbTerm, DbTerm)]) -> Bool {
   let keys : Array[DbTerm] = []
   for pair in subst {
-    let (k, v) = pair
-    match (to_db_term(k), to_db_term(v)) {
-      (Some(k_db), Some(v_db)) =>
-        match k_db {
-          DbFree(_, _) => {
-            if !ty_eq(db_type_of(k_db), db_type_of(v_db)) {
-              return false
-            }
-            if keys.any(fn(x) { db_term_eq(x, k_db) }) {
-              return false
-            }
-            keys.push(k_db)
-            match v_db {
-              DbBound(_, _) => return false
-              _ => ()
-            }
-          }
-          _ => return false
+    let (k_db, v_db) = pair
+    match k_db {
+      DbFree(_, _) => {
+        if !ty_eq(db_type_of(k_db), db_type_of(v_db)) {
+          return false
         }
+        if keys.any(fn(x) { db_term_eq(x, k_db) }) {
+          return false
+        }
+        keys.push(k_db)
+        match v_db {
+          DbBound(_, _) => return false
+          _ => ()
+        }
+      }
       _ => return false
     }
   }
@@ -292,9 +288,6 @@ pub fn inst_type(subst : Array[(String, HolType)], th : Thm) -> Thm? {
 
 ///|
 pub fn inst(subst : Array[(Term, Term)], th : Thm) -> Thm? {
-  if !is_valid_term_subst(subst) {
-    return None
-  }
   let db_subst : Array[(DbTerm, DbTerm)] = []
   for pair in subst {
     let (k, v) = pair
@@ -302,6 +295,9 @@ pub fn inst(subst : Array[(Term, Term)], th : Thm) -> Thm? {
       (Some(k_db), Some(v_db)) => db_subst.push((k_db, v_db))
       _ => return None
     }
+  }
+  if !is_valid_db_term_subst(db_subst) {
+    return None
   }
   match thm_to_db(th) {
     Some(DbSeq(hs, c)) =>
