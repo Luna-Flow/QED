@@ -196,6 +196,34 @@ fn lift_db_rule2(
 }
 
 ///|
+fn lift_db_term_rule(t : Term, rule : (DbTerm) -> DbSequent?) -> Thm? {
+  match to_db_term(t) {
+    Some(db_t) =>
+      match rule(db_t) {
+        Some(db_out) => db_to_thm(db_out)
+        None => None
+      }
+    None => None
+  }
+}
+
+///|
+fn lift_db_term_thm_rule(
+  t : Term,
+  th : Thm,
+  rule : (DbTerm, DbSequent) -> DbSequent?,
+) -> Thm? {
+  match (to_db_term(t), thm_to_db(th)) {
+    (Some(db_t), Some(db_th)) =>
+      match rule(db_t, db_th) {
+        Some(db_out) => db_to_thm(db_out)
+        None => None
+      }
+    _ => None
+  }
+}
+
+///|
 pub fn refl(t : Term) -> Thm {
   match to_db_term(t) {
     Some(db_t) => db_to_thm_or(db_rule_refl(db_t), Sequent([], mk_eq(t, t)))
@@ -376,26 +404,12 @@ pub fn trans(th1 : Thm, th2 : Thm) -> Thm? {
 
 ///|
 pub fn abs_rule(x : Term, th : Thm) -> Thm? {
-  match (to_db_term(x), thm_to_db(th)) {
-    (Some(x_db), Some(db_th)) =>
-      match db_rule_abs(x_db, db_th) {
-        Some(db_out) => db_to_thm(db_out)
-        None => None
-      }
-    _ => None
-  }
+  lift_db_term_thm_rule(x, th, db_rule_abs)
 }
 
 ///|
 pub fn beta_rule(t : Term) -> Thm? {
-  match to_db_term(t) {
-    Some(db_t) =>
-      match db_rule_beta(db_t) {
-        Some(db_out) => db_to_thm(db_out)
-        None => None
-      }
-    None => None
-  }
+  lift_db_term_rule(t, db_rule_beta)
 }
 
 ///|
