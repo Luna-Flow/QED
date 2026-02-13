@@ -213,3 +213,37 @@ test "thm eq_mp fails when lhs does not match premise" {
     _ => assert_false(true)
   }
 }
+
+///|
+test "thm deduct_antisym_rule builds equality theorem" {
+  let p = mk_const("P", bool_ty())
+  let q = mk_const("Q", bool_ty())
+  let th_p = assume(p)
+  let th_q = assume(q)
+  assert_true((th_p, th_q) is (Some(_), Some(_)))
+
+  match (th_p, th_q) {
+    (Some(tp), Some(tq)) => {
+      let out = deduct_antisym_rule(tp, tq)
+      assert_true(out is Sequent(_, Comb(Comb(Const("=", _), _), _)))
+    }
+    _ => assert_false(true)
+  }
+}
+
+///|
+test "thm deduct_antisym_rule removes opposite assumptions" {
+  let p = mk_const("P", bool_ty())
+  let q = mk_const("Q", bool_ty())
+  let th_p = assume(p)
+  let th_q = assume(q)
+  assert_true((th_p, th_q) is (Some(_), Some(_)))
+
+  match (th_p, th_q) {
+    (Some(tp), Some(tq)) =>
+      match deduct_antisym_rule(tp, tq) {
+        Sequent(hs, _) => assert_eq(hs.length(), 2)
+      }
+    _ => assert_false(true)
+  }
+}

@@ -55,6 +55,11 @@ fn hyps_union(a : Array[Term], b : Array[Term]) -> Array[Term] {
 }
 
 ///|
+fn hyps_remove(hs : Array[Term], t : Term) -> Array[Term] {
+  hs.filter(fn(h) { !alpha_eq(h, t) })
+}
+
+///|
 fn vfree_in(v : Term, t : Term) -> Bool {
   match t {
     Var(_, _) => alpha_eq(v, t)
@@ -139,6 +144,20 @@ pub fn eq_mp(th_eq : Thm, th_p : Thm) -> Thm? {
             }
             _ => None
           }
+      }
+  }
+}
+
+///|
+pub fn deduct_antisym_rule(th1 : Thm, th2 : Thm) -> Thm {
+  match th1 {
+    Sequent(h1, p) =>
+      match th2 {
+        Sequent(h2, q) => {
+          let h1p = hyps_remove(h1, q)
+          let h2p = hyps_remove(h2, p)
+          Sequent(hyps_union(h1p, h2p), mk_eq(p, q))
+        }
       }
   }
 }

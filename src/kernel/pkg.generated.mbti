@@ -10,6 +10,8 @@ pub fn beta_rule(Term) -> Thm?
 
 pub fn bool_ty() -> HolType
 
+pub fn deduct_antisym_rule(Thm, Thm) -> Thm
+
 pub fn dest_abs(Term) -> (Term, Term)?
 
 pub fn dest_comb(Term) -> (Term, Term)?
