@@ -92,6 +92,8 @@ pub fn refl(Term) -> Thm
 
 pub fn sig_add_const(GlobalSig, String, HolType) -> GlobalSig?
 
+pub fn sig_add_const_idempotent(GlobalSig, String, HolType) -> GlobalSig?
+
 pub fn sig_define_const(GlobalSig, String, Term) -> (GlobalSig, Term)?
 
 pub fn sig_has_const(GlobalSig, String) -> Bool

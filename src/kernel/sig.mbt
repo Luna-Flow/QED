@@ -55,6 +55,23 @@ pub fn sig_add_const(
 }
 
 ///|
+pub fn sig_add_const_idempotent(
+  sig : GlobalSig,
+  name : String,
+  ty : HolType,
+) -> GlobalSig? {
+  match sig_lookup_const(sig, name) {
+    Some(existing) =>
+      if hol_type_to_string(existing) == hol_type_to_string(ty) {
+        Some(sig)
+      } else {
+        None
+      }
+    None => sig_add_const(sig, name, ty)
+  }
+}
+
+///|
 pub fn sig_mk_const(sig : GlobalSig, name : String) -> Term? {
   match sig_lookup_const(sig, name) {
     Some(ty) => Some(mk_const(name, ty))

@@ -77,3 +77,36 @@ test "kernel sig define_const rejects duplicate names" {
     None => assert_false(true)
   }
 }
+
+///|
+test "kernel sig idempotent add accepts same type" {
+  let sig0 = empty_sig()
+  let a = mk_tyvar("A")
+  let s1 = sig_add_const_idempotent(sig0, "C", a)
+  assert_true(s1 is Some(_))
+  match s1 {
+    Some(sig1) => {
+      let s2 = sig_add_const_idempotent(sig1, "C", a)
+      assert_true(s2 is Some(_))
+      match s2 {
+        Some(sig2) =>
+          assert_true(sig_lookup_const(sig2, "C") is Some(TyVal("A")))
+        None => assert_false(true)
+      }
+    }
+    None => assert_false(true)
+  }
+}
+
+///|
+test "kernel sig idempotent add rejects conflicting type" {
+  let sig0 = empty_sig()
+  let a = mk_tyvar("A")
+  let b = mk_tyvar("B")
+  let s1 = sig_add_const_idempotent(sig0, "C", a)
+  assert_true(s1 is Some(_))
+  match s1 {
+    Some(sig1) => assert_true(sig_add_const_idempotent(sig1, "C", b) is None)
+    None => assert_false(true)
+  }
+}
