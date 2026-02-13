@@ -278,6 +278,22 @@ fn db_rule_abs(x : DbTerm, th : DbSequent) -> DbSequent? {
 }
 
 ///|
+fn db_rule_beta(t : DbTerm) -> DbSequent? {
+  match t {
+    DbComb(DbAbs(dom, _), arg) =>
+      if !ty_eq(dom, db_type_of(arg)) {
+        None
+      } else {
+        match db_beta_reduce_once(t) {
+          Some(out) => Some(DbSeq([], db_mk_eq(t, out)))
+          None => None
+        }
+      }
+    _ => None
+  }
+}
+
+///|
 pub fn trans(th1 : Thm, th2 : Thm) -> Thm? {
   match (thm_to_db(th1), thm_to_db(th2)) {
     (Some(db1), Some(db2)) =>
@@ -305,17 +321,9 @@ pub fn abs_rule(x : Term, th : Thm) -> Thm? {
 pub fn beta_rule(t : Term) -> Thm? {
   match to_db_term(t) {
     Some(db_t) =>
-      match db_t {
-        DbComb(DbAbs(dom, _), arg) =>
-          if !ty_eq(dom, db_type_of(arg)) {
-            None
-          } else {
-            match db_beta_reduce_once(db_t) {
-              Some(db_out) => db_to_thm(DbSeq([], db_mk_eq(db_t, db_out)))
-              None => None
-            }
-          }
-        _ => None
+      match db_rule_beta(db_t) {
+        Some(db_out) => db_to_thm(db_out)
+        None => None
       }
     None => None
   }
