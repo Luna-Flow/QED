@@ -20,6 +20,8 @@ pub fn kernel_terms_phase0_ready() -> Bool
 
 pub fn kernel_thm_phase0_ready() -> Bool
 
+pub fn mk_comb(Term, Term) -> Term
+
 pub fn mk_const(String, HolType) -> Term
 
 pub fn mk_tyapp(String, Array[HolType]) -> HolType
@@ -41,6 +43,7 @@ pub enum HolType {
 pub enum Term {
   Var(String, HolType)
   Const(String, HolType)
+  Comb(Term, Term)
 }
 
 // Type aliases
