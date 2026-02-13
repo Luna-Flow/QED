@@ -12,6 +12,8 @@ pub fn bool_ty() -> HolType
 
 pub fn db_string(Term) -> String
 
+pub fn db_term_to_string(DbTerm) -> String
+
 pub fn deduct_antisym_rule(Thm, Thm) -> Thm
 
 pub fn dest_abs(Term) -> (Term, Term)?
@@ -76,6 +78,8 @@ pub fn refl(Term) -> Thm
 
 pub fn term_to_string(Term) -> String
 
+pub fn to_db_term(Term) -> DbTerm?
+
 pub fn trans(Thm, Thm) -> Thm?
 
 pub fn type_of(Term) -> HolType
@@ -83,6 +87,14 @@ pub fn type_of(Term) -> HolType
 // Errors
 
 // Types and methods
+pub enum DbTerm {
+  DbBound(Int, HolType)
+  DbFree(String, HolType)
+  DbConst(String, HolType)
+  DbComb(DbTerm, DbTerm)
+  DbAbs(HolType, DbTerm)
+}
+
 pub enum HolType {
   TyVal(String)
   TyApp(String, Array[HolType])

@@ -127,3 +127,34 @@ test "terms debruijn string keeps alpha shape" {
   assert_eq(db_string(t1), db_string(t2))
   assert_true(db_string(t1).contains("BVar(0 : A)"))
 }
+
+///|
+test "terms to_db_term preserves alpha-invariant structure" {
+  let a = mk_tyvar("A")
+  let x = mk_var("x", a)
+  let y = mk_var("y", a)
+
+  let t1 = mk_abs(x, mk_comb(x, x))
+  let t2 = mk_abs(y, mk_comb(y, y))
+
+  let d1 = to_db_term(t1)
+  let d2 = to_db_term(t2)
+  assert_true((d1, d2) is (Some(_), Some(_)))
+
+  match (d1, d2) {
+    (Some(v1), Some(v2)) => {
+      assert_eq(db_term_to_string(v1), db_term_to_string(v2))
+      assert_true(db_term_to_string(v1).contains("BVar(0 : A)"))
+    }
+    _ => assert_false(true)
+  }
+}
+
+///|
+test "terms to_db_term rejects non-variable binder" {
+  let a = mk_tyvar("A")
+  let c = mk_const("c", a)
+  let x = mk_var("x", a)
+  let bad = mk_abs(c, x)
+  assert_true(to_db_term(bad) is None)
+}

@@ -8,6 +8,16 @@ pub enum Term {
 }
 
 ///|
+/// Explicit De Bruijn representation used for alpha-invariant analyses.
+pub enum DbTerm {
+  DbBound(Int, HolType)
+  DbFree(String, HolType)
+  DbConst(String, HolType)
+  DbComb(DbTerm, DbTerm)
+  DbAbs(HolType, DbTerm)
+}
+
+///|
 /// Constructors
 pub fn mk_var(name : String, ty : HolType) -> Term {
   Var(name, ty)
@@ -139,6 +149,54 @@ fn lookup_db_index(stack : Array[String], name : String) -> Int? {
     i = i + 1
   }
   None
+}
+
+///|
+fn to_db_term_with_env(term : Term, env : Array[String]) -> DbTerm? {
+  match term {
+    Var(name, ty) =>
+      match lookup_db_index(env, name) {
+        Some(i) => Some(DbBound(i, ty))
+        None => Some(DbFree(name, ty))
+      }
+    Const(name, ty) => Some(DbConst(name, ty))
+    Comb(f, x) =>
+      match (to_db_term_with_env(f, env), to_db_term_with_env(x, env)) {
+        (Some(f2), Some(x2)) => Some(DbComb(f2, x2))
+        _ => None
+      }
+    Abs(v, body) =>
+      match v {
+        Var(name, ty) => {
+          let env2 = env.copy()
+          env2.push(name)
+          match to_db_term_with_env(body, env2) {
+            Some(body2) => Some(DbAbs(ty, body2))
+            None => None
+          }
+        }
+        _ => None
+      }
+  }
+}
+
+///|
+pub fn to_db_term(term : Term) -> DbTerm? {
+  to_db_term_with_env(term, [])
+}
+
+///|
+pub fn db_term_to_string(term : DbTerm) -> String {
+  match term {
+    DbBound(i, ty) =>
+      "BVar(" + i.to_string() + " : " + hol_type_to_string(ty) + ")"
+    DbFree(name, ty) => "FVar(" + name + " : " + hol_type_to_string(ty) + ")"
+    DbConst(name, ty) => "Const(" + name + " : " + hol_type_to_string(ty) + ")"
+    DbComb(f, x) =>
+      "Comb(" + db_term_to_string(f) + ", " + db_term_to_string(x) + ")"
+    DbAbs(ty, body) =>
+      "Abs(" + hol_type_to_string(ty) + ". " + db_term_to_string(body) + ")"
+  }
 }
 
 ///|
