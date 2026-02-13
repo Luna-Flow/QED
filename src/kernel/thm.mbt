@@ -70,6 +70,20 @@ fn is_valid_term_subst(subst : Array[(Term, Term)]) -> Bool {
 
 ///|
 fn apply_term_subst_to_term(subst : Array[(Term, Term)], t : Term) -> Term {
+  fn vfree_local(v : Term, tm : Term) -> Bool {
+    match tm {
+      Var(_, _) => alpha_eq(v, tm)
+      Const(_, _) => false
+      Comb(f, x) => vfree_local(v, f) || vfree_local(v, x)
+      Abs(bv, body) =>
+        if alpha_eq(v, bv) {
+          false
+        } else {
+          vfree_local(v, body)
+        }
+    }
+  }
+
   match lookup_term_subst(subst, t) {
     Some(v) => v
     None =>
@@ -81,11 +95,17 @@ fn apply_term_subst_to_term(subst : Array[(Term, Term)], t : Term) -> Term {
             apply_term_subst_to_term(subst, f),
             apply_term_subst_to_term(subst, x),
           )
-        Abs(v, body) =>
-          match lookup_term_subst(subst, v) {
-            Some(_) => Abs(v, body)
-            None => Abs(v, apply_term_subst_to_term(subst, body))
+        Abs(v, body) => {
+          let should_block = subst.any(fn(pair) {
+            let (k, val) = pair
+            alpha_eq(k, v) || vfree_local(v, val)
+          })
+          if should_block {
+            Abs(v, body)
+          } else {
+            Abs(v, apply_term_subst_to_term(subst, body))
           }
+        }
       }
   }
 }

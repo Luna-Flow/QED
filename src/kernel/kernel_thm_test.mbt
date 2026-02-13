@@ -342,3 +342,22 @@ test "thm inst rejects invalid substitution key" {
   let out = inst([(c, x)], refl(x))
   assert_true(out is None)
 }
+
+///|
+test "thm inst blocks substitution that would capture binder" {
+  let a = mk_tyvar("A")
+  let x = mk_var("x", a)
+  let y = mk_var("y", a)
+  let lam = mk_abs(y, x)
+  let th = refl(lam)
+  let out = inst([(x, y)], th)
+  assert_true(out is Some(_))
+
+  match out {
+    Some(Sequent(_, concl)) => {
+      let s = term_to_string(concl)
+      assert_true(s.contains("Abs(Var(y : A), Var(x : A))"))
+    }
+    None => assert_false(true)
+  }
+}
