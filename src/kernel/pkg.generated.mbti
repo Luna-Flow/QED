@@ -2,15 +2,29 @@
 package "Luna-Flow/QED/kernel"
 
 // Values
+pub fn bool_ty() -> HolType
+
+pub fn fun_ty(HolType, HolType) -> HolType
+
+pub fn is_tyapp(HolType) -> Bool
+
+pub fn is_tyvar(HolType) -> Bool
+
 pub fn kernel_terms_phase0_ready() -> Bool
 
 pub fn kernel_thm_phase0_ready() -> Bool
 
-pub fn kernel_types_phase0_ready() -> Bool
+pub fn mk_tyapp(String, Array[HolType]) -> HolType
+
+pub fn mk_tyvar(String) -> HolType
 
 // Errors
 
 // Types and methods
+pub enum HolType {
+  TyVal(String)
+  TyApp(String, Array[HolType])
+}
 
 // Type aliases
 
