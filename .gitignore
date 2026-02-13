@@ -4,4 +4,6 @@ _build/
 .moonagent/
 PLAN.md
 *.pdf
+!doc/*.pdf
 *.typ
+!doc/*.typ
