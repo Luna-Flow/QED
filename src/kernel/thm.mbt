@@ -331,34 +331,32 @@ pub fn inst(subst : Array[(Term, Term)], th : Thm) -> Thm? {
 
 ///|
 pub fn mk_comb_rule(th_fg : Thm, th_xy : Thm) -> Thm? {
-  match th_fg {
-    Sequent(hfg, cfg) =>
-      match th_xy {
-        Sequent(hxy, cxy) =>
-          match (dest_eq(cfg), dest_eq(cxy)) {
-            (Some((f, g)), Some((x, y))) =>
-              match (dest_fun_ty(type_of(f)), dest_fun_ty(type_of(g))) {
-                (Some((dom_f, cod_f)), Some((dom_g, cod_g))) => {
-                  let ok_dom_f = ty_eq(dom_f, type_of(x))
-                  let ok_dom_g = ty_eq(dom_g, type_of(y))
-                  let ok_cod = ty_eq(cod_f, cod_g)
-                  let ok = ok_dom_f && ok_dom_g && ok_cod
-                  if ok {
-                    Some(
-                      Sequent(
-                        hyps_union(hfg, hxy),
-                        mk_eq(mk_comb(f, x), mk_comb(g, y)),
-                      ),
-                    )
-                  } else {
-                    None
-                  }
-                }
-                _ => None
+  match (thm_to_db(th_fg), thm_to_db(th_xy)) {
+    (Some(DbSeq(hfg, cfg)), Some(DbSeq(hxy, cxy))) =>
+      match (db_dest_eq(cfg), db_dest_eq(cxy)) {
+        (Some((f, g)), Some((x, y))) =>
+          match (dest_fun_ty(db_type_of(f)), dest_fun_ty(db_type_of(g))) {
+            (Some((dom_f, cod_f)), Some((dom_g, cod_g))) => {
+              let ok_dom_f = ty_eq(dom_f, db_type_of(x))
+              let ok_dom_g = ty_eq(dom_g, db_type_of(y))
+              let ok_cod = ty_eq(cod_f, cod_g)
+              let ok = ok_dom_f && ok_dom_g && ok_cod
+              if ok {
+                db_to_thm(
+                  DbSeq(
+                    db_hyps_union(hfg, hxy),
+                    db_mk_eq(DbComb(f, x), DbComb(g, y)),
+                  ),
+                )
+              } else {
+                None
               }
+            }
             _ => None
           }
+        _ => None
       }
+    _ => None
   }
 }
 
