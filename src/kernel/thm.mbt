@@ -308,6 +308,17 @@ fn db_rule_inst_type(
 }
 
 ///|
+fn db_rule_inst(subst : Array[(DbTerm, DbTerm)], th : DbSequent) -> DbSequent {
+  match th {
+    DbSeq(hs, c) =>
+      DbSeq(
+        hs.map(fn(h) { db_subst_free_parallel(h, subst) }),
+        db_subst_free_parallel(c, subst),
+      )
+  }
+}
+
+///|
 pub fn trans(th1 : Thm, th2 : Thm) -> Thm? {
   match (thm_to_db(th1), thm_to_db(th2)) {
     (Some(db1), Some(db2)) =>
@@ -417,13 +428,7 @@ pub fn inst(subst : Array[(Term, Term)], th : Thm) -> Thm? {
     return None
   }
   match thm_to_db(th) {
-    Some(DbSeq(hs, c)) =>
-      db_to_thm(
-        DbSeq(
-          hs.map(fn(h) { db_subst_free_parallel(h, db_subst) }),
-          db_subst_free_parallel(c, db_subst),
-        ),
-      )
+    Some(db_th) => db_to_thm(db_rule_inst(db_subst, db_th))
     None => None
   }
 }
