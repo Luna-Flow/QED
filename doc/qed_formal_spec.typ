@@ -225,16 +225,16 @@ Detailed formal side conditions are maintained in parallel with implementation u
 
 Input:
 
-- a well-formed term `t`.
+- a well-formed term $t$.
 
 Output:
 
-- theorem `⊢ t = t`.
+- theorem $⊢ t = t$.
 
 Side conditions:
 
-1. `t` must be typable.
-2. equality constructor must be formed at the type of `t`.
+1. $t$ must be typable.
+2. equality constructor must be formed at the type of $t$.
 
 Failure clauses:
 
@@ -245,16 +245,16 @@ Failure clauses:
 
 Input:
 
-- a proposition term `p`.
+- a proposition term $p$.
 
 Output:
 
-- theorem `p ⊢ p`.
+- theorem $p ⊢ p$.
 
 Side conditions:
 
-1. `p` must have type `"bool"`.
-2. assumption set representation must admit `p`.
+1. $p$ must have type $"bool"$.
+2. assumption set representation must admit $p$.
 
 Failure clauses:
 
@@ -265,12 +265,12 @@ Failure clauses:
 
 Input:
 
-- theorem `A ⊢ s = t`;
-- theorem `B ⊢ t = u`.
+- theorem $A ⊢ s = t$;
+- theorem $B ⊢ t = u$.
 
 Output:
 
-- theorem `A union B ⊢ s = u`.
+- theorem $A union B ⊢ s = u$.
 
 Side conditions:
 
@@ -287,18 +287,18 @@ Failure clauses:
 
 Input:
 
-- theorem `A ⊢ f = g`;
-- theorem `B ⊢ x = y`.
+- theorem $A ⊢ f = g$;
+- theorem $B ⊢ x = y$.
 
 Output:
 
-- theorem `A union B ⊢ f x = g y`.
+- theorem $A union B ⊢ f x = g y$.
 
 Side conditions:
 
 1. both premise conclusions must be equalities;
-2. `f` and `g` must have function type with argument type matching `x` and `y`;
-3. codomain types of `f` and `g` must coincide.
+2. $f$ and $g$ must have function type with argument type matching $x$ and $y$;
+3. codomain types of $f$ and $g$ must coincide.
 
 Failure clauses:
 
@@ -310,18 +310,18 @@ Failure clauses:
 
 Input:
 
-- variable term `x`;
-- theorem `A ⊢ s = t`.
+- variable term $x$;
+- theorem $A ⊢ s = t$.
 
 Output:
 
-- theorem `A ⊢ λ (x : tau). s = λ (x : tau). t`.
+- theorem $A ⊢ λ (x : tau). s = λ (x : tau). t$.
 
 Side conditions:
 
-1. `x` must be a variable term;
+1. $x$ must be a variable term;
 2. premise conclusion must be an equality;
-3. `x` must not occur free in assumptions `A`.
+3. $x$ must not occur free in assumptions $A$.
 
 Failure clauses:
 
