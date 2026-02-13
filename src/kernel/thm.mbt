@@ -60,19 +60,29 @@ fn apply_ty_subst_to_term(subst : Array[(String, HolType)], t : Term) -> Term {
 ///|
 /// Term-substitution helpers
 fn is_valid_term_subst(subst : Array[(Term, Term)]) -> Bool {
-  let keys : Array[Term] = []
+  let keys : Array[DbTerm] = []
   for pair in subst {
     let (k, v) = pair
-    if !is_var(k) {
-      return false
+    match (to_db_term(k), to_db_term(v)) {
+      (Some(k_db), Some(v_db)) =>
+        match k_db {
+          DbFree(_, _) => {
+            if !ty_eq(type_of(k), type_of(v)) {
+              return false
+            }
+            if keys.any(fn(x) { db_term_eq(x, k_db) }) {
+              return false
+            }
+            keys.push(k_db)
+            match v_db {
+              DbBound(_, _) => return false
+              _ => ()
+            }
+          }
+          _ => return false
+        }
+      _ => return false
     }
-    if !ty_eq(type_of(k), type_of(v)) {
-      return false
-    }
-    if keys.any(fn(x) { term_alpha_eq(x, k) }) {
-      return false
-    }
-    keys.push(k)
   }
   true
 }
