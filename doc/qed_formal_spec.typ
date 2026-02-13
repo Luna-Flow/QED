@@ -185,12 +185,18 @@ QED currently uses a two-layer boundary:
 
 Boundary conversion functions are used with the following Haskell-style signatures:
 
-```text
-termDown :: Term -> DbTerm?
-termUp   :: DbTerm -> Term?
-thmDown  :: Thm -> DbSequent?
-thmUp    :: DbSequent -> Thm?
-```
+$
+  #math.italic("Term")_arrow.b :: #math.italic("Term") arrow.r #math.italic("DbTerm")?
+$
+$
+  #math.italic("Term")_arrow.t :: #math.italic("DbTerm") arrow.r #math.italic("Term")?
+$
+$
+  #math.italic("Thm")_arrow.b :: #math.italic("Thm") arrow.r #math.italic("DbSequent")?
+$
+$
+  #math.italic("Thm")_arrow.t :: #math.italic("DbSequent") arrow.r #math.italic("Thm")?
+$
 
 We write:
 
@@ -201,11 +207,11 @@ We write:
 
 For theorem objects:
 $
-  #math.italic("Thm")_arrow.b (A_p tack.r p) = A_d tack.r p_d
+  #math.italic("Thm")_arrow.b " " (A_p tack.r p) = A_d tack.r p_d
 $
 and
 $
-  #math.italic("Thm")_arrow.t (A_d tack.r p_d) = A_p' tack.r p'
+  #math.italic("Thm")_arrow.t " " (A_d tack.r p_d) = A_p' tack.r p'
 $
 defined pointwise by $#math.italic("Term")_arrow.b$ and $#math.italic("Term")_arrow.t$ on assumptions and conclusion.
 
@@ -217,12 +223,12 @@ Lemma (Alpha-Invariant Lowering):
 $
   (" "t_1 equiv_alpha t_2" ")
   /
-  (#math.italic("Term")_arrow.b t_1 = #math.italic("Term")_arrow.b t_2)
+  (#math.italic("Term")_arrow.b " " t_1 = #math.italic("Term")_arrow.b " " t_2)
 $
 
 Lemma (Round-Trip Stability up to Alpha):
 $
-  (" "#math.italic("Term")_arrow.b t = d and #math.italic("Term")_arrow.t d = t'" ")
+  (" "#math.italic("Term")_arrow.b " " t = d and #math.italic("Term")_arrow.t " " d = t'" ")
   /
   (t' equiv_alpha t)
 $
@@ -234,7 +240,7 @@ $
 $
 then the lifted rule
 $
-  R x = #math.italic("Thm")_arrow.t (R_d (#math.italic("Thm")_arrow.b x))
+  R " " x = #math.italic("Thm")_arrow.t " " (R_d " " (#math.italic("Thm")_arrow.b " " x))
 $
 preserves assumption/conclusion structure modulo alpha-equivalence whenever conversions succeed.
 
