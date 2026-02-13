@@ -120,6 +120,30 @@ pub fn beta_rule(t : Term) -> Thm? {
 }
 
 ///|
+pub fn eq_mp(th_eq : Thm, th_p : Thm) -> Thm? {
+  match th_eq {
+    Sequent(h_eq, c_eq) =>
+      match th_p {
+        Sequent(h_p, c_p) =>
+          match dest_eq(c_eq) {
+            Some((lhs, rhs)) => {
+              let ok_l = is_bool_ty(type_of(lhs))
+              let ok_r = is_bool_ty(type_of(rhs))
+              let ok_m = alpha_eq(lhs, c_p)
+              let ok = ok_l && ok_r && ok_m
+              if ok {
+                Some(Sequent(hyps_union(h_eq, h_p), rhs))
+              } else {
+                None
+              }
+            }
+            _ => None
+          }
+      }
+  }
+}
+
+///|
 pub fn mk_comb_rule(th_fg : Thm, th_xy : Thm) -> Thm? {
   match th_fg {
     Sequent(hfg, cfg) =>

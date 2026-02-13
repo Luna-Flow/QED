@@ -178,3 +178,38 @@ test "thm beta_rule rejects nontrivial redex" {
   let out = beta_rule(redex)
   assert_true(out is None)
 }
+
+///|
+test "thm eq_mp derives rhs from equality and lhs proof" {
+  let p = mk_const("P", bool_ty())
+  let q = mk_const("Q", bool_ty())
+  let th_eq = assume(mk_eq(p, q))
+  let th_p = assume(p)
+  assert_true((th_eq, th_p) is (Some(_), Some(_)))
+
+  match (th_eq, th_p) {
+    (Some(teq), Some(tp)) => {
+      let out = eq_mp(teq, tp)
+      assert_true(out is Some(Sequent(_, _)))
+    }
+    _ => assert_false(true)
+  }
+}
+
+///|
+test "thm eq_mp fails when lhs does not match premise" {
+  let p = mk_const("P", bool_ty())
+  let q = mk_const("Q", bool_ty())
+  let r = mk_const("R", bool_ty())
+  let th_eq = assume(mk_eq(p, q))
+  let th_r = assume(r)
+  assert_true((th_eq, th_r) is (Some(_), Some(_)))
+
+  match (th_eq, th_r) {
+    (Some(teq), Some(tr)) => {
+      let out = eq_mp(teq, tr)
+      assert_true(out is None)
+    }
+    _ => assert_false(true)
+  }
+}
