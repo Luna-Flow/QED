@@ -135,3 +135,130 @@ test "logic spec wrapper fails on non-empty witness assumptions" {
     is Err(@kernel.InvalidSpecificationWitness),
   )
 }
+
+///|
+test "logic typedef wrapper enforces witness and freshness guards" {
+  let st0 = @kernel.empty_kernel_state()
+  let bool = @kernel.bool_ty()
+  let x = @kernel.mk_var("x_td_guard", bool)
+  let pred_body = expect_ok_logic(@kernel.mk_eq(x, x))
+  let pred = @kernel.mk_abs(x, pred_body)
+
+  let bad_w = expect_ok_logic(logic_assume(st0, pred_body))
+  assert_true(
+    logic_register_typedef(st0, "ty_guard", [], "RepTyGuard", pred, bad_w)
+    is Err(@kernel.InvalidTypeWitness),
+  )
+
+  let good_w = expect_ok_logic(logic_refl(st0, x))
+  let st1 = expect_ok_logic(
+    logic_register_typedef(st0, "ty_guard", [], "RepTyGuard", pred, good_w),
+  )
+  assert_true(
+    logic_register_typedef(st1, "ty_guard2", [], "RepTyGuard", pred, good_w)
+    is Err(@kernel.TypeRepresentationAlreadyExists),
+  )
+  assert_true(
+    logic_register_typedef(st1, "ty_guard", [], "RepTyGuard2", pred, good_w)
+    is Err(@kernel.TypeConstructorAlreadyExists),
+  )
+}
+
+///|
+test "logic typedef contract wrapper is fail-closed for missing tycon" {
+  let st0 = @kernel.empty_kernel_state()
+  assert_true(
+    logic_typedef_contract(st0, "missing_tycon")
+    is Err(@kernel.MissingTypeDefinitionContract),
+  )
+}
+
+///|
+test "logic spec wrapper enforces typevar and witness constraints" {
+  let st0 = @kernel.empty_kernel_state()
+  let a = @kernel.mk_tyvar("A")
+  let b = @kernel.mk_tyvar("B")
+  let x = @kernel.mk_var("x_spec_guard", a)
+  let u = @kernel.mk_var("u_spec_guard", b)
+  let id_b = @kernel.mk_abs(u, u)
+  let leak_body = expect_ok_logic(@kernel.mk_eq(id_b, id_b))
+  let leak_pred = @kernel.mk_abs(x, leak_body)
+  let leak_w = expect_ok_logic(logic_refl(st0, id_b))
+  assert_true(
+    logic_specify_const(st0, "spec_leak", a, leak_pred, leak_w)
+    is Err(@kernel.SpecificationTypeVarLeak),
+  )
+
+  let y = @kernel.mk_var("y_spec_guard", @kernel.bool_ty())
+  let dom_pred = @kernel.mk_abs(y, expect_ok_logic(@kernel.mk_eq(y, y)))
+  let dom_w = expect_ok_logic(logic_refl(st0, y))
+  assert_true(
+    logic_specify_const(st0, "spec_dom", a, dom_pred, dom_w)
+    is Err(@kernel.InvalidSpecificationPredicate),
+  )
+
+  let st1 = expect_ok_logic(
+    @kernel.ks_add_const(st0, "W_SPEC", @kernel.bool_ty()),
+  )
+  let w = @kernel.mk_const("W_SPEC", @kernel.bool_ty())
+  let z = @kernel.mk_var("z_spec_guard", @kernel.bool_ty())
+  let drift_pred = @kernel.mk_abs(z, expect_ok_logic(@kernel.mk_eq(w, w)))
+  let drift_w = expect_ok_logic(logic_refl(st1, w))
+  assert_true(
+    logic_specify_const(
+      st0,
+      "spec_drift",
+      @kernel.bool_ty(),
+      drift_pred,
+      drift_w,
+    )
+    is Err(@kernel.InvalidSpecificationWitness),
+  )
+}
+
+///|
+test "logic infinity anchor wrapper enforces single-assignment and shape" {
+  let st0 = @kernel.empty_kernel_state()
+  assert_true(
+    logic_ind_infinity_anchor(st0) is Err(@kernel.MissingInfinityAnchor),
+  )
+
+  let b = @kernel.mk_var("b_anchor_guard", @kernel.bool_ty())
+  let bad_anchor = expect_ok_logic(logic_refl(st0, b))
+  assert_true(
+    logic_register_ind_infinity_anchor(st0, bad_anchor)
+    is Err(@kernel.InvalidInfinityAnchor),
+  )
+
+  let n = @kernel.mk_var("n_anchor_guard", @kernel.ind_ty())
+  let good_anchor = expect_ok_logic(logic_refl(st0, n))
+  let st1 = expect_ok_logic(
+    logic_register_ind_infinity_anchor(st0, good_anchor),
+  )
+  assert_true(logic_ind_infinity_anchor(st1) is Ok(_))
+  assert_true(
+    logic_register_ind_infinity_anchor(st1, good_anchor)
+    is Err(@kernel.InvalidInfinityAnchor),
+  )
+}
+
+///|
+test "logic conservative replay rejects new-language theorems" {
+  let bool = @kernel.bool_ty()
+  let st0 = expect_ok_logic(
+    @kernel.ks_add_const(@kernel.empty_kernel_state(), "P0", bool),
+  )
+  let x = @kernel.mk_var("x_cons_guard", bool)
+  let pred = @kernel.mk_abs(x, expect_ok_logic(@kernel.mk_eq(x, x)))
+  let witness = expect_ok_logic(logic_refl(st0, x))
+  let (st1, _) = expect_ok_logic(
+    logic_specify_const(st0, "c_cons_guard", bool, pred, witness),
+  )
+
+  let p0 = @kernel.mk_const("P0", bool)
+  let c0 = @kernel.mk_const("c_cons_guard", bool)
+  let th_old = expect_ok_logic(logic_refl(st1, p0))
+  let th_new = expect_ok_logic(logic_refl(st1, c0))
+  assert_true(logic_conservative_replay_ok(st0, st1, th_old))
+  assert_false(logic_conservative_replay_ok(st0, st1, th_new))
+}
