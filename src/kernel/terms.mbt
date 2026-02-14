@@ -243,7 +243,7 @@ fn from_db_term_with_env(
         None
       } else {
         let (name, ty2) = env[n - 1 - i]
-        if hol_type_to_string(ty) == hol_type_to_string(ty2) {
+        if ty_eq(ty, ty2) {
           Some(Var(name, ty))
         } else {
           None
@@ -307,15 +307,11 @@ pub fn db_term_to_string(term : DbTerm) -> String {
 ///|
 pub fn db_term_eq(lhs : DbTerm, rhs : DbTerm) -> Bool {
   match (lhs, rhs) {
-    (DbBound(i1, ty1), DbBound(i2, ty2)) =>
-      i1 == i2 && hol_type_to_string(ty1) == hol_type_to_string(ty2)
-    (DbFree(n1, ty1), DbFree(n2, ty2)) =>
-      n1 == n2 && hol_type_to_string(ty1) == hol_type_to_string(ty2)
-    (DbConst(n1, ty1), DbConst(n2, ty2)) =>
-      n1 == n2 && hol_type_to_string(ty1) == hol_type_to_string(ty2)
+    (DbBound(i1, ty1), DbBound(i2, ty2)) => i1 == i2 && ty_eq(ty1, ty2)
+    (DbFree(n1, ty1), DbFree(n2, ty2)) => n1 == n2 && ty_eq(ty1, ty2)
+    (DbConst(n1, ty1), DbConst(n2, ty2)) => n1 == n2 && ty_eq(ty1, ty2)
     (DbComb(f1, x1), DbComb(f2, x2)) => db_term_eq(f1, f2) && db_term_eq(x1, x2)
-    (DbAbs(ty1, b1), DbAbs(ty2, b2)) =>
-      hol_type_to_string(ty1) == hol_type_to_string(ty2) && db_term_eq(b1, b2)
+    (DbAbs(ty1, b1), DbAbs(ty2, b2)) => ty_eq(ty1, ty2) && db_term_eq(b1, b2)
     _ => false
   }
 }
@@ -372,7 +368,10 @@ fn lookup_db_subst(subst : Array[(DbTerm, DbTerm)], key : DbTerm) -> DbTerm? {
 }
 
 ///|
-fn lookup_ty_subst(subst : Array[(String, HolType)], name : String) -> HolType? {
+fn lookup_ty_subst_term(
+  subst : Array[(String, HolType)],
+  name : String,
+) -> HolType? {
   for kv in subst {
     let (k, v) = kv
     if k == name {
@@ -389,7 +388,7 @@ fn db_apply_ty_subst_to_type(
 ) -> HolType {
   match ty {
     TyVal(name) =>
-      match lookup_ty_subst(subst, name) {
+      match lookup_ty_subst_term(subst, name) {
         Some(t) => t
         None => ty
       }
@@ -472,5 +471,102 @@ pub fn db_beta_reduce_once(term : DbTerm) -> DbTerm? {
       Some(db_shift_walk(-1, 0, body1))
     }
     _ => None
+  }
+}
+
+///|
+fn vars_contains(
+  vars : Array[(String, HolType)],
+  item : (String, HolType),
+) -> Bool {
+  let (name, ty) = item
+  for pair in vars {
+    let (name2, ty2) = pair
+    if name == name2 && ty_eq(ty, ty2) {
+      return true
+    }
+  }
+  false
+}
+
+///|
+fn vars_union(
+  a : Array[(String, HolType)],
+  b : Array[(String, HolType)],
+) -> Array[(String, HolType)] {
+  let out = a.copy()
+  for item in b {
+    if !vars_contains(out, item) {
+      out.push(item)
+    }
+  }
+  out
+}
+
+///|
+pub fn free_vars(term : Term) -> Array[(String, HolType)] {
+  match term {
+    Var(name, ty) => [(name, ty)]
+    Const(_, _) => []
+    Comb(f, x) => vars_union(free_vars(f), free_vars(x))
+    Abs(var_term, body) =>
+      match var_term {
+        Var(name, ty) => {
+          let body_vars = free_vars(body)
+          body_vars.filter(fn(item) {
+            let (name2, ty2) = item
+            !(name == name2 && ty_eq(ty, ty2))
+          })
+        }
+        _ => free_vars(body)
+      }
+  }
+}
+
+///|
+pub fn term_is_closed(term : Term) -> Bool {
+  free_vars(term).length() == 0
+}
+
+///|
+pub fn term_has_const_named(term : Term, name : String) -> Bool {
+  match term {
+    Var(_, _) => false
+    Const(n, _) => n == name
+    Comb(f, x) => term_has_const_named(f, name) || term_has_const_named(x, name)
+    Abs(_, body) => term_has_const_named(body, name)
+  }
+}
+
+///|
+pub fn term_apply_ty_subst(
+  subst : Array[(String, HolType)],
+  term : Term,
+) -> Term? {
+  if has_duplicate_ty_subst_keys(subst) {
+    return None
+  }
+  Some(term_apply_ty_subst_unsafe(subst, term))
+}
+
+///|
+pub fn term_apply_ty_subst_unsafe(
+  subst : Array[(String, HolType)],
+  term : Term,
+) -> Term {
+  let rew_ty = fn(ty : HolType) { type_subst_unsafe(subst, ty) }
+  match term {
+    Var(name, ty) => Var(name, rew_ty(ty))
+    Const(name, ty) => Const(name, rew_ty(ty))
+    Comb(f, x) =>
+      Comb(
+        term_apply_ty_subst_unsafe(subst, f),
+        term_apply_ty_subst_unsafe(subst, x),
+      )
+    Abs(v, body) =>
+      Abs(
+        term_apply_ty_subst_unsafe(subst, v),
+        term_apply_ty_subst_unsafe(subst, body),
+      )
   }
 }

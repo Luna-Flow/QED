@@ -1,16 +1,41 @@
 ///|
-/// Minimal global signature registry for kernel-level constant identities.
+/// Scoped constant signature used for name lookup.
 pub enum GlobalSig {
   Sig(Array[Array[(String, HolType)]])
 }
 
 ///|
-pub enum SigError {
+/// Signature and admissibility errors.
+pub suberror SigError {
   DuplicateConstName
   ConstTypeConflict
   UnknownConst
   ScopeUnderflow
   InvalidConstRhs
+  ReservedSymbol
+  DefinitionAlreadyExists
+  DefinitionNotClosed
+  DefinitionIsCyclic
+  GhostTypeVariable
+  TypeDefWitnessMissing
+  TypeMismatch
+}
+
+///|
+priv struct TheoryState {
+  def_heads : Array[String]
+  witnessed_tycons : Array[(String, Int)]
+}
+
+///|
+struct KernelState {
+  sig : GlobalSig
+  theory : TheoryState
+}
+
+///|
+fn is_reserved_symbol(name : String) -> Bool {
+  name == "="
 }
 
 ///|
@@ -102,6 +127,9 @@ pub fn sig_add_const(
   name : String,
   ty : HolType,
 ) -> GlobalSig? {
+  if is_reserved_symbol(name) {
+    return None
+  }
   match current_scope_lookup(sig, name) {
     Some(_) => None
     None =>
@@ -126,13 +154,11 @@ pub fn sig_add_const_idempotent(
   name : String,
   ty : HolType,
 ) -> GlobalSig? {
+  if is_reserved_symbol(name) {
+    return None
+  }
   match current_scope_lookup(sig, name) {
-    Some(existing) =>
-      if hol_type_to_string(existing) == hol_type_to_string(ty) {
-        Some(sig)
-      } else {
-        None
-      }
+    Some(existing) => if ty_eq(existing, ty) { Some(sig) } else { None }
     None => sig_add_const(sig, name, ty)
   }
 }
@@ -143,9 +169,12 @@ pub fn sig_add_const_idempotent_e(
   name : String,
   ty : HolType,
 ) -> Result[GlobalSig, SigError] {
+  if is_reserved_symbol(name) {
+    return Err(ReservedSymbol)
+  }
   match current_scope_lookup(sig, name) {
     Some(existing) =>
-      if hol_type_to_string(existing) == hol_type_to_string(ty) {
+      if ty_eq(existing, ty) {
         Ok(sig)
       } else {
         Err(ConstTypeConflict)
@@ -180,15 +209,18 @@ pub fn sig_define_const(
   name : String,
   rhs : Term,
 ) -> (GlobalSig, Term)? {
+  if is_reserved_symbol(name) {
+    return None
+  }
   match type_of(rhs) {
     Some(ty) =>
-      match sig_add_const_idempotent(sig, name, ty) {
+      match sig_add_const(sig, name, ty) {
         Some(sig2) =>
           match sig_mk_const(sig2, name) {
             Some(c) =>
               match mk_eq(c, rhs) {
-                Some(eq) => Some((sig2, eq))
-                None => None
+                Ok(eq) => Some((sig2, eq))
+                Err(_) => None
               }
             None => None
           }
@@ -204,6 +236,9 @@ pub fn sig_define_const_e(
   name : String,
   rhs : Term,
 ) -> Result[(GlobalSig, Term), SigError] {
+  if is_reserved_symbol(name) {
+    return Err(ReservedSymbol)
+  }
   match type_of(rhs) {
     Some(ty) =>
       match sig_add_const_idempotent_e(sig, name, ty) {
@@ -211,13 +246,152 @@ pub fn sig_define_const_e(
           match sig_mk_const_e(sig2, name) {
             Ok(c) =>
               match mk_eq(c, rhs) {
-                Some(eq) => Ok((sig2, eq))
-                None => Err(InvalidConstRhs)
+                Ok(eq) => Ok((sig2, eq))
+                Err(_) => Err(InvalidConstRhs)
               }
             Err(e) => Err(e)
           }
         Err(e) => Err(e)
       }
+    None => Err(InvalidConstRhs)
+  }
+}
+
+///|
+pub fn empty_kernel_state() -> KernelState {
+  KernelState::{
+    sig: empty_sig(),
+    theory: TheoryState::{ def_heads: [], witnessed_tycons: [] },
+  }
+}
+
+///|
+pub fn ks_sig(state : KernelState) -> GlobalSig {
+  state.sig
+}
+
+///|
+pub fn ks_push_scope(state : KernelState) -> KernelState {
+  KernelState::{ sig: sig_push_scope(state.sig), theory: state.theory }
+}
+
+///|
+pub fn ks_pop_scope(state : KernelState) -> Result[KernelState, SigError] {
+  match sig_pop_scope(state.sig) {
+    Some(sig2) => Ok(KernelState::{ sig: sig2, theory: state.theory })
+    None => Err(ScopeUnderflow)
+  }
+}
+
+///|
+pub fn ks_lookup_const(state : KernelState, name : String) -> HolType? {
+  sig_lookup_const(state.sig, name)
+}
+
+///|
+pub fn ks_add_const(
+  state : KernelState,
+  name : String,
+  ty : HolType,
+) -> Result[KernelState, SigError] {
+  match sig_add_const_idempotent_e(state.sig, name, ty) {
+    Ok(sig2) => Ok(KernelState::{ sig: sig2, theory: state.theory })
+    Err(e) => Err(e)
+  }
+}
+
+///|
+pub fn ks_has_def_head(state : KernelState, name : String) -> Bool {
+  state.theory.def_heads.contains(name)
+}
+
+///|
+pub fn ks_has_type_witness(
+  state : KernelState,
+  tycon : String,
+  arity : Int,
+) -> Bool {
+  state.theory.witnessed_tycons.any(fn(pair) {
+    let (name, a) = pair
+    name == tycon && a == arity
+  })
+}
+
+///|
+pub fn ks_register_type_definition(
+  state : KernelState,
+  tycon : String,
+  arity : Int,
+  witness_ok : Bool,
+) -> Result[KernelState, SigError] {
+  if !witness_ok {
+    return Err(TypeDefWitnessMissing)
+  }
+  if ks_has_type_witness(state, tycon, arity) {
+    return Ok(state)
+  }
+  let witnessed = state.theory.witnessed_tycons.copy()
+  witnessed.push((tycon, arity))
+  Ok(KernelState::{
+    sig: state.sig,
+    theory: TheoryState::{
+      def_heads: state.theory.def_heads,
+      witnessed_tycons: witnessed,
+    },
+  })
+}
+
+///|
+pub fn ks_define_const(
+  state : KernelState,
+  name : String,
+  decl_ty : HolType,
+  rhs : Term,
+) -> Result[(KernelState, Term), SigError] {
+  if is_reserved_symbol(name) {
+    return Err(ReservedSymbol)
+  }
+  if ks_has_def_head(state, name) {
+    return Err(DefinitionAlreadyExists)
+  }
+  if !term_is_closed(rhs) {
+    return Err(DefinitionNotClosed)
+  }
+  if term_has_const_named(rhs, name) {
+    return Err(DefinitionIsCyclic)
+  }
+  match type_of(rhs) {
+    Some(rhs_ty) => {
+      if !ty_eq(rhs_ty, decl_ty) {
+        return Err(TypeMismatch)
+      }
+      if !tyvars_subset(rhs_ty, decl_ty) {
+        return Err(GhostTypeVariable)
+      }
+      match sig_add_const(state.sig, name, decl_ty) {
+        Some(sig2) =>
+          match sig_mk_const(sig2, name) {
+            Some(c) =>
+              match mk_eq(c, rhs) {
+                Ok(def_eq) => {
+                  let def_heads = state.theory.def_heads.copy()
+                  def_heads.push(name)
+                  let state2 = KernelState::{
+                    sig: sig2,
+                    theory: TheoryState::{
+                      def_heads,
+                      witnessed_tycons: state.theory.witnessed_tycons,
+                    },
+                  }
+                  Ok((state2, def_eq))
+                }
+                Err(_) => Err(InvalidConstRhs)
+              }
+            None => Err(UnknownConst)
+          }
+        None => Err(DuplicateConstName)
+      }
+    }
     None => Err(InvalidConstRhs)
   }
 }

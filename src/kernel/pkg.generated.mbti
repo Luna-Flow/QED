@@ -2,11 +2,11 @@
 package "Luna-Flow/QED/kernel"
 
 // Values
-pub fn abs_rule(Term, Thm) -> Thm?
+pub fn abs_rule(Term, Thm) -> Result[Thm, LogicError]
 
-pub fn assume(Term) -> Thm?
+pub fn assume(Term) -> Result[Thm, LogicError]
 
-pub fn beta_rule(Term) -> Thm?
+pub fn beta_rule(Term) -> Result[Thm, LogicError]
 
 pub fn bool_ty() -> HolType
 
@@ -24,7 +24,7 @@ pub fn db_term_to_string(DbTerm) -> String
 
 pub fn db_type_of(DbTerm) -> HolType?
 
-pub fn deduct_antisym_rule(Thm, Thm) -> Thm?
+pub fn deduct_antisym_rule(Thm, Thm) -> Result[Thm, LogicError]
 
 pub fn dest_abs(Term) -> (Term, Term)?
 
@@ -32,7 +32,7 @@ pub fn dest_comb(Term) -> (Term, Term)?
 
 pub fn dest_const(Term) -> (String, HolType)?
 
-pub fn dest_eq(Term) -> (Term, Term)?
+pub fn dest_eq(Term) -> Result[(Term, Term), LogicError]
 
 pub fn dest_fun_ty(HolType) -> (HolType, HolType)?
 
@@ -40,19 +40,25 @@ pub fn dest_tyapp(HolType) -> (String, Array[HolType])?
 
 pub fn dest_var(Term) -> (String, HolType)?
 
+pub fn empty_kernel_state() -> KernelState
+
 pub fn empty_sig() -> GlobalSig
 
-pub fn eq_mp(Thm, Thm) -> Thm?
+pub fn eq_mp(Thm, Thm) -> Result[Thm, LogicError]
+
+pub fn free_vars(Term) -> Array[(String, HolType)]
 
 pub fn from_db_term(DbTerm) -> Term?
 
 pub fn fun_ty(HolType, HolType) -> HolType
 
+pub fn has_duplicate_ty_subst_keys(Array[(String, HolType)]) -> Bool
+
 pub fn hol_type_to_string(HolType) -> String
 
-pub fn inst(Array[(Term, Term)], Thm) -> Thm?
+pub fn inst(Array[(Term, Term)], Thm) -> Result[Thm, LogicError]
 
-pub fn inst_type(Array[(String, HolType)], Thm) -> Thm?
+pub fn inst_type(Array[(String, HolType)], Thm) -> Result[Thm, LogicError]
 
 pub fn is_abs(Term) -> Bool
 
@@ -72,15 +78,33 @@ pub fn kernel_terms_phase0_ready() -> Bool
 
 pub fn kernel_thm_phase0_ready() -> Bool
 
+pub fn ks_add_const(KernelState, String, HolType) -> Result[KernelState, SigError]
+
+pub fn ks_define_const(KernelState, String, HolType, Term) -> Result[(KernelState, Term), SigError]
+
+pub fn ks_has_def_head(KernelState, String) -> Bool
+
+pub fn ks_has_type_witness(KernelState, String, Int) -> Bool
+
+pub fn ks_lookup_const(KernelState, String) -> HolType?
+
+pub fn ks_pop_scope(KernelState) -> Result[KernelState, SigError]
+
+pub fn ks_push_scope(KernelState) -> KernelState
+
+pub fn ks_register_type_definition(KernelState, String, Int, Bool) -> Result[KernelState, SigError]
+
+pub fn ks_sig(KernelState) -> GlobalSig
+
 pub fn mk_abs(Term, Term) -> Term
 
 pub fn mk_comb(Term, Term) -> Term
 
-pub fn mk_comb_rule(Thm, Thm) -> Thm?
+pub fn mk_comb_rule(Thm, Thm) -> Result[Thm, LogicError]
 
 pub fn mk_const(String, HolType) -> Term
 
-pub fn mk_eq(Term, Term) -> Term?
+pub fn mk_eq(Term, Term) -> Result[Term, LogicError]
 
 pub fn mk_tyapp(String, Array[HolType]) -> HolType
 
@@ -88,7 +112,7 @@ pub fn mk_tyvar(String) -> HolType
 
 pub fn mk_var(String, HolType) -> Term
 
-pub fn refl(Term) -> Thm?
+pub fn refl(Term) -> Result[Thm, LogicError]
 
 pub fn sig_add_const(GlobalSig, String, HolType) -> GlobalSig?
 
@@ -116,17 +140,57 @@ pub fn sig_push_scope(GlobalSig) -> GlobalSig
 
 pub fn term_alpha_eq(Term, Term) -> Bool
 
+pub fn term_apply_ty_subst(Array[(String, HolType)], Term) -> Term?
+
+pub fn term_apply_ty_subst_unsafe(Array[(String, HolType)], Term) -> Term
+
+pub fn term_has_const_named(Term, String) -> Bool
+
+pub fn term_is_closed(Term) -> Bool
+
 pub fn term_to_string(Term) -> String
+
+pub fn thm_concl(Thm) -> Result[Term, LogicError]
+
+pub fn thm_hyp_count(Thm) -> Int
+
+pub fn thm_hyps(Thm) -> Result[Array[Term], LogicError]
+
+pub fn thm_to_string(Thm) -> String
 
 pub fn to_db_term(Term) -> DbTerm?
 
-pub fn trans(Thm, Thm) -> Thm?
+pub fn trans(Thm, Thm) -> Result[Thm, LogicError]
 
 pub fn ty_eq(HolType, HolType) -> Bool
 
+pub fn ty_is_instance_of(HolType, HolType) -> Bool
+
 pub fn type_of(Term) -> HolType?
 
+pub fn type_subst(Array[(String, HolType)], HolType) -> HolType?
+
+pub fn type_subst_unsafe(Array[(String, HolType)], HolType) -> HolType
+
+pub fn tyvars(HolType) -> Array[String]
+
+pub fn tyvars_subset(HolType, HolType) -> Bool
+
 // Errors
+pub suberror SigError {
+  DuplicateConstName
+  ConstTypeConflict
+  UnknownConst
+  ScopeUnderflow
+  InvalidConstRhs
+  ReservedSymbol
+  DefinitionAlreadyExists
+  DefinitionNotClosed
+  DefinitionIsCyclic
+  GhostTypeVariable
+  TypeDefWitnessMissing
+  TypeMismatch
+}
 
 // Types and methods
 pub enum DbTerm {
@@ -146,12 +210,18 @@ pub enum HolType {
   TyApp(String, Array[HolType])
 }
 
-pub enum SigError {
-  DuplicateConstName
-  ConstTypeConflict
-  UnknownConst
-  ScopeUnderflow
-  InvalidConstRhs
+type KernelState
+
+pub enum LogicError {
+  TypeMismatch
+  VariableCaptured
+  NotAnEquality
+  NotBoolTerm
+  AlphaMismatch
+  InvalidInstantiation
+  VarFreeInHyp
+  NotTrivialBetaRedex
+  BoundaryFailure
 }
 
 pub enum Term {
@@ -161,9 +231,7 @@ pub enum Term {
   Abs(Term, Term)
 }
 
-pub enum Thm {
-  Sequent(Array[Term], Term)
-}
+type Thm
 
 // Type aliases
 

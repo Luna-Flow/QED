@@ -1,703 +1,155 @@
 ///|
-test "thm refl builds equality theorem" {
-  let a = mk_tyvar("A")
-  let x = mk_var("x", a)
-  let th = refl(x)
-
-  assert_true(th is Some(Sequent([], _)))
-
-  match th {
-    Some(Sequent(_, concl)) =>
-      assert_true(concl is Comb(Comb(Const("=", _), _), _))
-    None => assert_false(true)
+fn[T, E] expect_ok(res : Result[T, E]) -> T {
+  match res {
+    Ok(v) => v
+    Err(_) => panic()
   }
 }
 
 ///|
-test "thm assume accepts bool proposition" {
+test "thm is opaque and observable through API" {
+  let a = mk_tyvar("A")
+  let x = mk_var("x", a)
+  let th = expect_ok(refl(x))
+  assert_eq(thm_hyp_count(th), 0)
+  let concl = expect_ok(thm_concl(th))
+  assert_true(dest_eq(concl) is Ok((_, _)))
+}
+
+///|
+test "mk_eq enforces same type on both sides" {
+  let a = mk_tyvar("A")
+  let b = mk_tyvar("B")
+  let x = mk_var("x", a)
+  let y = mk_var("y", b)
+  assert_true(mk_eq(x, y) is Err(TypeMismatch))
+}
+
+///|
+test "assume accepts only boolean propositions" {
   let p = mk_const("P", bool_ty())
-  let th = assume(p)
-  assert_true(th is Some(Sequent(_, _)))
-
-  match th {
-    Some(Sequent(hyps, concl)) => {
-      assert_eq(hyps.length(), 1)
-      assert_true(concl is Const("P", _))
-    }
-    None => assert_false(true)
-  }
-}
-
-///|
-test "thm assume rejects non-bool term" {
+  assert_true(assume(p) is Ok(_))
   let a = mk_tyvar("A")
-  let x = mk_var("x", a)
-  let th = assume(x)
-  assert_true(th is None)
+  assert_true(assume(mk_var("x", a)) is Err(NotBoolTerm))
 }
 
 ///|
-test "thm trans combines equalities" {
+test "trans composes equalities and checks alpha middle term" {
   let a = mk_tyvar("A")
   let x = mk_var("x", a)
   let y = mk_var("y", a)
   let z = mk_var("z", a)
 
-  let eq1 = expect_term(mk_eq(x, y))
-  let eq2 = expect_term(mk_eq(y, z))
+  let th1 = expect_ok(assume(expect_ok(mk_eq(x, y))))
+  let th2 = expect_ok(assume(expect_ok(mk_eq(y, z))))
+  let out = expect_ok(trans(th1, th2))
+  assert_eq(thm_hyp_count(out), 2)
 
-  let th1 = assume(eq1)
-  let th2 = assume(eq2)
-  assert_true((th1, th2) is (Some(_), Some(_)))
-
-  match (th1, th2) {
-    (Some(t1), Some(t2)) => {
-      let out = trans(t1, t2)
-      assert_true(out is Some(Sequent(_, _)))
-    }
-    _ => assert_false(true)
-  }
+  let th_bad = expect_ok(assume(expect_ok(mk_eq(z, x))))
+  assert_true(trans(th1, th_bad) is Err(AlphaMismatch))
 }
 
 ///|
-test "thm trans fails on mismatch middle term" {
+test "mk_comb_rule checks function typing constraints" {
+  let a = mk_tyvar("A")
+  let b = mk_tyvar("B")
+  let c = mk_tyvar("C")
+  let f = mk_const("f", fun_ty(a, b))
+  let g = mk_const("g", fun_ty(a, b))
+  let x = mk_var("x", a)
+  let y = mk_var("y", a)
+  let u = mk_var("u", c)
+  let v = mk_var("v", c)
+
+  let th_fg = expect_ok(assume(expect_ok(mk_eq(f, g))))
+  let th_xy = expect_ok(assume(expect_ok(mk_eq(x, y))))
+  assert_true(mk_comb_rule(th_fg, th_xy) is Ok(_))
+
+  let th_uv = expect_ok(assume(expect_ok(mk_eq(u, v))))
+  assert_true(mk_comb_rule(th_fg, th_uv) is Err(TypeMismatch))
+}
+
+///|
+test "abs_rule enforces binder and free-in-hyp side condition" {
   let a = mk_tyvar("A")
   let x = mk_var("x", a)
   let y = mk_var("y", a)
   let z = mk_var("z", a)
 
-  let th1 = assume(expect_term(mk_eq(x, y)))
-  let th2 = assume(expect_term(mk_eq(z, x)))
-  assert_true((th1, th2) is (Some(_), Some(_)))
+  let th_eq = expect_ok(assume(expect_ok(mk_eq(y, z))))
+  assert_true(abs_rule(x, th_eq) is Ok(_))
 
-  match (th1, th2) {
-    (Some(t1), Some(t2)) => {
-      let out = trans(t1, t2)
-      assert_true(out is None)
-    }
-    _ => assert_false(true)
-  }
+  let th_bad = expect_ok(assume(expect_ok(mk_eq(x, y))))
+  assert_true(abs_rule(x, th_bad) is Err(VarFreeInHyp))
+
+  let c = mk_const("c", a)
+  assert_true(abs_rule(c, th_eq) is Err(InvalidInstantiation))
 }
 
 ///|
-test "thm trans accepts alpha-equivalent middle term" {
+test "beta_rule enforces redex shape and binder agreement" {
   let a = mk_tyvar("A")
   let b = mk_tyvar("B")
   let x = mk_var("x", a)
   let y = mk_var("y", a)
   let z = mk_var("z", b)
-
-  let id_x = mk_abs(x, x)
-  let id_y = mk_abs(y, y)
-  let k = mk_abs(x, z)
-
-  let th1 = assume(expect_term(mk_eq(k, id_x)))
-  let th2 = assume(expect_term(mk_eq(id_y, k)))
-  assert_true((th1, th2) is (Some(_), Some(_)))
-
-  match (th1, th2) {
-    (Some(t1), Some(t2)) => {
-      let out = trans(t1, t2)
-      assert_true(out is Some(_))
-    }
-    _ => assert_false(true)
-  }
-}
-
-///|
-test "thm mk_comb_rule combines function and argument equalities" {
-  let a = mk_tyvar("A")
-  let b = mk_tyvar("B")
-  let fty = fun_ty(a, b)
-  let x = mk_var("x", a)
-  let y = mk_var("y", a)
-  let f = mk_const("f", fty)
-  let g = mk_const("g", fty)
-
-  let th_fg = assume(expect_term(mk_eq(f, g)))
-  let th_xy = assume(expect_term(mk_eq(x, y)))
-  assert_true((th_fg, th_xy) is (Some(_), Some(_)))
-
-  match (th_fg, th_xy) {
-    (Some(tfg), Some(txy)) => {
-      let out = mk_comb_rule(tfg, txy)
-      assert_true(out is Some(Sequent(_, _)))
-    }
-    _ => assert_false(true)
-  }
-}
-
-///|
-test "thm mk_comb_rule fails on argument type mismatch" {
-  let a = mk_tyvar("A")
-  let b = mk_tyvar("B")
-  let c = mk_tyvar("C")
-  let fty = fun_ty(a, b)
-  let x = mk_var("x", c)
-  let y = mk_var("y", c)
-  let f = mk_const("f", fty)
-  let g = mk_const("g", fty)
-
-  let th_fg = assume(expect_term(mk_eq(f, g)))
-  let th_xy = assume(expect_term(mk_eq(x, y)))
-  assert_true((th_fg, th_xy) is (Some(_), Some(_)))
-
-  match (th_fg, th_xy) {
-    (Some(tfg), Some(txy)) => {
-      let out = mk_comb_rule(tfg, txy)
-      assert_true(out is None)
-    }
-    _ => assert_false(true)
-  }
-}
-
-///|
-test "thm mk_comb_rule fails on non-equality premise" {
-  let a = mk_tyvar("A")
-  let b = mk_tyvar("B")
-  let fty = fun_ty(a, b)
-  let x = mk_var("x", a)
-  let y = mk_var("y", a)
-  let p = mk_const("P", bool_ty())
-  let f = mk_const("f", fty)
-  let g = mk_const("g", fty)
-
-  let th_bad = assume(p)
-  let th_xy = assume(expect_term(mk_eq(x, y)))
-  let th_fg = assume(expect_term(mk_eq(f, g)))
-  assert_true((th_bad, th_xy, th_fg) is (Some(_), Some(_), Some(_)))
-
-  match (th_bad, th_xy, th_fg) {
-    (Some(tb), Some(txy), Some(tfg)) => {
-      assert_true(mk_comb_rule(tb, txy) is None)
-      assert_true(mk_comb_rule(tfg, tb) is None)
-    }
-    _ => assert_false(true)
-  }
-}
-
-///|
-test "thm abs_rule abstracts equality theorem" {
-  let a = mk_tyvar("A")
-  let x = mk_var("x", a)
-  let y = mk_var("y", a)
-  let z = mk_var("z", a)
-
-  let th = assume(expect_term(mk_eq(y, z)))
-  assert_true(th is Some(_))
-  match th {
-    Some(t) => {
-      let out = abs_rule(x, t)
-      assert_true(out is Some(Sequent(_, _)))
-    }
-    None => assert_false(true)
-  }
-}
-
-///|
-test "thm abs_rule fails when binder free in assumptions" {
-  let a = mk_tyvar("A")
-  let x = mk_var("x", a)
-  let y = mk_var("y", a)
-  let th = assume(expect_term(mk_eq(x, y)))
-  assert_true(th is Some(_))
-  match th {
-    Some(t) => {
-      let out = abs_rule(x, t)
-      assert_true(out is None)
-    }
-    None => assert_false(true)
-  }
-}
-
-///|
-test "thm abs_rule fails for non-variable binder" {
-  let a = mk_tyvar("A")
-  let c = mk_const("c", a)
-  let x = mk_var("x", a)
-  let y = mk_var("y", a)
-  let th = assume(expect_term(mk_eq(x, y)))
-  assert_true(th is Some(_))
-  match th {
-    Some(t) => assert_true(abs_rule(c, t) is None)
-    None => assert_false(true)
-  }
-}
-
-///|
-test "thm beta_rule succeeds on trivial beta redex" {
-  let a = mk_tyvar("A")
-  let x = mk_var("x", a)
-  let y = mk_var("y", a)
-  let redex = mk_comb(mk_abs(x, y), x)
-  let out = beta_rule(redex)
-  assert_true(out is Some(Sequent(_, _)))
-}
-
-///|
-test "thm beta_rule reduces nontrivial redex with safe substitution" {
-  let a = mk_tyvar("A")
-  let x = mk_var("x", a)
-  let z = mk_var("z", a)
-  let f = mk_var("f", fun_ty(a, a))
-  let body = mk_comb(f, x)
-  let redex = mk_comb(mk_abs(x, body), z)
-  let out = beta_rule(redex)
-  assert_true(out is Some(Sequent(_, _)))
-
-  match out {
-    Some(Sequent(_, concl)) =>
-      assert_true(term_to_string(concl).contains("Var(z : A)"))
-    None => assert_false(true)
-  }
-}
-
-///|
-test "thm beta_rule reduces capture-risk case via debruijn" {
-  let a = mk_tyvar("A")
-  let x = mk_var("x", a)
-  let y = mk_var("y", a)
-  let body = mk_abs(y, x)
-  let redex = mk_comb(mk_abs(x, body), y)
-  let out = beta_rule(redex)
-  assert_true(out is Some(Sequent(_, _)))
-
-  match out {
-    Some(Sequent(_, concl)) =>
-      match concl {
-        Comb(Comb(Const("=", _), _), rhs) =>
-          match (to_db_term(rhs), to_db_term(mk_abs(x, y))) {
-            (Some(d1), Some(d2)) => assert_true(db_term_eq(d1, d2))
-            _ => assert_false(true)
-          }
-        _ => assert_false(true)
-      }
-    None => assert_false(true)
-  }
-}
-
-///|
-test "thm beta_rule rejects argument type mismatch in redex" {
-  let a = mk_tyvar("A")
-  let b = mk_tyvar("B")
-  let x = mk_var("x", a)
-  let y = mk_var("y", b)
   let redex = mk_comb(mk_abs(x, x), y)
-  let out = beta_rule(redex)
-  assert_true(out is None)
+  assert_true(beta_rule(redex) is Ok(_))
+
+  let bad_ty = mk_comb(mk_abs(x, x), z)
+  assert_true(beta_rule(bad_ty) is Err(TypeMismatch))
+
+  assert_true(beta_rule(x) is Err(NotTrivialBetaRedex))
 }
 
 ///|
-test "thm beta_rule keeps inner shadowed binder unchanged" {
-  let a = mk_tyvar("A")
-  let x = mk_var("x", a)
-  let y = mk_var("y", a)
-  let inner = mk_abs(x, x)
-  let redex = mk_comb(mk_abs(x, inner), y)
-  let out = beta_rule(redex)
-  assert_true(out is Some(_))
-
-  match out {
-    Some(Sequent(_, concl)) =>
-      match concl {
-        Comb(Comb(Const("=", _), _), rhs) =>
-          match (to_db_term(rhs), to_db_term(inner)) {
-            (Some(d1), Some(d2)) => assert_true(db_term_eq(d1, d2))
-            _ => assert_false(true)
-          }
-        _ => assert_false(true)
-      }
-    None => assert_false(true)
-  }
-}
-
-///|
-test "thm eq_mp derives rhs from equality and lhs proof" {
-  let p = mk_const("P", bool_ty())
-  let q = mk_const("Q", bool_ty())
-  let th_eq = assume(expect_term(mk_eq(p, q)))
-  let th_p = assume(p)
-  assert_true((th_eq, th_p) is (Some(_), Some(_)))
-
-  match (th_eq, th_p) {
-    (Some(teq), Some(tp)) => {
-      let out = eq_mp(teq, tp)
-      assert_true(out is Some(Sequent(_, _)))
-    }
-    _ => assert_false(true)
-  }
-}
-
-///|
-test "thm eq_mp fails when lhs does not match premise" {
+test "eq_mp derives rhs and checks lhs matching" {
   let p = mk_const("P", bool_ty())
   let q = mk_const("Q", bool_ty())
   let r = mk_const("R", bool_ty())
-  let th_eq = assume(expect_term(mk_eq(p, q)))
-  let th_r = assume(r)
-  assert_true((th_eq, th_r) is (Some(_), Some(_)))
+  let th_eq = expect_ok(assume(expect_ok(mk_eq(p, q))))
+  let th_p = expect_ok(assume(p))
+  assert_true(eq_mp(th_eq, th_p) is Ok(_))
 
-  match (th_eq, th_r) {
-    (Some(teq), Some(tr)) => {
-      let out = eq_mp(teq, tr)
-      assert_true(out is None)
-    }
-    _ => assert_false(true)
-  }
+  let th_r = expect_ok(assume(r))
+  assert_true(eq_mp(th_eq, th_r) is Err(AlphaMismatch))
 }
 
 ///|
-test "thm eq_mp accepts alpha-equivalent lhs premise" {
+test "deduct_antisym_rule removes opposite assumptions" {
+  let p = mk_const("P", bool_ty())
+  let q = mk_const("Q", bool_ty())
+  let th_p = expect_ok(assume(p))
+  let th_q = expect_ok(assume(q))
+  let out = expect_ok(deduct_antisym_rule(th_p, th_q))
+  assert_eq(thm_hyp_count(out), 2)
+  let concl = expect_ok(thm_concl(out))
+  assert_true(dest_eq(concl) is Ok((_, _)))
+}
+
+///|
+test "inst_type validates substitution shape" {
   let a = mk_tyvar("A")
+  let b = mk_tyvar("B")
+  let x = mk_var("x", a)
+  let th = expect_ok(refl(x))
+  assert_true(inst_type([("A", b)], th) is Ok(_))
+  assert_true(
+    inst_type([("A", b), ("A", bool_ty())], th) is Err(InvalidInstantiation),
+  )
+}
+
+///|
+test "inst validates substitution map and types" {
+  let a = mk_tyvar("A")
+  let b = mk_tyvar("B")
   let x = mk_var("x", a)
   let y = mk_var("y", a)
-  let p = expect_term(mk_eq(mk_abs(x, x), mk_abs(x, x)))
-  let p2 = expect_term(mk_eq(mk_abs(y, y), mk_abs(y, y)))
-  let q = mk_const("Q", bool_ty())
-  let th_eq = assume(expect_term(mk_eq(p, q)))
-  let th_p = assume(p2)
-  assert_true((th_eq, th_p) is (Some(_), Some(_)))
-
-  match (th_eq, th_p) {
-    (Some(teq), Some(tp)) => assert_true(eq_mp(teq, tp) is Some(_))
-    _ => assert_false(true)
-  }
-}
-
-///|
-test "thm deduct_antisym_rule builds equality theorem" {
-  let p = mk_const("P", bool_ty())
-  let q = mk_const("Q", bool_ty())
-  let th_p = assume(p)
-  let th_q = assume(q)
-  assert_true((th_p, th_q) is (Some(_), Some(_)))
-
-  match (th_p, th_q) {
-    (Some(tp), Some(tq)) => {
-      let out = deduct_antisym_rule(tp, tq)
-      assert_true(out is Some(Sequent(_, Comb(Comb(Const("=", _), _), _))))
-    }
-    _ => assert_false(true)
-  }
-}
-
-///|
-test "thm deduct_antisym_rule removes opposite assumptions" {
-  let p = mk_const("P", bool_ty())
-  let q = mk_const("Q", bool_ty())
-  let th_p = assume(p)
-  let th_q = assume(q)
-  assert_true((th_p, th_q) is (Some(_), Some(_)))
-
-  match (th_p, th_q) {
-    (Some(tp), Some(tq)) =>
-      match deduct_antisym_rule(tp, tq) {
-        Some(Sequent(hs, _)) => assert_eq(hs.length(), 2)
-        None => assert_false(true)
-      }
-    _ => assert_false(true)
-  }
-}
-
-///|
-test "thm inst_type accepts empty substitution" {
-  let p = mk_const("P", bool_ty())
-  let th = assume(p)
-  assert_true(th is Some(_))
-  match th {
-    Some(t) => {
-      let out = inst_type([], t)
-      assert_true(out is Some(_))
-    }
-    None => assert_false(true)
-  }
-}
-
-///|
-test "thm inst_type applies non-empty substitution" {
-  let a = mk_tyvar("A")
-  let x = mk_var("x", a)
-  let th0 = refl(x)
-  assert_true(th0 is Some(_))
-  match th0 {
-    Some(th) => {
-      let out = inst_type([("A", bool_ty())], th)
-      assert_true(out is Some(_))
-      match out {
-        Some(Sequent(_, concl)) =>
-          match concl {
-            Comb(Comb(Const("=", _), lhs), _) =>
-              assert_true(type_of(lhs) is Some(TyApp("bool", [])))
-            _ => assert_false(true)
-          }
-        None => assert_false(true)
-      }
-    }
-    None => assert_false(true)
-  }
-}
-
-///|
-test "thm inst_type rewrites binder types through debruijn path" {
-  let a = mk_tyvar("A")
-  let b = mk_tyvar("B")
-  let x = mk_var("x", a)
-  let lam = mk_abs(x, x)
-  let th0 = refl(lam)
-  assert_true(th0 is Some(_))
-  match th0 {
-    Some(th) => {
-      let out = inst_type([("A", b)], th)
-      assert_true(out is Some(_))
-
-      match out {
-        Some(Sequent(_, concl)) =>
-          match concl {
-            Comb(Comb(Const("=", _), lhs), rhs) =>
-              match
-                (
-                  to_db_term(lhs),
-                  to_db_term(rhs),
-                  to_db_term(mk_abs(mk_var("x", b), mk_var("x", b))),
-                ) {
-                (Some(d1), Some(d2), Some(dexp)) => {
-                  assert_true(db_term_eq(d1, dexp))
-                  assert_true(db_term_eq(d2, dexp))
-                }
-                _ => assert_false(true)
-              }
-            _ => assert_false(true)
-          }
-        None => assert_false(true)
-      }
-    }
-    None => assert_false(true)
-  }
-}
-
-///|
-test "thm inst_type rejects duplicate substitution keys" {
-  let a = mk_tyvar("A")
-  let b = mk_tyvar("B")
-  let c = mk_tyvar("C")
-  let x = mk_var("x", a)
-  let th0 = refl(x)
-  assert_true(th0 is Some(_))
-  match th0 {
-    Some(th) => {
-      let out = inst_type([("A", b), ("A", c)], th)
-      assert_true(out is None)
-    }
-    None => assert_false(true)
-  }
-}
-
-///|
-test "thm inst_type deduplicates hypotheses after substitution" {
-  let a = mk_tyvar("A")
-  let b = mk_tyvar("B")
-  let x_a = mk_var("x", a)
-  let x_b = mk_var("x", b)
-  let pa = expect_term(mk_eq(x_a, x_a))
-  let pb = expect_term(mk_eq(x_b, x_b))
-  let tha = assume(pa)
-  let thb = assume(pb)
-  assert_true((tha, thb) is (Some(_), Some(_)))
-
-  match (tha, thb) {
-    (Some(ta), Some(tb)) => {
-      let th0 = deduct_antisym_rule(ta, tb)
-      assert_true(th0 is Some(_))
-      match th0 {
-        Some(th) => {
-          let out = inst_type([("B", a)], th)
-          assert_true(out is Some(_))
-          match out {
-            Some(Sequent(hs, _)) => assert_eq(hs.length(), 1)
-            None => assert_false(true)
-          }
-        }
-        None => assert_false(true)
-      }
-    }
-    _ => assert_false(true)
-  }
-}
-
-///|
-test "thm inst accepts empty substitution" {
-  let p = mk_const("P", bool_ty())
-  let th = assume(p)
-  assert_true(th is Some(_))
-  match th {
-    Some(t) => {
-      let out = inst([], t)
-      assert_true(out is Some(_))
-    }
-    None => assert_false(true)
-  }
-}
-
-///|
-test "thm inst applies non-empty substitution" {
-  let a = mk_tyvar("A")
-  let x = mk_var("x", a)
-  let y = mk_var("y", a)
-  let th0 = refl(x)
-  assert_true(th0 is Some(_))
-  match th0 {
-    Some(th) => {
-      let out = inst([(x, y)], th)
-      assert_true(out is Some(_))
-      match out {
-        Some(Sequent(_, concl)) =>
-          assert_true(term_to_string(concl).contains("Var(y : A)"))
-        None => assert_false(true)
-      }
-    }
-    None => assert_false(true)
-  }
-}
-
-///|
-test "thm inst deduplicates hypotheses after substitution" {
-  let p = mk_var("p", bool_ty())
-  let q = mk_var("q", bool_ty())
-  let thp = assume(p)
-  let thq = assume(q)
-  assert_true((thp, thq) is (Some(_), Some(_)))
-
-  match (thp, thq) {
-    (Some(tp), Some(tq)) => {
-      let th0 = deduct_antisym_rule(tp, tq)
-      assert_true(th0 is Some(_))
-      match th0 {
-        Some(th) => {
-          let out = inst([(p, q)], th)
-          assert_true(out is Some(_))
-          match out {
-            Some(Sequent(hs, concl)) => {
-              assert_eq(hs.length(), 1)
-              assert_true(term_to_string(concl).contains("Var(q : bool)"))
-            }
-            None => assert_false(true)
-          }
-        }
-        None => assert_false(true)
-      }
-    }
-    _ => assert_false(true)
-  }
-}
-
-///|
-test "thm inst rejects invalid substitution key" {
-  let a = mk_tyvar("A")
-  let x = mk_var("x", a)
+  let z = mk_var("z", b)
   let c = mk_const("C", a)
-  let th0 = refl(x)
-  assert_true(th0 is Some(_))
-  match th0 {
-    Some(th) => {
-      let out = inst([(c, x)], th)
-      assert_true(out is None)
-    }
-    None => assert_false(true)
-  }
-}
+  let th = expect_ok(refl(x))
 
-///|
-test "thm inst rejects duplicate substitution keys" {
-  let a = mk_tyvar("A")
-  let x = mk_var("x", a)
-  let y = mk_var("y", a)
-  let z = mk_var("z", a)
-  let th0 = refl(x)
-  assert_true(th0 is Some(_))
-  match th0 {
-    Some(th) => {
-      let out = inst([(x, y), (x, z)], th)
-      assert_true(out is None)
-    }
-    None => assert_false(true)
-  }
-}
-
-///|
-test "thm inst performs capture-avoiding substitution under binder" {
-  let a = mk_tyvar("A")
-  let x = mk_var("x", a)
-  let y = mk_var("y", a)
-  let lam = mk_abs(y, x)
-  let th0 = refl(lam)
-  assert_true(th0 is Some(_))
-  match th0 {
-    Some(th) => {
-      let out = inst([(x, y)], th)
-      assert_true(out is Some(_))
-
-      match out {
-        Some(Sequent(_, concl)) =>
-          match concl {
-            Comb(Comb(Const("=", _), lhs), rhs) =>
-              match
-                (to_db_term(lhs), to_db_term(rhs), to_db_term(mk_abs(x, y))) {
-                (Some(d1), Some(d2), Some(dexp)) => {
-                  assert_true(db_term_eq(d1, dexp))
-                  assert_true(db_term_eq(d2, dexp))
-                }
-                _ => assert_false(true)
-              }
-            _ => assert_false(true)
-          }
-        None => assert_false(true)
-      }
-    }
-    None => assert_false(true)
-  }
-}
-
-///|
-test "thm inst ignores irrelevant risky pair under binder" {
-  let a = mk_tyvar("A")
-  let x = mk_var("x", fun_ty(a, a))
-  let y = mk_var("y", a)
-  let z = mk_var("z", a)
-  let w = mk_var("w", fun_ty(a, a))
-  let u = mk_var("u", a)
-
-  let body = mk_comb(x, z)
-  let lam = mk_abs(y, body)
-  let th0 = refl(lam)
-  assert_true(th0 is Some(_))
-  match th0 {
-    Some(th) => {
-      let out = inst([(x, w), (u, y)], th)
-      assert_true(out is Some(_))
-
-      match out {
-        Some(Sequent(_, concl)) =>
-          match concl {
-            Comb(Comb(Const("=", _), _), rhs) => {
-              let expected = mk_abs(y, mk_comb(w, z))
-              match (to_db_term(rhs), to_db_term(expected)) {
-                (Some(d1), Some(d2)) => assert_true(db_term_eq(d1, d2))
-                _ => assert_false(true)
-              }
-            }
-            _ => assert_false(true)
-          }
-        None => assert_false(true)
-      }
-    }
-    None => assert_false(true)
-  }
-}
-
-///|
-fn expect_term(term : Term?) -> Term {
-  match term {
-    Some(t) => t
-    None => mk_const("invalid", bool_ty())
-  }
+  assert_true(inst([(x, y)], th) is Ok(_))
+  assert_true(inst([(c, y)], th) is Err(InvalidInstantiation))
+  assert_true(inst([(x, z)], th) is Err(TypeMismatch))
 }

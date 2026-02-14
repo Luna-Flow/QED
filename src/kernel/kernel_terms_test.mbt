@@ -359,3 +359,38 @@ test "terms term_alpha_eq uses debruijn semantics" {
   assert_true(term_alpha_eq(t1, t2))
   assert_false(term_alpha_eq(t1, t3))
 }
+
+///|
+test "terms free_vars and closedness" {
+  let a = mk_tyvar("A")
+  let x = mk_var("x", a)
+  let y = mk_var("y", a)
+  let lam = mk_abs(x, mk_comb(x, y))
+  let vars = free_vars(lam)
+  assert_eq(vars.length(), 1)
+  assert_true(term_is_closed(mk_abs(y, lam)))
+}
+
+///|
+test "terms has_const_named walks nested terms" {
+  let a = mk_tyvar("A")
+  let x = mk_var("x", a)
+  let c = mk_const("C", a)
+  let t = mk_abs(x, mk_comb(c, x))
+  assert_true(term_has_const_named(t, "C"))
+  assert_false(term_has_const_named(t, "D"))
+}
+
+///|
+test "terms term_apply_ty_subst updates all embedded types" {
+  let a = mk_tyvar("A")
+  let b = mk_tyvar("B")
+  let x = mk_var("x", a)
+  let t = mk_abs(x, mk_comb(mk_var("f", fun_ty(a, a)), x))
+  let out = term_apply_ty_subst([("A", b)], t)
+  assert_true(out is Some(_))
+  match out {
+    Some(v) => assert_true(term_to_string(v).contains("B"))
+    None => assert_false(true)
+  }
+}
