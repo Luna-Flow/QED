@@ -27,6 +27,15 @@ test "audit c5 pop then redefine stays rejected by defheads" {
 }
 
 ///|
+test "audit c6 defhead cannot be shadowed as local constant" {
+  let st0 = empty_kernel_state()
+  let p = mk_const("P", bool_ty())
+  let (st1, _) = expect_ok_sig_audit(ks_define_const(st0, "q", bool_ty(), p))
+  let st2 = ks_push_scope(st1)
+  assert_true(ks_add_const(st2, "q", bool_ty()) is Err(DefinitionAlreadyExists))
+}
+
+///|
 test "audit d1 typedef rejects non theorem witness" {
   let st0 = empty_kernel_state()
   let x = mk_var("x", bool_ty())

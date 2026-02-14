@@ -431,6 +431,12 @@ pub fn ks_add_const(
   if is_reserved_symbol(name) {
     return Err(ReservedSymbol)
   }
+  if ks_has_def_head(state, name) {
+    return Err(DefinitionAlreadyExists)
+  }
+  if ks_has_type_rep_head(state, name) {
+    return Err(TypeRepresentationAlreadyExists)
+  }
   match current_scope_lookup(state.sig, name) {
     Some((_, existing)) =>
       if ty_eq(existing, ty) {
@@ -627,6 +633,9 @@ pub fn ks_define_const(
 ) -> Result[(KernelState, Term), SigError] {
   if is_reserved_symbol(name) {
     return Err(ReservedSymbol)
+  }
+  if ks_has_type_rep_head(state, name) {
+    return Err(TypeRepresentationAlreadyExists)
   }
   if ks_has_def_head(state, name) {
     return Err(DefinitionAlreadyExists)

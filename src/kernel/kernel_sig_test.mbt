@@ -97,6 +97,18 @@ test "kernel state enforces DefHeads monotonicity across pop" {
 }
 
 ///|
+test "kernel state rejects local const shadowing of def heads" {
+  let st0 = empty_kernel_state()
+  let p = mk_const("P", bool_ty())
+  let (st1, _) = expect_ok_sig(ks_define_const(st0, "q", bool_ty(), p))
+  let st2 = ks_push_scope(st1)
+  assert_true(ks_add_const(st2, "q", bool_ty()) is Err(DefinitionAlreadyExists))
+  assert_true(
+    ks_add_const(st2, "q", mk_tyvar("A")) is Err(DefinitionAlreadyExists),
+  )
+}
+
+///|
 test "ks_define_const_thm yields empty-hyp definition theorem" {
   let st0 = empty_kernel_state()
   let p = mk_const("P", bool_ty())
@@ -251,6 +263,28 @@ test "type definition registration validates rep name freshness" {
   assert_true(
     ks_register_type_definition(st2, "repfresh3", 0, "RepC", pred, witness)
     is Err(TypeRepresentationAlreadyExists),
+  )
+}
+
+///|
+test "type representation heads cannot be reused as constants" {
+  let st0 = empty_kernel_state()
+  let (pred, witness) = type_witness_bundle("W_rep_guard")
+  let st1 = expect_ok_sig(
+    ks_register_type_definition(st0, "repguard", 0, "RepGuard", pred, witness),
+  )
+  let bool = bool_ty()
+  let x = mk_var("x", bool)
+  assert_true(
+    ks_add_const(st1, "RepGuard", bool) is Err(TypeRepresentationAlreadyExists),
+  )
+  assert_true(
+    ks_define_const(st1, "RepGuard", bool, x)
+    is Err(TypeRepresentationAlreadyExists),
+  )
+  let st2 = ks_push_scope(st1)
+  assert_true(
+    ks_add_const(st2, "RepGuard", bool) is Err(TypeRepresentationAlreadyExists),
   )
 }
 
