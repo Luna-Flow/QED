@@ -237,9 +237,13 @@ theorem SEC6_TYPEDEF_PRODUCT_proved : SEC6_TYPEDEF_PRODUCT := by
   intro k params repTy pred
   refine ⟨?_, ?_, ?_⟩
   · exact ⟨.var "_typedef_witness" repTy, rfl⟩
-  · intro hClosed
+  · intro t ht
+    subst ht
+    intro hClosed
     exact hClosed
-  · intro hSubset
+  · intro t ht
+    subst ht
+    intro hSubset
     exact hSubset
 
 def SEC6_NONEMPTY_INVARIANT : Prop :=
@@ -331,18 +335,29 @@ theorem SEC8_ALPHA_EQ_proved : SEC8_ALPHA_EQ := by
   rfl
 
 def SEC9_BOUNDARY_LOWER : Prop :=
-  ∀ bc : BoundaryConversion, ∀ t : Term, ∃ r, bc.lowerTerm t = r
+  ∀ bc : BoundaryConversion, ∀ _h : BoundaryLaws bc, ∀ t : Term, ∀ d : DbExpr,
+    bc.lowerTerm t = some d ->
+    ∃ t', bc.liftTerm d = some t'
 
 theorem SEC9_BOUNDARY_LOWER_proved : SEC9_BOUNDARY_LOWER := by
-  intro bc t
-  exact ⟨bc.lowerTerm t, rfl⟩
+  intro bc h t d hLower
+  rcases h.roundTripUpToAlpha t d hLower with ⟨t', hLift, _⟩
+  exact ⟨t', hLift⟩
 
 def SEC9_BOUNDARY_LIFT : Prop :=
-  ∀ bc : BoundaryConversion, ∀ d : DbExpr, ∃ r, bc.liftTerm d = r
+  ∀ bc : BoundaryConversion, ∀ _h : BoundaryLaws bc,
+    ∀ t : Term, ∀ d : DbExpr, ∀ t' : Term,
+      bc.lowerTerm t = some d ->
+      bc.liftTerm d = some t' ->
+      AlphaEq t' t
 
 theorem SEC9_BOUNDARY_LIFT_proved : SEC9_BOUNDARY_LIFT := by
-  intro bc d
-  exact ⟨bc.liftTerm d, rfl⟩
+  intro bc h t d t' hLower hLift
+  rcases h.roundTripUpToAlpha t d hLower with ⟨t0, hLift0, hAlpha⟩
+  rw [hLift] at hLift0
+  have ht0 : t0 = t' := Option.some.inj hLift0.symm
+  subst ht0
+  exact hAlpha
 
 def SEC9_ALPHA_INVARIANT_LOWER : Prop :=
   ∀ bc : BoundaryConversion, ∀ _h : BoundaryLaws bc,

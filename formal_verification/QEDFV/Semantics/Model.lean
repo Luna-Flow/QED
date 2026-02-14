@@ -4,7 +4,7 @@ namespace QEDFV
 
 structure Model where
   ValidExpr : DbExpr -> Prop
-  soundDerivable : ∀ {k : KernelState} {s : Sequent}, Derivable k s -> ValidExpr s.concl
+  validEqRefl : ∀ t : DbExpr, ValidExpr (mkEqExpr t t)
 
 abbrev Valid (m : Model) (s : Sequent) : Prop :=
   (forall h, h ∈ s.hyps -> m.ValidExpr h) -> m.ValidExpr s.concl

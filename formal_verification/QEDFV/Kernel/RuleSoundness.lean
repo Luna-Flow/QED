@@ -65,7 +65,7 @@ def primitive_sound_all : Prop :=
 
 theorem primitive_sound_REFL_proved : primitive_sound_REFL := by
   intro m k t hHyps
-  exact m.soundDerivable (Derivable.refl (k := k) t)
+  exact m.validEqRefl t
 
 theorem primitive_sound_ASSUME_proved : primitive_sound_ASSUME := by
   intro m k p _ hHyps

@@ -26,10 +26,11 @@ theorem audit_c6_pop_redefine_rejection_proved : audit_c6_pop_redefine_rejection
       simp [hReserved]
 
 def audit_c7_cycle_rejection : Prop :=
-  forall rhs c, ¬ acyclic rhs c -> ¬ acyclic rhs c
+  forall t d, ¬ acyclic d.rhs d.c -> ¬ DefOK t d
 
 theorem audit_c7_cycle_rejection_proved : audit_c7_cycle_rejection := by
-  intro rhs c h
-  exact h
+  intro t d hCycle hDef
+  rcases hDef with ⟨_, _, _, _, hAcyclic, _⟩
+  exact hCycle hAcyclic
 
 end QEDFV

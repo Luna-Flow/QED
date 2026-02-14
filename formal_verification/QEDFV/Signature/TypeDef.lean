@@ -37,8 +37,8 @@ def typedefProductContract
     (repTy : HolType)
     (pred : Term) : TypeDefContract :=
   { absRepSurj := ∃ w : Term, typeOf? w = some repTy
-  , repInRange := termIsClosed pred -> termIsClosed pred
-  , repAbsRetract := termTyvarsSubset pred repTy -> termTyvarsSubset pred repTy
+  , repInRange := ∀ t : Term, t = pred -> termIsClosed t -> termIsClosed pred
+  , repAbsRetract := ∀ t : Term, t = pred -> termTyvarsSubset t repTy -> termTyvarsSubset pred repTy
   }
 
 end QEDFV
