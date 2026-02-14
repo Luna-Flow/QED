@@ -15,6 +15,14 @@ fn[T, E] expect_ok_any_sig_test(res : Result[T, E]) -> T {
 }
 
 ///|
+fn expect_cert(state : KernelState, idx : Int) -> ExtensionCert {
+  match ks_extension_cert_at(state, idx) {
+    Some(c) => c
+    None => panic()
+  }
+}
+
+///|
 fn type_witness_bundle(name : String) -> (Term, Thm) {
   let x = mk_var(name, bool_ty())
   let body = expect_ok_any_sig_test(mk_eq(x, x))
@@ -346,6 +354,52 @@ test "specify const rejects type-variable leak and drifted witness" {
     ks_specify_const(st0, "drift", bool_ty(), pred_w, witness_w)
     is Err(InvalidSpecificationWitness),
   )
+}
+
+///|
+test "extension certificates record def typedef and spec gates" {
+  let bool = bool_ty()
+  let st0 = expect_ok_sig(ks_add_const(empty_kernel_state(), "U", bool))
+  let u = mk_const("U", bool)
+  let (st1, _) = expect_ok_sig(ks_define_const(st0, "d", bool, u))
+  assert_eq(ks_extension_cert_count(st1), 1)
+
+  let (gate0, heads0, digest0) = expect_cert(st1, 0)
+  assert_true(gate0 is DefOK)
+  assert_eq(heads0.length(), 1)
+  assert_eq(heads0[0], "d")
+  assert_true(digest0 != "")
+
+  let (pred, witness) = type_witness_bundle("W_cert")
+  let st2 = expect_ok_sig(
+    ks_register_type_definition(st1, "tcert", [], "RepTCert", pred, witness),
+  )
+  assert_eq(ks_extension_cert_count(st2), 2)
+  let (gate1, heads1, digest1) = expect_cert(st2, 1)
+  assert_true(gate1 is TypeDefOK)
+  assert_eq(heads1.length(), 3)
+  assert_eq(heads1[0], "tcert")
+  assert_eq(heads1[1], "RepTCert")
+  assert_eq(heads1[2], "Abs_tcert")
+  assert_true(digest1 != "")
+
+  let x = mk_var("x", bool)
+  let spec_pred = mk_abs(x, expect_ok_any_sig_test(mk_eq(x, x)))
+  let spec_witness = expect_ok_any_sig_test(refl_checked(st2, x))
+  let (st3, _) = expect_ok_sig(
+    ks_specify_const(st2, "c_cert", bool, spec_pred, spec_witness),
+  )
+  assert_eq(ks_extension_cert_count(st3), 4)
+  let (gate2, heads2, _) = expect_cert(st3, 2)
+  assert_true(gate2 is DefOK)
+  assert_eq(heads2.length(), 1)
+  assert_eq(heads2[0], "c_cert")
+  let (gate3, heads3, digest3) = expect_cert(st3, 3)
+  assert_true(gate3 is SpecOK)
+  assert_eq(heads3.length(), 1)
+  assert_eq(heads3[0], "c_cert")
+  assert_true(digest3 != "")
+  assert_true(ks_extension_cert_at(st3, 4) is None)
 }
 
 ///|

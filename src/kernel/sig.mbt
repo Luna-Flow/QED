@@ -43,6 +43,16 @@ pub suberror SigError {
 pub type ConstId = Int
 
 ///|
+pub enum ExtensionGate {
+  DefOK
+  TypeDefOK
+  SpecOK
+}
+
+///|
+pub type ExtensionCert = (ExtensionGate, Array[String], String)
+
+///|
 priv struct TheoryState {
   def_heads : Array[String]
   def_const_deps : Array[(String, Array[String])]
@@ -50,6 +60,7 @@ priv struct TheoryState {
   type_rep_heads : Array[String]
   type_abs_heads : Array[String]
   typedef_contracts : Array[(String, Thm, Thm, Thm)]
+  extension_certs : Array[ExtensionCert]
   ind_infinity_axiom : Thm?
   next_const_id : ConstId
 }
@@ -81,6 +92,31 @@ fn choice_schema_ty() -> HolType {
 ///|
 fn initial_sig() -> GlobalSig {
   Sig([[("@", 0, choice_schema_ty())]])
+}
+
+///|
+fn append_extension_cert(
+  state : KernelState,
+  gate : ExtensionGate,
+  heads : Array[String],
+  witness_digest : String,
+) -> KernelState {
+  let certs = state.theory.extension_certs.copy()
+  certs.push((gate, heads, witness_digest))
+  KernelState::{
+    sig: state.sig,
+    theory: TheoryState::{
+      def_heads: state.theory.def_heads,
+      def_const_deps: state.theory.def_const_deps,
+      witnessed_tycons: state.theory.witnessed_tycons,
+      type_rep_heads: state.theory.type_rep_heads,
+      type_abs_heads: state.theory.type_abs_heads,
+      typedef_contracts: state.theory.typedef_contracts,
+      extension_certs: certs,
+      ind_infinity_axiom: state.theory.ind_infinity_axiom,
+      next_const_id: state.theory.next_const_id,
+    },
+  }
 }
 
 ///|
@@ -352,6 +388,7 @@ pub fn empty_kernel_state() -> KernelState {
       type_rep_heads: [],
       type_abs_heads: [],
       typedef_contracts: [],
+      extension_certs: [],
       ind_infinity_axiom: None,
       next_const_id: 1,
     },
@@ -436,6 +473,7 @@ pub fn ks_add_const(
               type_rep_heads: state.theory.type_rep_heads,
               type_abs_heads: state.theory.type_abs_heads,
               typedef_contracts: state.theory.typedef_contracts,
+              extension_certs: state.theory.extension_certs,
               ind_infinity_axiom: state.theory.ind_infinity_axiom,
               next_const_id: state.theory.next_const_id + 1,
             },
@@ -499,6 +537,20 @@ pub fn ks_typedef_contract(
   match lookup_typedef_contract(state.theory.typedef_contracts, tycon) {
     Some(v) => Ok(v)
     None => Err(MissingTypeDefinitionContract)
+  }
+}
+
+///|
+pub fn ks_extension_cert_count(state : KernelState) -> Int {
+  state.theory.extension_certs.length()
+}
+
+///|
+pub fn ks_extension_cert_at(state : KernelState, idx : Int) -> ExtensionCert? {
+  if idx < 0 || idx >= state.theory.extension_certs.length() {
+    None
+  } else {
+    Some(state.theory.extension_certs[idx])
   }
 }
 
@@ -619,6 +671,7 @@ pub fn ks_register_ind_infinity_axiom(
                 type_rep_heads: state.theory.type_rep_heads,
                 type_abs_heads: state.theory.type_abs_heads,
                 typedef_contracts: state.theory.typedef_contracts,
+                extension_certs: state.theory.extension_certs,
                 ind_infinity_axiom: Some(anchor),
                 next_const_id: state.theory.next_const_id,
               },
@@ -929,6 +982,7 @@ pub fn ks_register_type_definition(
       type_rep_heads: reps,
       type_abs_heads: abses,
       typedef_contracts: state.theory.typedef_contracts,
+      extension_certs: state.theory.extension_certs,
       ind_infinity_axiom: state.theory.ind_infinity_axiom,
       next_const_id: state.theory.next_const_id + 2,
     },
@@ -972,7 +1026,7 @@ pub fn ks_register_type_definition(
 
   let contracts = state.theory.typedef_contracts.copy()
   contracts.push((tycon, abs_rep_th, rep_range_th, rep_abs_th))
-  Ok(KernelState::{
+  let state2 = KernelState::{
     sig: state1.sig,
     theory: TheoryState::{
       def_heads: state1.theory.def_heads,
@@ -981,10 +1035,19 @@ pub fn ks_register_type_definition(
       type_rep_heads: state1.theory.type_rep_heads,
       type_abs_heads: state1.theory.type_abs_heads,
       typedef_contracts: contracts,
+      extension_certs: state1.theory.extension_certs,
       ind_infinity_axiom: state1.theory.ind_infinity_axiom,
       next_const_id: state1.theory.next_const_id,
     },
-  })
+  }
+  Ok(
+    append_extension_cert(
+      state2,
+      TypeDefOK,
+      [tycon, rep_name, abs_name],
+      thm_to_string(witness),
+    ),
+  )
 }
 
 ///|
@@ -1052,11 +1115,27 @@ pub fn ks_define_const(
                       type_rep_heads: state.theory.type_rep_heads,
                       type_abs_heads: state.theory.type_abs_heads,
                       typedef_contracts: state.theory.typedef_contracts,
+                      extension_certs: state.theory.extension_certs,
                       ind_infinity_axiom: state.theory.ind_infinity_axiom,
                       next_const_id: state.theory.next_const_id + 1,
                     },
                   }
-                  Ok((state2, def_eq))
+                  let digest = match to_db_term(def_eq) {
+                    Some(eq_db) =>
+                      match
+                        thm_bind_const_ids(state2, mk_def_thm(name, eq_db)) {
+                        Ok(def_th) => thm_to_string(def_th)
+                        Err(_) => return Err(InvalidConstRhs)
+                      }
+                    None => return Err(InvalidConstRhs)
+                  }
+                  let state3 = append_extension_cert(
+                    state2,
+                    DefOK,
+                    [name],
+                    digest,
+                  )
+                  Ok((state3, def_eq))
                 }
                 Err(_) => Err(InvalidConstRhs)
               }
@@ -1153,7 +1232,18 @@ pub fn ks_specify_const(
           match apply_unary_predicate(predicate, c) {
             Some(pc_term) =>
               match mk_thm_from_terms(state2, [], pc_term) {
-                Ok(pc_th) => Ok((state2, pc_th))
+                Ok(pc_th) =>
+                  Ok(
+                    (
+                      append_extension_cert(
+                        state2,
+                        SpecOK,
+                        [name],
+                        thm_to_string(witness),
+                      ),
+                      pc_th,
+                    ),
+                  )
                 Err(_) => Err(InvalidSpecificationWitness)
               }
             None => Err(InvalidSpecificationPredicate)

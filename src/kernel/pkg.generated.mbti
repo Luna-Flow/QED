@@ -88,6 +88,10 @@ pub fn ks_define_const(KernelState, String, HolType, Term) -> Result[(KernelStat
 
 pub fn ks_define_const_thm(KernelState, String, HolType, Term) -> Result[(KernelState, Thm), SigError]
 
+pub fn ks_extension_cert_at(KernelState, Int) -> (ExtensionGate, Array[String], String)?
+
+pub fn ks_extension_cert_count(KernelState) -> Int
+
 pub fn ks_has_def_head(KernelState, String) -> Bool
 
 pub fn ks_has_ind_infinity_axiom(KernelState) -> Bool
@@ -265,6 +269,12 @@ pub enum DbTerm {
   DbAbs(HolType, DbTerm)
 }
 
+pub enum ExtensionGate {
+  DefOK
+  TypeDefOK
+  SpecOK
+}
+
 pub enum GlobalSig {
   Sig(Array[Array[(String, Int, HolType)]])
 }
@@ -287,6 +297,8 @@ type Thm
 
 // Type aliases
 pub type ConstId = Int
+
+pub type ExtensionCert = (ExtensionGate, Array[String], String)
 
 // Traits
 
