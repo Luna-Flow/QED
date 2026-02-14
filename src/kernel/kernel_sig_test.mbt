@@ -76,3 +76,19 @@ test "type definition registration is fail-closed without witness" {
   let st1 = expect_ok_sig(ks_register_type_definition(st0, "newty", 1, true))
   assert_true(ks_has_type_witness(st1, "newty", 1))
 }
+
+///|
+test "state admissible type checks honor witnesses and builtin tycons" {
+  let st0 = empty_kernel_state()
+  let a = mk_tyvar("A")
+  let bool_fun = fun_ty(a, bool_ty())
+  assert_true(ks_type_is_admissible(st0, bool_fun))
+
+  let custom = mk_tyapp("custom", [a])
+  assert_false(ks_type_is_admissible(st0, custom))
+
+  let st1 = expect_ok_sig(ks_register_type_definition(st0, "custom", 1, true))
+  assert_true(ks_type_is_admissible(st1, custom))
+  assert_true(ks_type_subst_is_admissible(st1, [("A", custom)]))
+  assert_false(ks_type_subst_is_admissible(st0, [("A", custom)]))
+}

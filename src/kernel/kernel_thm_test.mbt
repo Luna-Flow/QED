@@ -7,6 +7,14 @@ fn[T, E] expect_ok(res : Result[T, E]) -> T {
 }
 
 ///|
+fn[T] expect_ok_sig_for_thm(res : Result[T, SigError]) -> T {
+  match res {
+    Ok(v) => v
+    Err(_) => panic()
+  }
+}
+
+///|
 test "thm is opaque and observable through API" {
   let a = mk_tyvar("A")
   let x = mk_var("x", a)
@@ -137,6 +145,41 @@ test "inst_type validates substitution shape" {
   assert_true(
     inst_type([("A", b), ("A", bool_ty())], th) is Err(InvalidInstantiation),
   )
+}
+
+///|
+test "inst_type_checked enforces admissible type targets" {
+  let st0 = empty_kernel_state()
+  let a = mk_tyvar("A")
+  let x = mk_var("x", a)
+  let th = expect_ok(refl(x))
+  let custom = mk_tyapp("custom", [a])
+
+  assert_true(
+    inst_type_checked(st0, [("A", custom)], th) is Err(InvalidInstantiation),
+  )
+
+  let st1 = expect_ok_sig_for_thm(
+    ks_register_type_definition(st0, "custom", 1, true),
+  )
+  assert_true(inst_type_checked(st1, [("A", custom)], th) is Ok(_))
+}
+
+///|
+test "inst_type_checked enforces constant schema instances" {
+  let st0 = empty_kernel_state()
+  let a = mk_tyvar("A")
+  let bool = bool_ty()
+
+  let st1 = expect_ok_sig_for_thm(ks_add_const(st0, "id", fun_ty(a, a)))
+  let th_ok = expect_ok(refl(mk_const("id", fun_ty(a, a))))
+  assert_true(inst_type_checked(st1, [("A", bool)], th_ok) is Ok(_))
+
+  let th_bad = expect_ok(refl(mk_const("id", fun_ty(bool, a))))
+  assert_true(inst_type_checked(st1, [], th_bad) is Err(TypeMismatch))
+
+  let th_unknown = expect_ok(refl(mk_const("u", bool)))
+  assert_true(inst_type_checked(st1, [], th_unknown) is Err(TypeMismatch))
 }
 
 ///|

@@ -339,6 +339,53 @@ fn validate_db_inst_subst(
 }
 
 ///|
+fn db_eq_const_type_ok(ty : HolType) -> Bool {
+  match ty {
+    TyApp("fun", [lhs, TyApp("fun", [rhs, TyApp("bool", [])])]) =>
+      ty_eq(lhs, rhs)
+    _ => false
+  }
+}
+
+///|
+fn db_consts_of(term : DbTerm, out : Array[(String, HolType)]) -> Unit {
+  match term {
+    DbBound(_, _) => ()
+    DbFree(_, _) => ()
+    DbConst(name, ty) => out.push((name, ty))
+    DbComb(f, x) => {
+      db_consts_of(f, out)
+      db_consts_of(x, out)
+    }
+    DbAbs(_, body) => db_consts_of(body, out)
+  }
+}
+
+///|
+fn theorem_const_instances_ok(state : KernelState, th : Thm) -> Bool {
+  let consts : Array[(String, HolType)] = []
+  th.hyps.each(fn(h) { db_consts_of(h, consts) })
+  db_consts_of(th.concl, consts)
+  for item in consts {
+    let (name, inst_ty) = item
+    if name == "=" {
+      if !db_eq_const_type_ok(inst_ty) {
+        return false
+      }
+    } else {
+      match ks_const_schema(state, name) {
+        Some(schema_ty) =>
+          if !ty_is_instance_of(inst_ty, schema_ty) {
+            return false
+          }
+        None => return false
+      }
+    }
+  }
+  true
+}
+
+///|
 pub fn inst_type(
   subst : Array[(String, HolType)],
   th : Thm,
@@ -352,6 +399,28 @@ pub fn inst_type(
       db_apply_ty_subst(subst, th.concl),
     ),
   )
+}
+
+///|
+pub fn inst_type_checked(
+  state : KernelState,
+  subst : Array[(String, HolType)],
+  th : Thm,
+) -> Result[Thm, LogicError] {
+  if has_duplicate_ty_subst_keys(subst) {
+    return Err(InvalidInstantiation)
+  }
+  if !ks_type_subst_is_admissible(state, subst) {
+    return Err(InvalidInstantiation)
+  }
+  let out = mk_thm(
+    th.hyps.map(fn(h) { db_apply_ty_subst(subst, h) }),
+    db_apply_ty_subst(subst, th.concl),
+  )
+  if !theorem_const_instances_ok(state, out) {
+    return Err(TypeMismatch)
+  }
+  Ok(out)
 }
 
 ///|

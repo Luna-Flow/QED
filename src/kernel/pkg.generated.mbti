@@ -60,6 +60,8 @@ pub fn inst(Array[(Term, Term)], Thm) -> Result[Thm, LogicError]
 
 pub fn inst_type(Array[(String, HolType)], Thm) -> Result[Thm, LogicError]
 
+pub fn inst_type_checked(KernelState, Array[(String, HolType)], Thm) -> Result[Thm, LogicError]
+
 pub fn is_abs(Term) -> Bool
 
 pub fn is_bool_ty(HolType) -> Bool
@@ -80,6 +82,8 @@ pub fn kernel_thm_phase0_ready() -> Bool
 
 pub fn ks_add_const(KernelState, String, HolType) -> Result[KernelState, SigError]
 
+pub fn ks_const_schema(KernelState, String) -> HolType?
+
 pub fn ks_define_const(KernelState, String, HolType, Term) -> Result[(KernelState, Term), SigError]
 
 pub fn ks_has_def_head(KernelState, String) -> Bool
@@ -95,6 +99,10 @@ pub fn ks_push_scope(KernelState) -> KernelState
 pub fn ks_register_type_definition(KernelState, String, Int, Bool) -> Result[KernelState, SigError]
 
 pub fn ks_sig(KernelState) -> GlobalSig
+
+pub fn ks_type_is_admissible(KernelState, HolType) -> Bool
+
+pub fn ks_type_subst_is_admissible(KernelState, Array[(String, HolType)]) -> Bool
 
 pub fn mk_abs(Term, Term) -> Term
 

@@ -39,6 +39,11 @@ fn is_reserved_symbol(name : String) -> Bool {
 }
 
 ///|
+fn is_builtin_tycon(name : String, arity : Int) -> Bool {
+  (name == "bool" && arity == 0) || (name == "fun" && arity == 2)
+}
+
+///|
 pub fn empty_sig() -> GlobalSig {
   Sig([[]])
 }
@@ -318,6 +323,34 @@ pub fn ks_has_type_witness(
 }
 
 ///|
+pub fn ks_const_schema(state : KernelState, name : String) -> HolType? {
+  sig_lookup_const(state.sig, name)
+}
+
+///|
+pub fn ks_type_is_admissible(state : KernelState, ty : HolType) -> Bool {
+  match ty {
+    TyVal(_) => true
+    TyApp(tycon, args) => {
+      let tycon_ok = is_builtin_tycon(tycon, args.length()) ||
+        ks_has_type_witness(state, tycon, args.length())
+      tycon_ok && args.all(fn(arg) { ks_type_is_admissible(state, arg) })
+    }
+  }
+}
+
+///|
+pub fn ks_type_subst_is_admissible(
+  state : KernelState,
+  subst : Array[(String, HolType)],
+) -> Bool {
+  subst.all(fn(kv) {
+    let (_, ty) = kv
+    ks_type_is_admissible(state, ty)
+  })
+}
+
+///|
 pub fn ks_register_type_definition(
   state : KernelState,
   tycon : String,
@@ -326,6 +359,9 @@ pub fn ks_register_type_definition(
 ) -> Result[KernelState, SigError] {
   if !witness_ok {
     return Err(TypeDefWitnessMissing)
+  }
+  if is_builtin_tycon(tycon, arity) {
+    return Ok(state)
   }
   if ks_has_type_witness(state, tycon, arity) {
     return Ok(state)
