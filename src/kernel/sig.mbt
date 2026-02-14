@@ -21,6 +21,7 @@ pub suberror SigError {
   InvalidTypeWitness
   InvalidTypePredicate
   InvalidTypeRepName
+  InvalidTypeParams
   InvalidTypeArity
   TypeWitnessArityMismatch
   TypeWitnessPredicateMismatch
@@ -74,7 +75,7 @@ pub fn sig_push_scope(sig : GlobalSig) -> GlobalSig {
 }
 
 ///|
-pub fn sig_pop_scope(sig : GlobalSig) -> GlobalSig? {
+fn sig_pop_scope(sig : GlobalSig) -> GlobalSig? {
   match sig {
     Sig(scopes) =>
       if scopes.length() <= 1 {
@@ -180,11 +181,7 @@ fn sig_next_const_id(sig : GlobalSig) -> ConstId {
 }
 
 ///|
-pub fn sig_add_const(
-  sig : GlobalSig,
-  name : String,
-  ty : HolType,
-) -> GlobalSig? {
+fn sig_add_const(sig : GlobalSig, name : String, ty : HolType) -> GlobalSig? {
   if is_reserved_symbol(name) {
     return None
   }
@@ -236,21 +233,6 @@ fn sig_add_const_with_id(
 }
 
 ///|
-pub fn sig_add_const_idempotent(
-  sig : GlobalSig,
-  name : String,
-  ty : HolType,
-) -> GlobalSig? {
-  if is_reserved_symbol(name) {
-    return None
-  }
-  match current_scope_lookup(sig, name) {
-    Some((_, existing)) => if ty_eq(existing, ty) { Some(sig) } else { None }
-    None => sig_add_const(sig, name, ty)
-  }
-}
-
-///|
 pub fn sig_add_const_idempotent_e(
   sig : GlobalSig,
   name : String,
@@ -275,26 +257,9 @@ pub fn sig_add_const_idempotent_e(
 }
 
 ///|
-pub fn sig_mk_const(sig : GlobalSig, name : String) -> Term? {
+fn sig_mk_const(sig : GlobalSig, name : String) -> Term? {
   match sig_lookup_const(sig, name) {
     Some(ty) => Some(mk_const(name, ty))
-    None => None
-  }
-}
-
-///|
-pub fn sig_mk_const_instance(
-  sig : GlobalSig,
-  name : String,
-  inst_ty : HolType,
-) -> Term? {
-  match sig_lookup_const(sig, name) {
-    Some(schema) =>
-      if ty_is_instance_of(inst_ty, schema) {
-        Some(mk_const(name, inst_ty))
-      } else {
-        None
-      }
     None => None
   }
 }
@@ -321,33 +286,6 @@ pub fn sig_mk_const_instance_e(
         Err(InvalidConstInstance)
       }
     None => Err(UnknownConst)
-  }
-}
-
-///|
-pub fn sig_define_const(
-  sig : GlobalSig,
-  name : String,
-  rhs : Term,
-) -> (GlobalSig, Term)? {
-  if is_reserved_symbol(name) {
-    return None
-  }
-  match type_of(rhs) {
-    Some(ty) =>
-      match sig_add_const(sig, name, ty) {
-        Some(sig2) =>
-          match sig_mk_const(sig2, name) {
-            Some(c) =>
-              match mk_eq(c, rhs) {
-                Ok(eq) => Some((sig2, eq))
-                Err(_) => None
-              }
-            None => None
-          }
-        None => None
-      }
-    None => None
   }
 }
 
@@ -413,6 +351,14 @@ pub fn ks_pop_scope(state : KernelState) -> Result[KernelState, SigError] {
 ///|
 pub fn ks_lookup_const(state : KernelState, name : String) -> HolType? {
   sig_lookup_const(state.sig, name)
+}
+
+///|
+pub fn ks_mk_const(
+  state : KernelState,
+  name : String,
+) -> Result[Term, SigError] {
+  sig_mk_const_e(state.sig, name)
 }
 
 ///|
@@ -646,11 +592,26 @@ pub fn ks_lookup_const_id(state : KernelState, name : String) -> ConstId? {
 pub fn ks_register_type_definition(
   state : KernelState,
   tycon : String,
-  arity : Int,
+  params : Array[String],
   rep_name : String,
   predicate : Term,
   witness : Thm,
 ) -> Result[KernelState, SigError] {
+  if params.any(fn(p) { p == "" }) {
+    return Err(InvalidTypeParams)
+  }
+  let mut i = 0
+  while i < params.length() {
+    let mut j = i + 1
+    while j < params.length() {
+      if params[i] == params[j] {
+        return Err(InvalidTypeParams)
+      }
+      j = j + 1
+    }
+    i = i + 1
+  }
+  let arity = params.length()
   if arity < 0 {
     return Err(InvalidTypeArity)
   }
@@ -682,10 +643,14 @@ pub fn ks_register_type_definition(
   if !term_const_instances_ok(state, predicate) {
     return Err(InvalidTypePredicate)
   }
-  if term_tyvars(predicate).length() > arity {
+  let pred_tyvars = term_tyvars(predicate)
+  if !pred_tyvars.all(fn(tv) { params.contains(tv) }) {
     return Err(TypeWitnessArityMismatch)
   }
   if thm_hyp_count(witness) != 0 {
+    return Err(InvalidTypeWitness)
+  }
+  if !thm_is_admissible(state, witness) {
     return Err(InvalidTypeWitness)
   }
   match thm_concl(witness) {

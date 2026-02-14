@@ -15,7 +15,19 @@ test "solve_by_assume delegates to logic/kernel" {
     Ok(v) => v
     Err(_) => panic()
   }
-  let p = @kernel.mk_const("P", bool)
+  let p = match @kernel.ks_mk_const(st, "P") {
+    Ok(v) => v
+    Err(_) => panic()
+  }
   let goal = mk_goal([], p)
   assert_true(solve_by_assume(st, goal) is Ok(_))
+}
+
+///|
+test "solve_by_assume fails when goal constant is not in state" {
+  let bool = @kernel.bool_ty()
+  let st = @kernel.empty_kernel_state()
+  let p = @kernel.mk_const("P", bool)
+  let goal = mk_goal([], p)
+  assert_true(solve_by_assume(st, goal) is Err(@kernel.TypeMismatch))
 }

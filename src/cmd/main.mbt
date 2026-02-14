@@ -7,7 +7,10 @@ pub fn run_cli_phase0() -> Int {
     Ok(st) => st
     Err(_) => return 1
   }
-  let p = @kernel.mk_const("P", bool)
+  let p = match @kernel.ks_mk_const(st1, "P") {
+    Ok(v) => v
+    Err(_) => return 1
+  }
   let goal = @tactics.mk_goal([], p)
   match @tactics.solve_by_assume(st1, goal) {
     Ok(_) => 0

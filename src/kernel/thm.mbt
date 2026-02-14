@@ -194,7 +194,7 @@ pub fn thm_to_string(th : Thm) -> String {
 }
 
 ///|
-pub fn refl(term : Term) -> Result[Thm, LogicError] {
+fn refl(term : Term) -> Result[Thm, LogicError] {
   match lower_term(term) {
     Ok(t) =>
       match db_mk_eq(t, t) {
@@ -206,7 +206,7 @@ pub fn refl(term : Term) -> Result[Thm, LogicError] {
 }
 
 ///|
-pub fn assume(prop : Term) -> Result[Thm, LogicError] {
+fn assume(prop : Term) -> Result[Thm, LogicError] {
   match lower_term(prop) {
     Ok(p) =>
       match expect_bool(p) {
@@ -218,7 +218,7 @@ pub fn assume(prop : Term) -> Result[Thm, LogicError] {
 }
 
 ///|
-pub fn trans(th1 : Thm, th2 : Thm) -> Result[Thm, LogicError] {
+fn trans(th1 : Thm, th2 : Thm) -> Result[Thm, LogicError] {
   match (db_dest_eq(th1.concl), db_dest_eq(th2.concl)) {
     (Ok((l1, r1)), Ok((l2, r2))) =>
       if !db_term_eq(r1, l2) {
@@ -235,7 +235,7 @@ pub fn trans(th1 : Thm, th2 : Thm) -> Result[Thm, LogicError] {
 }
 
 ///|
-pub fn mk_comb_rule(th_fg : Thm, th_xy : Thm) -> Result[Thm, LogicError] {
+fn mk_comb_rule(th_fg : Thm, th_xy : Thm) -> Result[Thm, LogicError] {
   match (db_dest_eq(th_fg.concl), db_dest_eq(th_xy.concl)) {
     (Ok((f, g)), Ok((x, y))) =>
       match (db_type_of(f), db_type_of(g), db_type_of(x), db_type_of(y)) {
@@ -261,7 +261,7 @@ pub fn mk_comb_rule(th_fg : Thm, th_xy : Thm) -> Result[Thm, LogicError] {
 }
 
 ///|
-pub fn abs_rule(x : Term, th : Thm) -> Result[Thm, LogicError] {
+fn abs_rule(x : Term, th : Thm) -> Result[Thm, LogicError] {
   match lower_term(x) {
     Ok(x_db) =>
       match x_db {
@@ -285,7 +285,7 @@ pub fn abs_rule(x : Term, th : Thm) -> Result[Thm, LogicError] {
 }
 
 ///|
-pub fn beta_rule(term : Term) -> Result[Thm, LogicError] {
+fn beta_rule(term : Term) -> Result[Thm, LogicError] {
   match lower_term(term) {
     Ok(redex) =>
       match redex {
@@ -313,7 +313,7 @@ pub fn beta_rule(term : Term) -> Result[Thm, LogicError] {
 }
 
 ///|
-pub fn eq_mp(th_eq : Thm, th_p : Thm) -> Result[Thm, LogicError] {
+fn eq_mp(th_eq : Thm, th_p : Thm) -> Result[Thm, LogicError] {
   match db_dest_eq(th_eq.concl) {
     Ok((lhs, rhs)) =>
       match (expect_bool(lhs), expect_bool(rhs), expect_bool(th_p.concl)) {
@@ -332,7 +332,7 @@ pub fn eq_mp(th_eq : Thm, th_p : Thm) -> Result[Thm, LogicError] {
 }
 
 ///|
-pub fn deduct_antisym_rule(th1 : Thm, th2 : Thm) -> Result[Thm, LogicError] {
+fn deduct_antisym_rule(th1 : Thm, th2 : Thm) -> Result[Thm, LogicError] {
   match (expect_bool(th1.concl), expect_bool(th2.concl)) {
     (Ok(_), Ok(_)) =>
       match db_mk_eq(th1.concl, th2.concl) {
@@ -809,7 +809,7 @@ pub fn inst_type(
 }
 
 ///|
-pub fn inst(subst : Array[(Term, Term)], th : Thm) -> Result[Thm, LogicError] {
+fn inst(subst : Array[(Term, Term)], th : Thm) -> Result[Thm, LogicError] {
   let db_subst : Array[(DbTerm, DbTerm)] = []
   for pair in subst {
     let (key, value) = pair

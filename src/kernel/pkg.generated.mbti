@@ -2,15 +2,9 @@
 package "Luna-Flow/QED/kernel"
 
 // Values
-pub fn abs_rule(Term, Thm) -> Result[Thm, LogicError]
-
 pub fn abs_rule_checked(KernelState, Term, Thm) -> Result[Thm, LogicError]
 
-pub fn assume(Term) -> Result[Thm, LogicError]
-
 pub fn assume_checked(KernelState, Term) -> Result[Thm, LogicError]
-
-pub fn beta_rule(Term) -> Result[Thm, LogicError]
 
 pub fn beta_rule_checked(KernelState, Term) -> Result[Thm, LogicError]
 
@@ -29,8 +23,6 @@ pub fn db_term_eq(DbTerm, DbTerm) -> Bool
 pub fn db_term_to_string(DbTerm) -> String
 
 pub fn db_type_of(DbTerm) -> HolType?
-
-pub fn deduct_antisym_rule(Thm, Thm) -> Result[Thm, LogicError]
 
 pub fn deduct_antisym_rule_checked(KernelState, Thm, Thm) -> Result[Thm, LogicError]
 
@@ -52,8 +44,6 @@ pub fn empty_kernel_state() -> KernelState
 
 pub fn empty_sig() -> GlobalSig
 
-pub fn eq_mp(Thm, Thm) -> Result[Thm, LogicError]
-
 pub fn eq_mp_checked(KernelState, Thm, Thm) -> Result[Thm, LogicError]
 
 pub fn free_vars(Term) -> Array[(String, HolType)]
@@ -65,8 +55,6 @@ pub fn fun_ty(HolType, HolType) -> HolType
 pub fn has_duplicate_ty_subst_keys(Array[(String, HolType)]) -> Bool
 
 pub fn hol_type_to_string(HolType) -> String
-
-pub fn inst(Array[(Term, Term)], Thm) -> Result[Thm, LogicError]
 
 pub fn inst_checked(KernelState, Array[(Term, Term)], Thm) -> Result[Thm, LogicError]
 
@@ -108,13 +96,15 @@ pub fn ks_lookup_const(KernelState, String) -> HolType?
 
 pub fn ks_lookup_const_id(KernelState, String) -> Int?
 
+pub fn ks_mk_const(KernelState, String) -> Result[Term, SigError]
+
 pub fn ks_mk_const_instance(KernelState, String, HolType) -> Result[Term, SigError]
 
 pub fn ks_pop_scope(KernelState) -> Result[KernelState, SigError]
 
 pub fn ks_push_scope(KernelState) -> KernelState
 
-pub fn ks_register_type_definition(KernelState, String, Int, String, Term, Thm) -> Result[KernelState, SigError]
+pub fn ks_register_type_definition(KernelState, String, Array[String], String, Term, Thm) -> Result[KernelState, SigError]
 
 pub fn ks_sig(KernelState) -> GlobalSig
 
@@ -125,8 +115,6 @@ pub fn ks_type_subst_is_admissible(KernelState, Array[(String, HolType)]) -> Boo
 pub fn mk_abs(Term, Term) -> Term
 
 pub fn mk_comb(Term, Term) -> Term
-
-pub fn mk_comb_rule(Thm, Thm) -> Result[Thm, LogicError]
 
 pub fn mk_comb_rule_checked(KernelState, Thm, Thm) -> Result[Thm, LogicError]
 
@@ -140,17 +128,9 @@ pub fn mk_tyvar(String) -> HolType
 
 pub fn mk_var(String, HolType) -> Term
 
-pub fn refl(Term) -> Result[Thm, LogicError]
-
 pub fn refl_checked(KernelState, Term) -> Result[Thm, LogicError]
 
-pub fn sig_add_const(GlobalSig, String, HolType) -> GlobalSig?
-
-pub fn sig_add_const_idempotent(GlobalSig, String, HolType) -> GlobalSig?
-
 pub fn sig_add_const_idempotent_e(GlobalSig, String, HolType) -> Result[GlobalSig, SigError]
-
-pub fn sig_define_const(GlobalSig, String, Term) -> (GlobalSig, Term)?
 
 pub fn sig_define_const_e(GlobalSig, String, Term) -> Result[(GlobalSig, Term), SigError]
 
@@ -160,15 +140,9 @@ pub fn sig_lookup_const(GlobalSig, String) -> HolType?
 
 pub fn sig_lookup_const_id(GlobalSig, String) -> Int?
 
-pub fn sig_mk_const(GlobalSig, String) -> Term?
-
 pub fn sig_mk_const_e(GlobalSig, String) -> Result[Term, SigError]
 
-pub fn sig_mk_const_instance(GlobalSig, String, HolType) -> Term?
-
 pub fn sig_mk_const_instance_e(GlobalSig, String, HolType) -> Result[Term, SigError]
-
-pub fn sig_pop_scope(GlobalSig) -> GlobalSig?
 
 pub fn sig_pop_scope_e(GlobalSig) -> Result[GlobalSig, SigError]
 
@@ -203,8 +177,6 @@ pub fn thm_is_admissible(KernelState, Thm) -> Bool
 pub fn thm_to_string(Thm) -> String
 
 pub fn to_db_term(Term) -> DbTerm?
-
-pub fn trans(Thm, Thm) -> Result[Thm, LogicError]
 
 pub fn trans_checked(KernelState, Thm, Thm) -> Result[Thm, LogicError]
 
@@ -250,6 +222,7 @@ pub suberror SigError {
   InvalidTypeWitness
   InvalidTypePredicate
   InvalidTypeRepName
+  InvalidTypeParams
   InvalidTypeArity
   TypeWitnessArityMismatch
   TypeWitnessPredicateMismatch
