@@ -16,7 +16,9 @@ fn[T] expect_ok_sig_audit(res : Result[T, SigError]) -> T {
 
 ///|
 test "audit c5 pop then redefine stays rejected by defheads" {
-  let st0 = empty_kernel_state()
+  let st0 = expect_ok_sig_audit(
+    ks_add_const(empty_kernel_state(), "P", bool_ty()),
+  )
   let p = mk_const("P", bool_ty())
   let (st1, _) = expect_ok_sig_audit(ks_define_const(st0, "q", bool_ty(), p))
   let st2 = ks_push_scope(st1)
@@ -28,7 +30,9 @@ test "audit c5 pop then redefine stays rejected by defheads" {
 
 ///|
 test "audit c6 defhead cannot be shadowed as local constant" {
-  let st0 = empty_kernel_state()
+  let st0 = expect_ok_sig_audit(
+    ks_add_const(empty_kernel_state(), "P", bool_ty()),
+  )
   let p = mk_const("P", bool_ty())
   let (st1, _) = expect_ok_sig_audit(ks_define_const(st0, "q", bool_ty(), p))
   let st2 = ks_push_scope(st1)

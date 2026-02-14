@@ -83,7 +83,7 @@ test "sig supports principal schema instantiation checks" {
 
 ///|
 test "kernel state enforces DefHeads monotonicity across pop" {
-  let st0 = empty_kernel_state()
+  let st0 = expect_ok_sig(ks_add_const(empty_kernel_state(), "P", bool_ty()))
   let p = mk_const("P", bool_ty())
   let (st1, _) = expect_ok_sig(ks_define_const(st0, "q", bool_ty(), p))
   assert_true(ks_has_def_head(st1, "q"))
@@ -98,7 +98,7 @@ test "kernel state enforces DefHeads monotonicity across pop" {
 
 ///|
 test "kernel state rejects local const shadowing of def heads" {
-  let st0 = empty_kernel_state()
+  let st0 = expect_ok_sig(ks_add_const(empty_kernel_state(), "P", bool_ty()))
   let p = mk_const("P", bool_ty())
   let (st1, _) = expect_ok_sig(ks_define_const(st0, "q", bool_ty(), p))
   let st2 = ks_push_scope(st1)
@@ -110,7 +110,7 @@ test "kernel state rejects local const shadowing of def heads" {
 
 ///|
 test "ks_define_const_thm yields empty-hyp definition theorem" {
-  let st0 = empty_kernel_state()
+  let st0 = expect_ok_sig(ks_add_const(empty_kernel_state(), "P", bool_ty()))
   let p = mk_const("P", bool_ty())
   let (st1, def_th) = expect_ok_sig(ks_define_const_thm(st0, "q", bool_ty(), p))
   assert_true(ks_has_def_head(st1, "q"))
@@ -134,7 +134,7 @@ test "ks_define_const enforces closedness and acyclic side conditions" {
 
 ///|
 test "ks_define_const rejects reserved symbol and type mismatch" {
-  let st0 = empty_kernel_state()
+  let st0 = expect_ok_sig(ks_add_const(empty_kernel_state(), "P", bool_ty()))
   let p = mk_const("P", bool_ty())
   assert_true(ks_define_const(st0, "=", bool_ty(), p) is Err(ReservedSymbol))
 
@@ -144,13 +144,41 @@ test "ks_define_const rejects reserved symbol and type mismatch" {
 
 ///|
 test "ks_define_const rejects ghost type variables in rhs term" {
-  let st0 = empty_kernel_state()
+  let st0 = expect_ok_sig(
+    ks_add_const(
+      expect_ok_sig(
+        ks_add_const(
+          empty_kernel_state(),
+          "pred",
+          fun_ty(mk_tyvar("A"), bool_ty()),
+        ),
+      ),
+      "c",
+      mk_tyvar("A"),
+    ),
+  )
   let a = mk_tyvar("A")
   let pred = mk_const("pred", fun_ty(a, bool_ty()))
   let c = mk_const("c", a)
   let rhs = mk_comb(pred, c)
   assert_true(
     ks_define_const(st0, "g", bool_ty(), rhs) is Err(GhostTypeVariable),
+  )
+}
+
+///|
+test "ks_define_const rejects rhs with unknown or invalid const instances" {
+  let st0 = empty_kernel_state()
+  let u = mk_const("U", bool_ty())
+  assert_true(ks_define_const(st0, "q", bool_ty(), u) is Err(InvalidConstRhs))
+
+  let a = mk_tyvar("A")
+  let bool = bool_ty()
+  let st1 = expect_ok_sig(ks_add_const(st0, "id", fun_ty(a, a)))
+  let bad_id_inst = mk_const("id", fun_ty(bool, a))
+  assert_true(
+    ks_define_const(st1, "q2", fun_ty(bool, a), bad_id_inst)
+    is Err(InvalidConstRhs),
   )
 }
 

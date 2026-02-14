@@ -654,6 +654,9 @@ pub fn ks_define_const(
       if !term_tyvars_subset(rhs, decl_ty) {
         return Err(GhostTypeVariable)
       }
+      if !term_const_instances_ok(state, rhs) {
+        return Err(InvalidConstRhs)
+      }
       match
         sig_add_const_with_id(
           state.sig,
