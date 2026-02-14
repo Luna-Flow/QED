@@ -183,6 +183,19 @@ test "inst_type_checked enforces constant schema instances" {
 }
 
 ///|
+test "inst_type_checked enforces definition instantiation coherence" {
+  let st0 = empty_kernel_state()
+  let a = mk_tyvar("A")
+  let id_ty = fun_ty(a, a)
+  let rhs_id = mk_abs(mk_var("x", a), mk_var("x", a))
+  let (st1, def_th) = expect_ok_sig_for_thm(
+    ks_define_const_thm(st0, "id", id_ty, rhs_id),
+  )
+  assert_true(inst_type_checked(st1, [("A", bool_ty())], def_th) is Ok(_))
+  assert_true(inst_type_checked(st1, [("A", mk_tyvar("B"))], def_th) is Ok(_))
+}
+
+///|
 test "inst validates substitution map and types" {
   let a = mk_tyvar("A")
   let b = mk_tyvar("B")

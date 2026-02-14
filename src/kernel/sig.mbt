@@ -431,3 +431,21 @@ pub fn ks_define_const(
     None => Err(InvalidConstRhs)
   }
 }
+
+///|
+/// Trusted definition extension that also returns the generated definition theorem.
+pub fn ks_define_const_thm(
+  state : KernelState,
+  name : String,
+  decl_ty : HolType,
+  rhs : Term,
+) -> Result[(KernelState, Thm), SigError] {
+  match ks_define_const(state, name, decl_ty, rhs) {
+    Ok((state2, def_eq)) =>
+      match to_db_term(def_eq) {
+        Some(eq_db) => Ok((state2, mk_thm([], eq_db)))
+        None => Err(InvalidConstRhs)
+      }
+    Err(e) => Err(e)
+  }
+}

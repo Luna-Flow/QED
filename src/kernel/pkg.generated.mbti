@@ -86,6 +86,8 @@ pub fn ks_const_schema(KernelState, String) -> HolType?
 
 pub fn ks_define_const(KernelState, String, HolType, Term) -> Result[(KernelState, Term), SigError]
 
+pub fn ks_define_const_thm(KernelState, String, HolType, Term) -> Result[(KernelState, Thm), SigError]
+
 pub fn ks_has_def_head(KernelState, String) -> Bool
 
 pub fn ks_has_type_witness(KernelState, String, Int) -> Bool

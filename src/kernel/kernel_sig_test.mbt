@@ -7,6 +7,14 @@ fn[T] expect_ok_sig(res : Result[T, SigError]) -> T {
 }
 
 ///|
+fn[T, E] expect_ok_any_sig_test(res : Result[T, E]) -> T {
+  match res {
+    Ok(v) => v
+    Err(_) => panic()
+  }
+}
+
+///|
 test "sig rejects reserved symbol insertion" {
   let sig0 = empty_sig()
   assert_true(sig_add_const(sig0, "=", bool_ty()) is None)
@@ -40,6 +48,16 @@ test "kernel state enforces DefHeads monotonicity across pop" {
 
   let out = ks_define_const(st3, "q", bool_ty(), p)
   assert_true(out is Err(DefinitionAlreadyExists))
+}
+
+///|
+test "ks_define_const_thm yields empty-hyp definition theorem" {
+  let st0 = empty_kernel_state()
+  let p = mk_const("P", bool_ty())
+  let (st1, def_th) = expect_ok_sig(ks_define_const_thm(st0, "q", bool_ty(), p))
+  assert_true(ks_has_def_head(st1, "q"))
+  assert_eq(thm_hyp_count(def_th), 0)
+  assert_true(dest_eq(expect_ok_any_sig_test(thm_concl(def_th))) is Ok((_, _)))
 }
 
 ///|

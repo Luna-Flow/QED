@@ -386,6 +386,29 @@ fn theorem_const_instances_ok(state : KernelState, th : Thm) -> Bool {
 }
 
 ///|
+fn theorem_def_inst_coherent(state : KernelState, th : Thm) -> Bool {
+  if th.hyps.length() != 0 {
+    return true
+  }
+  match db_dest_eq(th.concl) {
+    Ok((lhs, rhs)) =>
+      match lhs {
+        DbConst(name, lhs_ty) =>
+          if !ks_has_def_head(state, name) {
+            true
+          } else {
+            match lift_term(rhs) {
+              Ok(rhs_term) => term_tyvars_subset(rhs_term, lhs_ty)
+              Err(_) => false
+            }
+          }
+        _ => true
+      }
+    Err(_) => true
+  }
+}
+
+///|
 pub fn inst_type(
   subst : Array[(String, HolType)],
   th : Thm,
@@ -419,6 +442,9 @@ pub fn inst_type_checked(
   )
   if !theorem_const_instances_ok(state, out) {
     return Err(TypeMismatch)
+  }
+  if !theorem_def_inst_coherent(state, out) {
+    return Err(InvalidInstantiation)
   }
   Ok(out)
 }
