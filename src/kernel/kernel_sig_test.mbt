@@ -42,6 +42,27 @@ test "sig rejects reserved symbol insertion" {
   assert_true(
     sig_add_const_idempotent_e(sig0, "=", mk_tyvar("A")) is Err(ReservedSymbol),
   )
+  assert_true(
+    sig_add_const_idempotent_e(sig0, "@", bool_ty()) is Err(ReservedSymbol),
+  )
+  assert_true(
+    sig_add_const_idempotent_e(sig0, "@", mk_tyvar("A")) is Err(ReservedSymbol),
+  )
+}
+
+///|
+test "empty kernel state bootstraps choice constant and ind carrier" {
+  let st0 = empty_kernel_state()
+  let a = mk_tyvar("A")
+  let choice_schema = fun_ty(fun_ty(a, bool_ty()), a)
+  assert_true(ks_lookup_const(st0, "@") is Some(_))
+  match ks_lookup_const(st0, "@") {
+    Some(ty) => assert_true(ty_eq(ty, choice_schema))
+    None => assert_false(true)
+  }
+  assert_true(ks_lookup_const_id(st0, "@") is Some(_))
+  assert_true(ks_type_is_admissible(st0, ind_ty()))
+  assert_false(ks_type_is_admissible(st0, mk_tyapp("ind", [bool_ty()])))
 }
 
 ///|
@@ -152,6 +173,7 @@ test "ks_define_const rejects reserved symbol and type mismatch" {
   let st0 = expect_ok_sig(ks_add_const(empty_kernel_state(), "P", bool_ty()))
   let p = mk_const("P", bool_ty())
   assert_true(ks_define_const(st0, "=", bool_ty(), p) is Err(ReservedSymbol))
+  assert_true(ks_define_const(st0, "@", bool_ty(), p) is Err(ReservedSymbol))
 
   let a = mk_tyvar("A")
   assert_true(ks_define_const(st0, "k", a, p) is Err(TypeMismatch))
@@ -425,6 +447,17 @@ test "type definition registration validates rep name freshness" {
     ks_register_type_definition(st2, "repfresh3", [], "RepC", pred, witness)
     is Err(TypeRepresentationAlreadyExists),
   )
+  assert_true(
+    ks_register_type_definition(
+      st0,
+      "same_as_abs",
+      [],
+      "Abs_same_as_abs",
+      pred,
+      witness,
+    )
+    is Err(InvalidTypeAbsName),
+  )
 }
 
 ///|
@@ -446,6 +479,52 @@ test "type representation heads cannot be reused as constants" {
   let st2 = ks_push_scope(st1)
   assert_true(
     ks_add_const(st2, "RepGuard", bool) is Err(TypeRepresentationAlreadyExists),
+  )
+}
+
+///|
+test "type abstraction heads are tracked and blocked from reuse" {
+  let st0 = empty_kernel_state()
+  let (pred, witness) = type_witness_bundle("W_abs_guard")
+  let st1 = expect_ok_sig(
+    ks_register_type_definition(
+      st0,
+      "absguard",
+      [],
+      "RepAbsGuard",
+      pred,
+      witness,
+    ),
+  )
+  assert_true(ks_has_type_abs_head(st1, "Abs_absguard"))
+  let bool = bool_ty()
+  let x = mk_var("x", bool)
+  assert_true(
+    ks_add_const(st1, "Abs_absguard", bool) is Err(TypeAbstractionAlreadyExists),
+  )
+  assert_true(
+    ks_define_const(st1, "Abs_absguard", bool, x)
+    is Err(TypeAbstractionAlreadyExists),
+  )
+}
+
+///|
+test "type definition registration rejects preexisting abstraction head names" {
+  let bool = bool_ty()
+  let st0 = expect_ok_sig(
+    ks_add_const(empty_kernel_state(), "Abs_conflict", bool),
+  )
+  let (pred, witness) = type_witness_bundle("W_abs_conflict")
+  assert_true(
+    ks_register_type_definition(
+      st0,
+      "conflict",
+      [],
+      "RepConflict",
+      pred,
+      witness,
+    )
+    is Err(TypeAbstractionAlreadyExists),
   )
 }
 

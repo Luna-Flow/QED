@@ -122,6 +122,14 @@ QED reserves two distinguished type constructors:
 
 These are sufficient to define simply typed lambda terms with boolean propositions.
 
+For next-stage conservative theory construction, QED additionally fixes one trusted
+foundation type constructor:
+
+- $"ind"$ with arity $0$.
+
+`"ind"` is the carrier used by the explicit infinity-anchor assumption; it is not
+introduced by user-level extension rules.
+
 == Constant Type Schemes and Instance Relation
 
 To avoid polymorphism lockout while preserving kernel typing discipline, constant typing uses a principal-schema + instance relation.
@@ -157,6 +165,21 @@ $
 $
 and is not inserted by user signature operations.
 
+*Definition (Reserved Choice Operator).*
+The symbol $"@"$ is a reserved polymorphic choice operator with schematic type
+$
+  "@" : Π alpha. "fun"("fun"(alpha, "bool"), alpha)
+$
+and is not inserted by user signature operations.
+
+*Axiom Schema (Choice).*
+For each type instance $alpha$ and predicate $P : "fun"(alpha, "bool")$:
+$
+  tack.r (exists x : alpha. P(x)) => P("@"(P))
+$
+This axiom schema is part of the trusted baseline and is used to derive
+specification-style constant introduction.
+
 *Constraint (No Shadowing of Reserved Symbols).*
 For every scope stack state $S$, insertion is forbidden for reserved names:
 $
@@ -164,7 +187,7 @@ $
   /
   (S tack.r "add"(c : tau) mapsto "fail")
 $
-where currently $"Reserved" = {"="}$.
+where currently $"Reserved" = {"=", "@"}$.
 
 *Definition (Typed Equality Formation).*
 Given resolved terms $u, v$:
@@ -294,11 +317,39 @@ and requires:
 1. $k ∉ "TySymbols"(T)$ and $a$ matches declared parameter arity.
 2. $w$ is a witness theorem establishing representability non-emptiness for each parameter instantiation.
 3. the defining predicate $P$ is well-typed and closed under the declared parameters.
+4. all free type variables of $P$ are exactly the declared parameters (no undeclared type-variable leakage).
+5. representation head name $"Rep"_k$ is globally fresh in theory history and reserved-symbol disjoint.
+6. abstraction head name $"Abs"_k$ is globally fresh in theory history and reserved-symbol disjoint.
 
 Representative admissible step:
 $
   "TypeDefOK"(T, k, a, "Rep", P, w) => T mapsto T + {"typedef" k / a}
 $
+
+*Definition (Typedef Product Contract).*
+For each admissible typedef step above, theory extension must also expose fresh constants:
+$
+  "Abs"_k : "RepTy"_k -> k(alpha_1, ..., alpha_a)
+$
+$
+  "Rep"_k : k(alpha_1, ..., alpha_a) -> "RepTy"_k
+$
+and must provide the following theorem schemata (with the declared type parameters explicitly quantified):
+
+1. Surjectivity of abstraction:
+$
+  tack.r forall n : k(alpha_1, ..., alpha_a). "Abs"_k("Rep"_k(n)) = n
+$
+2. Representation range soundness:
+$
+  tack.r forall n : k(alpha_1, ..., alpha_a). P("Rep"_k(n))
+$
+3. Conditional retraction on predicate range:
+$
+  tack.r forall r : "RepTy"_k. P(r) => "Rep"_k("Abs"_k(r)) = r
+$
+
+No weaker contract is admissible for kernel-level typedef extension.
 
 *Construction Invariant (No Empty-Type Escape).*
 If base prelude types are non-empty and every later type-constructor extension satisfies `"TypeDefOK"`, then every well-formed type over the resulting signature has a non-empty semantic carrier.
@@ -746,7 +797,7 @@ This boundary is the core LCF invariant.
 
 = Definitional Extension Discipline (Conservativity Gate)
 
-QED permits signature growth only through conservative definitional extension.
+QED permits signature growth only through conservative admissible extension gates.
 
 *Rule Schema (New Constant by Definition).*
 Given base theory $T$ and fresh constant $c$:
@@ -813,15 +864,69 @@ Under $"DefOK"$, `INST_TYPE` cannot produce contradictory definition instances o
 
 This subsection is the structural contract tying definitional extension to the primitive `INST_TYPE` rule.
 
+= Controlled Specification Extension Discipline
+
+To support HOL-style derived-theory construction without unrestricted axiom injection,
+QED treats specification introduction as a derived discipline over Choice + `DefOK`,
+not as an independent primitive inference rule.
+
+*Definition (Specification Admissibility).*
+Given theory $T$, fresh constant head $c$, and predicate $P(x)$, write:
+$
+  "SpecOK"(T, c : tau, P)
+$
+iff all conditions below hold:
+
+1. Freshness: $c ∉ "DefHeads"(T)$, $c ∉ "Reserved"$, and $c$ is not already in theory symbol tables.
+2. Witness theorem shape: there exists a theorem with empty assumptions ($Gamma = "empty"$):
+  $
+    tack.r exists x : tau. P(x)
+  $
+3. Term closure: $P(x)$ has no free term variable except $x$.
+4. Type-variable closure:
+  $
+    "TVars"(P) ⊆ "TVars"(tau)
+  $
+  (no type variable appears in $P$ that is absent from the declared type of $c$).
+5. Strict type-schema lock:
+  $
+    "Schema"(c) = "Gen"(tau)
+  $
+  for this admission step only.
+6. No implicit widening:
+  no type variable absent from $tau$ may be generalized into $"Schema"(c)$ by this step.
+
+*Derived Rule Schema (Specification via Choice + Definitional Admission).*
+$
+  (" "tack.r exists x : tau. P(x) , "SpecOK"(T, c : tau, P) , "DefOK"(T, c : tau = "@"(lambda x : tau. P(x)))" ")
+  /
+  (T mapsto T + {"def" c : tau = "@"(lambda x : tau. P(x))} , tack.r P(c))
+$
+
+This is the only admissible introduction path for specification constants in this stage.
+
+*Meta-Constraint (No Hidden Side Conditions).*
+Any implementation-level check used by `SpecOK` must correspond to one of the six
+explicit conditions above; no additional silent premise is allowed.
+
+*Theorem Goal (Conservativity of Specification Extension).*
+If $T'$ is obtained from $T$ by one admissible `SpecOK` step and $phi$ is a sentence
+in the old language of $T$, then:
+$
+  T' tack.r phi => T tack.r phi
+$
+This is a mandatory proof obligation for the specification gate design.
+
 = Global Admissibility Envelope
 
 The kernel-level soundness argument uses a single admissibility envelope:
 
-1. theorem values arise only from primitive rules or admissible definitional extension;
+1. theorem values arise only from primitive rules or admissible extension gates;
 2. primitive rules consume well-formed resolved sequents;
-3. definitional extension steps must satisfy $"DefOK"$;
+3. definitional extension steps must satisfy `"DefOK"`;
 4. type-constructor extension steps must satisfy `"TypeDefOK"` (non-emptiness witness gate);
-5. boundary conversion failures are non-derivational failures.
+5. specification extension steps must satisfy `"SpecOK"` (derived over Choice + `DefOK`);
+6. boundary conversion failures are non-derivational failures.
 
 All later soundness obligations are stated relative to this envelope, so no rule silently bypasses definition admissibility constraints.
 
@@ -1191,13 +1296,14 @@ $
 
 = Soundness Strategy
 
-The project-level soundness story is divided into five obligations.
+The project-level soundness story is divided into six obligations.
 
 1. Rule-level preservation: every primitive rule preserves semantic validity.
 2. Definition-level conservativity: every constant-definition step used by the kernel satisfies $"DefOK"$ and preserves old-language provability.
 3. Type-level non-emptiness preservation: every type-constructor extension satisfies `"TypeDefOK"` so well-formed types remain semantically inhabited.
-4. Interface safety: only primitive rules and admissibility-gated extensions can introduce theorem values.
-5. Derivation closure: any finite derivation tree built from primitive rules plus admissible extensions is sound.
+4. Specification-level conservativity: every specification step satisfies `"SpecOK"` and preserves old-language provability.
+5. Interface safety: only primitive rules and admissibility-gated extensions can introduce theorem values.
+6. Derivation closure: any finite derivation tree built from primitive rules plus admissible extensions is sound.
 
 This decomposition is practical: it aligns the formal argument with module boundaries and test responsibilities.
 
@@ -1206,8 +1312,9 @@ Dependency closure for these obligations is now explicit:
 - Obligation 1 depends on: core typing, substitution lemmas, alpha-quotient assumptions, and semantic lifting lemmas.
 - Obligation 2 depends on: definitional side conditions, type-variable closure, and conservativity theorem.
 - Obligation 3 depends on: type-definition witness discipline and non-empty-type construction invariant.
-- Obligation 4 depends on: theorem constructor encapsulation + boundary failure discipline + extension gate encapsulation.
-- Obligation 5 depends on: induction on derivation depth using Obligations 1, 2, 3, and 4.
+- Obligation 4 depends on: explicit `SpecOK` derived schema over Choice + `DefOK`, freshness/closure constraints, and specification conservativity theorem.
+- Obligation 5 depends on: theorem constructor encapsulation + boundary failure discipline + extension gate encapsulation.
+- Obligation 6 depends on: induction on derivation depth using Obligations 1, 2, 3, 4, and 5.
 
 == One-Page Soundness Dependency Map (Reader-First)
 
@@ -1219,19 +1326,23 @@ Layer 4 — Foundations (top):
 - F1: Signatures + reserved symbols.
 - F2: Elaboration + core typing.
 - F3: Substitution + alpha laws.
+- F4: Explicit infinity-anchor assumption (model-class restriction).
+- F5: Primitive choice-operator axiom schema.
 
 Layer 3 — Admissibility Gates:
 
 - A1: Primitive rule schemas + boundary denotation lemmas.
 - A2: Definitional admissibility (`DefOK`).
 - A3: Type admissibility (`TypeDefOK`).
+- A4: Specification admissibility (`SpecOK`, derived over Choice + `DefOK`).
 
 Layer 2 — Preservation Obligations:
 
 - P1: Rule-level preservation.
 - P2: Definition conservativity.
 - P3: Type non-emptiness preservation.
-- P4: Interface safety.
+- P4: Specification conservativity (for derived `SpecOK` admissions).
+- P5: Interface safety.
 
 Layer 1 — Global Result (bottom):
 
@@ -1256,11 +1367,42 @@ Review rule: every Layer 1 claim must be traceable upward through Layer 2/3 to L
 *Assumption (Base Non-Empty Prelude Types).*
 Initial built-in types (before user extensions) are interpreted by non-empty semantic carriers.
 
+*Assumption (Explicit Infinity Anchor).*
+There exists a distinguished foundation type `"ind"` and a function $f : "ind" -> "ind"$ such that:
+$
+  "Injective"(f) ∧ ¬"Surjective"(f)
+$
+This assumption is explicit and is part of the trusted baseline. No hidden implementation
+shortcut may replace it.
+
+*Definition (Canonical Infinity-Anchor Theorem Identifier).*
+The exported theorem name `"IND_INFINITY_AXIOM"` denotes exactly the sentence:
+$
+  tack.r exists f : "fun"("ind", "ind"). "Injective"(f) ∧ ¬"Surjective"(f)
+$
+No alternate theorem shape may be treated as equivalent by implementation policy alone.
+
 *Theorem (Global Non-Empty Type Preservation).*
 Given the base assumption above and admissible type-constructor extensions satisfying `"TypeDefOK"`, every well-formed type in the extended signature is interpreted by a non-empty carrier. Consequently, `INST_TYPE` ranges only over non-empty type interpretations.
 
 *Assumption (Classical HOL Model Discipline).*
 The soundness argument is read under the standard HOL set-theoretic model discipline: typing and instantiation preserve denotation, and theorem validity is evaluated in that model class.
+
+*Assumption (Choice-Axiom Model Compatibility).*
+The model class used for soundness must validate the reserved choice-operator schema
+introduced above; specification-derived constants are interpreted through that same
+choice-compatible model class.
+
+*Meta-Theorem Target (Global Conservativity Under Admissible Extensions).*
+Let $T'$ be obtained from $T$ by a finite sequence of admissible steps from
+$
+  {"DefOK", "TypeDefOK", "SpecOK"}  " (where SpecOK is derived over Choice + DefOK)"
+$
+Then for any sentence $phi$ over the old language of $T$:
+$
+  T' tack.r phi => T tack.r phi
+$
+This target is normative: any extension design failing this goal is rejected.
 
 == Type Preservation Sketch for `MK_COMB`
 
@@ -1401,6 +1543,9 @@ Checklist for minimal audit-ready closure:
 13. Global theory history (`DefHeads`) is separated from local poppable scope and is monotone.
 14. De Bruijn core matching is type-sensitive (no binder-domain type erasure during boundary lowering).
 15. Constant typing uses principal schema + instance relation (`tau ≼ tau_gen`) so polymorphic constants remain usable at admissible instances.
+16. Primitive choice operator (`@`) and its axiom schema are explicitly stated in foundations.
+17. `SpecOK` is documented as a derived admission rule (Choice + `DefOK`), not a standalone primitive rule.
+18. Infinity-anchor theorem identifier (`IND_INFINITY_AXIOM`) is explicitly fixed.
 
 This checklist is intended to be consumed before implementation alignment work starts.
 
@@ -1412,16 +1557,16 @@ Audit scenarios focused on definition-layer completeness:
   attempt $"def" c : "bool" = r(alpha)$ with $alpha ∉ "TVars"("bool")$;
   expected result: rejected by `TVars(r) ⊆ TVars(tau)`.
 2. *Instantiation Coherence Scenario*:
-  from an admissible definition theorem $tack.r c = r$, apply `INST_TYPE` on head variables;
+  from an admissible definition theorem $tack.r c = r$, apply $"INST_TYPE"$ on head variables;
   expected result: instantiated head/body remain coherent as one definitional instance.
 3. *Shadowing Separation Scenario*:
   local scope shadowing of ordinary constants is permitted;
-  definitional head reuse is rejected by global freshness in `DefOK`.
+  definitional head reuse is rejected by global freshness in $"DefOK"$.
 4. *Old-Language Conservativity Scenario*:
   after admissible extension, any theorem not mentioning the new symbol is derivable iff it was derivable before.
 5. *Pop-Then-Redefine Rejection Scenario*:
-  define head `c`, pop local scope, attempt defining `c` again;
-  expected result: rejected because `c in DefHeads(T)` despite local lookup removal.
+  define head $c$, pop local scope, attempt defining $c$ again;
+  expected result: rejected because $c in "DefHeads"(T)$ despite local lookup removal.
 
 Passing all five scenarios is required before claiming definition/state-layer soundness closure.
 
@@ -1431,18 +1576,18 @@ Audit scenarios focused on type-extension completeness:
 
 1. *Empty-Type Constructor Rejection Scenario*:
   propose a new type constructor without witness theorem;
-  expected result: rejected by `TypeDefOK` admissibility gate.
+  expected result: rejected by $"TypeDefOK"$ admissibility gate.
 2. *Witness-Carrying Type Definition Scenario*:
   introduce a type constructor with a valid non-emptiness witness;
   expected result: accepted and preserves global non-empty-type invariant.
 3. *INST_TYPE Inhabitation Scenario*:
-  apply `INST_TYPE` after admissible type extensions;
+  apply $"INST_TYPE"$ after admissible type extensions;
   expected result: substitutions range over inhabited types only.
 4. *No Semantic Escape Scenario*:
   attempt to derive a theorem relying on empty-carrier semantics;
   expected result: blocked because no empty type can be introduced admissibly.
 5. *Polymorphic Constant Instantiation Scenario*:
-  define `id` at principal schema $"fun"(alpha, alpha)$, then use it at $"fun"("bool", "bool")$ and $"fun"("int", "int")$;
+  define $id$ at principal schema $"fun"(alpha, alpha)$, then use it at $"fun"("bool", "bool")$ and $"fun"("int", "int")$;
   expected result: both uses are accepted via the instance relation $tau ≼ tau_"gen"$, without requiring per-type renamed constants.
 
 Passing all five scenarios is required before claiming type-layer soundness closure.
@@ -1452,11 +1597,11 @@ Passing all five scenarios is required before claiming type-layer soundness clos
 Audit scenarios focused on typed-core/boundary consistency:
 
 1. *Binder-Type Distinction Scenario*:
-  compare `λ(x:tau_1). x` and `λ(x:tau_2). x` with `tau_1 != tau_2`;
-  expected result: lowered typed De Bruijn abstractions are distinct (`DAbs(tau_1, ...) != DAbs(tau_2, ...)`).
+  compare $lambda (x:tau_1). x$ and $lambda (x:tau_2). x$ with $tau_1 != tau_2$;
+  expected result: lowered typed De Bruijn abstractions are distinct ($"DAbs"(tau_1, ...) != "DAbs"(tau_2, ...)$).
 2. *TRANS Middle-Term Guard Scenario*:
   chain two equalities whose middle terms are structurally similar but differ in binder-domain type labels;
-  expected result: `TRANS` rejects by typed-core mismatch.
+  expected result: TRANS rejects by typed-core mismatch.
 3. *BETA Binder Agreement Scenario*:
   attempt beta contraction with argument type not equal to abstraction binder-domain label;
   expected result: rejected before contraction.
@@ -1465,3 +1610,25 @@ Audit scenarios focused on typed-core/boundary consistency:
   expected result: reconstructed theorem preserves abstraction-domain types and cannot cross-type-identify abstractions.
 
 Passing all four scenarios is required before claiming De Bruijn core/type-system coherence closure.
+
+= Appendix F: Specification and Choice Audit Scenarios
+
+Audit scenarios focused on derived specification admission discipline:
+
+1. *Empty-Hypothesis Witness Requirement Scenario*:
+  provide a witness theorem with non-empty assumptions for specification introduction;
+  expected result: rejected by `SpecOK` witness-shape policy.
+2. *Freshness Collision Scenario*:
+  attempt to introduce specification constant $c$ where $c$ is reserved or already present in theory history;
+  expected result: rejected by specification freshness constraints.
+3. *Type-Schema Widening Scenario*:
+  attempt specification admission where implementation widens schema beyond $"Gen"(tau)$;
+  expected result: rejected by strict type-schema lock.
+4. *Derived-Path Integrity Scenario*:
+  attempt to admit specification constant without explicit Choice + `DefOK` derivation trace;
+  expected result: rejected because `SpecOK` is derived-only in this stage.
+5. *Old-Language Conservativity Scenario*:
+  after admissible specification extension, prove a sentence not mentioning the new symbol;
+  expected result: derivable iff derivable before extension.
+
+Passing all five scenarios is required before claiming specification-layer closure.

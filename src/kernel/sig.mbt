@@ -21,12 +21,14 @@ pub suberror SigError {
   InvalidTypeWitness
   InvalidTypePredicate
   InvalidTypeRepName
+  InvalidTypeAbsName
   InvalidTypeParams
   InvalidTypeArity
   TypeWitnessArityMismatch
   TypeWitnessPredicateMismatch
   TypeConstructorAlreadyExists
   TypeRepresentationAlreadyExists
+  TypeAbstractionAlreadyExists
   TypeMismatch
 }
 
@@ -39,6 +41,7 @@ priv struct TheoryState {
   def_const_deps : Array[(String, Array[String])]
   witnessed_tycons : Array[(String, Int)]
   type_rep_heads : Array[String]
+  type_abs_heads : Array[String]
   next_const_id : ConstId
 }
 
@@ -50,12 +53,25 @@ struct KernelState {
 
 ///|
 fn is_reserved_symbol(name : String) -> Bool {
-  name == "="
+  name == "=" || name == "@"
 }
 
 ///|
 fn is_builtin_tycon(name : String, arity : Int) -> Bool {
-  (name == "bool" && arity == 0) || (name == "fun" && arity == 2)
+  (name == "bool" && arity == 0) ||
+  (name == "fun" && arity == 2) ||
+  (name == "ind" && arity == 0)
+}
+
+///|
+fn choice_schema_ty() -> HolType {
+  let a = mk_tyvar("A")
+  fun_ty(fun_ty(a, bool_ty()), a)
+}
+
+///|
+fn initial_sig() -> GlobalSig {
+  Sig([[("@", 0, choice_schema_ty())]])
 }
 
 ///|
@@ -319,13 +335,14 @@ pub fn sig_define_const_e(
 ///|
 pub fn empty_kernel_state() -> KernelState {
   KernelState::{
-    sig: empty_sig(),
+    sig: initial_sig(),
     theory: TheoryState::{
       def_heads: [],
       def_const_deps: [],
-      witnessed_tycons: [],
+      witnessed_tycons: [("ind", 0)],
       type_rep_heads: [],
-      next_const_id: 0,
+      type_abs_heads: [],
+      next_const_id: 1,
     },
   }
 }
@@ -385,6 +402,9 @@ pub fn ks_add_const(
   if ks_has_type_rep_head(state, name) {
     return Err(TypeRepresentationAlreadyExists)
   }
+  if ks_has_type_abs_head(state, name) {
+    return Err(TypeAbstractionAlreadyExists)
+  }
   match current_scope_lookup(state.sig, name) {
     Some((_, existing)) =>
       if ty_eq(existing, ty) {
@@ -403,6 +423,7 @@ pub fn ks_add_const(
               def_const_deps: state.theory.def_const_deps,
               witnessed_tycons: state.theory.witnessed_tycons,
               type_rep_heads: state.theory.type_rep_heads,
+              type_abs_heads: state.theory.type_abs_heads,
               next_const_id: state.theory.next_const_id + 1,
             },
           })
@@ -431,6 +452,11 @@ pub fn ks_has_type_witness(
 ///|
 pub fn ks_has_type_rep_head(state : KernelState, name : String) -> Bool {
   state.theory.type_rep_heads.contains(name)
+}
+
+///|
+pub fn ks_has_type_abs_head(state : KernelState, name : String) -> Bool {
+  state.theory.type_abs_heads.contains(name)
 }
 
 ///|
@@ -597,6 +623,7 @@ pub fn ks_register_type_definition(
   predicate : Term,
   witness : Thm,
 ) -> Result[KernelState, SigError] {
+  let abs_name = "Abs_" + tycon
   if params.any(fn(p) { p == "" }) {
     return Err(InvalidTypeParams)
   }
@@ -621,14 +648,27 @@ pub fn ks_register_type_definition(
   if rep_name == "" || is_reserved_symbol(rep_name) {
     return Err(InvalidTypeRepName)
   }
+  if abs_name == "" || is_reserved_symbol(abs_name) || abs_name == rep_name {
+    return Err(InvalidTypeAbsName)
+  }
   if ks_has_tycon(state, tycon) {
     return Err(TypeConstructorAlreadyExists)
   }
-  if ks_has_type_rep_head(state, rep_name) || ks_has_def_head(state, rep_name) {
+  if ks_has_type_rep_head(state, rep_name) ||
+    ks_has_type_abs_head(state, rep_name) ||
+    ks_has_def_head(state, rep_name) {
     return Err(TypeRepresentationAlreadyExists)
   }
   if ks_lookup_const(state, rep_name) is Some(_) {
     return Err(TypeRepresentationAlreadyExists)
+  }
+  if ks_has_type_abs_head(state, abs_name) ||
+    ks_has_type_rep_head(state, abs_name) ||
+    ks_has_def_head(state, abs_name) {
+    return Err(TypeAbstractionAlreadyExists)
+  }
+  if ks_lookup_const(state, abs_name) is Some(_) {
+    return Err(TypeAbstractionAlreadyExists)
   }
   if !term_is_closed(predicate) {
     return Err(InvalidTypePredicate)
@@ -664,6 +704,8 @@ pub fn ks_register_type_definition(
   witnessed.push((tycon, arity))
   let reps = state.theory.type_rep_heads.copy()
   reps.push(rep_name)
+  let abses = state.theory.type_abs_heads.copy()
+  abses.push(abs_name)
   Ok(KernelState::{
     sig: state.sig,
     theory: TheoryState::{
@@ -671,6 +713,7 @@ pub fn ks_register_type_definition(
       def_const_deps: state.theory.def_const_deps,
       witnessed_tycons: witnessed,
       type_rep_heads: reps,
+      type_abs_heads: abses,
       next_const_id: state.theory.next_const_id,
     },
   })
@@ -688,6 +731,9 @@ pub fn ks_define_const(
   }
   if ks_has_type_rep_head(state, name) {
     return Err(TypeRepresentationAlreadyExists)
+  }
+  if ks_has_type_abs_head(state, name) {
+    return Err(TypeAbstractionAlreadyExists)
   }
   if ks_has_def_head(state, name) {
     return Err(DefinitionAlreadyExists)
@@ -736,6 +782,7 @@ pub fn ks_define_const(
                       def_const_deps,
                       witnessed_tycons: state.theory.witnessed_tycons,
                       type_rep_heads: state.theory.type_rep_heads,
+                      type_abs_heads: state.theory.type_abs_heads,
                       next_const_id: state.theory.next_const_id + 1,
                     },
                   }

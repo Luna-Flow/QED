@@ -22,6 +22,11 @@ pub fn bool_ty() -> HolType {
 }
 
 ///|
+pub fn ind_ty() -> HolType {
+  TyApp("ind", [])
+}
+
+///|
 pub fn fun_ty(dom : HolType, cod : HolType) -> HolType {
   TyApp("fun", [dom, cod])
 }

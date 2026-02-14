@@ -56,6 +56,8 @@ pub fn has_duplicate_ty_subst_keys(Array[(String, HolType)]) -> Bool
 
 pub fn hol_type_to_string(HolType) -> String
 
+pub fn ind_ty() -> HolType
+
 pub fn inst_checked(KernelState, Array[(Term, Term)], Thm) -> Result[Thm, LogicError]
 
 pub fn inst_type(KernelState, Array[(String, HolType)], Thm) -> Result[Thm, LogicError]
@@ -87,6 +89,8 @@ pub fn ks_define_const(KernelState, String, HolType, Term) -> Result[(KernelStat
 pub fn ks_define_const_thm(KernelState, String, HolType, Term) -> Result[(KernelState, Thm), SigError]
 
 pub fn ks_has_def_head(KernelState, String) -> Bool
+
+pub fn ks_has_type_abs_head(KernelState, String) -> Bool
 
 pub fn ks_has_type_rep_head(KernelState, String) -> Bool
 
@@ -222,12 +226,14 @@ pub suberror SigError {
   InvalidTypeWitness
   InvalidTypePredicate
   InvalidTypeRepName
+  InvalidTypeAbsName
   InvalidTypeParams
   InvalidTypeArity
   TypeWitnessArityMismatch
   TypeWitnessPredicateMismatch
   TypeConstructorAlreadyExists
   TypeRepresentationAlreadyExists
+  TypeAbstractionAlreadyExists
   TypeMismatch
 }
 
