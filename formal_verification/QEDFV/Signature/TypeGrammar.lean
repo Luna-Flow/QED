@@ -18,4 +18,8 @@ def tyvars : HolType -> List TVar
 def tyvarsSubset (lhs rhs : HolType) : Prop :=
   forall v, v ∈ tyvars lhs -> v ∈ tyvars rhs
 
+theorem tyvarsSubset_refl (ty : HolType) : tyvarsSubset ty ty := by
+  intro v hv
+  exact hv
+
 end QEDFV

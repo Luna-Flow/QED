@@ -1,3 +1,5 @@
+import QEDFV.Kernel.PrimitiveRules
+
 namespace QEDFV
 
 inductive LogicError where
@@ -7,10 +9,36 @@ inductive LogicError where
   | notBoolTerm
   | alphaMismatch
   | invalidInstantiation
+  | inadmissibleTypeTarget
+  | definitionalCoherenceViolation
+  | constantInstanceMismatch
+  | malformedTheoremStructure
   | varFreeInHyp
   | notTrivialBetaRedex
   | boundaryFailure
 deriving Repr, BEq
+
+def instTypeFailureToLogicError : InstTypeFailure -> LogicError
+  | .invalidSubstitution => .invalidInstantiation
+  | .inadmissibleTypeTarget => .inadmissibleTypeTarget
+  | .typingFailure => .typeMismatch
+  | .definitionalCoherenceViolation => .definitionalCoherenceViolation
+  | .constantInstanceMismatch => .constantInstanceMismatch
+  | .malformedTheoremStructure => .malformedTheoremStructure
+
+theorem inst_type_failure_mapping_sound
+    (f : InstTypeFailure) :
+    ∃ e : LogicError, instTypeFailureToLogicError f = e := by
+  exact ⟨instTypeFailureToLogicError f, rfl⟩
+
+theorem inst_type_failure_mapping_complete :
+    (instTypeFailureToLogicError .invalidSubstitution = .invalidInstantiation) ∧
+    (instTypeFailureToLogicError .inadmissibleTypeTarget = .inadmissibleTypeTarget) ∧
+    (instTypeFailureToLogicError .typingFailure = .typeMismatch) ∧
+    (instTypeFailureToLogicError .definitionalCoherenceViolation = .definitionalCoherenceViolation) ∧
+    (instTypeFailureToLogicError .constantInstanceMismatch = .constantInstanceMismatch) ∧
+    (instTypeFailureToLogicError .malformedTheoremStructure = .malformedTheoremStructure) := by
+  simp [instTypeFailureToLogicError]
 
 inductive SigError where
   | duplicateConstName

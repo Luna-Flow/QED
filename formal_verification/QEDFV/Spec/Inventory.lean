@@ -101,6 +101,40 @@ def explicitItems : List SpecItem :=
   , { id := "APPD_AUDIT_TYPEDEF", kind := .proposition, sourceSection := "Appendix D", summary := "type soundness audit" }
   , { id := "APPE_AUDIT_TYPED_DB", kind := .proposition, sourceSection := "Appendix E", summary := "typed de Bruijn audit" }
   , { id := "APPF_AUDIT_SPEC_CHOICE", kind := .proposition, sourceSection := "Appendix F", summary := "spec and choice audit" }
+  , { id := "SEC4_CONST_PRINCIPAL_SCHEMA", kind := .definition, sourceSection := "Constant Schemes", summary := "principal type schema for constants" }
+  , { id := "SEC4_TYPE_INSTANCE_REL", kind := .definition, sourceSection := "Constant Schemes", summary := "type-instance relation tau preceq tau_gen" }
+  , { id := "SEC7_RCONST_INSTANCE_TYPING", kind := .ruleSchema, sourceSection := "Core Typing", summary := "RConst typing via principal schema instance" }
+  , { id := "SEC7_POLY_CONST_INST_ADMISSIBLE", kind := .lemma, sourceSection := "Core Typing", summary := "polymorphic constant instantiation admissibility" }
+  , { id := "SEC7_NO_MONO_LOCKOUT", kind := .proposition, sourceSection := "Core Typing", summary := "no monomorphic lockout for constants" }
+  , { id := "SEC6_TYPEDEF_WITNESS_SHAPE", kind := .sideCondition, sourceSection := "Type Constructor Extension", summary := "typedef witness type shape constraint" }
+  , { id := "SEC6_TYPEDEF_PRODUCT_ABS_SURJ", kind := .lemma, sourceSection := "Type Constructor Extension", summary := "typedef abstraction surjectivity contract" }
+  , { id := "SEC6_TYPEDEF_PRODUCT_REP_RANGE", kind := .lemma, sourceSection := "Type Constructor Extension", summary := "typedef representation range contract" }
+  , { id := "SEC6_TYPEDEF_PRODUCT_REP_ABS", kind := .lemma, sourceSection := "Type Constructor Extension", summary := "typedef conditional rep-abs retraction contract" }
+  , { id := "SEC6_TYPE_NONEMPTY_PRESERVE", kind := .theorem, sourceSection := "Semantic Assumptions", summary := "global non-empty type preservation" }
+  , { id := "SEC10_ALPHA_QUOTIENT_ASSUMPTIONS", kind := .definition, sourceSection := "Theorem Object", summary := "assumption sets as alpha quotient classes" }
+  , { id := "SEC10_ALPHA_SET_IDEMPOTENCE", kind := .lemma, sourceSection := "Theorem Object", summary := "idempotence of assumption union in quotient semantics" }
+  , { id := "SEC10_ALPHA_SET_COMM", kind := .lemma, sourceSection := "Theorem Object", summary := "commutativity of assumption union in quotient semantics" }
+  , { id := "SEC10_ALPHA_REMOVE_COMPAT", kind := .lemma, sourceSection := "Theorem Object", summary := "alpha-compatible removal law" }
+  , { id := "SEC14_INST_TYPE_VALID_SUBST", kind := .sideCondition, sourceSection := "INST_TYPE", summary := "valid_ty_subst side condition" }
+  , { id := "SEC14_INST_TYPE_ADMISSIBLE_IMAGE", kind := .sideCondition, sourceSection := "INST_TYPE", summary := "admissible_ty_image side condition" }
+  , { id := "SEC14_INST_TYPE_TYPING_PRESERVE", kind := .sideCondition, sourceSection := "INST_TYPE", summary := "typing preservation under type substitution side condition" }
+  , { id := "SEC14_INST_TYPE_DEF_COHERENT", kind := .sideCondition, sourceSection := "INST_TYPE", summary := "def_inst_coherent side condition" }
+  , { id := "SEC14_INST_TYPE_CONST_INSTANCE_OK", kind := .sideCondition, sourceSection := "INST_TYPE", summary := "const_instance_ok side condition" }
+  , { id := "SEC14_INST_TYPE_STRUCTURE", kind := .sideCondition, sourceSection := "INST_TYPE", summary := "theorem structure preserved side condition" }
+  , { id := "SEC14_INST_TERM_VALID_SUBST", kind := .sideCondition, sourceSection := "INST", summary := "parallel capture-avoiding valid term substitution" }
+  , { id := "SEC15_DERIVATION_OBJECT", kind := .definition, sourceSection := "Constructive Closure", summary := "finite derivation object language" }
+  , { id := "SEC15_ERASE_DEF", kind := .theorem, sourceSection := "Constructive Closure", summary := "def-head erasure correctness" }
+  , { id := "SEC15_ERASE_SPEC", kind := .theorem, sourceSection := "Constructive Closure", summary := "spec-head erasure correctness" }
+  , { id := "SEC15_ERASE_TYPEDEF", kind := .theorem, sourceSection := "Constructive Closure", summary := "typedef erasure correctness" }
+  , { id := "SEC15_GLOBAL_CONSERVATIVITY_FINITE", kind := .theorem, sourceSection := "Constructive Closure", summary := "finite-step global conservativity by erasure composition" }
+  , { id := "SEC15_MODEL_CLASS", kind := .definition, sourceSection := "Semantic Assumptions", summary := "admissible model class" }
+  , { id := "SEC15_MODELCLASS_NONEMPTY", kind := .axiomSchema, sourceSection := "Semantic Assumptions", summary := "model-class non-emptiness assumption" }
+  , { id := "SEC15_NONTRIVIALITY_TRANSFER", kind := .theorem, sourceSection := "Semantic Assumptions", summary := "semantic non-triviality transfer" }
+  , { id := "SEC15_CONSISTENCY_WITNESS", kind := .theorem, sourceSection := "Semantic Assumptions", summary := "consistency witness form" }
+  , { id := "SEC16_CONFORMANCE_OBLIGATIONS", kind := .engineeringMap, sourceSection := "Part II Conformance", summary := "rule/boundary/scope/gate/certificate obligations" }
+  , { id := "SEC16_TRANSFER_THEOREM", kind := .theorem, sourceSection := "Part II Conformance", summary := "implementation-to-logic transfer theorem" }
+  , { id := "APPG_PARTII_CONFORMANCE", kind := .engineeringMap, sourceSection := "Appendix G", summary := "part II conformance audit scenarios" }
+  , { id := "APPH_CLAIM_TRACE_MATRIX", kind := .engineeringMap, sourceSection := "Appendix H", summary := "claim-to-proof trace matrix" }
   ]
 
 def explicitItemCount : Nat := explicitItems.length

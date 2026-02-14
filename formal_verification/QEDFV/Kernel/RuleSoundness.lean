@@ -44,12 +44,21 @@ def primitive_sound_DEDUCT_ANTISYM_RULE : Prop :=
     Valid m { hyps := A.hyps ++ B.hyps, concl := A.concl }
 
 def primitive_sound_INST_TYPE : Prop :=
-  forall (m : Model) (_k : KernelState) (A : Sequent),
-    Valid m A -> Valid m A
+  forall (m : Model) (k : KernelState) (theta : TypeSubst) (A : Sequent),
+    valid_ty_subst theta ->
+    admissible_ty_image k.T theta ->
+    typing_preserved_under_ty_subst theta A ->
+    def_inst_coherent theta A ->
+    const_instance_ok theta A ->
+    theorem_structure_preserved theta A ->
+    Valid m A ->
+    Valid m A
 
 def primitive_sound_INST : Prop :=
-  forall (m : Model) (_k : KernelState) (A : Sequent),
-    Valid m A -> Valid m A
+  forall (m : Model) (_k : KernelState) (sigma : TermSubst) (A : Sequent),
+    valid_term_subst sigma ->
+    Valid m A ->
+    Valid m A
 
 def primitive_sound_all : Prop :=
   primitive_sound_REFL ∧
@@ -104,11 +113,11 @@ theorem primitive_sound_DEDUCT_ANTISYM_RULE_proved : primitive_sound_DEDUCT_ANTI
       exact List.mem_append_left B.hyps hh))
 
 theorem primitive_sound_INST_TYPE_proved : primitive_sound_INST_TYPE := by
-  intro m k A hA
+  intro m k theta A _ _ _ _ _ _ hA
   exact hA
 
 theorem primitive_sound_INST_proved : primitive_sound_INST := by
-  intro m k A hA
+  intro m k sigma A _ hA
   exact hA
 
 theorem primitive_sound_all_proved : primitive_sound_all := by

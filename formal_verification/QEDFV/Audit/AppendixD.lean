@@ -9,7 +9,7 @@ def audit_d1_type_witness_validity : Prop :=
 
 theorem audit_d1_type_witness_validity_proved : audit_d1_type_witness_validity := by
   intro t k a repTy p w h
-  rcases h with ⟨_, hRepReserved, hAbsReserved, _, _, _, _⟩
+  rcases h with ⟨_, _, _, hRepReserved, hAbsReserved, _, _, _, _⟩
   exact ⟨hRepReserved, hAbsReserved⟩
 
 def audit_d5_schema_instance_guard : Prop :=
@@ -17,7 +17,7 @@ def audit_d5_schema_instance_guard : Prop :=
 
 theorem audit_d5_schema_instance_guard_proved : audit_d5_schema_instance_guard := by
   intro t k a repTy p w h
-  rcases h with ⟨_, _, _, _, _, _, hSubset⟩
+  rcases h with ⟨_, _, _, _, _, _, _, _, hSubset⟩
   exact hSubset
 
 def audit_d6_witness_const_id_drift : Prop :=
@@ -26,7 +26,7 @@ def audit_d6_witness_const_id_drift : Prop :=
 
 theorem audit_d6_witness_const_id_drift_proved : audit_d6_witness_const_id_drift := by
   intro t k a repTy p w h
-  rcases h with ⟨_, _, _, hRep, hAbs, _, _⟩
+  rcases h with ⟨_, _, _, _, _, hRep, hAbs, _, _⟩
   exact ⟨hRep, hAbs⟩
 
 end QEDFV

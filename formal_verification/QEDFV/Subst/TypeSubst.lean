@@ -35,4 +35,20 @@ def applyTypeSubstToTermTyvars (s : TypeSubst) (ty : HolType) : List TVar :=
     applyTypeSubst [] (.tyvar v) = .tyvar v := by
   rfl
 
+mutual
+
+theorem applyTypeSubst_nil : ∀ ty : HolType, applyTypeSubst [] ty = ty
+  | .tyvar v => by
+      rfl
+  | .tyapp k args => by
+      simp [applyTypeSubst, applyTypeSubstList_nil]
+
+theorem applyTypeSubstList_nil : ∀ tys : List HolType, applyTypeSubstList [] tys = tys
+  | [] => by
+      rfl
+  | ty :: rest => by
+      simp [applyTypeSubstList, applyTypeSubst_nil ty, applyTypeSubstList_nil rest]
+
+end
+
 end QEDFV

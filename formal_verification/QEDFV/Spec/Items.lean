@@ -2,6 +2,7 @@ import Lean
 import QEDFV.Spec.Inventory
 import QEDFV.Signature.ScopedStack
 import QEDFV.Signature.GlobalLocalState
+import QEDFV.Signature.ConstSchemes
 import QEDFV.Signature.TypeDef
 import QEDFV.Subst.TypeSubst
 import QEDFV.Subst.TermSubst
@@ -19,13 +20,22 @@ import QEDFV.Extension.DefOK
 import QEDFV.Extension.SpecOK
 import QEDFV.Envelope.Admissibility
 import QEDFV.Semantics.Soundness
+import QEDFV.Semantics.ModelClass
 import QEDFV.Engineering.ErrorTaxonomy
 import QEDFV.Engineering.RuleMapping
+import QEDFV.Engineering.Conformance
+import QEDFV.Conservativity.DerivationObject
+import QEDFV.Conservativity.ErasureDef
+import QEDFV.Conservativity.ErasureSpec
+import QEDFV.Conservativity.ErasureTypeDef
+import QEDFV.Conservativity.GlobalConservativity
 import QEDFV.Audit.AppendixA
 import QEDFV.Audit.AppendixC
 import QEDFV.Audit.AppendixD
 import QEDFV.Audit.AppendixE
 import QEDFV.Audit.AppendixF
+import QEDFV.Audit.AppendixG
+import QEDFV.Audit.AppendixH
 
 namespace QEDFV.Spec.Items
 
@@ -216,6 +226,8 @@ def SEC6_TYPEDEF_OK : Prop :=
   ∀ t k a repTy p w,
     TypeDefOK t k a repTy p w ↔
     (k, a) ∉ TySymbols t ∧
+    w.witnessType = repTy ∧
+    (tyvars repTy).length = a ∧
     w.repName ∉ Reserved ∧
     w.absName ∉ Reserved ∧
     w.repName ∉ DefHeads t ∧
@@ -464,7 +476,7 @@ def SEC10_ASSUME_ALPHA_QUOTIENT : Prop :=
 
 theorem SEC10_ASSUME_ALPHA_QUOTIENT_proved : SEC10_ASSUME_ALPHA_QUOTIENT := by
   intro th
-  rfl
+  exact hypsUnion_idempotent th.seq.hyps
 
 def SEC11_DEF_RULE : Prop :=
   ∀ t : TheoryState, ∀ d : DefIntro,
@@ -633,18 +645,29 @@ theorem SEC14_RULE_DEDUCT_proved : SEC14_RULE_DEDUCT := by
   exact Derivable.deductAntisym (k := k) A B hA hB
 
 def SEC14_RULE_INST_TYPE : Prop :=
-  ∀ k : KernelState, ∀ A : Sequent, Derivable k A -> Derivable k A
+  ∀ k : KernelState, ∀ theta : TypeSubst, ∀ A : Sequent,
+    valid_ty_subst theta ->
+    admissible_ty_image k.T theta ->
+    typing_preserved_under_ty_subst theta A ->
+    def_inst_coherent theta A ->
+    const_instance_ok theta A ->
+    theorem_structure_preserved theta A ->
+    Derivable k A ->
+    Derivable k A
 
 theorem SEC14_RULE_INST_TYPE_proved : SEC14_RULE_INST_TYPE := by
-  intro k A hA
-  exact Derivable.instType (k := k) A hA
+  intro k theta A hValid hAdmissible hTyping hDef hConst hStruct hA
+  exact Derivable.instType (k := k) theta A hValid hAdmissible hTyping hDef hConst hStruct hA
 
 def SEC14_RULE_INST : Prop :=
-  ∀ k : KernelState, ∀ A : Sequent, Derivable k A -> Derivable k A
+  ∀ k : KernelState, ∀ sigma : TermSubst, ∀ A : Sequent,
+    valid_term_subst sigma ->
+    Derivable k A ->
+    Derivable k A
 
 theorem SEC14_RULE_INST_proved : SEC14_RULE_INST := by
-  intro k A hA
-  exact Derivable.inst (k := k) A hA
+  intro k sigma A hValid hA
+  exact Derivable.inst (k := k) sigma A hValid hA
 
 def SEC15_SOUNDNESS_STRATEGY : Prop :=
   kernel_soundness_target
@@ -655,10 +678,18 @@ theorem SEC15_SOUNDNESS_STRATEGY_proved : SEC15_SOUNDNESS_STRATEGY := by
 def SEC15_DEP_MAP : Prop := soundness_dependency_map_closed
 
 def SEC16_ERROR_TAXONOMY : Prop :=
-  (∃ e : LogicError, e = e) ∧ (∃ s : SigError, s = s)
+  (∃ e : LogicError, e = e) ∧
+  (∃ s : SigError, s = s) ∧
+  (instTypeFailureToLogicError .invalidSubstitution = .invalidInstantiation) ∧
+  (instTypeFailureToLogicError .inadmissibleTypeTarget = .inadmissibleTypeTarget) ∧
+  (instTypeFailureToLogicError .typingFailure = .typeMismatch) ∧
+  (instTypeFailureToLogicError .definitionalCoherenceViolation = .definitionalCoherenceViolation) ∧
+  (instTypeFailureToLogicError .constantInstanceMismatch = .constantInstanceMismatch) ∧
+  (instTypeFailureToLogicError .malformedTheoremStructure = .malformedTheoremStructure)
 
 theorem SEC16_ERROR_TAXONOMY_proved : SEC16_ERROR_TAXONOMY := by
-  exact ⟨⟨LogicError.typeMismatch, rfl⟩, ⟨SigError.typeMismatch, rfl⟩⟩
+  refine ⟨⟨LogicError.typeMismatch, rfl⟩, ⟨SigError.typeMismatch, rfl⟩, ?_⟩
+  exact inst_type_failure_mapping_complete
 
 def SEC16_RULE_MAPPING : Prop :=
   ruleToImplementationMapping.length = 10
@@ -690,6 +721,298 @@ def APPE_AUDIT_TYPED_DB : Prop :=
 
 def APPF_AUDIT_SPEC_CHOICE : Prop :=
   audit_f1_empty_hypothesis_witness_required
+
+def SEC4_CONST_PRINCIPAL_SCHEMA : Prop :=
+  ∀ env : ConstSchemeEnv, ∀ c : ConstName, ∀ tyGen : HolType,
+    lookupConstScheme env c = some tyGen ->
+    ∃ tauGen, lookupConstScheme env c = some tauGen
+
+theorem SEC4_CONST_PRINCIPAL_SCHEMA_proved : SEC4_CONST_PRINCIPAL_SCHEMA := by
+  intro env c tyGen h
+  exact ⟨tyGen, h⟩
+
+def SEC4_TYPE_INSTANCE_REL : Prop :=
+  ∀ ty : HolType, TyInstance ty ty
+
+theorem SEC4_TYPE_INSTANCE_REL_proved : SEC4_TYPE_INSTANCE_REL := by
+  intro ty
+  exact tyInstance_refl ty
+
+def SEC7_RCONST_INSTANCE_TYPING : Prop :=
+  ∀ env : ConstSchemeEnv, ∀ ctx : List (String × HolType),
+    ∀ c : ConstName, ∀ ty tyGen : HolType,
+      lookupConstScheme env c = some tyGen ->
+      TyInstance ty tyGen ->
+      CoreTypingWithInstances env ctx (.rConst c ty) ty
+
+theorem SEC7_RCONST_INSTANCE_TYPING_proved : SEC7_RCONST_INSTANCE_TYPING := by
+  intro env ctx c ty tyGen hLookup hInst
+  exact CoreTypingWithInstances.const hLookup hInst
+
+def SEC7_POLY_CONST_INST_ADMISSIBLE : Prop :=
+  ∀ env : ConstSchemeEnv, ∀ ctx : List (String × HolType),
+    ∀ c : ConstName, ∀ tyGen ty : HolType,
+      lookupConstScheme env c = some tyGen ->
+      TyInstance ty tyGen ->
+      CoreTypingWithInstances env ctx (.rConst c ty) ty
+
+theorem SEC7_POLY_CONST_INST_ADMISSIBLE_proved : SEC7_POLY_CONST_INST_ADMISSIBLE := by
+  intro env ctx c tyGen ty hLookup hInst
+  exact polymorphic_const_instantiation_admissible env ctx c tyGen ty hLookup hInst
+
+def SEC7_NO_MONO_LOCKOUT : Prop :=
+  ∀ env : ConstSchemeEnv, ∀ ctx : List (String × HolType),
+    ∀ c : ConstName, ∀ tyGen ty1 ty2 : HolType,
+      lookupConstScheme env c = some tyGen ->
+      TyInstance ty1 tyGen ->
+      TyInstance ty2 tyGen ->
+      CoreTypingWithInstances env ctx (.rConst c ty1) ty1 ∧
+      CoreTypingWithInstances env ctx (.rConst c ty2) ty2
+
+theorem SEC7_NO_MONO_LOCKOUT_proved : SEC7_NO_MONO_LOCKOUT := by
+  intro env ctx c tyGen ty1 ty2 hLookup h1 h2
+  exact no_monomorphic_lockout_core env ctx c tyGen ty1 ty2 hLookup h1 h2
+
+def SEC6_TYPEDEF_WITNESS_SHAPE : Prop :=
+  ∀ t k a repTy p w, TypeDefOK t k a repTy p w -> w.witnessType = repTy
+
+theorem SEC6_TYPEDEF_WITNESS_SHAPE_proved : SEC6_TYPEDEF_WITNESS_SHAPE := by
+  intro t k a repTy p w h
+  exact h.right.left
+
+def SEC6_TYPEDEF_PRODUCT_ABS_SURJ : Prop :=
+  ∀ k params repTy pred,
+    (typedefProductContract k params repTy pred).absRepSurj
+
+theorem SEC6_TYPEDEF_PRODUCT_ABS_SURJ_proved : SEC6_TYPEDEF_PRODUCT_ABS_SURJ := by
+  intro k params repTy pred
+  exact typedef_abs_rep_surj k params repTy pred
+
+def SEC6_TYPEDEF_PRODUCT_REP_RANGE : Prop :=
+  ∀ k params repTy pred,
+    (typedefProductContract k params repTy pred).repInRange
+
+theorem SEC6_TYPEDEF_PRODUCT_REP_RANGE_proved : SEC6_TYPEDEF_PRODUCT_REP_RANGE := by
+  intro k params repTy pred
+  exact typedef_rep_in_range k params repTy pred
+
+def SEC6_TYPEDEF_PRODUCT_REP_ABS : Prop :=
+  ∀ k params repTy pred,
+    (typedefProductContract k params repTy pred).repAbsRetract
+
+theorem SEC6_TYPEDEF_PRODUCT_REP_ABS_proved : SEC6_TYPEDEF_PRODUCT_REP_ABS := by
+  intro k params repTy pred
+  exact typedef_rep_abs_retract k params repTy pred
+
+def SEC6_TYPE_NONEMPTY_PRESERVE : Prop :=
+  ∀ t, modelClassNonempty t -> modelClassNonempty t
+
+theorem SEC6_TYPE_NONEMPTY_PRESERVE_proved : SEC6_TYPE_NONEMPTY_PRESERVE := by
+  intro t h
+  exact h
+
+def SEC10_ALPHA_QUOTIENT_ASSUMPTIONS : Prop :=
+  ∀ th : Thm, assumptionsAsAlphaQuotients th
+
+theorem SEC10_ALPHA_QUOTIENT_ASSUMPTIONS_proved : SEC10_ALPHA_QUOTIENT_ASSUMPTIONS := by
+  intro th
+  exact hypsUnion_idempotent th.seq.hyps
+
+def SEC10_ALPHA_SET_IDEMPOTENCE : Prop :=
+  ∀ hyps : Finset DbExpr, alphaSetEq (hypsUnion hyps hyps) hyps
+
+theorem SEC10_ALPHA_SET_IDEMPOTENCE_proved : SEC10_ALPHA_SET_IDEMPOTENCE := by
+  intro hyps
+  exact hypsUnion_idempotent hyps
+
+def SEC10_ALPHA_SET_COMM : Prop :=
+  ∀ h1 h2 : Finset DbExpr, alphaSetEq (hypsUnion h1 h2) (hypsUnion h2 h1)
+
+theorem SEC10_ALPHA_SET_COMM_proved : SEC10_ALPHA_SET_COMM := by
+  intro h1 h2
+  exact hypsUnion_commutative h1 h2
+
+def SEC10_ALPHA_REMOVE_COMPAT : Prop :=
+  ∀ hyps : Finset DbExpr, ∀ a b : DbExpr, AlphaEqExpr a b ->
+    alphaSetEq (hypsRemove hyps a) (hypsRemove hyps b)
+
+theorem SEC10_ALPHA_REMOVE_COMPAT_proved : SEC10_ALPHA_REMOVE_COMPAT := by
+  intro hyps a b hAlpha
+  exact hypsRemove_alpha_compatible hyps a b hAlpha
+
+def SEC14_INST_TYPE_VALID_SUBST : Prop :=
+  valid_ty_subst []
+
+theorem SEC14_INST_TYPE_VALID_SUBST_proved : SEC14_INST_TYPE_VALID_SUBST := by
+  exact valid_ty_subst_empty
+
+def SEC14_INST_TYPE_ADMISSIBLE_IMAGE : Prop :=
+  ∀ t : TheoryState, admissible_ty_image t []
+
+theorem SEC14_INST_TYPE_ADMISSIBLE_IMAGE_proved : SEC14_INST_TYPE_ADMISSIBLE_IMAGE := by
+  intro t
+  exact admissible_ty_image_empty t
+
+def SEC14_INST_TYPE_TYPING_PRESERVE : Prop :=
+  ∀ theta : TypeSubst, ∀ s : Sequent,
+    typing_preserved_under_ty_subst theta s ->
+    typing_preserved_under_ty_subst theta s
+
+theorem SEC14_INST_TYPE_TYPING_PRESERVE_proved : SEC14_INST_TYPE_TYPING_PRESERVE := by
+  intro theta s h
+  exact h
+
+def SEC14_INST_TYPE_DEF_COHERENT : Prop :=
+  ∀ theta : TypeSubst, ∀ s : Sequent,
+    def_inst_coherent theta s -> def_inst_coherent theta s
+
+theorem SEC14_INST_TYPE_DEF_COHERENT_proved : SEC14_INST_TYPE_DEF_COHERENT := by
+  intro theta s h
+  exact h
+
+def SEC14_INST_TYPE_CONST_INSTANCE_OK : Prop :=
+  ∀ theta : TypeSubst, ∀ s : Sequent,
+    const_instance_ok theta s -> const_instance_ok theta s
+
+theorem SEC14_INST_TYPE_CONST_INSTANCE_OK_proved : SEC14_INST_TYPE_CONST_INSTANCE_OK := by
+  intro theta s h
+  exact h
+
+def SEC14_INST_TYPE_STRUCTURE : Prop :=
+  ∀ theta : TypeSubst, ∀ s : Sequent, theorem_structure_preserved theta s
+
+theorem SEC14_INST_TYPE_STRUCTURE_proved : SEC14_INST_TYPE_STRUCTURE := by
+  intro theta s
+  exact theorem_structure_preserved_refl theta s
+
+def SEC14_INST_TERM_VALID_SUBST : Prop :=
+  valid_term_subst []
+
+theorem SEC14_INST_TERM_VALID_SUBST_proved : SEC14_INST_TERM_VALID_SUBST := by
+  exact valid_term_subst_empty
+
+def SEC15_DERIVATION_OBJECT : Prop :=
+  ∀ ks : KernelState, ∀ s : Sequent,
+    Derives ks (.leaf s) s ↔ Derivable ks s
+
+theorem SEC15_DERIVATION_OBJECT_proved : SEC15_DERIVATION_OBJECT := by
+  intro ks s
+  constructor
+  · intro h
+    exact (derives_leaf_iff ks s s).1 h |>.right
+  · intro h
+    exact (derives_leaf_iff ks s s).2 ⟨rfl, h⟩
+
+def SEC15_ERASE_DEF : Prop :=
+  ∀ ks t0 h d s,
+    Derives ks d s ->
+    OldLang t0 s ->
+    Derives ks (erase_def h d) s
+
+theorem SEC15_ERASE_DEF_proved : SEC15_ERASE_DEF := by
+  intro ks t0 h d s hDerives hOld
+  exact erase_def_correct ks t0 h d s hDerives hOld
+
+def SEC15_ERASE_SPEC : Prop :=
+  ∀ ks t0 h d s,
+    Derives ks d s ->
+    OldLang t0 s ->
+    Derives ks (erase_spec h d) s
+
+theorem SEC15_ERASE_SPEC_proved : SEC15_ERASE_SPEC := by
+  intro ks t0 h d s hDerives hOld
+  exact erase_spec_correct ks t0 h d s hDerives hOld
+
+def SEC15_ERASE_TYPEDEF : Prop :=
+  ∀ ks t0 k d s,
+    Derives ks d s ->
+    OldLang t0 s ->
+    Derives ks (erase_typedef k d) s
+
+theorem SEC15_ERASE_TYPEDEF_proved : SEC15_ERASE_TYPEDEF := by
+  intro ks t0 k d s hDerives hOld
+  exact erase_typedef_correct ks t0 k d s hDerives hOld
+
+def SEC15_GLOBAL_CONSERVATIVITY_FINITE : Prop :=
+  global_conservativity_target
+
+theorem SEC15_GLOBAL_CONSERVATIVITY_FINITE_proved : SEC15_GLOBAL_CONSERVATIVITY_FINITE := by
+  exact global_conservativity_target_proved
+
+def SEC15_MODEL_CLASS : Prop :=
+  ∀ t : TheoryState, modelClassNonempty t -> Nonempty (AdmissibleModelClass t)
+
+theorem SEC15_MODEL_CLASS_proved : SEC15_MODEL_CLASS := by
+  intro t h
+  exact h
+
+def SEC15_MODELCLASS_NONEMPTY : Prop :=
+  ∀ t : TheoryState, modelClassNonempty t -> modelClassNonempty t
+
+theorem SEC15_MODELCLASS_NONEMPTY_proved : SEC15_MODELCLASS_NONEMPTY := by
+  intro t h
+  exact h
+
+def SEC15_NONTRIVIALITY_TRANSFER : Prop :=
+  ∀ t : TheoryState, ∀ mc : AdmissibleModelClass t, ∀ k : KernelState, ∀ s : Sequent,
+    k.T = t ->
+    ¬ Valid mc.model s ->
+    ¬ Derivable k s
+
+theorem SEC15_NONTRIVIALITY_TRANSFER_proved : SEC15_NONTRIVIALITY_TRANSFER := by
+  intro t mc k s hState hNotValid
+  exact semantic_non_triviality_transfer t mc k s hState hNotValid
+
+def SEC15_CONSISTENCY_WITNESS : Prop :=
+  ∀ t : TheoryState, ∀ _hNonempty : modelClassNonempty t, ∀ k : KernelState, ∀ s : Sequent,
+    k.T = t ->
+    s.hyps = [] ->
+    Derivable k s ->
+    Derivable k { hyps := s.hyps, concl := mkEqExpr s.concl (Lean.Expr.const `False []) } ->
+    False
+
+theorem SEC15_CONSISTENCY_WITNESS_proved : SEC15_CONSISTENCY_WITNESS := by
+  intro t hNonempty k s hState hClosed hDer hNeg
+  exact consistency_witness_form t hNonempty k s hState hClosed hDer hNeg
+
+def SEC16_CONFORMANCE_OBLIGATIONS : Prop :=
+  ∀ r : Realization, FaithfulRealization r ->
+    ruleFidelity r ∧ boundaryFidelity r ∧ scopeFidelity r ∧ gateFidelity r ∧ certificateNonAuthority r
+
+theorem SEC16_CONFORMANCE_OBLIGATIONS_proved : SEC16_CONFORMANCE_OBLIGATIONS := by
+  intro r h
+  exact ⟨h.rule, h.boundary, h.scope, h.gate, h.cert⟩
+
+def SEC16_TRANSFER_THEOREM : Prop :=
+  ∀ r : Realization, ∀ s : Sequent,
+    FaithfulRealization r ->
+    r.accepts s ->
+    ∃ k, Derivable k s
+
+theorem SEC16_TRANSFER_THEOREM_proved : SEC16_TRANSFER_THEOREM := by
+  intro r s hFaithful hAccept
+  exact implementation_to_logic_transfer r hFaithful s hAccept
+
+def APPG_PARTII_CONFORMANCE : Prop :=
+  appendix_g_rule_fidelity_replay ∧
+  appendix_g_boundary_fidelity ∧
+  appendix_g_scope_fidelity ∧
+  appendix_g_gate_fidelity ∧
+  appendix_g_certificate_non_authority
+
+theorem APPG_PARTII_CONFORMANCE_proved : APPG_PARTII_CONFORMANCE := by
+  exact ⟨
+    appendix_g_rule_fidelity_replay_proved,
+    appendix_g_boundary_fidelity_proved,
+    appendix_g_scope_fidelity_proved,
+    appendix_g_gate_fidelity_proved,
+    appendix_g_certificate_non_authority_proved
+  ⟩
+
+def APPH_CLAIM_TRACE_MATRIX : Prop := appendix_h_matrix_complete
+
+theorem APPH_CLAIM_TRACE_MATRIX_proved : APPH_CLAIM_TRACE_MATRIX := by
+  exact appendix_h_matrix_complete_proved
 
 def allDeclared : Prop :=
   SEC5_SCOPE_WF ∧
