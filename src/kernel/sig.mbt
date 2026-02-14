@@ -33,6 +33,9 @@ pub suberror SigError {
   MissingInfinityAnchor
   InvalidTypeDefinitionProduct
   MissingTypeDefinitionContract
+  InvalidSpecificationWitness
+  InvalidSpecificationPredicate
+  SpecificationTypeVarLeak
   TypeMismatch
 }
 
@@ -1083,6 +1086,79 @@ pub fn ks_define_const_thm(
             Err(_) => Err(InvalidConstRhs)
           }
         None => Err(InvalidConstRhs)
+      }
+    Err(e) => Err(e)
+  }
+}
+
+///|
+/// Controlled specification admission over choice plus definitional extension.
+/// Returns the updated state and the admitted theorem `|- P(c)`.
+pub fn ks_specify_const(
+  state : KernelState,
+  name : String,
+  decl_ty : HolType,
+  predicate : Term,
+  witness : Thm,
+) -> Result[(KernelState, Thm), SigError] {
+  if !term_is_closed(predicate) {
+    return Err(InvalidSpecificationPredicate)
+  }
+  let (pred_dom, pred_body) = match predicate {
+    Abs(v, body) =>
+      match v {
+        Var(_, dom_ty) =>
+          match type_of(predicate) {
+            Some(TyApp("fun", [dom2, cod])) =>
+              if !ty_eq(dom_ty, dom2) || !is_bool_ty(cod) {
+                return Err(InvalidSpecificationPredicate)
+              } else {
+                (dom_ty, body)
+              }
+            _ => return Err(InvalidSpecificationPredicate)
+          }
+        _ => return Err(InvalidSpecificationPredicate)
+      }
+    _ => return Err(InvalidSpecificationPredicate)
+  }
+  if !ty_eq(pred_dom, decl_ty) {
+    return Err(InvalidSpecificationPredicate)
+  }
+  let decl_tyvars = tyvars(decl_ty)
+  let pred_tyvars = term_tyvars(predicate)
+  if !pred_tyvars.all(fn(tv) { decl_tyvars.contains(tv) }) {
+    return Err(SpecificationTypeVarLeak)
+  }
+  if thm_hyp_count(witness) != 0 {
+    return Err(InvalidSpecificationWitness)
+  }
+  if !thm_is_admissible(state, witness) {
+    return Err(InvalidSpecificationWitness)
+  }
+  match thm_concl(witness) {
+    Ok(c) =>
+      if !term_alpha_eq(c, pred_body) {
+        return Err(InvalidSpecificationWitness)
+      }
+    Err(_) => return Err(InvalidSpecificationWitness)
+  }
+  let rhs = mk_comb(
+    mk_const("@", fun_ty(fun_ty(decl_ty, bool_ty()), decl_ty)),
+    predicate,
+  )
+  match ks_define_const_thm(state, name, decl_ty, rhs) {
+    Ok((state2, _def_th)) =>
+      match ks_mk_const(state2, name) {
+        Ok(c) =>
+          match apply_unary_predicate(predicate, c) {
+            Some(pc_term) =>
+              match mk_thm_from_terms(state2, [], pc_term) {
+                Ok(pc_th) => Ok((state2, pc_th))
+                Err(_) => Err(InvalidSpecificationWitness)
+              }
+            None => Err(InvalidSpecificationPredicate)
+          }
+        Err(_) => Err(InvalidSpecificationPredicate)
       }
     Err(e) => Err(e)
   }

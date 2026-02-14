@@ -120,6 +120,8 @@ pub fn ks_register_type_definition(KernelState, String, Array[String], String, T
 
 pub fn ks_sig(KernelState) -> GlobalSig
 
+pub fn ks_specify_const(KernelState, String, HolType, Term, Thm) -> Result[(KernelState, Thm), SigError]
+
 pub fn ks_type_is_admissible(KernelState, HolType) -> Bool
 
 pub fn ks_type_subst_is_admissible(KernelState, Array[(String, HolType)]) -> Bool
@@ -248,6 +250,9 @@ pub suberror SigError {
   MissingInfinityAnchor
   InvalidTypeDefinitionProduct
   MissingTypeDefinitionContract
+  InvalidSpecificationWitness
+  InvalidSpecificationPredicate
+  SpecificationTypeVarLeak
   TypeMismatch
 }
 

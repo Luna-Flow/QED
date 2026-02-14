@@ -273,6 +273,82 @@ test "ks_define_const rejects rhs with unknown or invalid const instances" {
 }
 
 ///|
+test "specify const derives choice definition and admitted theorem" {
+  let st0 = empty_kernel_state()
+  let x = mk_var("x", bool_ty())
+  let pred_body = expect_ok_any_sig_test(mk_eq(x, x))
+  let pred = mk_abs(x, pred_body)
+  let witness = expect_ok_any_sig_test(refl_checked(st0, x))
+  let (st1, spec_th) = expect_ok_sig(
+    ks_specify_const(st0, "c_spec", bool_ty(), pred, witness),
+  )
+  assert_true(ks_has_def_head(st1, "c_spec"))
+  assert_true(ks_lookup_const(st1, "c_spec") is Some(_))
+  assert_eq(thm_hyp_count(spec_th), 0)
+  let concl = expect_ok_any_sig_test(thm_concl(spec_th))
+  assert_true(type_of(concl) is Some(_))
+  assert_true(term_has_const_named(concl, "c_spec"))
+}
+
+///|
+test "specify const enforces witness shape and closure guards" {
+  let st0 = empty_kernel_state()
+  let x = mk_var("x", bool_ty())
+  let pred_body = expect_ok_any_sig_test(mk_eq(x, x))
+  let pred = mk_abs(x, pred_body)
+  let bad_hyp_witness = expect_ok_any_sig_test(assume_checked(st0, pred_body))
+  assert_true(
+    ks_specify_const(st0, "bad1", bool_ty(), pred, bad_hyp_witness)
+    is Err(InvalidSpecificationWitness),
+  )
+
+  let a = mk_tyvar("A")
+  let y = mk_var("y", a)
+  let bad_pred_body = expect_ok_any_sig_test(mk_eq(y, y))
+  let bad_pred = mk_abs(y, bad_pred_body)
+  let bad_witness = expect_ok_any_sig_test(refl_checked(st0, y))
+  assert_true(
+    ks_specify_const(st0, "bad2", bool_ty(), bad_pred, bad_witness)
+    is Err(InvalidSpecificationPredicate),
+  )
+
+  let z = mk_var("z", bool_ty())
+  let open_pred = mk_abs(z, mk_comb(z, z))
+  let open_witness = expect_ok_any_sig_test(refl_checked(st0, z))
+  assert_true(
+    ks_specify_const(st0, "bad3", bool_ty(), open_pred, open_witness)
+    is Err(InvalidSpecificationPredicate),
+  )
+}
+
+///|
+test "specify const rejects type-variable leak and drifted witness" {
+  let st0 = empty_kernel_state()
+  let a = mk_tyvar("A")
+  let b = mk_tyvar("B")
+  let x = mk_var("x", a)
+  let u = mk_var("u", b)
+  let id_b = mk_abs(u, u)
+  let pred_body = expect_ok_any_sig_test(mk_eq(id_b, id_b))
+  let pred = mk_abs(x, pred_body)
+  let witness = expect_ok_any_sig_test(refl_checked(st0, id_b))
+  assert_true(
+    ks_specify_const(st0, "leak", a, pred, witness)
+    is Err(SpecificationTypeVarLeak),
+  )
+
+  let st1 = expect_ok_sig(ks_add_const(st0, "W", bool_ty()))
+  let w = mk_const("W", bool_ty())
+  let y = mk_var("y", bool_ty())
+  let pred_w = mk_abs(y, expect_ok_any_sig_test(mk_eq(w, w)))
+  let witness_w = expect_ok_any_sig_test(refl_checked(st1, w))
+  assert_true(
+    ks_specify_const(st0, "drift", bool_ty(), pred_w, witness_w)
+    is Err(InvalidSpecificationWitness),
+  )
+}
+
+///|
 test "type definition registration is fail-closed without witness" {
   let st0 = empty_kernel_state()
   let (pred_p, _) = type_witness_bundle("W_bad")
