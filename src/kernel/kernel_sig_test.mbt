@@ -16,7 +16,8 @@ fn[T, E] expect_ok_any_sig_test(res : Result[T, E]) -> T {
 
 ///|
 fn type_witness_thm(name : String) -> Thm {
-  expect_ok_any_sig_test(refl(mk_const(name, bool_ty())))
+  let x = mk_var(name, bool_ty())
+  expect_ok_any_sig_test(refl(mk_abs(x, x)))
 }
 
 ///|
@@ -140,6 +141,9 @@ test "type definition registration is fail-closed without witness" {
   let st0 = empty_kernel_state()
   let bad_witness = expect_ok_any_sig_test(assume(mk_const("P", bool_ty())))
   let open_witness = expect_ok_any_sig_test(refl(mk_var("x", bool_ty())))
+  let unknown_const_witness = expect_ok_any_sig_test(
+    refl(mk_const("W", bool_ty())),
+  )
   assert_true(
     ks_register_type_definition(st0, "newty", 1, bad_witness)
     is Err(InvalidTypeWitness),
@@ -147,6 +151,15 @@ test "type definition registration is fail-closed without witness" {
   assert_true(
     ks_register_type_definition(st0, "newty", 1, open_witness)
     is Err(InvalidTypeWitness),
+  )
+  assert_true(
+    ks_register_type_definition(st0, "newty", 1, unknown_const_witness)
+    is Err(InvalidTypeWitness),
+  )
+  let st_known = expect_ok_sig(ks_add_const(st0, "W", bool_ty()))
+  assert_true(
+    ks_register_type_definition(st_known, "newty", 1, unknown_const_witness)
+    is Ok(_),
   )
   let witness = type_witness_thm("W")
   assert_true(ks_register_type_definition(st0, "newty", 1, witness) is Ok(_))

@@ -16,7 +16,9 @@ fn[T] expect_ok_sig_for_thm(res : Result[T, SigError]) -> T {
 
 ///|
 fn type_witness_thm_for_inst() -> Thm {
-  expect_ok(refl(mk_const("TW", bool_ty())))
+  let a = mk_tyvar("A")
+  let x = mk_var("x", a)
+  expect_ok(refl(mk_abs(x, x)))
 }
 
 ///|

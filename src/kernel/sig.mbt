@@ -434,6 +434,34 @@ pub fn ks_const_schema(state : KernelState, name : String) -> HolType? {
 }
 
 ///|
+fn eq_const_type_ok(ty : HolType) -> Bool {
+  match ty {
+    TyApp("fun", [lhs, TyApp("fun", [rhs, TyApp("bool", [])])]) =>
+      ty_eq(lhs, rhs)
+    _ => false
+  }
+}
+
+///|
+fn term_const_instances_ok(state : KernelState, term : Term) -> Bool {
+  match term {
+    Var(_, _) => true
+    Const(name, inst_ty) =>
+      if name == "=" {
+        eq_const_type_ok(inst_ty)
+      } else {
+        match ks_const_schema(state, name) {
+          Some(schema_ty) => ty_is_instance_of(inst_ty, schema_ty)
+          None => false
+        }
+      }
+    Comb(f, x) =>
+      term_const_instances_ok(state, f) && term_const_instances_ok(state, x)
+    Abs(_, body) => term_const_instances_ok(state, body)
+  }
+}
+
+///|
 pub fn ks_type_is_admissible(state : KernelState, ty : HolType) -> Bool {
   match ty {
     TyVal(_) => true
@@ -488,6 +516,9 @@ pub fn ks_register_type_definition(
       match type_of(c) {
         Some(ty) => {
           if !is_bool_ty(ty) {
+            return Err(InvalidTypeWitness)
+          }
+          if !term_const_instances_ok(state, c) {
             return Err(InvalidTypeWitness)
           }
           if term_tyvars(c).length() > arity {
