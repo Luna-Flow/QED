@@ -10,6 +10,7 @@ QED 是一个基于 MoonBit 的交互式定理证明器。当前开发以
 - 等式构造 `mk_eq` 强制同型输入，拒绝异型等式。
 - 签名层包含 scope + theory 双层状态入口，并对 reserved symbol (`=`) 做硬约束。
 - `DefHeads` 单调历史与 `TypeDef` fail-closed 门禁已落地到状态 API。
+- `SigError` 与 `LogicError` 已统一采用 MoonBit `suberror` 风格定义，错误分类可模式匹配且可扩展。
 
 ## 项目结构
 
