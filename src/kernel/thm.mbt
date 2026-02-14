@@ -10,6 +10,7 @@ pub suberror LogicError {
   VarFreeInHyp
   NotTrivialBetaRedex
   BoundaryFailure
+  CapacityExceeded
 }
 
 ///|
@@ -301,7 +302,7 @@ fn beta_rule(term : Term) -> Result[Thm, LogicError] {
                       Ok(eq) => Ok(mk_thm([], eq))
                       Err(e) => Err(e)
                     }
-                  None => Err(NotTrivialBetaRedex)
+                  None => Err(CapacityExceeded)
                 }
               }
             None => Err(TypeMismatch)
@@ -819,14 +820,19 @@ fn inst(subst : Array[(Term, Term)], th : Thm) -> Result[Thm, LogicError] {
     }
   }
   match validate_db_inst_subst(db_subst) {
-    Ok(_) =>
-      Ok(
-        mk_thm_with_origin(
-          th.hyps.map(fn(h) { db_subst_free_parallel(h, db_subst) }),
-          db_subst_free_parallel(th.concl, db_subst),
-          th.def_origin,
-        ),
-      )
+    Ok(_) => {
+      let hyps2 : Array[DbTerm] = []
+      for h in th.hyps {
+        match db_subst_free_parallel(h, db_subst) {
+          Some(h2) => hyps2.push(h2)
+          None => return Err(CapacityExceeded)
+        }
+      }
+      match db_subst_free_parallel(th.concl, db_subst) {
+        Some(concl2) => Ok(mk_thm_with_origin(hyps2, concl2, th.def_origin))
+        None => Err(CapacityExceeded)
+      }
+    }
     Err(e) => Err(e)
   }
 }

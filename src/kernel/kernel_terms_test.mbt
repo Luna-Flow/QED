@@ -291,7 +291,11 @@ test "terms db_subst_free_parallel is capture-avoiding" {
       match d_key {
         Some(kdb) => {
           let out = db_subst_free_parallel(tdb, [(kdb, rdb)])
-          assert_true(db_term_to_string(out).contains("FVar(y : A)"))
+          match out {
+            Some(out2) =>
+              assert_true(db_term_to_string(out2).contains("FVar(y : A)"))
+            None => assert_false(true)
+          }
         }
         None => assert_false(true)
       }

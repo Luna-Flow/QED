@@ -345,31 +345,78 @@ pub fn db_has_free(term : DbTerm, needle : DbTerm) -> Bool {
 }
 
 ///|
-fn db_shift_walk(delta : Int, cutoff : Int, term : DbTerm) -> DbTerm {
-  match term {
-    DbBound(i, ty) => if i >= cutoff { DbBound(i + delta, ty) } else { term }
-    DbFree(_, _) => term
-    DbConst(_, _) => term
-    DbComb(f, x) =>
-      DbComb(db_shift_walk(delta, cutoff, f), db_shift_walk(delta, cutoff, x))
-    DbAbs(ty, body) => DbAbs(ty, db_shift_walk(delta, cutoff + 1, body))
+fn int_add_checked(lhs : Int, rhs : Int) -> Int? {
+  let int_max = 2147483647
+  let int_min = -2147483648
+  if rhs > 0 && lhs > int_max - rhs {
+    None
+  } else if rhs < 0 && lhs < int_min - rhs {
+    None
+  } else {
+    Some(lhs + rhs)
   }
 }
 
 ///|
-fn db_subst_walk(j : Int, s : DbTerm, cutoff : Int, term : DbTerm) -> DbTerm {
+fn db_shift_walk(delta : Int, cutoff : Int, term : DbTerm) -> DbTerm? {
+  match term {
+    DbBound(i, ty) =>
+      if i >= cutoff {
+        match int_add_checked(i, delta) {
+          Some(i2) => if i2 >= 0 { Some(DbBound(i2, ty)) } else { None }
+          None => None
+        }
+      } else {
+        Some(term)
+      }
+    DbFree(_, _) => Some(term)
+    DbConst(_, _) => Some(term)
+    DbComb(f, x) =>
+      match (db_shift_walk(delta, cutoff, f), db_shift_walk(delta, cutoff, x)) {
+        (Some(f2), Some(x2)) => Some(DbComb(f2, x2))
+        _ => None
+      }
+    DbAbs(ty, body) =>
+      match int_add_checked(cutoff, 1) {
+        Some(cutoff2) =>
+          match db_shift_walk(delta, cutoff2, body) {
+            Some(body2) => Some(DbAbs(ty, body2))
+            None => None
+          }
+        None => None
+      }
+  }
+}
+
+///|
+fn db_subst_walk(j : Int, s : DbTerm, cutoff : Int, term : DbTerm) -> DbTerm? {
   match term {
     DbBound(i, _) =>
-      if i == j + cutoff {
-        db_shift_walk(cutoff, 0, s)
-      } else {
-        term
+      match int_add_checked(j, cutoff) {
+        Some(target) =>
+          if i == target {
+            db_shift_walk(cutoff, 0, s)
+          } else {
+            Some(term)
+          }
+        None => None
       }
-    DbFree(_, _) => term
-    DbConst(_, _) => term
+    DbFree(_, _) => Some(term)
+    DbConst(_, _) => Some(term)
     DbComb(f, x) =>
-      DbComb(db_subst_walk(j, s, cutoff, f), db_subst_walk(j, s, cutoff, x))
-    DbAbs(ty, body) => DbAbs(ty, db_subst_walk(j, s, cutoff + 1, body))
+      match (db_subst_walk(j, s, cutoff, f), db_subst_walk(j, s, cutoff, x)) {
+        (Some(f2), Some(x2)) => Some(DbComb(f2, x2))
+        _ => None
+      }
+    DbAbs(ty, body) =>
+      match int_add_checked(cutoff, 1) {
+        Some(cutoff2) =>
+          match db_subst_walk(j, s, cutoff2, body) {
+            Some(body2) => Some(DbAbs(ty, body2))
+            None => None
+          }
+        None => None
+      }
   }
 }
 
@@ -437,18 +484,30 @@ pub fn db_apply_ty_subst(
 pub fn db_subst_free_parallel(
   term : DbTerm,
   subst : Array[(DbTerm, DbTerm)],
-) -> DbTerm {
-  fn walk(depth : Int, t : DbTerm, subst : Array[(DbTerm, DbTerm)]) -> DbTerm {
+) -> DbTerm? {
+  fn walk(depth : Int, t : DbTerm, subst : Array[(DbTerm, DbTerm)]) -> DbTerm? {
     match t {
-      DbBound(_, _) => t
+      DbBound(_, _) => Some(t)
       DbFree(_, _) =>
         match lookup_db_subst(subst, t) {
           Some(repl) => db_shift_walk(depth, 0, repl)
-          None => t
+          None => Some(t)
         }
-      DbConst(_, _) => t
-      DbComb(f, x) => DbComb(walk(depth, f, subst), walk(depth, x, subst))
-      DbAbs(ty, body) => DbAbs(ty, walk(depth + 1, body, subst))
+      DbConst(_, _) => Some(t)
+      DbComb(f, x) =>
+        match (walk(depth, f, subst), walk(depth, x, subst)) {
+          (Some(f2), Some(x2)) => Some(DbComb(f2, x2))
+          _ => None
+        }
+      DbAbs(ty, body) =>
+        match int_add_checked(depth, 1) {
+          Some(depth2) =>
+            match walk(depth2, body, subst) {
+              Some(body2) => Some(DbAbs(ty, body2))
+              None => None
+            }
+          None => None
+        }
     }
   }
 
@@ -482,11 +541,15 @@ pub fn db_type_of(term : DbTerm) -> HolType? {
 ///|
 pub fn db_beta_reduce_once(term : DbTerm) -> DbTerm? {
   match term {
-    DbComb(DbAbs(_, body), arg) => {
-      let arg1 = db_shift_walk(1, 0, arg)
-      let body1 = db_subst_walk(0, arg1, 0, body)
-      Some(db_shift_walk(-1, 0, body1))
-    }
+    DbComb(DbAbs(_, body), arg) =>
+      match db_shift_walk(1, 0, arg) {
+        Some(arg1) =>
+          match db_subst_walk(0, arg1, 0, body) {
+            Some(body1) => db_shift_walk(-1, 0, body1)
+            None => None
+          }
+        None => None
+      }
     _ => None
   }
 }
