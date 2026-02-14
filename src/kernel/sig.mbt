@@ -29,6 +29,8 @@ pub suberror SigError {
   TypeConstructorAlreadyExists
   TypeRepresentationAlreadyExists
   TypeAbstractionAlreadyExists
+  InvalidInfinityAnchor
+  MissingInfinityAnchor
   TypeMismatch
 }
 
@@ -42,6 +44,7 @@ priv struct TheoryState {
   witnessed_tycons : Array[(String, Int)]
   type_rep_heads : Array[String]
   type_abs_heads : Array[String]
+  ind_infinity_axiom : Thm?
   next_const_id : ConstId
 }
 
@@ -342,6 +345,7 @@ pub fn empty_kernel_state() -> KernelState {
       witnessed_tycons: [("ind", 0)],
       type_rep_heads: [],
       type_abs_heads: [],
+      ind_infinity_axiom: None,
       next_const_id: 1,
     },
   }
@@ -424,6 +428,7 @@ pub fn ks_add_const(
               witnessed_tycons: state.theory.witnessed_tycons,
               type_rep_heads: state.theory.type_rep_heads,
               type_abs_heads: state.theory.type_abs_heads,
+              ind_infinity_axiom: state.theory.ind_infinity_axiom,
               next_const_id: state.theory.next_const_id + 1,
             },
           })
@@ -457,6 +462,90 @@ pub fn ks_has_type_rep_head(state : KernelState, name : String) -> Bool {
 ///|
 pub fn ks_has_type_abs_head(state : KernelState, name : String) -> Bool {
   state.theory.type_abs_heads.contains(name)
+}
+
+///|
+pub fn ks_has_ind_infinity_axiom(state : KernelState) -> Bool {
+  state.theory.ind_infinity_axiom is Some(_)
+}
+
+///|
+pub fn ks_ind_infinity_axiom(state : KernelState) -> Result[Thm, SigError] {
+  match state.theory.ind_infinity_axiom {
+    Some(th) => Ok(th)
+    None => Err(MissingInfinityAnchor)
+  }
+}
+
+///|
+fn type_has_tycon(ty : HolType, tycon : String) -> Bool {
+  match ty {
+    TyVal(_) => false
+    TyApp(name, args) =>
+      if name == tycon {
+        true
+      } else {
+        args.any(fn(arg) { type_has_tycon(arg, tycon) })
+      }
+  }
+}
+
+///|
+fn term_mentions_tycon(term : Term, tycon : String) -> Bool {
+  let node_type_mentions = match type_of(term) {
+    Some(ty) => type_has_tycon(ty, tycon)
+    None => false
+  }
+  if node_type_mentions {
+    return true
+  }
+  match term {
+    Var(_, ty) => type_has_tycon(ty, tycon)
+    Const(_, ty) => type_has_tycon(ty, tycon)
+    Comb(f, x) => term_mentions_tycon(f, tycon) || term_mentions_tycon(x, tycon)
+    Abs(v, body) =>
+      term_mentions_tycon(v, tycon) || term_mentions_tycon(body, tycon)
+  }
+}
+
+///|
+pub fn ks_register_ind_infinity_axiom(
+  state : KernelState,
+  anchor : Thm,
+) -> Result[KernelState, SigError] {
+  if state.theory.ind_infinity_axiom is Some(_) {
+    return Err(InvalidInfinityAnchor)
+  }
+  if thm_hyp_count(anchor) != 0 {
+    return Err(InvalidInfinityAnchor)
+  }
+  if !thm_is_admissible(state, anchor) {
+    return Err(InvalidInfinityAnchor)
+  }
+  match thm_concl(anchor) {
+    Ok(concl) =>
+      match type_of(concl) {
+        Some(ty) =>
+          if !is_bool_ty(ty) || !term_mentions_tycon(concl, "ind") {
+            Err(InvalidInfinityAnchor)
+          } else {
+            Ok(KernelState::{
+              sig: state.sig,
+              theory: TheoryState::{
+                def_heads: state.theory.def_heads,
+                def_const_deps: state.theory.def_const_deps,
+                witnessed_tycons: state.theory.witnessed_tycons,
+                type_rep_heads: state.theory.type_rep_heads,
+                type_abs_heads: state.theory.type_abs_heads,
+                ind_infinity_axiom: Some(anchor),
+                next_const_id: state.theory.next_const_id,
+              },
+            })
+          }
+        None => Err(InvalidInfinityAnchor)
+      }
+    Err(_) => Err(InvalidInfinityAnchor)
+  }
 }
 
 ///|
@@ -757,6 +846,7 @@ pub fn ks_register_type_definition(
       witnessed_tycons: witnessed,
       type_rep_heads: reps,
       type_abs_heads: abses,
+      ind_infinity_axiom: state.theory.ind_infinity_axiom,
       next_const_id: state.theory.next_const_id + 2,
     },
   })
@@ -826,6 +916,7 @@ pub fn ks_define_const(
                       witnessed_tycons: state.theory.witnessed_tycons,
                       type_rep_heads: state.theory.type_rep_heads,
                       type_abs_heads: state.theory.type_abs_heads,
+                      ind_infinity_axiom: state.theory.ind_infinity_axiom,
                       next_const_id: state.theory.next_const_id + 1,
                     },
                   }

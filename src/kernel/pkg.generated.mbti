@@ -90,11 +90,15 @@ pub fn ks_define_const_thm(KernelState, String, HolType, Term) -> Result[(Kernel
 
 pub fn ks_has_def_head(KernelState, String) -> Bool
 
+pub fn ks_has_ind_infinity_axiom(KernelState) -> Bool
+
 pub fn ks_has_type_abs_head(KernelState, String) -> Bool
 
 pub fn ks_has_type_rep_head(KernelState, String) -> Bool
 
 pub fn ks_has_type_witness(KernelState, String, Int) -> Bool
+
+pub fn ks_ind_infinity_axiom(KernelState) -> Result[Thm, SigError]
 
 pub fn ks_lookup_const(KernelState, String) -> HolType?
 
@@ -107,6 +111,8 @@ pub fn ks_mk_const_instance(KernelState, String, HolType) -> Result[Term, SigErr
 pub fn ks_pop_scope(KernelState) -> Result[KernelState, SigError]
 
 pub fn ks_push_scope(KernelState) -> KernelState
+
+pub fn ks_register_ind_infinity_axiom(KernelState, Thm) -> Result[KernelState, SigError]
 
 pub fn ks_register_type_definition(KernelState, String, Array[String], String, Term, Thm) -> Result[KernelState, SigError]
 
@@ -234,6 +240,8 @@ pub suberror SigError {
   TypeConstructorAlreadyExists
   TypeRepresentationAlreadyExists
   TypeAbstractionAlreadyExists
+  InvalidInfinityAnchor
+  MissingInfinityAnchor
   TypeMismatch
 }
 

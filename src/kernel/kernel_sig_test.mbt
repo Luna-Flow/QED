@@ -71,6 +71,51 @@ test "empty kernel state bootstraps choice constant and ind carrier" {
   assert_true(ks_lookup_const_id(st0, "@") is Some(_))
   assert_true(ks_type_is_admissible(st0, ind_ty()))
   assert_false(ks_type_is_admissible(st0, mk_tyapp("ind", [bool_ty()])))
+  assert_false(ks_has_ind_infinity_axiom(st0))
+  assert_true(ks_ind_infinity_axiom(st0) is Err(MissingInfinityAnchor))
+}
+
+///|
+test "ind infinity anchor registration is fail-closed and single-assignment" {
+  let st0 = empty_kernel_state()
+  let n = mk_var("n", ind_ty())
+  let th = expect_ok_any_sig_test(refl_checked(st0, n))
+  let st1 = expect_ok_sig(ks_register_ind_infinity_axiom(st0, th))
+  assert_true(ks_has_ind_infinity_axiom(st1))
+  let anchor = expect_ok_sig(ks_ind_infinity_axiom(st1))
+  assert_eq(thm_hyp_count(anchor), 0)
+  let (lhs, rhs) = expect_ok_any_sig_test(
+    dest_eq(expect_ok_any_sig_test(thm_concl(anchor))),
+  )
+  assert_true(term_alpha_eq(lhs, n))
+  assert_true(term_alpha_eq(rhs, n))
+  assert_true(
+    ks_register_ind_infinity_axiom(st1, th) is Err(InvalidInfinityAnchor),
+  )
+}
+
+///|
+test "ind infinity anchor rejects malformed or drifted theorem" {
+  let st0 = empty_kernel_state()
+  let p = mk_var("p", bool_ty())
+  let th_hyp = expect_ok_any_sig_test(assume_checked(st0, p))
+  assert_true(
+    ks_register_ind_infinity_axiom(st0, th_hyp) is Err(InvalidInfinityAnchor),
+  )
+
+  let b = mk_var("b", bool_ty())
+  let th_no_ind = expect_ok_any_sig_test(refl_checked(st0, b))
+  assert_true(
+    ks_register_ind_infinity_axiom(st0, th_no_ind) is Err(InvalidInfinityAnchor),
+  )
+
+  let st_u = expect_ok_sig(ks_add_const(st0, "U", bool_ty()))
+  let th_drift = expect_ok_any_sig_test(
+    refl_checked(st_u, mk_const("U", bool_ty())),
+  )
+  assert_true(
+    ks_register_ind_infinity_axiom(st0, th_drift) is Err(InvalidInfinityAnchor),
+  )
 }
 
 ///|
