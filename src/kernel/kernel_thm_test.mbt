@@ -39,6 +39,17 @@ test "mk_eq enforces same type on both sides" {
 }
 
 ///|
+test "dest_eq rejects malformed equality constant instances" {
+  let a = mk_tyvar("A")
+  let b = mk_tyvar("B")
+  let x = mk_var("x", a)
+  let y = mk_var("y", b)
+  let bad_eq_ty = fun_ty(a, fun_ty(b, bool_ty()))
+  let bad_eq = mk_comb(mk_comb(mk_const("=", bad_eq_ty), x), y)
+  assert_true(dest_eq(bad_eq) is Err(TypeMismatch))
+}
+
+///|
 test "assume accepts only boolean propositions" {
   let p = mk_const("P", bool_ty())
   assert_true(assume(p) is Ok(_))
@@ -60,6 +71,13 @@ test "trans composes equalities and checks alpha middle term" {
 
   let th_bad = expect_ok(assume(expect_ok(mk_eq(z, x))))
   assert_true(trans(th1, th_bad) is Err(AlphaMismatch))
+
+  let b = mk_tyvar("B")
+  let u = mk_var("u", b)
+  let bad_eq_ty = fun_ty(a, fun_ty(b, bool_ty()))
+  let bad_mid = mk_comb(mk_comb(mk_const("=", bad_eq_ty), y), u)
+  let th_bad_eq = expect_ok(assume(bad_mid))
+  assert_true(trans(th1, th_bad_eq) is Err(TypeMismatch))
 }
 
 ///|

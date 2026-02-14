@@ -58,7 +58,31 @@ fn lift_term(term : DbTerm) -> Result[Term, LogicError] {
 ///|
 fn db_dest_eq(term : DbTerm) -> Result[(DbTerm, DbTerm), LogicError] {
   match term {
-    DbComb(DbComb(DbConst("=", _), lhs), rhs) => Ok((lhs, rhs))
+    DbComb(DbComb(DbConst("=", eq_ty), lhs), rhs) =>
+      match (db_type_of(lhs), db_type_of(rhs)) {
+        (Some(lhs_ty), Some(rhs_ty)) =>
+          if !db_eq_const_type_ok(eq_ty) {
+            Err(TypeMismatch)
+          } else {
+            match dest_fun_ty(eq_ty) {
+              Some((dom, cod)) =>
+                match dest_fun_ty(cod) {
+                  Some((rhs_dom, out)) =>
+                    if ty_eq(dom, lhs_ty) &&
+                      ty_eq(rhs_dom, rhs_ty) &&
+                      ty_eq(dom, rhs_dom) &&
+                      is_bool_ty(out) {
+                      Ok((lhs, rhs))
+                    } else {
+                      Err(TypeMismatch)
+                    }
+                  None => Err(TypeMismatch)
+                }
+              None => Err(TypeMismatch)
+            }
+          }
+        _ => Err(TypeMismatch)
+      }
     _ => Err(NotAnEquality)
   }
 }
