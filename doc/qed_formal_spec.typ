@@ -59,7 +59,7 @@ This section fixes the notation baseline used by all later definitions and rules
 - Partial computation/evaluation at the meta level is written with $mapsto$, e.g. $f(x) mapsto y$.
 - Named-term alpha-equivalence is written $equiv_alpha$.
 - De Bruijn structural equivalence is written $tilde.equiv$.
-- Semantic interpretation (denotation) is written with double brackets, e.g. $⟦t⟧_rho$ for term meaning under environment $rho$.
+- Semantic interpretation (denotation) is written with stroked brackets, e.g. $bracket.l.stroked t bracket.r.stroked_rho$ for term meaning under environment $rho$.
 
 Layering discipline:
 
@@ -144,7 +144,7 @@ where type variables in $tau_"gen"$ are implicitly universally quantified.
 *Definition (Type Instance Relation).*
 For types $tau$ and $tau_"gen"$, write
 $
-  tau ≼ tau_"gen"
+  tau prec.eq tau_"gen"
 $
 iff there exists a type substitution $theta$ such that
 $
@@ -161,21 +161,21 @@ The kernel distinguishes *logical symbols* from ordinary signature-managed const
 *Definition (Reserved Equality Symbol).*
 The symbol $"="$ is a reserved polymorphic logical constant with schematic type
 $
-  "=" : Π alpha. "fun"(alpha, "fun"(alpha, "bool"))
+  "=" : product alpha. "fun"(alpha, "fun"(alpha, "bool"))
 $
 and is not inserted by user signature operations.
 
 *Definition (Reserved Choice Operator).*
 The symbol $"@"$ is a reserved polymorphic choice operator with schematic type
 $
-  "@" : Π alpha. "fun"("fun"(alpha, "bool"), alpha)
+  "@" : product alpha. "fun"("fun"(alpha, "bool"), alpha)
 $
 and is not inserted by user signature operations.
 
 *Axiom Schema (Choice).*
 For each type instance $alpha$ and predicate $P : "fun"(alpha, "bool")$:
 $
-  tack.r (exists x : alpha. P(x)) => P("@"(P))
+  tack.r (exists x : alpha. P(x)) arrow.r.double P("@"(P))
 $
 This axiom schema is part of the trusted baseline and is used to derive
 specification-style constant introduction.
@@ -183,9 +183,9 @@ specification-style constant introduction.
 *Constraint (No Shadowing of Reserved Symbols).*
 For every scope stack state $S$, insertion is forbidden for reserved names:
 $
-  (" "c in "Reserved" " ")
+  (c in "Reserved")
   /
-  (S tack.r "add"(c : tau) mapsto "fail")
+  (" "S tack.r "add"(c : tau) mapsto "fail" " ")
 $
 where currently $"Reserved" = {"=", "@"}$.
 
@@ -223,7 +223,7 @@ $
 $
 
 $
-  (" "S = [S_0, ..., S_n] , c ∉ "dom"(S_n) , S' = [S_0, ..., S_n[c := tau]]" ")
+  (" "S = [S_0, ..., S_n] , c in.not "dom"(S_n) , S' = [S_0, ..., S_n[c := tau]]" ")
   /
   (S tack.r "add"(c : tau) mapsto S')
 $
@@ -235,7 +235,7 @@ $
 $
 
 $
-  (" "S = [S_0, ..., S_n] , c ∉ "dom"(S_n) , [S_0, ..., S_(n - 1)] tack.r c : tau" ")
+  (" "S = [S_0, ..., S_n] , c in.not "dom"(S_n) , [S_0, ..., S_(n - 1)] tack.r c : tau" ")
   /
   (S tack.r c : tau)
 $
@@ -278,13 +278,13 @@ Equivalent implementation view: `"DefHeads"(T)` can be realized as a monotone gl
 
 Monotonicity law:
 $
-  T mapsto T' => "DefHeads"(T) ⊆ "DefHeads"(T')
+  T mapsto T' arrow.r.double "DefHeads"(T) subset.eq "DefHeads"(T')
 $
 
 *Proposition (Pop Invariance of Definitional History).*
 If $(T_0, S) tack.r "pop" mapsto (T_1, S')$, then
 $
-  T_0 = T_1 ∧ "DefHeads"(T_0) = "DefHeads"(T_1)
+  T_0 = T_1 and "DefHeads"(T_0) = "DefHeads"(T_1)
 $
 trivially, because `pop` is local-scope-only and does not rollback committed theory symbols.
 
@@ -314,7 +314,7 @@ $
 $
 and requires:
 
-1. $k ∉ "TySymbols"(T)$ and $a$ matches declared parameter arity.
+1. $k in.not "TySymbols"(T)$ and $a$ matches declared parameter arity.
 2. $w$ is a witness theorem establishing representability non-emptiness for each parameter instantiation.
 3. the defining predicate $P$ is well-typed and closed under the declared parameters.
 4. all free type variables of $P$ are exactly the declared parameters (no undeclared type-variable leakage).
@@ -323,7 +323,7 @@ and requires:
 
 Representative admissible step:
 $
-  "TypeDefOK"(T, k, a, "Rep", P, w) => T mapsto T + {"typedef" k / a}
+  "TypeDefOK"(T, k, a, "Rep", P, w) arrow.r.double T mapsto T + {"typedef" k / a}
 $
 
 *Definition (Typedef Product Contract).*
@@ -346,7 +346,7 @@ $
 $
 3. Conditional retraction on predicate range:
 $
-  tack.r forall r : "RepTy"_k. P(r) => "Rep"_k("Abs"_k(r)) = r
+  tack.r forall r : "RepTy"_k. P(r) arrow.r.double "Rep"_k("Abs"_k(r)) = r
 $
 
 No weaker contract is admissible for kernel-level typedef extension.
@@ -391,13 +391,13 @@ $
 $
 where $t_r$ is a resolved term used by kernel rules. Constant occurrences are frozen at resolution time and are not re-looked-up during later theorem reuse.
 
-Notation compatibility: this section writes resolution with $mapsto$; the later typing section writes the same elaboration relation as $⇓$.
+Notation compatibility: this section writes resolution with $mapsto$; the later typing section writes the same elaboration relation as $arrow.b.double$.
 
 Representative constant-resolution clause:
 $
-  (Sigma_c tack.r c : tau , "resolve"(Sigma_c, c) = kappa_c)
+  (" "Sigma_c tack.r c : tau , "resolve"(Sigma_c, c) = kappa_c" ")
   /
-  (Sigma_c tack.r c : tau mapsto "ConstAtom"(kappa_c, tau))
+  (" "Sigma_c tack.r c : tau mapsto "ConstAtom"(kappa_c, tau)" ")
 $
 
 *Property (Theorem Stability Under Scope Mutation).*
@@ -414,7 +414,7 @@ To make scope-mutation stability and boundary safety derivable (not merely state
 
 Named terms are first elaborated against the current signature stack:
 $
-  Sigma_c ; Gamma tack.r t ⇓ t_r
+  Sigma_c ; Gamma tack.r t arrow.b.double t_r
 $
 where $t_r$ is a resolved term in which constant occurrences have fixed kernel identities.
 
@@ -423,25 +423,25 @@ Representative clauses:
 $
   (" "(x : tau) in Gamma" ")
   /
-  (Sigma_c ; Gamma tack.r x : tau ⇓ "RVar"(x, tau))
+  (" "Sigma_c ; Gamma tack.r x : tau arrow.b.double "RVar"(x, tau)" ")
 $
 
 $
-  (" "Sigma_c tack.r c : tau_"gen" , "resolve"(Sigma_c, c) = kappa_c , tau ≼ tau_"gen"" ")
+  (" "Sigma_c tack.r c : tau_"gen" , "resolve"(Sigma_c, c) = kappa_c , tau prec.eq tau_"gen"" ")
   /
-  (Sigma_c ; Gamma tack.r c : tau ⇓ "RConst"(kappa_c, tau))
+  (Sigma_c ; Gamma tack.r c : tau arrow.b.double "RConst"(kappa_c, tau))
 $
 
 $
-  (" "Sigma_c ; Gamma tack.r f ⇓ f_r ," "Sigma_c ; Gamma tack.r x ⇓ x_r" ")
+  (" "Sigma_c ; Gamma tack.r f arrow.b.double f_r ," "Sigma_c ; Gamma tack.r x arrow.b.double x_r" ")
   /
-  (Sigma_c ; Gamma tack.r f" "x ⇓ "RComb"(f_r, x_r))
+  (Sigma_c ; Gamma tack.r f" "x arrow.b.double "RComb"(f_r, x_r))
 $
 
 $
-  (" "Sigma_c ; (Gamma, x : tau) tack.r t ⇓ t_r" ")
+  (" "Sigma_c ; (Gamma, x : tau) tack.r t arrow.b.double t_r" ")
   /
-  (Sigma_c ; Gamma tack.r λ(x : tau). t ⇓ "RAbs"(x, tau, t_r))
+  (" "Sigma_c ; Gamma tack.r lambda (x : tau). t arrow.b.double "RAbs"(x, tau, t_r)" ")
 $
 
 Elaboration failure is explicit and does not produce a theorem object.
@@ -459,13 +459,13 @@ Representative clauses:
 $
   (" "(x : tau) in Gamma" ")
   /
-  (Gamma tack.r.r "RVar"(x, tau) : tau)
+  (" "Gamma tack.r.r "RVar"(x, tau) : tau" ")
 $
 
 $
-  (" "kappa_c : tau_"gen" , tau ≼ tau_"gen"" ")
+  (" "kappa_c : tau_"gen" , tau prec.eq tau_"gen"" ")
   /
-  (Gamma tack.r.r "RConst"(kappa_c, tau) : tau)
+  (" "Gamma tack.r.r "RConst"(kappa_c, tau) : tau" ")
 $
 
 $
@@ -481,7 +481,7 @@ $
 $
 
 *Lemma (Polymorphic Constant Instantiation Admissibility).*
-If $kappa_c : tau_"gen"$ and $tau ≼ tau_"gen"$, then `"RConst"(kappa_c, tau)` is a well-formed resolved term and may appear in any rule premise requiring type $tau$.
+If $kappa_c : tau_"gen"$ and $tau prec.eq tau_"gen"$, then `"RConst"(kappa_c, tau)` is a well-formed resolved term and may appear in any rule premise requiring type $tau$.
 
 *Remark (No Monomorphic Lockout).*
 A constant introduced once at principal schema (e.g. $"fun"(alpha, alpha)$) is usable at all admissible instances (e.g. $"fun"("bool", "bool")$, $"fun"("int", "int")$), rather than requiring one separately named constant per instance type.
@@ -489,7 +489,7 @@ A constant introduced once at principal schema (e.g. $"fun"(alpha, alpha)$) is u
 == Stability Theorem for Scope Mutation
 
 *Theorem (Resolved-Theorem Stability Under Scope Mutation).*
-If $Sigma_c ; Gamma tack.r t ⇓ t_r$ and $Gamma tack.r.r t_r : tau$, then for any later signature stack mutation sequence $mu$ (push/pop/shadowing on non-reserved names), the established typing fact for $t_r$ remains valid:
+If $Sigma_c ; Gamma tack.r t arrow.b.double t_r$ and $Gamma tack.r.r t_r : tau$, then for any later signature stack mutation sequence $mu$ (push/pop/shadowing on non-reserved names), the established typing fact for $t_r$ remains valid:
 $
   Gamma tack.r.r t_r : tau
 $
@@ -533,14 +533,14 @@ To make beta operationally precise, we fix two recursive operators on typed De B
 For shift, written $"shift"(delta, c, d)$ with increment $delta$ and cutoff $c$:
 
 - $"shift"(delta, c, "DBound"(k, tau)) = "DBound"(k, tau)$, when $k < c$.
-- $"shift"(delta, c, "DBound"(k, tau)) = "DBound"(k + delta, tau)$, when $k >= c$.
+- $"shift"(delta, c, "DBound"(k, tau)) = "DBound"(k + delta, tau)$, when $k gt.eq c$.
 - $"shift"(delta, c, "DComb"(f, x)) = "DComb"("shift"(delta, c, f), "shift"(delta, c, x))$.
 - $"shift"(delta, c, "DAbs"(tau, t)) = "DAbs"(tau, "shift"(delta, c + 1, t))$.
 
 For substitution, written $"subst"(j, s, d)$:
 
 - $"subst"(j, s, "DBound"(k, tau)) = s$, when $k = j$ and $"type_of"(s) = tau$.
-- $"subst"(j, s, "DBound"(k, tau)) = "DBound"(k, tau)$, when $k != j$.
+- $"subst"(j, s, "DBound"(k, tau)) = "DBound"(k, tau)$, when $k eq.not j$.
 - $"subst"(j, s, "DComb"(f, x)) = "DComb"("subst"(j, s, f), "subst"(j, s, x))$.
 - $"subst"(j, s, "DAbs"(tau, t)) = "DAbs"(tau, "subst"(j + 1, "shift"(1, 0, s), t))$.
 
@@ -553,7 +553,7 @@ with the side condition $"type_of"(u) = tau$.
 *Invariant (Typed-Core Injectivity).*
 De Bruijn structural equality is type-sensitive:
 $
-  "DAbs"(tau_1, t_1) = "DAbs"(tau_2, t_2) => tau_1 = tau_2 ∧ t_1 = t_2
+  "DAbs"(tau_1, t_1) = "DAbs"(tau_2, t_2) arrow.r.double tau_1 = tau_2 and t_1 = t_2
 $
 Hence abstractions that differ only by binder-domain type are distinct core terms and cannot be merged by structural matching.
 
@@ -564,8 +564,8 @@ Alpha-equivalence, written $t_1 equiv_alpha t_2$, identifies terms up to systema
 The specification uses the following mandatory properties:
 
 1. Reflexive: $t equiv_alpha t$.
-2. Symmetric: $t_1 equiv_alpha t_2 => t_2 equiv_alpha t_1$.
-3. Transitive: $t_1 equiv_alpha t_2 ∧ t_2 equiv_alpha t_3 => t_1 equiv_alpha t_3$.
+2. Symmetric: $t_1 equiv_alpha t_2 arrow.r.double t_2 equiv_alpha t_1$.
+3. Transitive: $t_1 equiv_alpha t_2 and t_2 equiv_alpha t_3 arrow.r.double t_1 equiv_alpha t_3$.
 4. Congruence for constructors (`Comb`, `Abs`) and proposition/equality contexts.
 
 For De Bruijn forms, structural equivalence $tilde.equiv$ is used as the canonical representative-level equality. The boundary lemmas below connect $equiv_alpha$ and $tilde.equiv$.
@@ -631,21 +631,21 @@ Any named-side premise matching required by primitive rules is interpreted modul
 *Lemma (Type-Sensitive Core Matching).*
 Boundary lowering preserves binder-domain type labels. Therefore, if two named abstractions differ in binder-domain type, their lowered typed De Bruijn forms are not structurally equal:
 $
-  "Term"_arrow.b" "(λ(x : tau_1). t_1) != "Term"_arrow.b" "(λ(y : tau_2). t_2)
+  "Term"_arrow.b" "(lambda (x : tau_1). t_1) eq.not "Term"_arrow.b" "(lambda (y : tau_2). t_2)
 $
-whenever $tau_1 != tau_2$, even if bodies are De Bruijn-index isomorphic.
+whenever $tau_1 eq.not tau_2$, even if bodies are De Bruijn-index isomorphic.
 
 *Lemma (Term Denotation Preservation Across Boundary).*
 If $"Term"_arrow.b" "t mapsto d$, then for every valuation/model pair $(rho, M)$:
 $
-  ⟦t⟧_(rho, M) = ⟦d⟧_(rho, M)
+  bracket.l.stroked t bracket.r.stroked_(rho, M) = bracket.l.stroked d bracket.r.stroked_(rho, M)
 $
 where the right-hand side denotes De Bruijn evaluation under the environment induced by $rho$.
 
 *Lemma (Sequent Denotation Preservation Across Boundary).*
 If $"Thm"_arrow.b" "A_p tack.r p mapsto A_d tack.r p_d$, then semantic validity is preserved:
 $
-  (A_p tack.r p) " valid " <=> (A_d tack.r p_d) " valid "
+  (A_p tack.r p) " valid " arrow.l.r.double (A_d tack.r p_d) " valid "
 $
 
 *Theorem (Semantic Rule Lifting Safety).*
@@ -655,7 +655,7 @@ $
 $
 is semantically preserving on its defined domain:
 $
-  "valid"(x_d) => "valid"(R_d(x_d))
+  "valid"(x_d) arrow.r.double "valid"(R_d(x_d))
 $
 Then the lifted named rule
 $
@@ -687,7 +687,7 @@ $
 $
 on all inputs where boundary conversions and core rule execution succeed, together with
 $
-  "valid"(x) => "valid"(y)
+  "valid"(x) arrow.r.double "valid"(y)
 $
 under the denotation-preservation lemmas above.
 
@@ -728,7 +728,7 @@ Insertion in current scope:
 $
   A(S, c : tau)
 $
-is allowed iff $c ∉ "dom"(S_n)$.
+is allowed iff $c in.not "dom"(S_n)$.
 
 From these definitions:
 
@@ -742,7 +742,7 @@ Proof sketch: insertion in the pushed scope only affects the temporary innermost
 
 *Proposition (Scope-Local Uniqueness).*
 if $c$ is already defined in innermost scope $S_n$, then $A(S, c : tau)$ fails.
-Proof sketch: insertion side condition requires $c ∉ "dom"(S_n)$; violating this condition blocks the rule.
+Proof sketch: insertion side condition requires $c in.not "dom"(S_n)$; violating this condition blocks the rule.
 
 These properties specify the intended behavior of `sig_push_scope`, `sig_pop_scope`, `sig_lookup_const`, and scoped insertion APIs.
 
@@ -760,7 +760,7 @@ with $p$ a boolean term and $Gamma_p$ a finite set of boolean assumptions.
 
 To keep rule behavior binder-name invariant, assumptions are not raw syntax sets. They are finite sets of alpha-equivalence classes:
 $
-  Gamma_p ⊆ "Term" "/" equiv_alpha
+  Gamma_p subset.eq "Term" "/" equiv_alpha
 $
 with all elements constrained to type $"bool"$.
 
@@ -802,7 +802,7 @@ QED permits signature growth only through conservative admissible extension gate
 *Rule Schema (New Constant by Definition).*
 Given base theory $T$ and fresh constant $c$:
 $
-  (" "c ∉ "DefHeads"(T) , c ∉ "Reserved" , Gamma tack.r r : tau , "closed"(r, Gamma = "empty") , "acyclic"(r, c) , "TVars"(r) ⊆ "TVars"(tau)" ")
+  (" "c in.not "DefHeads"(T) , c in.not "Reserved" , Gamma tack.r r : tau , "closed"(r, Gamma = "empty") , "acyclic"(r, c) , "TVars"(r) subset.eq "TVars"(tau)" ")
   /
   (T mapsto T + {"def" c : tau = r})
 $
@@ -815,7 +815,7 @@ Mandatory side conditions:
 4. *Non-circularity*: $r$ does not mention $c$ (directly or via definitional cycle).
 5. *Type-Variable Closure*: free type variables in $r$ are constrained by the declared head type:
   $
-    "TVars"(r) ⊆ "TVars"(tau)
+    "TVars"(r) subset.eq "TVars"(tau)
   $
   so no ghost type variable can appear only in the body.
 
@@ -828,7 +828,7 @@ Scoped insertion rules may allow same-name shadowing for ordinary local constant
 *Theorem (Conservativity of Definitional Extension).*
 Let $T'$ be obtained from $T$ by one admissible definitional extension above. For every theorem statement $p_0$ in the old language of $T$:
 $
-  T' tack.r p_0 => T tack.r p_0
+  T' tack.r p_0 arrow.r.double T tack.r p_0
 $
 Hence new definitions add abbreviatory power without increasing provability over the old signature.
 
@@ -842,7 +842,7 @@ defined as the conjunction of Conditions 1--5 above.
 
 Admissible extension step:
 $
-  "DefOK"(T, c : tau = r) => T mapsto T + {"def" c : tau = r}
+  "DefOK"(T, c : tau = r) arrow.r.double T mapsto T + {"def" c : tau = r}
 $
 
 *Lemma (Definition Theorem Shape).*
@@ -877,7 +877,7 @@ $
 $
 iff all conditions below hold:
 
-1. Freshness: $c ∉ "DefHeads"(T)$, $c ∉ "Reserved"$, and $c$ is not already in theory symbol tables.
+1. Freshness: $c in.not "DefHeads"(T)$, $c in.not "Reserved"$, and $c$ is not already in theory symbol tables.
 2. Witness theorem shape: there exists a theorem with empty assumptions ($Gamma = "empty"$):
   $
     tack.r exists x : tau. P(x)
@@ -885,7 +885,7 @@ iff all conditions below hold:
 3. Term closure: $P(x)$ has no free term variable except $x$.
 4. Type-variable closure:
   $
-    "TVars"(P) ⊆ "TVars"(tau)
+    "TVars"(P) subset.eq "TVars"(tau)
   $
   (no type variable appears in $P$ that is absent from the declared type of $c$).
 5. Strict type-schema lock:
@@ -913,7 +913,7 @@ explicit conditions above; no additional silent premise is allowed.
 If $T'$ is obtained from $T$ by one admissible `SpecOK` step and $phi$ is a sentence
 in the old language of $T$, then:
 $
-  T' tack.r phi => T tack.r phi
+  T' tack.r phi arrow.r.double T tack.r phi
 $
 This is a mandatory proof obligation for the specification gate design.
 
@@ -1090,7 +1090,7 @@ Input:
 
 Output:
 
-- theorem $A_p tack.r λ (x : tau). s = λ (x : tau). t$.
+- theorem $A_p tack.r lambda (x : tau). s = lambda (x : tau). t$.
 
 Side conditions:
 
@@ -1108,7 +1108,7 @@ Antecedent form:
 $
   (A_p tack.r s = t)
   /
-  (" "A_p tack.r λ (x : tau). s = λ (x : tau). t" ")
+  (" "A_p tack.r lambda (x : tau). s = lambda (x : tau). t" ")
 $
 
 == Rule Schema: `BETA`
@@ -1121,7 +1121,7 @@ Output:
 
 - theorem $tack.r ("DComb"("DAbs"(tau, t), u)) = "beta"(("DAbs"(tau, t)) u)$.
 
-This is the De Bruijn substitution form (with the usual shift and shift-back to avoid capture). It corresponds to the named rule $tack.r ((λ (x : tau). s) u) = s[u\/x]$ under boundary conversion.
+This is the De Bruijn substitution form (with the usual shift and shift-back to avoid capture). It corresponds to the named rule $tack.r ((lambda (x : tau). s) u) = s[u\/x]$ under boundary conversion.
 
 Side conditions:
 
@@ -1228,7 +1228,7 @@ Side conditions:
 2. every target type in $theta$ must be a well-formed type admitted by the current type-extension discipline (`TypeDefOK`-closed theory state);
 3. substitution application must preserve term well-typedness;
 4. if the theorem being instantiated is a definitional theorem produced under `DefOK`, the instantiated head/body pair must satisfy definitional instantiation coherence (no body-only type drift);
-5. for every constant occurrence `"RConst"(kappa_c, tau_i)` in the theorem, instantiated type arguments must still satisfy $tau_i ≼ tau_"gen"(kappa_c)$;
+5. for every constant occurrence `"RConst"(kappa_c, tau_i)` in the theorem, instantiated type arguments must still satisfy $tau_i prec.eq tau_"gen"(kappa_c)$;
 6. theorem structure must be preserved under parallel type substitution.
 
 Failure clauses:
@@ -1252,7 +1252,7 @@ This rule is soundness-linked to three upstream contracts:
 
 - definition admissibility (`DefOK`) prevents ghost-type-variable drift under instantiation;
 - type admissibility (`TypeDefOK`) prevents empty-type semantic escape in substitution targets;
-- constant principal-schema instantiation guard (`≼`) permits polymorphic constant use without collapsing type checks;
+- constant principal-schema instantiation guard (`prec.eq`) permits polymorphic constant use without collapsing type checks;
 - global admissibility envelope forbids bypassing either gate during theorem production.
 
 == Rule Schema: `INST`
@@ -1370,7 +1370,7 @@ Initial built-in types (before user extensions) are interpreted by non-empty sem
 *Assumption (Explicit Infinity Anchor).*
 There exists a distinguished foundation type `"ind"` and a function $f : "ind" -> "ind"$ such that:
 $
-  "Injective"(f) ∧ ¬"Surjective"(f)
+  "Injective"(f) and not "Surjective"(f)
 $
 This assumption is explicit and is part of the trusted baseline. No hidden implementation
 shortcut may replace it.
@@ -1378,7 +1378,7 @@ shortcut may replace it.
 *Definition (Canonical Infinity-Anchor Theorem Identifier).*
 The exported theorem name `"IND_INFINITY_AXIOM"` denotes exactly the sentence:
 $
-  tack.r exists f : "fun"("ind", "ind"). "Injective"(f) ∧ ¬"Surjective"(f)
+  tack.r exists f : "fun"("ind", "ind"). "Injective"(f) and not "Surjective"(f)
 $
 No alternate theorem shape may be treated as equivalent by implementation policy alone.
 
@@ -1396,11 +1396,11 @@ choice-compatible model class.
 *Meta-Theorem Target (Global Conservativity Under Admissible Extensions).*
 Let $T'$ be obtained from $T$ by a finite sequence of admissible steps from
 $
-  {"DefOK", "TypeDefOK", "SpecOK"}  " (where SpecOK is derived over Choice + DefOK)"
+  {"DefOK", "TypeDefOK", "SpecOK"} " (where SpecOK is derived over Choice + DefOK)"
 $
 Then for any sentence $phi$ over the old language of $T$:
 $
-  T' tack.r phi => T tack.r phi
+  T' tack.r phi arrow.r.double T tack.r phi
 $
 This target is normative: any extension design failing this goal is rejected.
 
@@ -1409,11 +1409,11 @@ This target is normative: any extension design failing this goal is rejected.
 *Property (Type Preservation for `MK_COMB`).*
 Assume premises $A_p tack.r f = g$ and $B_p tack.r x = y$, with
 $
-  (" "Gamma tack.r.r f_r : "fun"(tau_1, tau_2) ∧ Gamma tack.r.r g_r : "fun"(tau_1, tau_2) ∧ Gamma tack.r.r x_r : tau_1 ∧ Gamma tack.r.r y_r : tau_1" ")
+  (" "Gamma tack.r.r f_r : "fun"(tau_1, tau_2) and Gamma tack.r.r g_r : "fun"(tau_1, tau_2) and Gamma tack.r.r x_r : tau_1 and Gamma tack.r.r y_r : tau_1" ")
 $
 Then by application typing,
 $
-  (" "Gamma tack.r.r f_r" "x_r : tau_2 ∧ Gamma tack.r.r g_r" "y_r : tau_2" ")
+  (" "Gamma tack.r.r f_r" "x_r : tau_2 and Gamma tack.r.r g_r" "y_r : tau_2" ")
 $
 and therefore
 $
@@ -1453,7 +1453,7 @@ that bypasses any admissibility gate or theorem-admissibility check.
 Given base state $T_0$, extended state $T_1$, and theorem $t_h$, define:
 $
   "ConservativeReplayOK"(T_0, T_1, t_h)
-  := "Admissible"(T_1, t_h) ∧ "SentenceInLanguage"(T_0, t_h) ∧ "Admissible"(T_0, t_h)
+  := "Admissible"(T_1, t_h) and "SentenceInLanguage"(T_0, t_h) and "Admissible"(T_0, t_h)
 $
 This is the executable regression proxy for the conservativity target over old-language sentences.
 
@@ -1542,7 +1542,7 @@ Each primitive rule is required to reference the following dependency blocks.
 - `BETA` -> typed De Bruijn redex shape (`DAbs(tau, ...)`); binder/argument type agreement; well-scoped substitution lemmas; boundary lift stability.
 - `EQ_MP` -> boolean equality premise typing; alpha-aware premise matching; assumption union laws.
 - `DEDUCT_ANTISYM_RULE` -> quotient removal law; proposition typing for both conclusions; equality formation.
-- `INST_TYPE` -> well-formed type substitution; typing preservation under type substitution; theorem-structure preservation; definitional-instantiation coherence under `DefOK`; non-empty type admissibility under `TypeDefOK`; constant principal-schema instance preservation (`≼`).
+- `INST_TYPE` -> well-formed type substitution; typing preservation under type substitution; theorem-structure preservation; definitional-instantiation coherence under `DefOK`; non-empty type admissibility under `TypeDefOK`; constant principal-schema instance preservation (`prec.eq`).
 - `INST` -> parallel capture-avoiding substitution; domain key well-formedness; typing preservation under term substitution.
 
 Acceptance condition for this matrix:
@@ -1560,7 +1560,7 @@ Checklist for minimal audit-ready closure:
 4. Assumption sets defined as finite alpha-quotient sets.
 5. Boundary conversion includes denotation-preserving lemmas.
 6. Rule lifting theorem upgraded from structural to semantic preservation.
-7. Definitional extension side conditions include type-variable closure ($"TVars"(r) ⊆ "TVars"(tau)$).
+7. Definitional extension side conditions include type-variable closure ($"TVars"(r) subset.eq "TVars"(tau)$).
 8. `DefOK` admissibility judgment and global admissibility envelope are stated and referenced.
 9. Primitive-rule dependency matrix completed (10/10 coverage).
 10. Soundness dependency graph present and cited by soundness obligations.
@@ -1568,11 +1568,11 @@ Checklist for minimal audit-ready closure:
 12. Type-constructor extensions are gated by `TypeDefOK` with non-empty witness discipline.
 13. Global theory history (`DefHeads`) is separated from local poppable scope and is monotone.
 14. De Bruijn core matching is type-sensitive (no binder-domain type erasure during boundary lowering).
-15. Constant typing uses principal schema + instance relation (`tau ≼ tau_gen`) so polymorphic constants remain usable at admissible instances.
+15. Constant typing uses principal schema + instance relation (`tau prec.eq tau_gen`) so polymorphic constants remain usable at admissible instances.
 16. Primitive choice operator (`@`) and its axiom schema are explicitly stated in foundations.
 17. `SpecOK` is documented as a derived admission rule (Choice + `DefOK`), not a standalone primitive rule.
 18. Infinity-anchor theorem identifier (`IND_INFINITY_AXIOM`) is explicitly fixed.
-19. Typedef admission persists the fixed three-theorem product contract (Abs∘Rep, Rep-range, conditional Rep∘Abs).
+19. Typedef admission persists the fixed three-theorem product contract (AbscomposeRep, Rep-range, conditional RepcomposeAbs).
 20. Minimal extension certificates are emitted for `DefOK` / `TypeDefOK` / `SpecOK` and remain audit-only.
 21. Executable old-language replay check (`ConservativeReplayOK`) is present for conservativity regressions.
 
@@ -1583,8 +1583,8 @@ This checklist is consumed as an implementation/regression gate (not only a pre-
 Audit scenarios focused on definition-layer completeness:
 
 1. *Ghost-Type Rejection Scenario*:
-  attempt $"def" c : "bool" = r(alpha)$ with $alpha ∉ "TVars"("bool")$;
-  expected result: rejected by `TVars(r) ⊆ TVars(tau)`.
+  attempt $"def" c : "bool" = r(alpha)$ with $alpha in.not "TVars"("bool")$;
+  expected result: rejected by `TVars(r) subset.eq TVars(tau)`.
 2. *Instantiation Coherence Scenario*:
   from an admissible definition theorem $tack.r c = r$, apply $"INST_TYPE"$ on head variables;
   expected result: instantiated head/body remain coherent as one definitional instance.
@@ -1617,7 +1617,7 @@ Audit scenarios focused on type-extension completeness:
   expected result: blocked because no empty type can be introduced admissibly.
 5. *Polymorphic Constant Instantiation Scenario*:
   define $id$ at principal schema $"fun"(alpha, alpha)$, then use it at $"fun"("bool", "bool")$ and $"fun"("int", "int")$;
-  expected result: both uses are accepted via the instance relation $tau ≼ tau_"gen"$, without requiring per-type renamed constants.
+  expected result: both uses are accepted via the instance relation $tau prec.eq tau_"gen"$, without requiring per-type renamed constants.
 
 Passing all five scenarios is required before claiming type-layer soundness closure.
 
@@ -1626,8 +1626,8 @@ Passing all five scenarios is required before claiming type-layer soundness clos
 Audit scenarios focused on typed-core/boundary consistency:
 
 1. *Binder-Type Distinction Scenario*:
-  compare $lambda (x:tau_1). x$ and $lambda (x:tau_2). x$ with $tau_1 != tau_2$;
-  expected result: lowered typed De Bruijn abstractions are distinct ($"DAbs"(tau_1, ...) != "DAbs"(tau_2, ...)$).
+  compare $lambda (x:tau_1). x$ and $lambda (x:tau_2). x$ with $tau_1 eq.not tau_2$;
+  expected result: lowered typed De Bruijn abstractions are distinct ($"DAbs"(tau_1, ...) eq.not "DAbs"(tau_2, ...)$).
 2. *TRANS Middle-Term Guard Scenario*:
   chain two equalities whose middle terms are structurally similar but differ in binder-domain type labels;
   expected result: TRANS rejects by typed-core mismatch.

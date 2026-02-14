@@ -7,3 +7,4 @@ PLAN.md
 !doc/*.pdf
 *.typ
 !doc/*.typ
+doc/TRICK.md
