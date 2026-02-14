@@ -191,6 +191,18 @@ pub fn tyvars(HolType) -> Array[String]
 pub fn tyvars_subset(HolType, HolType) -> Bool
 
 // Errors
+pub suberror LogicError {
+  TypeMismatch
+  VariableCaptured
+  NotAnEquality
+  NotBoolTerm
+  AlphaMismatch
+  InvalidInstantiation
+  VarFreeInHyp
+  NotTrivialBetaRedex
+  BoundaryFailure
+}
+
 pub suberror SigError {
   DuplicateConstName
   ConstTypeConflict
@@ -225,18 +237,6 @@ pub enum HolType {
 }
 
 type KernelState
-
-pub enum LogicError {
-  TypeMismatch
-  VariableCaptured
-  NotAnEquality
-  NotBoolTerm
-  AlphaMismatch
-  InvalidInstantiation
-  VarFreeInHyp
-  NotTrivialBetaRedex
-  BoundaryFailure
-}
 
 pub enum Term {
   Var(String, HolType)

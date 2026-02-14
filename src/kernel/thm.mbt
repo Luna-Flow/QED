@@ -1,6 +1,6 @@
 ///|
 /// Kernel-visible error taxonomy aligned with the formal specification.
-pub enum LogicError {
+pub suberror LogicError {
   TypeMismatch
   VariableCaptured
   NotAnEquality
