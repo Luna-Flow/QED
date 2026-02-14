@@ -92,6 +92,8 @@ pub fn ks_has_type_witness(KernelState, String, Int) -> Bool
 
 pub fn ks_lookup_const(KernelState, String) -> HolType?
 
+pub fn ks_lookup_const_id(KernelState, String) -> Int?
+
 pub fn ks_pop_scope(KernelState) -> Result[KernelState, SigError]
 
 pub fn ks_push_scope(KernelState) -> KernelState
@@ -135,6 +137,8 @@ pub fn sig_define_const_e(GlobalSig, String, Term) -> Result[(GlobalSig, Term), 
 pub fn sig_has_const(GlobalSig, String) -> Bool
 
 pub fn sig_lookup_const(GlobalSig, String) -> HolType?
+
+pub fn sig_lookup_const_id(GlobalSig, String) -> Int?
 
 pub fn sig_mk_const(GlobalSig, String) -> Term?
 
@@ -226,7 +230,7 @@ pub enum DbTerm {
 }
 
 pub enum GlobalSig {
-  Sig(Array[Array[(String, HolType)]])
+  Sig(Array[Array[(String, Int, HolType)]])
 }
 
 pub enum HolType {
@@ -246,6 +250,7 @@ pub enum Term {
 type Thm
 
 // Type aliases
+pub type ConstId = Int
 
 // Traits
 

@@ -1,7 +1,7 @@
 ///|
 /// Scoped constant signature used for name lookup.
 pub enum GlobalSig {
-  Sig(Array[Array[(String, HolType)]])
+  Sig(Array[Array[(String, ConstId, HolType)]])
 }
 
 ///|
@@ -22,9 +22,13 @@ pub suberror SigError {
 }
 
 ///|
+pub type ConstId = Int
+
+///|
 priv struct TheoryState {
   def_heads : Array[String]
   witnessed_tycons : Array[(String, Int)]
+  next_const_id : ConstId
 }
 
 ///|
@@ -82,18 +86,21 @@ pub fn sig_pop_scope_e(sig : GlobalSig) -> Result[GlobalSig, SigError] {
 }
 
 ///|
-fn lookup_in_scope(scope : Array[(String, HolType)], name : String) -> HolType? {
+fn lookup_in_scope(
+  scope : Array[(String, ConstId, HolType)],
+  name : String,
+) -> (ConstId, HolType)? {
   for entry in scope {
-    let (n, ty) = entry
+    let (n, id, ty) = entry
     if n == name {
-      return Some(ty)
+      return Some((id, ty))
     }
   }
   None
 }
 
 ///|
-fn current_scope_lookup(sig : GlobalSig, name : String) -> HolType? {
+fn current_scope_lookup(sig : GlobalSig, name : String) -> (ConstId, HolType)? {
   match sig {
     Sig(scopes) =>
       if scopes.length() == 0 {
@@ -111,19 +118,55 @@ pub fn sig_has_const(sig : GlobalSig, name : String) -> Bool {
 
 ///|
 pub fn sig_lookup_const(sig : GlobalSig, name : String) -> HolType? {
+  match sig_lookup_const_with_id(sig, name) {
+    Some((_, ty)) => Some(ty)
+    None => None
+  }
+}
+
+///|
+pub fn sig_lookup_const_id(sig : GlobalSig, name : String) -> ConstId? {
+  match sig_lookup_const_with_id(sig, name) {
+    Some((id, _)) => Some(id)
+    None => None
+  }
+}
+
+///|
+fn sig_lookup_const_with_id(
+  sig : GlobalSig,
+  name : String,
+) -> (ConstId, HolType)? {
   match sig {
     Sig(scopes) => {
       let mut i = scopes.length()
       while i > 0 {
         i = i - 1
         match lookup_in_scope(scopes[i], name) {
-          Some(ty) => return Some(ty)
+          Some((id, ty)) => return Some((id, ty))
           None => ()
         }
       }
       None
     }
   }
+}
+
+///|
+fn sig_next_const_id(sig : GlobalSig) -> ConstId {
+  let mut next = 0
+  match sig {
+    Sig(scopes) =>
+      for scope in scopes {
+        for entry in scope {
+          let (_, id, _) = entry
+          if id >= next {
+            next = id + 1
+          }
+        }
+      }
+  }
+  next
 }
 
 ///|
@@ -143,9 +186,10 @@ pub fn sig_add_const(
           if scopes.length() == 0 {
             None
           } else {
+            let id = sig_next_const_id(sig)
             let out = scopes.copy()
             let top = out[out.length() - 1].copy()
-            top.push((name, ty))
+            top.push((name, id, ty))
             out[out.length() - 1] = top
             Some(Sig(out))
           }
@@ -163,7 +207,7 @@ pub fn sig_add_const_idempotent(
     return None
   }
   match current_scope_lookup(sig, name) {
-    Some(existing) => if ty_eq(existing, ty) { Some(sig) } else { None }
+    Some((_, existing)) => if ty_eq(existing, ty) { Some(sig) } else { None }
     None => sig_add_const(sig, name, ty)
   }
 }
@@ -178,7 +222,7 @@ pub fn sig_add_const_idempotent_e(
     return Err(ReservedSymbol)
   }
   match current_scope_lookup(sig, name) {
-    Some(existing) =>
+    Some((_, existing)) =>
       if ty_eq(existing, ty) {
         Ok(sig)
       } else {
@@ -266,7 +310,11 @@ pub fn sig_define_const_e(
 pub fn empty_kernel_state() -> KernelState {
   KernelState::{
     sig: empty_sig(),
-    theory: TheoryState::{ def_heads: [], witnessed_tycons: [] },
+    theory: TheoryState::{
+      def_heads: [],
+      witnessed_tycons: [],
+      next_const_id: 0,
+    },
   }
 }
 
@@ -351,6 +399,11 @@ pub fn ks_type_subst_is_admissible(
 }
 
 ///|
+pub fn ks_lookup_const_id(state : KernelState, name : String) -> ConstId? {
+  sig_lookup_const_id(state.sig, name)
+}
+
+///|
 pub fn ks_register_type_definition(
   state : KernelState,
   tycon : String,
@@ -373,6 +426,7 @@ pub fn ks_register_type_definition(
     theory: TheoryState::{
       def_heads: state.theory.def_heads,
       witnessed_tycons: witnessed,
+      next_const_id: state.theory.next_const_id,
     },
   })
 }
@@ -417,6 +471,7 @@ pub fn ks_define_const(
                     theory: TheoryState::{
                       def_heads,
                       witnessed_tycons: state.theory.witnessed_tycons,
+                      next_const_id: state.theory.next_const_id,
                     },
                   }
                   Ok((state2, def_eq))

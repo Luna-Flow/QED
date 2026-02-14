@@ -28,11 +28,20 @@ test "sig supports lexical shadowing and pop restoration" {
   let a = mk_tyvar("A")
   let b = mk_tyvar("B")
   let sig1 = expect_ok_sig(sig_add_const_idempotent_e(empty_sig(), "C", a))
+  let outer_id = sig_lookup_const_id(sig1, "C")
+  assert_true(outer_id is Some(_))
   let sig2 = sig_push_scope(sig1)
   let sig3 = expect_ok_sig(sig_add_const_idempotent_e(sig2, "C", b))
   assert_true(sig_lookup_const(sig3, "C") is Some(TyVal("B")))
+  let inner_id = sig_lookup_const_id(sig3, "C")
+  assert_true(inner_id is Some(_))
+  match (outer_id, inner_id) {
+    (Some(oid), Some(iid)) => assert_false(oid == iid)
+    _ => assert_false(true)
+  }
   let sig4 = expect_ok_sig(sig_pop_scope_e(sig3))
   assert_true(sig_lookup_const(sig4, "C") is Some(TyVal("A")))
+  assert_true(sig_lookup_const_id(sig4, "C") == outer_id)
 }
 
 ///|
@@ -121,4 +130,21 @@ test "state admissible type checks honor witnesses and builtin tycons" {
   assert_true(ks_type_is_admissible(st1, custom))
   assert_true(ks_type_subst_is_admissible(st1, [("A", custom)]))
   assert_false(ks_type_subst_is_admissible(st0, [("A", custom)]))
+}
+
+///|
+test "kernel state exposes stable const ids for lookups" {
+  let st0 = empty_kernel_state()
+  let a = mk_tyvar("A")
+  let st1 = expect_ok_sig(ks_add_const(st0, "k", a))
+  let id1 = ks_lookup_const_id(st1, "k")
+  assert_true(id1 is Some(_))
+  let st2 = ks_push_scope(st1)
+  let st3 = expect_ok_sig(ks_add_const(st2, "k", a))
+  let id2 = ks_lookup_const_id(st3, "k")
+  assert_true(id2 is Some(_))
+  match (id1, id2) {
+    (Some(v1), Some(v2)) => assert_false(v1 == v2)
+    _ => assert_false(true)
+  }
 }
