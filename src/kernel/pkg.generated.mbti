@@ -58,9 +58,7 @@ pub fn hol_type_to_string(HolType) -> String
 
 pub fn inst(Array[(Term, Term)], Thm) -> Result[Thm, LogicError]
 
-pub fn inst_type(Array[(String, HolType)], Thm) -> Result[Thm, LogicError]
-
-pub fn inst_type_checked(KernelState, Array[(String, HolType)], Thm) -> Result[Thm, LogicError]
+pub fn inst_type(KernelState, Array[(String, HolType)], Thm) -> Result[Thm, LogicError]
 
 pub fn is_abs(Term) -> Bool
 

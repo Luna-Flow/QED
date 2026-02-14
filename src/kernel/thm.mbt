@@ -409,23 +409,7 @@ fn theorem_def_inst_coherent(state : KernelState, th : Thm) -> Bool {
 }
 
 ///|
-pub fn inst_type(
-  subst : Array[(String, HolType)],
-  th : Thm,
-) -> Result[Thm, LogicError] {
-  if has_duplicate_ty_subst_keys(subst) {
-    return Err(InvalidInstantiation)
-  }
-  Ok(
-    mk_thm(
-      th.hyps.map(fn(h) { db_apply_ty_subst(subst, h) }),
-      db_apply_ty_subst(subst, th.concl),
-    ),
-  )
-}
-
-///|
-pub fn inst_type_checked(
+fn inst_type_checked(
   state : KernelState,
   subst : Array[(String, HolType)],
   th : Thm,
@@ -447,6 +431,16 @@ pub fn inst_type_checked(
     return Err(InvalidInstantiation)
   }
   Ok(out)
+}
+
+///|
+/// Type instantiation must be checked against kernel state admissibility.
+pub fn inst_type(
+  state : KernelState,
+  subst : Array[(String, HolType)],
+  th : Thm,
+) -> Result[Thm, LogicError] {
+  inst_type_checked(state, subst, th)
 }
 
 ///|

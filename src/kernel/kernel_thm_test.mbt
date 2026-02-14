@@ -137,53 +137,52 @@ test "deduct_antisym_rule removes opposite assumptions" {
 
 ///|
 test "inst_type validates substitution shape" {
+  let st = empty_kernel_state()
   let a = mk_tyvar("A")
   let b = mk_tyvar("B")
   let x = mk_var("x", a)
   let th = expect_ok(refl(x))
-  assert_true(inst_type([("A", b)], th) is Ok(_))
+  assert_true(inst_type(st, [("A", b)], th) is Ok(_))
   assert_true(
-    inst_type([("A", b), ("A", bool_ty())], th) is Err(InvalidInstantiation),
+    inst_type(st, [("A", b), ("A", bool_ty())], th) is Err(InvalidInstantiation),
   )
 }
 
 ///|
-test "inst_type_checked enforces admissible type targets" {
+test "inst_type enforces admissible type targets" {
   let st0 = empty_kernel_state()
   let a = mk_tyvar("A")
   let x = mk_var("x", a)
   let th = expect_ok(refl(x))
   let custom = mk_tyapp("custom", [a])
 
-  assert_true(
-    inst_type_checked(st0, [("A", custom)], th) is Err(InvalidInstantiation),
-  )
+  assert_true(inst_type(st0, [("A", custom)], th) is Err(InvalidInstantiation))
 
   let st1 = expect_ok_sig_for_thm(
     ks_register_type_definition(st0, "custom", 1, true),
   )
-  assert_true(inst_type_checked(st1, [("A", custom)], th) is Ok(_))
+  assert_true(inst_type(st1, [("A", custom)], th) is Ok(_))
 }
 
 ///|
-test "inst_type_checked enforces constant schema instances" {
+test "inst_type enforces constant schema instances" {
   let st0 = empty_kernel_state()
   let a = mk_tyvar("A")
   let bool = bool_ty()
 
   let st1 = expect_ok_sig_for_thm(ks_add_const(st0, "id", fun_ty(a, a)))
   let th_ok = expect_ok(refl(mk_const("id", fun_ty(a, a))))
-  assert_true(inst_type_checked(st1, [("A", bool)], th_ok) is Ok(_))
+  assert_true(inst_type(st1, [("A", bool)], th_ok) is Ok(_))
 
   let th_bad = expect_ok(refl(mk_const("id", fun_ty(bool, a))))
-  assert_true(inst_type_checked(st1, [], th_bad) is Err(TypeMismatch))
+  assert_true(inst_type(st1, [], th_bad) is Err(TypeMismatch))
 
   let th_unknown = expect_ok(refl(mk_const("u", bool)))
-  assert_true(inst_type_checked(st1, [], th_unknown) is Err(TypeMismatch))
+  assert_true(inst_type(st1, [], th_unknown) is Err(TypeMismatch))
 }
 
 ///|
-test "inst_type_checked enforces definition instantiation coherence" {
+test "inst_type enforces definition instantiation coherence" {
   let st0 = empty_kernel_state()
   let a = mk_tyvar("A")
   let id_ty = fun_ty(a, a)
@@ -191,8 +190,8 @@ test "inst_type_checked enforces definition instantiation coherence" {
   let (st1, def_th) = expect_ok_sig_for_thm(
     ks_define_const_thm(st0, "id", id_ty, rhs_id),
   )
-  assert_true(inst_type_checked(st1, [("A", bool_ty())], def_th) is Ok(_))
-  assert_true(inst_type_checked(st1, [("A", mk_tyvar("B"))], def_th) is Ok(_))
+  assert_true(inst_type(st1, [("A", bool_ty())], def_th) is Ok(_))
+  assert_true(inst_type(st1, [("A", mk_tyvar("B"))], def_th) is Ok(_))
 }
 
 ///|
