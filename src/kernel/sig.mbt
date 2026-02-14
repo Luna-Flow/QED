@@ -506,7 +506,7 @@ pub fn ks_define_const_thm(
   match ks_define_const(state, name, decl_ty, rhs) {
     Ok((state2, def_eq)) =>
       match to_db_term(def_eq) {
-        Some(eq_db) => Ok((state2, mk_thm([], eq_db)))
+        Some(eq_db) => Ok((state2, mk_def_thm(name, eq_db)))
         None => Err(InvalidConstRhs)
       }
     Err(e) => Err(e)

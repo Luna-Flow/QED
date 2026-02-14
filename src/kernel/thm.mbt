@@ -17,11 +17,26 @@ pub suberror LogicError {
 struct Thm {
   hyps : Array[DbTerm]
   concl : DbTerm
+  def_origin : String?
+}
+
+///|
+fn mk_thm_with_origin(
+  hyps : Array[DbTerm],
+  concl : DbTerm,
+  def_origin : String?,
+) -> Thm {
+  Thm::{ hyps: db_hyps_dedup(hyps), concl, def_origin }
 }
 
 ///|
 fn mk_thm(hyps : Array[DbTerm], concl : DbTerm) -> Thm {
-  Thm::{ hyps: db_hyps_dedup(hyps), concl }
+  mk_thm_with_origin(hyps, concl, None)
+}
+
+///|
+fn mk_def_thm(def_head : String, concl : DbTerm) -> Thm {
+  mk_thm_with_origin([], concl, Some(def_head))
 }
 
 ///|
@@ -387,24 +402,29 @@ fn theorem_const_instances_ok(state : KernelState, th : Thm) -> Bool {
 
 ///|
 fn theorem_def_inst_coherent(state : KernelState, th : Thm) -> Bool {
-  if th.hyps.length() != 0 {
-    return true
-  }
-  match db_dest_eq(th.concl) {
-    Ok((lhs, rhs)) =>
-      match lhs {
-        DbConst(name, lhs_ty) =>
-          if !ks_has_def_head(state, name) {
-            true
-          } else {
-            match lift_term(rhs) {
-              Ok(rhs_term) => term_tyvars_subset(rhs_term, lhs_ty)
-              Err(_) => false
+  match th.def_origin {
+    None => true
+    Some(name) =>
+      if !ks_has_def_head(state, name) || th.hyps.length() != 0 {
+        false
+      } else {
+        match db_dest_eq(th.concl) {
+          Ok((lhs, rhs)) =>
+            match lhs {
+              DbConst(lhs_name, lhs_ty) =>
+                if lhs_name != name {
+                  false
+                } else {
+                  match lift_term(rhs) {
+                    Ok(rhs_term) => term_tyvars_subset(rhs_term, lhs_ty)
+                    Err(_) => false
+                  }
+                }
+              _ => false
             }
-          }
-        _ => true
+          Err(_) => false
+        }
       }
-    Err(_) => true
   }
 }
 
@@ -420,9 +440,10 @@ fn inst_type_checked(
   if !ks_type_subst_is_admissible(state, subst) {
     return Err(InvalidInstantiation)
   }
-  let out = mk_thm(
+  let out = mk_thm_with_origin(
     th.hyps.map(fn(h) { db_apply_ty_subst(subst, h) }),
     db_apply_ty_subst(subst, th.concl),
+    th.def_origin,
   )
   if !theorem_const_instances_ok(state, out) {
     return Err(TypeMismatch)
@@ -456,9 +477,10 @@ pub fn inst(subst : Array[(Term, Term)], th : Thm) -> Result[Thm, LogicError] {
   match validate_db_inst_subst(db_subst) {
     Ok(_) =>
       Ok(
-        mk_thm(
+        mk_thm_with_origin(
           th.hyps.map(fn(h) { db_subst_free_parallel(h, db_subst) }),
           db_subst_free_parallel(th.concl, db_subst),
+          th.def_origin,
         ),
       )
     Err(e) => Err(e)
