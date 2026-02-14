@@ -224,6 +224,7 @@ pub suberror SigError {
   DefinitionIsCyclic
   GhostTypeVariable
   InvalidTypeWitness
+  InvalidTypeArity
   TypeMismatch
 }
 

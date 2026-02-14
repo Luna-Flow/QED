@@ -143,6 +143,20 @@ test "type definition registration is fail-closed without witness" {
 }
 
 ///|
+test "type definition registration validates tycon name and arity" {
+  let st0 = empty_kernel_state()
+  let witness = type_witness_thm("W_arity")
+  assert_true(
+    ks_register_type_definition(st0, "", 1, witness) is Err(InvalidTypeArity),
+  )
+  assert_true(
+    ks_register_type_definition(st0, "newty", -1, witness)
+    is Err(InvalidTypeArity),
+  )
+  assert_true(ks_register_type_definition(st0, "newty0", 0, witness) is Ok(_))
+}
+
+///|
 test "state admissible type checks honor witnesses and builtin tycons" {
   let st0 = empty_kernel_state()
   let a = mk_tyvar("A")

@@ -19,6 +19,7 @@ pub suberror SigError {
   DefinitionIsCyclic
   GhostTypeVariable
   InvalidTypeWitness
+  InvalidTypeArity
   TypeMismatch
 }
 
@@ -454,6 +455,12 @@ pub fn ks_register_type_definition(
   arity : Int,
   witness : Thm,
 ) -> Result[KernelState, SigError] {
+  if arity < 0 {
+    return Err(InvalidTypeArity)
+  }
+  if tycon == "" {
+    return Err(InvalidTypeArity)
+  }
   if thm_hyp_count(witness) != 0 {
     return Err(InvalidTypeWitness)
   }
