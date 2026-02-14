@@ -167,6 +167,26 @@ test "terms to_db_term rejects non-variable binder" {
 }
 
 ///|
+test "terms to_db_term rejects binder name type mismatch" {
+  let a = mk_tyvar("A")
+  let b = mk_tyvar("B")
+  let x_a = mk_var("x", a)
+  let x_b = mk_var("x", b)
+  let bad = mk_abs(x_a, x_b)
+  assert_true(to_db_term(bad) is None)
+}
+
+///|
+test "terms to_db_term rejects shadowed binder type mismatch" {
+  let a = mk_tyvar("A")
+  let b = mk_tyvar("B")
+  let x_a = mk_var("x", a)
+  let x_b = mk_var("x", b)
+  let bad = mk_abs(x_a, mk_abs(x_b, x_a))
+  assert_true(to_db_term(bad) is None)
+}
+
+///|
 test "terms db_term_eq checks structural equality" {
   let a = mk_tyvar("A")
   let x = mk_var("x", a)

@@ -151,26 +151,43 @@ pub fn term_to_string(term : Term) -> String {
 }
 
 ///|
-fn lookup_db_index(stack : Array[String], name : String) -> Int? {
+priv enum DbLookupResult {
+  FreeVar
+  BoundIndex(Int)
+  TypeMismatch
+}
+
+///|
+fn lookup_db_index(
+  stack : Array[(String, HolType)],
+  name : String,
+  ty : HolType,
+) -> DbLookupResult {
   let mut i = 0
   let n = stack.length()
   while i < n {
     let idx = n - 1 - i
-    if stack[idx] == name {
-      return Some(i)
+    let (bound_name, bound_ty) = stack[idx]
+    if bound_name == name {
+      if ty_eq(bound_ty, ty) {
+        return BoundIndex(i)
+      } else {
+        return TypeMismatch
+      }
     }
     i = i + 1
   }
-  None
+  FreeVar
 }
 
 ///|
-fn to_db_term_with_env(term : Term, env : Array[String]) -> DbTerm? {
+fn to_db_term_with_env(term : Term, env : Array[(String, HolType)]) -> DbTerm? {
   match term {
     Var(name, ty) =>
-      match lookup_db_index(env, name) {
-        Some(i) => Some(DbBound(i, ty))
-        None => Some(DbFree(name, ty))
+      match lookup_db_index(env, name, ty) {
+        BoundIndex(i) => Some(DbBound(i, ty))
+        FreeVar => Some(DbFree(name, ty))
+        TypeMismatch => None
       }
     Const(name, ty) => Some(DbConst(name, ty))
     Comb(f, x) =>
@@ -182,7 +199,7 @@ fn to_db_term_with_env(term : Term, env : Array[String]) -> DbTerm? {
       match v {
         Var(name, ty) => {
           let env2 = env.copy()
-          env2.push(name)
+          env2.push((name, ty))
           match to_db_term_with_env(body, env2) {
             Some(body2) => Some(DbAbs(ty, body2))
             None => None
