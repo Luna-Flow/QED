@@ -15,6 +15,11 @@ fn[T] expect_ok_sig_for_thm(res : Result[T, SigError]) -> T {
 }
 
 ///|
+fn type_witness_thm_for_inst() -> Thm {
+  expect_ok(refl(mk_const("TW", bool_ty())))
+}
+
+///|
 test "thm is opaque and observable through API" {
   let a = mk_tyvar("A")
   let x = mk_var("x", a)
@@ -159,7 +164,7 @@ test "inst_type enforces admissible type targets" {
   assert_true(inst_type(st0, [("A", custom)], th) is Err(InvalidInstantiation))
 
   let st1 = expect_ok_sig_for_thm(
-    ks_register_type_definition(st0, "custom", 1, true),
+    ks_register_type_definition(st0, "custom", 1, type_witness_thm_for_inst()),
   )
   assert_true(inst_type(st1, [("A", custom)], th) is Ok(_))
 }

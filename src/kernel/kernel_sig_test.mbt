@@ -15,6 +15,11 @@ fn[T, E] expect_ok_any_sig_test(res : Result[T, E]) -> T {
 }
 
 ///|
+fn type_witness_thm(name : String) -> Thm {
+  expect_ok_any_sig_test(refl(mk_const(name, bool_ty())))
+}
+
+///|
 test "sig rejects reserved symbol insertion" {
   let sig0 = empty_sig()
   assert_true(sig_add_const(sig0, "=", bool_ty()) is None)
@@ -108,11 +113,14 @@ test "ks_define_const rejects ghost type variables in rhs term" {
 ///|
 test "type definition registration is fail-closed without witness" {
   let st0 = empty_kernel_state()
+  let bad_witness = expect_ok_any_sig_test(assume(mk_const("P", bool_ty())))
   assert_true(
-    ks_register_type_definition(st0, "newty", 1, false)
-    is Err(TypeDefWitnessMissing),
+    ks_register_type_definition(st0, "newty", 1, bad_witness)
+    is Err(InvalidTypeWitness),
   )
-  let st1 = expect_ok_sig(ks_register_type_definition(st0, "newty", 1, true))
+  let witness = type_witness_thm("W")
+  assert_true(ks_register_type_definition(st0, "newty", 1, witness) is Ok(_))
+  let st1 = expect_ok_sig(ks_register_type_definition(st0, "newty", 1, witness))
   assert_true(ks_has_type_witness(st1, "newty", 1))
 }
 
@@ -126,7 +134,10 @@ test "state admissible type checks honor witnesses and builtin tycons" {
   let custom = mk_tyapp("custom", [a])
   assert_false(ks_type_is_admissible(st0, custom))
 
-  let st1 = expect_ok_sig(ks_register_type_definition(st0, "custom", 1, true))
+  let witness = type_witness_thm("W2")
+  let st1 = expect_ok_sig(
+    ks_register_type_definition(st0, "custom", 1, witness),
+  )
   assert_true(ks_type_is_admissible(st1, custom))
   assert_true(ks_type_subst_is_admissible(st1, [("A", custom)]))
   assert_false(ks_type_subst_is_admissible(st0, [("A", custom)]))

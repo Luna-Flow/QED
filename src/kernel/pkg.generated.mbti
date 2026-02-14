@@ -98,7 +98,7 @@ pub fn ks_pop_scope(KernelState) -> Result[KernelState, SigError]
 
 pub fn ks_push_scope(KernelState) -> KernelState
 
-pub fn ks_register_type_definition(KernelState, String, Int, Bool) -> Result[KernelState, SigError]
+pub fn ks_register_type_definition(KernelState, String, Int, Thm) -> Result[KernelState, SigError]
 
 pub fn ks_sig(KernelState) -> GlobalSig
 
@@ -216,7 +216,7 @@ pub suberror SigError {
   DefinitionNotClosed
   DefinitionIsCyclic
   GhostTypeVariable
-  TypeDefWitnessMissing
+  InvalidTypeWitness
   TypeMismatch
 }
 

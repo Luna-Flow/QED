@@ -17,7 +17,7 @@ pub suberror SigError {
   DefinitionNotClosed
   DefinitionIsCyclic
   GhostTypeVariable
-  TypeDefWitnessMissing
+  InvalidTypeWitness
   TypeMismatch
 }
 
@@ -408,10 +408,18 @@ pub fn ks_register_type_definition(
   state : KernelState,
   tycon : String,
   arity : Int,
-  witness_ok : Bool,
+  witness : Thm,
 ) -> Result[KernelState, SigError] {
-  if !witness_ok {
-    return Err(TypeDefWitnessMissing)
+  if thm_hyp_count(witness) != 0 {
+    return Err(InvalidTypeWitness)
+  }
+  match thm_concl(witness) {
+    Ok(c) =>
+      match type_of(c) {
+        Some(ty) => if !is_bool_ty(ty) { return Err(InvalidTypeWitness) }
+        None => return Err(InvalidTypeWitness)
+      }
+    Err(_) => return Err(InvalidTypeWitness)
   }
   if is_builtin_tycon(tycon, arity) {
     return Ok(state)
