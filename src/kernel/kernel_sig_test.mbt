@@ -254,6 +254,35 @@ test "kernel state exposes stable const ids for lookups" {
 }
 
 ///|
+test "kernel state keeps const ids monotone across pop and re-add" {
+  let st0 = empty_kernel_state()
+  let a = mk_tyvar("A")
+  let st1 = expect_ok_sig(ks_add_const(st0, "k", a))
+  let id1 = ks_lookup_const_id(st1, "k")
+  assert_true(id1 is Some(_))
+
+  let st2 = ks_push_scope(st1)
+  let st3 = expect_ok_sig(ks_add_const(st2, "k", a))
+  let id2 = ks_lookup_const_id(st3, "k")
+  assert_true(id2 is Some(_))
+
+  let st4 = expect_ok_sig(ks_pop_scope(st3))
+  let st5 = ks_push_scope(st4)
+  let st6 = expect_ok_sig(ks_add_const(st5, "k", a))
+  let id3 = ks_lookup_const_id(st6, "k")
+  assert_true(id3 is Some(_))
+
+  match (id1, id2, id3) {
+    (Some(v1), Some(v2), Some(v3)) => {
+      assert_false(v1 == v2)
+      assert_false(v2 == v3)
+      assert_false(v1 == v3)
+    }
+    _ => assert_false(true)
+  }
+}
+
+///|
 test "kernel state exposes schema-checked instance constructor" {
   let st0 = empty_kernel_state()
   let a = mk_tyvar("A")

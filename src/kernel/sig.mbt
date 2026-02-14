@@ -202,6 +202,34 @@ pub fn sig_add_const(
 }
 
 ///|
+fn sig_add_const_with_id(
+  sig : GlobalSig,
+  name : String,
+  ty : HolType,
+  id : ConstId,
+) -> Result[GlobalSig, SigError] {
+  if is_reserved_symbol(name) {
+    return Err(ReservedSymbol)
+  }
+  match current_scope_lookup(sig, name) {
+    Some(_) => Err(DuplicateConstName)
+    None =>
+      match sig {
+        Sig(scopes) =>
+          if scopes.length() == 0 {
+            Err(ScopeUnderflow)
+          } else {
+            let out = scopes.copy()
+            let top = out[out.length() - 1].copy()
+            top.push((name, id, ty))
+            out[out.length() - 1] = top
+            Ok(Sig(out))
+          }
+      }
+  }
+}
+
+///|
 pub fn sig_add_const_idempotent(
   sig : GlobalSig,
   name : String,
@@ -394,9 +422,30 @@ pub fn ks_add_const(
   name : String,
   ty : HolType,
 ) -> Result[KernelState, SigError] {
-  match sig_add_const_idempotent_e(state.sig, name, ty) {
-    Ok(sig2) => Ok(KernelState::{ sig: sig2, theory: state.theory })
-    Err(e) => Err(e)
+  if is_reserved_symbol(name) {
+    return Err(ReservedSymbol)
+  }
+  match current_scope_lookup(state.sig, name) {
+    Some((_, existing)) =>
+      if ty_eq(existing, ty) {
+        Ok(state)
+      } else {
+        Err(ConstTypeConflict)
+      }
+    None =>
+      match
+        sig_add_const_with_id(state.sig, name, ty, state.theory.next_const_id) {
+        Ok(sig2) =>
+          Ok(KernelState::{
+            sig: sig2,
+            theory: TheoryState::{
+              def_heads: state.theory.def_heads,
+              witnessed_tycons: state.theory.witnessed_tycons,
+              next_const_id: state.theory.next_const_id + 1,
+            },
+          })
+        Err(e) => Err(e)
+      }
   }
 }
 
@@ -569,8 +618,14 @@ pub fn ks_define_const(
       if !term_tyvars_subset(rhs, decl_ty) {
         return Err(GhostTypeVariable)
       }
-      match sig_add_const(state.sig, name, decl_ty) {
-        Some(sig2) =>
+      match
+        sig_add_const_with_id(
+          state.sig,
+          name,
+          decl_ty,
+          state.theory.next_const_id,
+        ) {
+        Ok(sig2) =>
           match sig_mk_const(sig2, name) {
             Some(c) =>
               match mk_eq(c, rhs) {
@@ -582,7 +637,7 @@ pub fn ks_define_const(
                     theory: TheoryState::{
                       def_heads,
                       witnessed_tycons: state.theory.witnessed_tycons,
-                      next_const_id: state.theory.next_const_id,
+                      next_const_id: state.theory.next_const_id + 1,
                     },
                   }
                   Ok((state2, def_eq))
@@ -591,7 +646,7 @@ pub fn ks_define_const(
               }
             None => Err(UnknownConst)
           }
-        None => Err(DuplicateConstName)
+        Err(e) => Err(e)
       }
     }
     None => Err(InvalidConstRhs)
