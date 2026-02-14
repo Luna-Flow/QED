@@ -18,9 +18,9 @@ fn[T] expect_ok_sig_for_thm(res : Result[T, SigError]) -> T {
 fn type_witness_bundle_for_inst() -> (Term, Thm) {
   let a = mk_tyvar("A")
   let x = mk_var("x", a)
-  let id = mk_abs(x, x)
-  let pred = expect_ok(mk_eq(id, id))
-  let witness = expect_ok(refl_checked(empty_kernel_state(), id))
+  let pred_body = expect_ok(mk_eq(x, x))
+  let pred = mk_abs(x, pred_body)
+  let witness = expect_ok(refl_checked(empty_kernel_state(), x))
   (pred, witness)
 }
 

@@ -673,9 +673,26 @@ pub fn ks_register_type_definition(
   if !term_is_closed(predicate) {
     return Err(InvalidTypePredicate)
   }
-  match type_of(predicate) {
-    Some(pred_ty) =>
-      if !is_bool_ty(pred_ty) {
+  let (rep_ty, pred_body) = match predicate {
+    Abs(v, body) =>
+      match v {
+        Var(_, dom_ty) =>
+          match type_of(predicate) {
+            Some(TyApp("fun", [pred_dom, pred_cod])) =>
+              if !ty_eq(dom_ty, pred_dom) || !is_bool_ty(pred_cod) {
+                return Err(InvalidTypePredicate)
+              } else {
+                (dom_ty, body)
+              }
+            _ => return Err(InvalidTypePredicate)
+          }
+        _ => return Err(InvalidTypePredicate)
+      }
+    _ => return Err(InvalidTypePredicate)
+  }
+  match type_of(pred_body) {
+    Some(pred_body_ty) =>
+      if !is_bool_ty(pred_body_ty) {
         return Err(InvalidTypePredicate)
       }
     None => return Err(InvalidTypePredicate)
@@ -695,10 +712,36 @@ pub fn ks_register_type_definition(
   }
   match thm_concl(witness) {
     Ok(c) =>
-      if !term_alpha_eq(c, predicate) {
+      if !term_alpha_eq(c, pred_body) {
         return Err(TypeWitnessPredicateMismatch)
       }
     Err(_) => return Err(InvalidTypeWitness)
+  }
+  let type_params = params.map(fn(p) { mk_tyvar(p) })
+  let new_ty = mk_tyapp(tycon, type_params)
+  let rep_ty_schema = fun_ty(new_ty, rep_ty)
+  let abs_ty_schema = fun_ty(rep_ty, new_ty)
+  let sig1 = match
+    sig_add_const_with_id(
+      state.sig,
+      rep_name,
+      rep_ty_schema,
+      state.theory.next_const_id,
+    ) {
+    Ok(sig) => sig
+    Err(DuplicateConstName) => return Err(TypeRepresentationAlreadyExists)
+    Err(_) => return Err(TypeRepresentationAlreadyExists)
+  }
+  let sig2 = match
+    sig_add_const_with_id(
+      sig1,
+      abs_name,
+      abs_ty_schema,
+      state.theory.next_const_id + 1,
+    ) {
+    Ok(sig) => sig
+    Err(DuplicateConstName) => return Err(TypeAbstractionAlreadyExists)
+    Err(_) => return Err(TypeAbstractionAlreadyExists)
   }
   let witnessed = state.theory.witnessed_tycons.copy()
   witnessed.push((tycon, arity))
@@ -707,14 +750,14 @@ pub fn ks_register_type_definition(
   let abses = state.theory.type_abs_heads.copy()
   abses.push(abs_name)
   Ok(KernelState::{
-    sig: state.sig,
+    sig: sig2,
     theory: TheoryState::{
       def_heads: state.theory.def_heads,
       def_const_deps: state.theory.def_const_deps,
       witnessed_tycons: witnessed,
       type_rep_heads: reps,
       type_abs_heads: abses,
-      next_const_id: state.theory.next_const_id,
+      next_const_id: state.theory.next_const_id + 2,
     },
   })
 }

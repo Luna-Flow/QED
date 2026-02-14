@@ -59,9 +59,9 @@ test "audit c7 deferred def-head cycle is rejected" {
 test "audit d1 typedef rejects non theorem witness" {
   let st0 = empty_kernel_state()
   let x = mk_var("x", bool_ty())
-  let id = mk_abs(x, x)
-  let pred = expect_ok_audit(mk_eq(id, id))
-  let bad_w = expect_ok_audit(assume_checked(st0, pred))
+  let pred_body = expect_ok_audit(mk_eq(x, x))
+  let pred = mk_abs(x, pred_body)
+  let bad_w = expect_ok_audit(assume_checked(st0, pred_body))
   assert_true(
     ks_register_type_definition(st0, "newty", ["A"], "RepAuditD1", pred, bad_w)
     is Err(InvalidTypeWitness),
@@ -88,7 +88,8 @@ test "audit d6 typedef witness const-id drift is rejected" {
   let bool = bool_ty()
   let st0 = expect_ok_sig_audit(ks_add_const(empty_kernel_state(), "W", bool))
   let w = mk_const("W", bool)
-  let pred = expect_ok_audit(mk_eq(w, w))
+  let z = mk_var("z", bool)
+  let pred = mk_abs(z, expect_ok_audit(mk_eq(w, w)))
   let witness = expect_ok_audit(refl_checked(st0, w))
   assert_true(
     ks_register_type_definition(st0, "tw0", [], "RepTW0", pred, witness)

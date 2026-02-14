@@ -17,9 +17,9 @@ fn[T, E] expect_ok_any_sig_test(res : Result[T, E]) -> T {
 ///|
 fn type_witness_bundle(name : String) -> (Term, Thm) {
   let x = mk_var(name, bool_ty())
-  let id = mk_abs(x, x)
-  let pred = expect_ok_any_sig_test(mk_eq(id, id))
-  let witness = expect_ok_any_sig_test(refl_checked(empty_kernel_state(), id))
+  let body = expect_ok_any_sig_test(mk_eq(x, x))
+  let pred = mk_abs(x, body)
+  let witness = expect_ok_any_sig_test(refl_checked(empty_kernel_state(), x))
   (pred, witness)
 }
 
@@ -27,10 +27,18 @@ fn type_witness_bundle(name : String) -> (Term, Thm) {
 fn poly_type_witness_bundle() -> (Term, Thm) {
   let a = mk_tyvar("A")
   let x = mk_var("x", a)
-  let id = mk_abs(x, x)
-  let pred = expect_ok_any_sig_test(mk_eq(id, id))
-  let witness = expect_ok_any_sig_test(refl_checked(empty_kernel_state(), id))
+  let body = expect_ok_any_sig_test(mk_eq(x, x))
+  let pred = mk_abs(x, body)
+  let witness = expect_ok_any_sig_test(refl_checked(empty_kernel_state(), x))
   (pred, witness)
+}
+
+///|
+fn expect_pred_body(pred : Term) -> Term {
+  match dest_abs(pred) {
+    Some((_, body)) => body
+    None => panic()
+  }
 }
 
 ///|
@@ -223,7 +231,9 @@ test "ks_define_const rejects rhs with unknown or invalid const instances" {
 test "type definition registration is fail-closed without witness" {
   let st0 = empty_kernel_state()
   let (pred_p, _) = type_witness_bundle("W_bad")
-  let bad_witness = expect_ok_any_sig_test(assume_checked(st0, pred_p))
+  let bad_witness = expect_ok_any_sig_test(
+    assume_checked(st0, expect_pred_body(pred_p)),
+  )
   assert_true(
     ks_register_type_definition(
       st0,
@@ -251,7 +261,11 @@ test "type definition registration is fail-closed without witness" {
   )
   let st_with_w = expect_ok_sig(ks_add_const(st0, "W", bool_ty()))
   let unknown_c = expect_ok_any_sig_test(ks_mk_const(st_with_w, "W"))
-  let unknown_const_pred = expect_ok_any_sig_test(mk_eq(unknown_c, unknown_c))
+  let z = mk_var("z", bool_ty())
+  let unknown_const_pred_body = expect_ok_any_sig_test(
+    mk_eq(unknown_c, unknown_c),
+  )
+  let unknown_const_pred = mk_abs(z, unknown_const_pred_body)
   let unknown_const_witness = expect_ok_any_sig_test(
     refl_checked(st_with_w, unknown_c),
   )
@@ -342,11 +356,40 @@ test "type definition registration is fail-closed without witness" {
 }
 
 ///|
+test "typedef registration publishes rep and abs constants with schemas" {
+  let st0 = empty_kernel_state()
+  let (pred, witness) = type_witness_bundle("W_schema")
+  let st1 = expect_ok_sig(
+    ks_register_type_definition(
+      st0,
+      "nat_like",
+      ["A"],
+      "RepNatLike",
+      pred,
+      witness,
+    ),
+  )
+  let a = mk_tyvar("A")
+  let new_ty = mk_tyapp("nat_like", [a])
+  match ks_lookup_const(st1, "RepNatLike") {
+    Some(ty) => assert_true(ty_eq(ty, fun_ty(new_ty, bool_ty())))
+    None => assert_false(true)
+  }
+  match ks_lookup_const(st1, "Abs_nat_like") {
+    Some(ty) => assert_true(ty_eq(ty, fun_ty(bool_ty(), new_ty)))
+    None => assert_false(true)
+  }
+  assert_true(ks_has_type_rep_head(st1, "RepNatLike"))
+  assert_true(ks_has_type_abs_head(st1, "Abs_nat_like"))
+}
+
+///|
 test "type definition registration rejects const-id drifted witness" {
   let bool = bool_ty()
   let st0 = expect_ok_sig(ks_add_const(empty_kernel_state(), "W", bool))
   let w = mk_const("W", bool)
-  let pred = expect_ok_any_sig_test(mk_eq(w, w))
+  let z = mk_var("z", bool)
+  let pred = mk_abs(z, expect_ok_any_sig_test(mk_eq(w, w)))
   let witness = expect_ok_any_sig_test(refl_checked(st0, w))
   assert_true(
     ks_register_type_definition(st0, "w0", [], "RepW0", pred, witness) is Ok(_),
