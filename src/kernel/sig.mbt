@@ -35,6 +35,7 @@ pub type ConstId = Int
 ///|
 priv struct TheoryState {
   def_heads : Array[String]
+  def_const_deps : Array[(String, Array[String])]
   witnessed_tycons : Array[(String, Int)]
   type_rep_heads : Array[String]
   next_const_id : ConstId
@@ -383,6 +384,7 @@ pub fn empty_kernel_state() -> KernelState {
     sig: empty_sig(),
     theory: TheoryState::{
       def_heads: [],
+      def_const_deps: [],
       witnessed_tycons: [],
       type_rep_heads: [],
       next_const_id: 0,
@@ -452,6 +454,7 @@ pub fn ks_add_const(
             sig: sig2,
             theory: TheoryState::{
               def_heads: state.theory.def_heads,
+              def_const_deps: state.theory.def_const_deps,
               witnessed_tycons: state.theory.witnessed_tycons,
               type_rep_heads: state.theory.type_rep_heads,
               next_const_id: state.theory.next_const_id + 1,
@@ -526,6 +529,89 @@ fn term_const_instances_ok(state : KernelState, term : Term) -> Bool {
       term_const_instances_ok(state, f) && term_const_instances_ok(state, x)
     Abs(_, body) => term_const_instances_ok(state, body)
   }
+}
+
+///|
+fn push_unique_name(out : Array[String], name : String) -> Unit {
+  if !out.contains(name) {
+    out.push(name)
+  }
+}
+
+///|
+fn collect_term_const_names(term : Term, out : Array[String]) -> Unit {
+  match term {
+    Var(_, _) => ()
+    Const(name, _) => if name != "=" { push_unique_name(out, name) }
+    Comb(f, x) => {
+      collect_term_const_names(f, out)
+      collect_term_const_names(x, out)
+    }
+    Abs(_, body) => collect_term_const_names(body, out)
+  }
+}
+
+///|
+fn term_const_names(term : Term) -> Array[String] {
+  let out : Array[String] = []
+  collect_term_const_names(term, out)
+  out
+}
+
+///|
+fn lookup_def_deps(
+  deps : Array[(String, Array[String])],
+  name : String,
+) -> Array[String]? {
+  for entry in deps {
+    let (head, rhs) = entry
+    if head == name {
+      return Some(rhs)
+    }
+  }
+  None
+}
+
+///|
+fn def_dep_path_exists(
+  deps : Array[(String, Array[String])],
+  start : String,
+  target : String,
+  visited : Array[String],
+) -> Bool {
+  if start == target {
+    return true
+  }
+  if visited.contains(start) {
+    return false
+  }
+  visited.push(start)
+  match lookup_def_deps(deps, start) {
+    Some(nexts) => {
+      for next in nexts {
+        if def_dep_path_exists(deps, next, target, visited) {
+          return true
+        }
+      }
+      false
+    }
+    None => false
+  }
+}
+
+///|
+fn def_cycle_would_form(
+  deps : Array[(String, Array[String])],
+  new_head : String,
+  new_rhs_consts : Array[String],
+) -> Bool {
+  for name in new_rhs_consts {
+    let visited : Array[String] = []
+    if def_dep_path_exists(deps, name, new_head, visited) {
+      return true
+    }
+  }
+  false
 }
 
 ///|
@@ -617,6 +703,7 @@ pub fn ks_register_type_definition(
     sig: state.sig,
     theory: TheoryState::{
       def_heads: state.theory.def_heads,
+      def_const_deps: state.theory.def_const_deps,
       witnessed_tycons: witnessed,
       type_rep_heads: reps,
       next_const_id: state.theory.next_const_id,
@@ -657,6 +744,10 @@ pub fn ks_define_const(
       if !term_const_instances_ok(state, rhs) {
         return Err(InvalidConstRhs)
       }
+      let rhs_consts = term_const_names(rhs)
+      if def_cycle_would_form(state.theory.def_const_deps, name, rhs_consts) {
+        return Err(DefinitionIsCyclic)
+      }
       match
         sig_add_const_with_id(
           state.sig,
@@ -671,10 +762,13 @@ pub fn ks_define_const(
                 Ok(def_eq) => {
                   let def_heads = state.theory.def_heads.copy()
                   def_heads.push(name)
+                  let def_const_deps = state.theory.def_const_deps.copy()
+                  def_const_deps.push((name, rhs_consts))
                   let state2 = KernelState::{
                     sig: sig2,
                     theory: TheoryState::{
                       def_heads,
+                      def_const_deps,
                       witnessed_tycons: state.theory.witnessed_tycons,
                       type_rep_heads: state.theory.type_rep_heads,
                       next_const_id: state.theory.next_const_id + 1,
@@ -704,7 +798,11 @@ pub fn ks_define_const_thm(
   match ks_define_const(state, name, decl_ty, rhs) {
     Ok((state2, def_eq)) =>
       match to_db_term(def_eq) {
-        Some(eq_db) => Ok((state2, mk_def_thm(name, eq_db)))
+        Some(eq_db) =>
+          match thm_bind_const_ids(state2, mk_def_thm(name, eq_db)) {
+            Ok(th) => Ok((state2, th))
+            Err(_) => Err(InvalidConstRhs)
+          }
         None => Err(InvalidConstRhs)
       }
     Err(e) => Err(e)

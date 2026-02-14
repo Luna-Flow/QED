@@ -40,6 +40,22 @@ test "audit c6 defhead cannot be shadowed as local constant" {
 }
 
 ///|
+test "audit c7 deferred def-head cycle is rejected" {
+  let bool = bool_ty()
+  let st0 = empty_kernel_state()
+  let st1 = ks_push_scope(st0)
+  let st2 = expect_ok_sig_audit(ks_add_const(st1, "b", bool))
+  let (st3, _) = expect_ok_sig_audit(
+    ks_define_const(st2, "a", bool, mk_const("b", bool)),
+  )
+  let st4 = ks_push_scope(st3)
+  assert_true(
+    ks_define_const(st4, "b", bool, mk_const("a", bool))
+    is Err(DefinitionIsCyclic),
+  )
+}
+
+///|
 test "audit d1 typedef rejects non theorem witness" {
   let st0 = empty_kernel_state()
   let x = mk_var("x", bool_ty())
@@ -58,10 +74,10 @@ test "audit d5 polymorphic constant instantiation guard" {
   let a = mk_tyvar("A")
   let bool = bool_ty()
   let st1 = expect_ok_sig_audit(ks_add_const(st0, "id", fun_ty(a, a)))
-  let th = expect_ok_audit(refl(mk_const("id", fun_ty(a, a))))
+  let th = expect_ok_audit(refl_checked(st1, mk_const("id", fun_ty(a, a))))
   assert_true(inst_type(st1, [("A", bool)], th) is Ok(_))
   let bad = expect_ok_audit(refl(mk_const("id", fun_ty(bool, a))))
-  assert_true(inst_type(st1, [], bad) is Err(TypeMismatch))
+  assert_true(inst_type(st1, [], bad) is Err(InvalidInstantiation))
 }
 
 ///|

@@ -4,9 +4,15 @@ package "Luna-Flow/QED/kernel"
 // Values
 pub fn abs_rule(Term, Thm) -> Result[Thm, LogicError]
 
+pub fn abs_rule_checked(KernelState, Term, Thm) -> Result[Thm, LogicError]
+
 pub fn assume(Term) -> Result[Thm, LogicError]
 
+pub fn assume_checked(KernelState, Term) -> Result[Thm, LogicError]
+
 pub fn beta_rule(Term) -> Result[Thm, LogicError]
+
+pub fn beta_rule_checked(KernelState, Term) -> Result[Thm, LogicError]
 
 pub fn bool_ty() -> HolType
 
@@ -25,6 +31,8 @@ pub fn db_term_to_string(DbTerm) -> String
 pub fn db_type_of(DbTerm) -> HolType?
 
 pub fn deduct_antisym_rule(Thm, Thm) -> Result[Thm, LogicError]
+
+pub fn deduct_antisym_rule_checked(KernelState, Thm, Thm) -> Result[Thm, LogicError]
 
 pub fn dest_abs(Term) -> (Term, Term)?
 
@@ -46,6 +54,8 @@ pub fn empty_sig() -> GlobalSig
 
 pub fn eq_mp(Thm, Thm) -> Result[Thm, LogicError]
 
+pub fn eq_mp_checked(KernelState, Thm, Thm) -> Result[Thm, LogicError]
+
 pub fn free_vars(Term) -> Array[(String, HolType)]
 
 pub fn from_db_term(DbTerm) -> Term?
@@ -57,6 +67,8 @@ pub fn has_duplicate_ty_subst_keys(Array[(String, HolType)]) -> Bool
 pub fn hol_type_to_string(HolType) -> String
 
 pub fn inst(Array[(Term, Term)], Thm) -> Result[Thm, LogicError]
+
+pub fn inst_checked(KernelState, Array[(Term, Term)], Thm) -> Result[Thm, LogicError]
 
 pub fn inst_type(KernelState, Array[(String, HolType)], Thm) -> Result[Thm, LogicError]
 
@@ -116,6 +128,8 @@ pub fn mk_comb(Term, Term) -> Term
 
 pub fn mk_comb_rule(Thm, Thm) -> Result[Thm, LogicError]
 
+pub fn mk_comb_rule_checked(KernelState, Thm, Thm) -> Result[Thm, LogicError]
+
 pub fn mk_const(String, HolType) -> Term
 
 pub fn mk_eq(Term, Term) -> Result[Term, LogicError]
@@ -127,6 +141,8 @@ pub fn mk_tyvar(String) -> HolType
 pub fn mk_var(String, HolType) -> Term
 
 pub fn refl(Term) -> Result[Thm, LogicError]
+
+pub fn refl_checked(KernelState, Term) -> Result[Thm, LogicError]
 
 pub fn sig_add_const(GlobalSig, String, HolType) -> GlobalSig?
 
@@ -174,17 +190,23 @@ pub fn term_tyvars(Term) -> Array[String]
 
 pub fn term_tyvars_subset(Term, HolType) -> Bool
 
+pub fn thm_bind_const_ids(KernelState, Thm) -> Result[Thm, LogicError]
+
 pub fn thm_concl(Thm) -> Result[Term, LogicError]
 
 pub fn thm_hyp_count(Thm) -> Int
 
 pub fn thm_hyps(Thm) -> Result[Array[Term], LogicError]
 
+pub fn thm_is_admissible(KernelState, Thm) -> Bool
+
 pub fn thm_to_string(Thm) -> String
 
 pub fn to_db_term(Term) -> DbTerm?
 
 pub fn trans(Thm, Thm) -> Result[Thm, LogicError]
+
+pub fn trans_checked(KernelState, Thm, Thm) -> Result[Thm, LogicError]
 
 pub fn ty_eq(HolType, HolType) -> Bool
 

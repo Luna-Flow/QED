@@ -35,6 +35,47 @@ test "thm is opaque and observable through API" {
 }
 
 ///|
+test "checked theorem wrappers enforce state admissibility" {
+  let bool = bool_ty()
+  let st0 = empty_kernel_state()
+  let u = mk_const("U", bool)
+  assert_true(assume_checked(st0, u) is Err(TypeMismatch))
+  assert_true(refl_checked(st0, u) is Err(TypeMismatch))
+
+  let st1 = expect_ok_sig_for_thm(ks_add_const(st0, "U", bool))
+  let th_u = expect_ok(assume_checked(st1, u))
+  assert_true(thm_is_admissible(st1, th_u))
+  assert_true(assume_checked(st1, u) is Ok(_))
+  assert_true(inst_checked(st1, [], th_u) is Ok(_))
+}
+
+///|
+test "checked trans rejects inadmissible input theorem" {
+  let bool = bool_ty()
+  let st0 = empty_kernel_state()
+  let u = mk_const("U", bool)
+  let bad_th = expect_ok(assume(u))
+  assert_true(trans_checked(st0, bad_th, bad_th) is Err(TypeMismatch))
+
+  let st1 = expect_ok_sig_for_thm(ks_add_const(st0, "U", bool))
+  assert_true(trans_checked(st1, bad_th, bad_th) is Err(InvalidInstantiation))
+}
+
+///|
+test "checked theorems reject const id drift under shadowing" {
+  let bool = bool_ty()
+  let st0 = empty_kernel_state()
+  let st1 = expect_ok_sig_for_thm(ks_add_const(st0, "c", bool))
+  let th = expect_ok(assume_checked(st1, mk_const("c", bool)))
+  assert_true(thm_is_admissible(st1, th))
+
+  let st2 = ks_push_scope(st1)
+  let st3 = expect_ok_sig_for_thm(ks_add_const(st2, "c", bool))
+  assert_false(thm_is_admissible(st3, th))
+  assert_true(inst_checked(st3, [], th) is Err(InvalidInstantiation))
+}
+
+///|
 test "mk_eq enforces same type on both sides" {
   let a = mk_tyvar("A")
   let b = mk_tyvar("B")
@@ -210,11 +251,11 @@ test "inst_type enforces constant schema instances" {
   let bool = bool_ty()
 
   let st1 = expect_ok_sig_for_thm(ks_add_const(st0, "id", fun_ty(a, a)))
-  let th_ok = expect_ok(refl(mk_const("id", fun_ty(a, a))))
+  let th_ok = expect_ok(refl_checked(st1, mk_const("id", fun_ty(a, a))))
   assert_true(inst_type(st1, [("A", bool)], th_ok) is Ok(_))
 
   let th_bad = expect_ok(refl(mk_const("id", fun_ty(bool, a))))
-  assert_true(inst_type(st1, [], th_bad) is Err(TypeMismatch))
+  assert_true(inst_type(st1, [], th_bad) is Err(InvalidInstantiation))
 
   let th_unknown = expect_ok(refl(mk_const("u", bool)))
   assert_true(inst_type(st1, [], th_unknown) is Err(TypeMismatch))

@@ -18,6 +18,7 @@ struct Thm {
   hyps : Array[DbTerm]
   concl : DbTerm
   def_origin : String?
+  const_ids : Array[(String, ConstId)]
 }
 
 ///|
@@ -26,7 +27,7 @@ fn mk_thm_with_origin(
   concl : DbTerm,
   def_origin : String?,
 ) -> Thm {
-  Thm::{ hyps: db_hyps_dedup(hyps), concl, def_origin }
+  Thm::{ hyps: db_hyps_dedup(hyps), concl, def_origin, const_ids: [] }
 }
 
 ///|
@@ -37,6 +38,11 @@ fn mk_thm(hyps : Array[DbTerm], concl : DbTerm) -> Thm {
 ///|
 fn mk_def_thm(def_head : String, concl : DbTerm) -> Thm {
   mk_thm_with_origin([], concl, Some(def_head))
+}
+
+///|
+fn thm_with_const_ids(th : Thm, const_ids : Array[(String, ConstId)]) -> Thm {
+  Thm::{ hyps: th.hyps, concl: th.concl, def_origin: th.def_origin, const_ids }
 }
 
 ///|
@@ -401,6 +407,87 @@ fn db_consts_of(term : DbTerm, out : Array[(String, HolType)]) -> Unit {
 }
 
 ///|
+fn theorem_const_names(th : Thm) -> Array[String] {
+  let consts : Array[(String, HolType)] = []
+  th.hyps.each(fn(h) { db_consts_of(h, consts) })
+  db_consts_of(th.concl, consts)
+  let out : Array[String] = []
+  for item in consts {
+    let (name, _) = item
+    if name != "=" && !out.contains(name) {
+      out.push(name)
+    }
+  }
+  out
+}
+
+///|
+fn resolve_thm_const_ids(
+  state : KernelState,
+  th : Thm,
+) -> Result[Array[(String, ConstId)], LogicError] {
+  let names = theorem_const_names(th)
+  let out : Array[(String, ConstId)] = []
+  for name in names {
+    match ks_lookup_const_id(state, name) {
+      Some(id) => out.push((name, id))
+      None => return Err(TypeMismatch)
+    }
+  }
+  Ok(out)
+}
+
+///|
+fn const_id_bindings_match(
+  recorded : Array[(String, ConstId)],
+  resolved : Array[(String, ConstId)],
+) -> Bool {
+  for pair in recorded {
+    let (name, id) = pair
+    let mut found = false
+    for pair2 in resolved {
+      let (name2, id2) = pair2
+      if name == name2 {
+        found = true
+        if id != id2 {
+          return false
+        }
+      }
+    }
+    if !found {
+      return false
+    }
+  }
+  true
+}
+
+///|
+fn thm_stamp_const_ids(
+  state : KernelState,
+  th : Thm,
+) -> Result[Thm, LogicError] {
+  match resolve_thm_const_ids(state, th) {
+    Ok(ids) => Ok(thm_with_const_ids(th, ids))
+    Err(e) => Err(e)
+  }
+}
+
+///|
+pub fn thm_bind_const_ids(
+  state : KernelState,
+  th : Thm,
+) -> Result[Thm, LogicError] {
+  match thm_stamp_const_ids(state, th) {
+    Ok(stamped) =>
+      match ensure_thm_admissible(state, stamped) {
+        Ok(_) => Ok(stamped)
+        Err(e) => Err(e)
+      }
+    Err(e) => Err(e)
+  }
+}
+
+///|
 fn theorem_const_instances_ok(state : KernelState, th : Thm) -> Bool {
   let consts : Array[(String, HolType)] = []
   th.hyps.each(fn(h) { db_consts_of(h, consts) })
@@ -453,7 +540,225 @@ fn theorem_def_inst_coherent(state : KernelState, th : Thm) -> Bool {
 }
 
 ///|
-fn inst_type_checked(
+fn ensure_thm_admissible(
+  state : KernelState,
+  th : Thm,
+) -> Result[Unit, LogicError] {
+  let names = theorem_const_names(th)
+  match resolve_thm_const_ids(state, th) {
+    Ok(resolved_ids) => {
+      if names.length() > 0 && th.const_ids.length() == 0 {
+        return Err(InvalidInstantiation)
+      }
+      if th.const_ids.length() > 0 &&
+        !const_id_bindings_match(th.const_ids, resolved_ids) {
+        return Err(InvalidInstantiation)
+      }
+    }
+    Err(e) => return Err(e)
+  }
+  if !theorem_const_instances_ok(state, th) {
+    return Err(TypeMismatch)
+  }
+  if !theorem_def_inst_coherent(state, th) {
+    return Err(InvalidInstantiation)
+  }
+  Ok(())
+}
+
+///|
+pub fn thm_is_admissible(state : KernelState, th : Thm) -> Bool {
+  match ensure_thm_admissible(state, th) {
+    Ok(_) => true
+    Err(_) => false
+  }
+}
+
+///|
+pub fn refl_checked(
+  state : KernelState,
+  term : Term,
+) -> Result[Thm, LogicError] {
+  match refl(term) {
+    Ok(th) =>
+      match thm_stamp_const_ids(state, th) {
+        Ok(stamped) =>
+          match ensure_thm_admissible(state, stamped) {
+            Ok(_) => Ok(stamped)
+            Err(e) => Err(e)
+          }
+        Err(e) => Err(e)
+      }
+    Err(e) => Err(e)
+  }
+}
+
+///|
+pub fn assume_checked(
+  state : KernelState,
+  prop : Term,
+) -> Result[Thm, LogicError] {
+  match assume(prop) {
+    Ok(th) =>
+      match thm_stamp_const_ids(state, th) {
+        Ok(stamped) =>
+          match ensure_thm_admissible(state, stamped) {
+            Ok(_) => Ok(stamped)
+            Err(e) => Err(e)
+          }
+        Err(e) => Err(e)
+      }
+    Err(e) => Err(e)
+  }
+}
+
+///|
+pub fn trans_checked(
+  state : KernelState,
+  th1 : Thm,
+  th2 : Thm,
+) -> Result[Thm, LogicError] {
+  match (ensure_thm_admissible(state, th1), ensure_thm_admissible(state, th2)) {
+    (Ok(_), Ok(_)) =>
+      match trans(th1, th2) {
+        Ok(out) =>
+          match thm_stamp_const_ids(state, out) {
+            Ok(stamped) =>
+              match ensure_thm_admissible(state, stamped) {
+                Ok(_) => Ok(stamped)
+                Err(e) => Err(e)
+              }
+            Err(e) => Err(e)
+          }
+        Err(e) => Err(e)
+      }
+    (Err(e), _) => Err(e)
+    (_, Err(e)) => Err(e)
+  }
+}
+
+///|
+pub fn mk_comb_rule_checked(
+  state : KernelState,
+  th_fg : Thm,
+  th_xy : Thm,
+) -> Result[Thm, LogicError] {
+  match
+    (ensure_thm_admissible(state, th_fg), ensure_thm_admissible(state, th_xy)) {
+    (Ok(_), Ok(_)) =>
+      match mk_comb_rule(th_fg, th_xy) {
+        Ok(out) =>
+          match thm_stamp_const_ids(state, out) {
+            Ok(stamped) =>
+              match ensure_thm_admissible(state, stamped) {
+                Ok(_) => Ok(stamped)
+                Err(e) => Err(e)
+              }
+            Err(e) => Err(e)
+          }
+        Err(e) => Err(e)
+      }
+    (Err(e), _) => Err(e)
+    (_, Err(e)) => Err(e)
+  }
+}
+
+///|
+pub fn abs_rule_checked(
+  state : KernelState,
+  x : Term,
+  th : Thm,
+) -> Result[Thm, LogicError] {
+  match ensure_thm_admissible(state, th) {
+    Ok(_) =>
+      match abs_rule(x, th) {
+        Ok(out) =>
+          match thm_stamp_const_ids(state, out) {
+            Ok(stamped) =>
+              match ensure_thm_admissible(state, stamped) {
+                Ok(_) => Ok(stamped)
+                Err(e) => Err(e)
+              }
+            Err(e) => Err(e)
+          }
+        Err(e) => Err(e)
+      }
+    Err(e) => Err(e)
+  }
+}
+
+///|
+pub fn beta_rule_checked(
+  state : KernelState,
+  term : Term,
+) -> Result[Thm, LogicError] {
+  match beta_rule(term) {
+    Ok(out) =>
+      match thm_stamp_const_ids(state, out) {
+        Ok(stamped) =>
+          match ensure_thm_admissible(state, stamped) {
+            Ok(_) => Ok(stamped)
+            Err(e) => Err(e)
+          }
+        Err(e) => Err(e)
+      }
+    Err(e) => Err(e)
+  }
+}
+
+///|
+pub fn eq_mp_checked(
+  state : KernelState,
+  th_eq : Thm,
+  th_p : Thm,
+) -> Result[Thm, LogicError] {
+  match
+    (ensure_thm_admissible(state, th_eq), ensure_thm_admissible(state, th_p)) {
+    (Ok(_), Ok(_)) =>
+      match eq_mp(th_eq, th_p) {
+        Ok(out) =>
+          match thm_stamp_const_ids(state, out) {
+            Ok(stamped) =>
+              match ensure_thm_admissible(state, stamped) {
+                Ok(_) => Ok(stamped)
+                Err(e) => Err(e)
+              }
+            Err(e) => Err(e)
+          }
+        Err(e) => Err(e)
+      }
+    (Err(e), _) => Err(e)
+    (_, Err(e)) => Err(e)
+  }
+}
+
+///|
+pub fn deduct_antisym_rule_checked(
+  state : KernelState,
+  th1 : Thm,
+  th2 : Thm,
+) -> Result[Thm, LogicError] {
+  match (ensure_thm_admissible(state, th1), ensure_thm_admissible(state, th2)) {
+    (Ok(_), Ok(_)) =>
+      match deduct_antisym_rule(th1, th2) {
+        Ok(out) =>
+          match thm_stamp_const_ids(state, out) {
+            Ok(stamped) =>
+              match ensure_thm_admissible(state, stamped) {
+                Ok(_) => Ok(stamped)
+                Err(e) => Err(e)
+              }
+            Err(e) => Err(e)
+          }
+        Err(e) => Err(e)
+      }
+    (Err(e), _) => Err(e)
+    (_, Err(e)) => Err(e)
+  }
+}
+
+///|
+fn inst_type_core_checked(
   state : KernelState,
   subst : Array[(String, HolType)],
   th : Thm,
@@ -485,7 +790,22 @@ pub fn inst_type(
   subst : Array[(String, HolType)],
   th : Thm,
 ) -> Result[Thm, LogicError] {
-  inst_type_checked(state, subst, th)
+  match ensure_thm_admissible(state, th) {
+    Ok(_) =>
+      match inst_type_core_checked(state, subst, th) {
+        Ok(out) =>
+          match thm_stamp_const_ids(state, out) {
+            Ok(stamped) =>
+              match ensure_thm_admissible(state, stamped) {
+                Ok(_) => Ok(stamped)
+                Err(e) => Err(e)
+              }
+            Err(e) => Err(e)
+          }
+        Err(e) => Err(e)
+      }
+    Err(e) => Err(e)
+  }
 }
 
 ///|
@@ -507,6 +827,30 @@ pub fn inst(subst : Array[(Term, Term)], th : Thm) -> Result[Thm, LogicError] {
           th.def_origin,
         ),
       )
+    Err(e) => Err(e)
+  }
+}
+
+///|
+pub fn inst_checked(
+  state : KernelState,
+  subst : Array[(Term, Term)],
+  th : Thm,
+) -> Result[Thm, LogicError] {
+  match ensure_thm_admissible(state, th) {
+    Ok(_) =>
+      match inst(subst, th) {
+        Ok(out) =>
+          match thm_stamp_const_ids(state, out) {
+            Ok(stamped) =>
+              match ensure_thm_admissible(state, stamped) {
+                Ok(_) => Ok(stamped)
+                Err(e) => Err(e)
+              }
+            Err(e) => Err(e)
+          }
+        Err(e) => Err(e)
+      }
     Err(e) => Err(e)
   }
 }

@@ -1,7 +1,10 @@
 ///|
 /// Minimal tactic: solve current goal by assuming its conclusion.
-pub fn solve_by_assume(goal : Goal) -> Result[@kernel.Thm, @kernel.LogicError] {
-  @logic.logic_assume(goal_concl(goal))
+pub fn solve_by_assume(
+  state : @kernel.KernelState,
+  goal : Goal,
+) -> Result[@kernel.Thm, @kernel.LogicError] {
+  @logic.logic_assume(state, goal_concl(goal))
 }
 
 ///|

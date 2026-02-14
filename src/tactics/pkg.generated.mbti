@@ -12,7 +12,7 @@ pub fn goal_hyp_count(Goal) -> Int
 
 pub fn mk_goal(Array[@kernel.Term], @kernel.Term) -> Goal
 
-pub fn solve_by_assume(Goal) -> Result[@kernel.Thm, @kernel.LogicError]
+pub fn solve_by_assume(@kernel.KernelState, Goal) -> Result[@kernel.Thm, @kernel.LogicError]
 
 pub fn tactics_engine_phase0_ready() -> Bool
 

@@ -133,6 +133,21 @@ test "ks_define_const enforces closedness and acyclic side conditions" {
 }
 
 ///|
+test "ks_define_const rejects transitive cycles across deferred heads" {
+  let bool = bool_ty()
+  let st0 = empty_kernel_state()
+  let st1 = ks_push_scope(st0)
+  let st2 = expect_ok_sig(ks_add_const(st1, "b", bool))
+  let b_term = mk_const("b", bool)
+  let (st3, _) = expect_ok_sig(ks_define_const(st2, "a", bool, b_term))
+  let st4 = ks_push_scope(st3)
+  let a_term = mk_const("a", bool)
+  assert_true(
+    ks_define_const(st4, "b", bool, a_term) is Err(DefinitionIsCyclic),
+  )
+}
+
+///|
 test "ks_define_const rejects reserved symbol and type mismatch" {
   let st0 = expect_ok_sig(ks_add_const(empty_kernel_state(), "P", bool_ty()))
   let p = mk_const("P", bool_ty())

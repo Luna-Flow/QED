@@ -10,7 +10,12 @@ test "tactics goal construction" {
 ///|
 test "solve_by_assume delegates to logic/kernel" {
   let bool = @kernel.bool_ty()
+  let st0 = @kernel.empty_kernel_state()
+  let st = match @kernel.ks_add_const(st0, "P", bool) {
+    Ok(v) => v
+    Err(_) => panic()
+  }
   let p = @kernel.mk_const("P", bool)
   let goal = mk_goal([], p)
-  assert_true(solve_by_assume(goal) is Ok(_))
+  assert_true(solve_by_assume(st, goal) is Ok(_))
 }
