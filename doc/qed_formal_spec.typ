@@ -1432,6 +1432,31 @@ The formal clauses above map to implementation modules as follows.
 
 A development task is complete only when the mathematical clause and its implementation clause are both updated.
 
+== Audit Certificates and Replay Interface
+
+*Definition (Minimal Extension Certificate).*
+For each successful admissible extension gate step, the kernel appends one audit certificate:
+$
+  "ExtCert" ::= ("gate", "heads", "witness_digest")
+$
+where:
+
+- `"gate" in {"DefOK", "TypeDefOK", "SpecOK"}`
+- `"heads"` is the finite list of newly admitted symbol heads for that step
+- `"witness_digest"` is a stable theorem digest string for audit replay/indexing.
+
+*Constraint (Audit-Only Semantics).*
+Extension certificates are observability artifacts only. They are never accepted as a runtime proof
+that bypasses any admissibility gate or theorem-admissibility check.
+
+*Definition (Executable Old-Language Replay Check).*
+Given base state $T_0$, extended state $T_1$, and theorem $t_h$, define:
+$
+  "ConservativeReplayOK"(T_0, T_1, t_h)
+  := "Admissible"(T_1, t_h) ∧ "SentenceInLanguage"(T_0, t_h) ∧ "Admissible"(T_0, t_h)
+$
+This is the executable regression proxy for the conservativity target over old-language sentences.
+
 == Rule-to-Implementation Mapping (Current)
 
 - `REFL` -> `src/kernel/thm.mbt` (implemented; De Bruijn core + boundary lift).
@@ -1456,8 +1481,8 @@ QED and HOL Light share the LCF principle and primitive-rule trust model, but QE
 
 These deltas are intentional and must be read as implementation-level policy choices, not changes to the object-logic proposition/equality calculus.
 
-#keyblock("warning", [Error Semantics Status], [
-  Full kernel-wide structured error propagation is still in migration. Current interfaces mix option-style failures with typed error returns in selected modules.
+#keyblock("info", [Error Semantics Status], [
+  Kernel gate/rule entrypoints are fail-closed with typed error channels (`LogicError` for theorem rules and `SigError` for theory/state admissions). The remaining option-style helpers are internal normalization/lookup utilities and are not trusted external admission interfaces.
 ])
 
 == Target Error Taxonomy (`LogicError`)
@@ -1490,18 +1515,19 @@ Intended alignment with rule-level failure clauses:
 
 This mapping is normative for the final migrated API and gives a direct bridge from prose failure clauses to machine-checkable error constructors.
 
-= Documentation Roadmap
+= Documentation Maintenance Notes
 
-This document is a living formal artifact. The target final version includes:
+This document remains a living formal artifact. The current revision is aligned with the implemented kernel baseline and extension-gate surface.
 
-1. full rule-by-rule formalization of all primitive inference rules,
-2. explicit substitution lemmas and alpha-equivalence lemmas,
-3. a consistency assumptions section,
-4. an interface theorem connecting kernel and tactic layers,
-5. a revision log linking formal clauses to commit history.
+Near-term maintenance focus:
+
+1. keep proof-obligation clauses and gate side conditions synchronized with regression tests,
+2. preserve theorem-shape invariants for typedef/specification products as APIs evolve,
+3. preserve audit-only semantics of extension certificates (no runtime bypass semantics),
+4. preserve executable old-language conservativity checks alongside kernel extension work.
 
 #keyblock("info", [Current Status], [
-  This revision establishes the minimum logical closure needed for soundness auditing: reserved equality discipline, two-layer judgments, alpha-quotient assumptions, boundary denotation bridges, definitional conservativity gates, and admissible type-extension/state-history constraints.
+  This revision establishes audit-ready logical closure: reserved equality/choice discipline, two-layer judgments, alpha-quotient assumptions, boundary denotation bridges, definitional/specification conservativity gates, admissible type-extension/state-history constraints, canonical infinity anchor, typedef product contracts, extension certificates, and executable old-language replay checks.
 ])
 
 = Appendix A: Primitive Rule Dependency Matrix
@@ -1546,8 +1572,11 @@ Checklist for minimal audit-ready closure:
 16. Primitive choice operator (`@`) and its axiom schema are explicitly stated in foundations.
 17. `SpecOK` is documented as a derived admission rule (Choice + `DefOK`), not a standalone primitive rule.
 18. Infinity-anchor theorem identifier (`IND_INFINITY_AXIOM`) is explicitly fixed.
+19. Typedef admission persists the fixed three-theorem product contract (Abs∘Rep, Rep-range, conditional Rep∘Abs).
+20. Minimal extension certificates are emitted for `DefOK` / `TypeDefOK` / `SpecOK` and remain audit-only.
+21. Executable old-language replay check (`ConservativeReplayOK`) is present for conservativity regressions.
 
-This checklist is intended to be consumed before implementation alignment work starts.
+This checklist is consumed as an implementation/regression gate (not only a pre-implementation freeze artifact).
 
 = Appendix C: Definition and State Soundness Audit Scenarios
 
