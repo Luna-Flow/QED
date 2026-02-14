@@ -15,6 +15,15 @@ fn[T] expect_ok_sig_audit(res : Result[T, SigError]) -> T {
 }
 
 ///|
+fn typedef_bundle_for_audit(ty : HolType) -> (Term, Thm) {
+  let x = mk_var("x_td_audit", ty)
+  let pred_body = expect_ok_audit(mk_eq(x, x))
+  let pred = mk_abs(x, pred_body)
+  let witness = expect_ok_audit(refl_checked(empty_kernel_state(), x))
+  (pred, witness)
+}
+
+///|
 test "audit c5 pop then redefine stays rejected by defheads" {
   let st0 = expect_ok_sig_audit(
     ks_add_const(empty_kernel_state(), "P", bool_ty()),
@@ -131,4 +140,58 @@ test "audit e3 beta binder agreement check" {
   let y = mk_var("y", b)
   let redex = mk_comb(mk_abs(x, x), y)
   assert_true(beta_rule_checked(st, redex) is Err(TypeMismatch))
+}
+
+///|
+test "audit conservativity replay for old-language sentence" {
+  let bool = bool_ty()
+  let st0 = expect_ok_sig_audit(ks_add_const(empty_kernel_state(), "P", bool))
+  let p = mk_const("P", bool)
+  let (st1, _) = expect_ok_sig_audit(ks_define_const(st0, "d_old", bool, p))
+
+  let (td_pred, td_witness) = typedef_bundle_for_audit(bool)
+  let st2 = expect_ok_sig_audit(
+    ks_register_type_definition(
+      st1,
+      "auditty",
+      [],
+      "RepAuditTy",
+      td_pred,
+      td_witness,
+    ),
+  )
+
+  let x = mk_var("x_spec_audit", bool)
+  let spec_pred = mk_abs(x, expect_ok_audit(mk_eq(x, x)))
+  let spec_witness = expect_ok_audit(refl_checked(st2, x))
+  let (st3, _) = expect_ok_sig_audit(
+    ks_specify_const(st2, "c_audit", bool, spec_pred, spec_witness),
+  )
+
+  let th_old = expect_ok_audit(refl_checked(st3, p))
+  assert_true(ks_thm_is_sentence_in_language(st0, th_old))
+  assert_true(ks_conservative_replay_ok(st0, st3, th_old))
+}
+
+///|
+test "audit conservativity replay rejects non-old or non-sentence theorems" {
+  let bool = bool_ty()
+  let st0 = expect_ok_sig_audit(ks_add_const(empty_kernel_state(), "P", bool))
+  let p = mk_const("P", bool)
+
+  let x = mk_var("x_spec_audit2", bool)
+  let spec_pred = mk_abs(x, expect_ok_audit(mk_eq(x, x)))
+  let spec_witness = expect_ok_audit(refl_checked(st0, x))
+  let (st1, _) = expect_ok_sig_audit(
+    ks_specify_const(st0, "c_new", bool, spec_pred, spec_witness),
+  )
+
+  let c_new = mk_const("c_new", bool)
+  let th_new = expect_ok_audit(refl_checked(st1, c_new))
+  assert_false(ks_thm_is_sentence_in_language(st0, th_new))
+  assert_false(ks_conservative_replay_ok(st0, st1, th_new))
+
+  let th_hyp = expect_ok_audit(assume_checked(st1, p))
+  assert_false(ks_thm_is_sentence_in_language(st0, th_hyp))
+  assert_false(ks_conservative_replay_ok(st0, st1, th_hyp))
 }

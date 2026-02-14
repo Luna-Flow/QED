@@ -834,6 +834,37 @@ pub fn ks_type_subst_is_admissible(
 }
 
 ///|
+pub fn ks_term_in_language(state : KernelState, term : Term) -> Bool {
+  term_const_instances_ok(state, term)
+}
+
+///|
+pub fn ks_thm_is_sentence_in_language(state : KernelState, th : Thm) -> Bool {
+  if thm_hyp_count(th) != 0 {
+    return false
+  }
+  match thm_concl(th) {
+    Ok(concl) =>
+      match type_of(concl) {
+        Some(ty) => is_bool_ty(ty) && term_const_instances_ok(state, concl)
+        None => false
+      }
+    Err(_) => false
+  }
+}
+
+///|
+pub fn ks_conservative_replay_ok(
+  base_state : KernelState,
+  extended_state : KernelState,
+  th : Thm,
+) -> Bool {
+  thm_is_admissible(extended_state, th) &&
+  ks_thm_is_sentence_in_language(base_state, th) &&
+  thm_is_admissible(base_state, th)
+}
+
+///|
 pub fn ks_lookup_const_id(state : KernelState, name : String) -> ConstId? {
   sig_lookup_const_id(state.sig, name)
 }

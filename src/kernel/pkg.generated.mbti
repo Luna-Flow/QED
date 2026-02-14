@@ -82,6 +82,8 @@ pub fn kernel_thm_phase0_ready() -> Bool
 
 pub fn ks_add_const(KernelState, String, HolType) -> Result[KernelState, SigError]
 
+pub fn ks_conservative_replay_ok(KernelState, KernelState, Thm) -> Bool
+
 pub fn ks_const_schema(KernelState, String) -> HolType?
 
 pub fn ks_define_const(KernelState, String, HolType, Term) -> Result[(KernelState, Term), SigError]
@@ -125,6 +127,10 @@ pub fn ks_register_type_definition(KernelState, String, Array[String], String, T
 pub fn ks_sig(KernelState) -> GlobalSig
 
 pub fn ks_specify_const(KernelState, String, HolType, Term, Thm) -> Result[(KernelState, Thm), SigError]
+
+pub fn ks_term_in_language(KernelState, Term) -> Bool
+
+pub fn ks_thm_is_sentence_in_language(KernelState, Thm) -> Bool
 
 pub fn ks_type_is_admissible(KernelState, HolType) -> Bool
 
