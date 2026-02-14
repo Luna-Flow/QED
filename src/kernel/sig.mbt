@@ -20,6 +20,7 @@ pub suberror SigError {
   GhostTypeVariable
   InvalidTypeWitness
   InvalidTypeArity
+  TypeWitnessArityMismatch
   TypeConstructorAlreadyExists
   TypeMismatch
 }
@@ -485,7 +486,14 @@ pub fn ks_register_type_definition(
         return Err(InvalidTypeWitness)
       }
       match type_of(c) {
-        Some(ty) => if !is_bool_ty(ty) { return Err(InvalidTypeWitness) }
+        Some(ty) => {
+          if !is_bool_ty(ty) {
+            return Err(InvalidTypeWitness)
+          }
+          if term_tyvars(c).length() > arity {
+            return Err(TypeWitnessArityMismatch)
+          }
+        }
         None => return Err(InvalidTypeWitness)
       }
     }

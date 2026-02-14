@@ -20,6 +20,13 @@ fn type_witness_thm(name : String) -> Thm {
 }
 
 ///|
+fn poly_type_witness_thm() -> Thm {
+  let a = mk_tyvar("A")
+  let x = mk_var("x", a)
+  expect_ok_any_sig_test(refl(mk_abs(x, x)))
+}
+
+///|
 test "sig rejects reserved symbol insertion" {
   let sig0 = empty_sig()
   assert_true(sig_add_const(sig0, "=", bool_ty()) is None)
@@ -159,6 +166,19 @@ test "type definition registration validates tycon name and arity" {
     is Err(InvalidTypeArity),
   )
   assert_true(ks_register_type_definition(st0, "newty0", 0, witness) is Ok(_))
+}
+
+///|
+test "type definition registration checks witness type vars against arity" {
+  let st0 = empty_kernel_state()
+  let poly_witness = poly_type_witness_thm()
+  assert_true(
+    ks_register_type_definition(st0, "mono", 0, poly_witness)
+    is Err(TypeWitnessArityMismatch),
+  )
+  assert_true(
+    ks_register_type_definition(st0, "poly1", 1, poly_witness) is Ok(_),
+  )
 }
 
 ///|
