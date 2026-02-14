@@ -98,6 +98,8 @@ pub fn ks_has_type_rep_head(KernelState, String) -> Bool
 
 pub fn ks_has_type_witness(KernelState, String, Int) -> Bool
 
+pub fn ks_has_typedef_contract(KernelState, String) -> Bool
+
 pub fn ks_ind_infinity_axiom(KernelState) -> Result[Thm, SigError]
 
 pub fn ks_lookup_const(KernelState, String) -> HolType?
@@ -121,6 +123,8 @@ pub fn ks_sig(KernelState) -> GlobalSig
 pub fn ks_type_is_admissible(KernelState, HolType) -> Bool
 
 pub fn ks_type_subst_is_admissible(KernelState, Array[(String, HolType)]) -> Bool
+
+pub fn ks_typedef_contract(KernelState, String) -> Result[(Thm, Thm, Thm), SigError]
 
 pub fn mk_abs(Term, Term) -> Term
 
@@ -242,6 +246,8 @@ pub suberror SigError {
   TypeAbstractionAlreadyExists
   InvalidInfinityAnchor
   MissingInfinityAnchor
+  InvalidTypeDefinitionProduct
+  MissingTypeDefinitionContract
   TypeMismatch
 }
 

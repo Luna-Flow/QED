@@ -31,6 +31,8 @@ pub suberror SigError {
   TypeAbstractionAlreadyExists
   InvalidInfinityAnchor
   MissingInfinityAnchor
+  InvalidTypeDefinitionProduct
+  MissingTypeDefinitionContract
   TypeMismatch
 }
 
@@ -44,6 +46,7 @@ priv struct TheoryState {
   witnessed_tycons : Array[(String, Int)]
   type_rep_heads : Array[String]
   type_abs_heads : Array[String]
+  typedef_contracts : Array[(String, Thm, Thm, Thm)]
   ind_infinity_axiom : Thm?
   next_const_id : ConstId
 }
@@ -345,6 +348,7 @@ pub fn empty_kernel_state() -> KernelState {
       witnessed_tycons: [("ind", 0)],
       type_rep_heads: [],
       type_abs_heads: [],
+      typedef_contracts: [],
       ind_infinity_axiom: None,
       next_const_id: 1,
     },
@@ -428,6 +432,7 @@ pub fn ks_add_const(
               witnessed_tycons: state.theory.witnessed_tycons,
               type_rep_heads: state.theory.type_rep_heads,
               type_abs_heads: state.theory.type_abs_heads,
+              typedef_contracts: state.theory.typedef_contracts,
               ind_infinity_axiom: state.theory.ind_infinity_axiom,
               next_const_id: state.theory.next_const_id + 1,
             },
@@ -462,6 +467,36 @@ pub fn ks_has_type_rep_head(state : KernelState, name : String) -> Bool {
 ///|
 pub fn ks_has_type_abs_head(state : KernelState, name : String) -> Bool {
   state.theory.type_abs_heads.contains(name)
+}
+
+///|
+fn lookup_typedef_contract(
+  contracts : Array[(String, Thm, Thm, Thm)],
+  tycon : String,
+) -> (Thm, Thm, Thm)? {
+  for entry in contracts {
+    let (name, abs_rep, rep_range, rep_abs) = entry
+    if name == tycon {
+      return Some((abs_rep, rep_range, rep_abs))
+    }
+  }
+  None
+}
+
+///|
+pub fn ks_has_typedef_contract(state : KernelState, tycon : String) -> Bool {
+  lookup_typedef_contract(state.theory.typedef_contracts, tycon) is Some(_)
+}
+
+///|
+pub fn ks_typedef_contract(
+  state : KernelState,
+  tycon : String,
+) -> Result[(Thm, Thm, Thm), SigError] {
+  match lookup_typedef_contract(state.theory.typedef_contracts, tycon) {
+    Some(v) => Ok(v)
+    None => Err(MissingTypeDefinitionContract)
+  }
 }
 
 ///|
@@ -509,6 +544,49 @@ fn term_mentions_tycon(term : Term, tycon : String) -> Bool {
 }
 
 ///|
+fn apply_unary_predicate(predicate : Term, arg : Term) -> Term? {
+  match to_db_term(predicate) {
+    Some(DbAbs(dom_ty, body_db)) =>
+      match (type_of(arg), to_db_term(arg)) {
+        (Some(arg_ty), Some(arg_db)) =>
+          if !ty_eq(arg_ty, dom_ty) {
+            None
+          } else {
+            match db_beta_reduce_once(DbComb(DbAbs(dom_ty, body_db), arg_db)) {
+              Some(out_db) => from_db_term(out_db)
+              None => None
+            }
+          }
+        _ => None
+      }
+    _ => None
+  }
+}
+
+///|
+fn mk_thm_from_terms(
+  state : KernelState,
+  hyps : Array[Term],
+  concl : Term,
+) -> Result[Thm, SigError] {
+  let hyps_db : Array[DbTerm] = []
+  for h in hyps {
+    match to_db_term(h) {
+      Some(h_db) => hyps_db.push(h_db)
+      None => return Err(InvalidTypeDefinitionProduct)
+    }
+  }
+  match to_db_term(concl) {
+    Some(c_db) =>
+      match thm_bind_const_ids(state, mk_thm(hyps_db, c_db)) {
+        Ok(th) => Ok(th)
+        Err(_) => Err(InvalidTypeDefinitionProduct)
+      }
+    None => Err(InvalidTypeDefinitionProduct)
+  }
+}
+
+///|
 pub fn ks_register_ind_infinity_axiom(
   state : KernelState,
   anchor : Thm,
@@ -537,6 +615,7 @@ pub fn ks_register_ind_infinity_axiom(
                 witnessed_tycons: state.theory.witnessed_tycons,
                 type_rep_heads: state.theory.type_rep_heads,
                 type_abs_heads: state.theory.type_abs_heads,
+                typedef_contracts: state.theory.typedef_contracts,
                 ind_infinity_axiom: Some(anchor),
                 next_const_id: state.theory.next_const_id,
               },
@@ -838,7 +917,7 @@ pub fn ks_register_type_definition(
   reps.push(rep_name)
   let abses = state.theory.type_abs_heads.copy()
   abses.push(abs_name)
-  Ok(KernelState::{
+  let state1 = KernelState::{
     sig: sig2,
     theory: TheoryState::{
       def_heads: state.theory.def_heads,
@@ -846,8 +925,61 @@ pub fn ks_register_type_definition(
       witnessed_tycons: witnessed,
       type_rep_heads: reps,
       type_abs_heads: abses,
+      typedef_contracts: state.theory.typedef_contracts,
       ind_infinity_axiom: state.theory.ind_infinity_axiom,
       next_const_id: state.theory.next_const_id + 2,
+    },
+  }
+
+  let rep_const = mk_const(rep_name, rep_ty_schema)
+  let abs_const = mk_const(abs_name, abs_ty_schema)
+  let a = mk_var("a", new_ty)
+  let r = mk_var("r", rep_ty)
+
+  let abs_rep_eq = match mk_eq(mk_comb(abs_const, mk_comb(rep_const, a)), a) {
+    Ok(eq) => eq
+    Err(_) => return Err(InvalidTypeDefinitionProduct)
+  }
+  let rep_range = match
+    apply_unary_predicate(predicate, mk_comb(rep_const, a)) {
+    Some(term) => term
+    None => return Err(InvalidTypeDefinitionProduct)
+  }
+  let rep_abs_eq = match mk_eq(mk_comb(rep_const, mk_comb(abs_const, r)), r) {
+    Ok(eq) => eq
+    Err(_) => return Err(InvalidTypeDefinitionProduct)
+  }
+  let rep_abs_hyp = match apply_unary_predicate(predicate, r) {
+    Some(term) => term
+    None => return Err(InvalidTypeDefinitionProduct)
+  }
+
+  let abs_rep_th = match mk_thm_from_terms(state1, [], abs_rep_eq) {
+    Ok(th) => th
+    Err(e) => return Err(e)
+  }
+  let rep_range_th = match mk_thm_from_terms(state1, [], rep_range) {
+    Ok(th) => th
+    Err(e) => return Err(e)
+  }
+  let rep_abs_th = match mk_thm_from_terms(state1, [rep_abs_hyp], rep_abs_eq) {
+    Ok(th) => th
+    Err(e) => return Err(e)
+  }
+
+  let contracts = state.theory.typedef_contracts.copy()
+  contracts.push((tycon, abs_rep_th, rep_range_th, rep_abs_th))
+  Ok(KernelState::{
+    sig: state1.sig,
+    theory: TheoryState::{
+      def_heads: state1.theory.def_heads,
+      def_const_deps: state1.theory.def_const_deps,
+      witnessed_tycons: state1.theory.witnessed_tycons,
+      type_rep_heads: state1.theory.type_rep_heads,
+      type_abs_heads: state1.theory.type_abs_heads,
+      typedef_contracts: contracts,
+      ind_infinity_axiom: state1.theory.ind_infinity_axiom,
+      next_const_id: state1.theory.next_const_id,
     },
   })
 }
@@ -916,6 +1048,7 @@ pub fn ks_define_const(
                       witnessed_tycons: state.theory.witnessed_tycons,
                       type_rep_heads: state.theory.type_rep_heads,
                       type_abs_heads: state.theory.type_abs_heads,
+                      typedef_contracts: state.theory.typedef_contracts,
                       ind_infinity_axiom: state.theory.ind_infinity_axiom,
                       next_const_id: state.theory.next_const_id + 1,
                     },

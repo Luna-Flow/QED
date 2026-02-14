@@ -426,6 +426,46 @@ test "typedef registration publishes rep and abs constants with schemas" {
   }
   assert_true(ks_has_type_rep_head(st1, "RepNatLike"))
   assert_true(ks_has_type_abs_head(st1, "Abs_nat_like"))
+  assert_true(ks_has_typedef_contract(st1, "nat_like"))
+
+  let (abs_rep_th, rep_range_th, rep_abs_th) = expect_ok_sig(
+    ks_typedef_contract(st1, "nat_like"),
+  )
+  assert_eq(thm_hyp_count(abs_rep_th), 0)
+  assert_eq(thm_hyp_count(rep_range_th), 0)
+  assert_eq(thm_hyp_count(rep_abs_th), 1)
+
+  let abs_rep_concl = expect_ok_any_sig_test(thm_concl(abs_rep_th))
+  assert_true(term_has_const_named(abs_rep_concl, "Abs_nat_like"))
+  assert_true(term_has_const_named(abs_rep_concl, "RepNatLike"))
+  assert_true(dest_eq(abs_rep_concl) is Ok((_, _)))
+
+  let rep_range_concl = expect_ok_any_sig_test(thm_concl(rep_range_th))
+  assert_true(term_has_const_named(rep_range_concl, "RepNatLike"))
+  match type_of(rep_range_concl) {
+    Some(ty) => assert_true(ty_eq(ty, bool_ty()))
+    None => assert_false(true)
+  }
+
+  let rep_abs_hyps = expect_ok_any_sig_test(thm_hyps(rep_abs_th))
+  assert_eq(rep_abs_hyps.length(), 1)
+  match type_of(rep_abs_hyps[0]) {
+    Some(ty) => assert_true(ty_eq(ty, bool_ty()))
+    None => assert_false(true)
+  }
+  let rep_abs_concl = expect_ok_any_sig_test(thm_concl(rep_abs_th))
+  assert_true(term_has_const_named(rep_abs_concl, "Abs_nat_like"))
+  assert_true(term_has_const_named(rep_abs_concl, "RepNatLike"))
+  assert_true(dest_eq(rep_abs_concl) is Ok((_, _)))
+}
+
+///|
+test "typedef contract lookup is explicit and fail-closed" {
+  let st0 = empty_kernel_state()
+  assert_false(ks_has_typedef_contract(st0, "missing"))
+  assert_true(
+    ks_typedef_contract(st0, "missing") is Err(MissingTypeDefinitionContract),
+  )
 }
 
 ///|
