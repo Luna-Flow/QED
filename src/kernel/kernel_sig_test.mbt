@@ -15,16 +15,22 @@ fn[T, E] expect_ok_any_sig_test(res : Result[T, E]) -> T {
 }
 
 ///|
-fn type_witness_thm(name : String) -> Thm {
+fn type_witness_bundle(name : String) -> (Term, Thm) {
   let x = mk_var(name, bool_ty())
-  expect_ok_any_sig_test(refl(mk_abs(x, x)))
+  let id = mk_abs(x, x)
+  let pred = expect_ok_any_sig_test(mk_eq(id, id))
+  let witness = expect_ok_any_sig_test(refl(id))
+  (pred, witness)
 }
 
 ///|
-fn poly_type_witness_thm() -> Thm {
+fn poly_type_witness_bundle() -> (Term, Thm) {
   let a = mk_tyvar("A")
   let x = mk_var("x", a)
-  expect_ok_any_sig_test(refl(mk_abs(x, x)))
+  let id = mk_abs(x, x)
+  let pred = expect_ok_any_sig_test(mk_eq(id, id))
+  let witness = expect_ok_any_sig_test(refl(id))
+  (pred, witness)
 }
 
 ///|
@@ -139,80 +145,136 @@ test "ks_define_const rejects ghost type variables in rhs term" {
 ///|
 test "type definition registration is fail-closed without witness" {
   let st0 = empty_kernel_state()
-  let bad_witness = expect_ok_any_sig_test(assume(mk_const("P", bool_ty())))
-  let open_witness = expect_ok_any_sig_test(refl(mk_var("x", bool_ty())))
-  let unknown_const_witness = expect_ok_any_sig_test(
-    refl(mk_const("W", bool_ty())),
-  )
+  let (pred_p, _) = type_witness_bundle("W_bad")
+  let bad_witness = expect_ok_any_sig_test(assume(pred_p))
   assert_true(
-    ks_register_type_definition(st0, "newty", 1, bad_witness)
+    ks_register_type_definition(st0, "newty", 1, "RepBadW", pred_p, bad_witness)
     is Err(InvalidTypeWitness),
   )
+  let x = mk_var("x", bool_ty())
+  let open_pred = expect_ok_any_sig_test(mk_eq(x, x))
+  let open_witness = expect_ok_any_sig_test(refl(x))
   assert_true(
-    ks_register_type_definition(st0, "newty", 1, open_witness)
-    is Err(InvalidTypeWitness),
+    ks_register_type_definition(
+      st0, "newty", 1, "RepOpenPred", open_pred, open_witness,
+    )
+    is Err(InvalidTypePredicate),
+  )
+  let unknown_c = mk_const("W", bool_ty())
+  let unknown_const_pred = expect_ok_any_sig_test(mk_eq(unknown_c, unknown_c))
+  let unknown_const_witness = expect_ok_any_sig_test(refl(unknown_c))
+  assert_true(
+    ks_register_type_definition(
+      st0, "newty", 1, "RepUnknown", unknown_const_pred, unknown_const_witness,
+    )
+    is Err(InvalidTypePredicate),
   )
   assert_true(
-    ks_register_type_definition(st0, "newty", 1, unknown_const_witness)
-    is Err(InvalidTypeWitness),
+    ks_register_type_definition(
+      st0, "newty", 1, "RepMismatch", pred_p, unknown_const_witness,
+    )
+    is Err(TypeWitnessPredicateMismatch),
   )
   let st_known = expect_ok_sig(ks_add_const(st0, "W", bool_ty()))
   assert_true(
-    ks_register_type_definition(st_known, "newty", 1, unknown_const_witness)
+    ks_register_type_definition(
+      st_known, "newty", 1, "RepKnown", unknown_const_pred, unknown_const_witness,
+    )
     is Ok(_),
   )
-  let witness = type_witness_thm("W")
-  assert_true(ks_register_type_definition(st0, "newty", 1, witness) is Ok(_))
-  let st1 = expect_ok_sig(ks_register_type_definition(st0, "newty", 1, witness))
+  let (pred, witness) = type_witness_bundle("W")
+  assert_true(
+    ks_register_type_definition(st0, "newty", 1, "RepW", pred, witness) is Ok(_),
+  )
+  let st1 = expect_ok_sig(
+    ks_register_type_definition(st0, "newty", 1, "RepW1", pred, witness),
+  )
   assert_true(ks_has_type_witness(st1, "newty", 1))
 }
 
 ///|
 test "type definition registration validates tycon name and arity" {
   let st0 = empty_kernel_state()
-  let witness = type_witness_thm("W_arity")
+  let (pred, witness) = type_witness_bundle("W_arity")
   assert_true(
-    ks_register_type_definition(st0, "", 1, witness) is Err(InvalidTypeArity),
-  )
-  assert_true(
-    ks_register_type_definition(st0, "newty", -1, witness)
+    ks_register_type_definition(st0, "", 1, "RepArity0", pred, witness)
     is Err(InvalidTypeArity),
   )
-  assert_true(ks_register_type_definition(st0, "newty0", 0, witness) is Ok(_))
+  assert_true(
+    ks_register_type_definition(st0, "newty", -1, "RepArity1", pred, witness)
+    is Err(InvalidTypeArity),
+  )
+  assert_true(
+    ks_register_type_definition(st0, "newty0", 0, "RepArity2", pred, witness)
+    is Ok(_),
+  )
 }
 
 ///|
 test "type definition registration checks witness type vars against arity" {
   let st0 = empty_kernel_state()
-  let poly_witness = poly_type_witness_thm()
+  let (poly_pred, poly_witness) = poly_type_witness_bundle()
   assert_true(
-    ks_register_type_definition(st0, "mono", 0, poly_witness)
+    ks_register_type_definition(
+      st0, "mono", 0, "RepMono", poly_pred, poly_witness,
+    )
     is Err(TypeWitnessArityMismatch),
   )
   assert_true(
-    ks_register_type_definition(st0, "poly1", 1, poly_witness) is Ok(_),
+    ks_register_type_definition(
+      st0, "poly1", 1, "RepPoly", poly_pred, poly_witness,
+    )
+    is Ok(_),
+  )
+}
+
+///|
+test "type definition registration validates rep name freshness" {
+  let st0 = empty_kernel_state()
+  let (pred, witness) = type_witness_bundle("W_rep")
+  assert_true(
+    ks_register_type_definition(st0, "repbad0", 0, "", pred, witness)
+    is Err(InvalidTypeRepName),
+  )
+  assert_true(
+    ks_register_type_definition(st0, "repbad1", 0, "=", pred, witness)
+    is Err(InvalidTypeRepName),
+  )
+  let st1 = expect_ok_sig(
+    ks_register_type_definition(st0, "repfresh", 0, "RepFresh", pred, witness),
+  )
+  assert_true(
+    ks_register_type_definition(st1, "repfresh2", 0, "RepFresh", pred, witness)
+    is Err(TypeRepresentationAlreadyExists),
+  )
+  let st2 = expect_ok_sig(ks_add_const(st0, "RepC", bool_ty()))
+  assert_true(
+    ks_register_type_definition(st2, "repfresh3", 0, "RepC", pred, witness)
+    is Err(TypeRepresentationAlreadyExists),
   )
 }
 
 ///|
 test "type definition registration enforces tycon freshness" {
   let st0 = empty_kernel_state()
-  let witness = type_witness_thm("W_fresh")
-  let st1 = expect_ok_sig(ks_register_type_definition(st0, "fresh", 1, witness))
+  let (pred, witness) = type_witness_bundle("W_fresh")
+  let st1 = expect_ok_sig(
+    ks_register_type_definition(st0, "fresh", 1, "RepFresh0", pred, witness),
+  )
   assert_true(
-    ks_register_type_definition(st1, "fresh", 1, witness)
+    ks_register_type_definition(st1, "fresh", 1, "RepFresh1", pred, witness)
     is Err(TypeConstructorAlreadyExists),
   )
   assert_true(
-    ks_register_type_definition(st1, "fresh", 2, witness)
+    ks_register_type_definition(st1, "fresh", 2, "RepFresh2", pred, witness)
     is Err(TypeConstructorAlreadyExists),
   )
   assert_true(
-    ks_register_type_definition(st0, "bool", 0, witness)
+    ks_register_type_definition(st0, "bool", 0, "RepBool", pred, witness)
     is Err(TypeConstructorAlreadyExists),
   )
   assert_true(
-    ks_register_type_definition(st0, "fun", 2, witness)
+    ks_register_type_definition(st0, "fun", 2, "RepFun", pred, witness)
     is Err(TypeConstructorAlreadyExists),
   )
 }
@@ -227,9 +289,9 @@ test "state admissible type checks honor witnesses and builtin tycons" {
   let custom = mk_tyapp("custom", [a])
   assert_false(ks_type_is_admissible(st0, custom))
 
-  let witness = type_witness_thm("W2")
+  let (pred, witness) = type_witness_bundle("W2")
   let st1 = expect_ok_sig(
-    ks_register_type_definition(st0, "custom", 1, witness),
+    ks_register_type_definition(st0, "custom", 1, "RepCustom", pred, witness),
   )
   assert_true(ks_type_is_admissible(st1, custom))
   assert_true(ks_type_subst_is_admissible(st1, [("A", custom)]))

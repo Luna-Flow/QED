@@ -29,9 +29,12 @@ test "audit c5 pop then redefine stays rejected by defheads" {
 ///|
 test "audit d1 typedef rejects non theorem witness" {
   let st0 = empty_kernel_state()
-  let bad_w = expect_ok_audit(assume(mk_const("P", bool_ty())))
+  let x = mk_var("x", bool_ty())
+  let id = mk_abs(x, x)
+  let pred = expect_ok_audit(mk_eq(id, id))
+  let bad_w = expect_ok_audit(assume(pred))
   assert_true(
-    ks_register_type_definition(st0, "newty", 1, bad_w)
+    ks_register_type_definition(st0, "newty", 1, "RepAuditD1", pred, bad_w)
     is Err(InvalidTypeWitness),
   )
 }

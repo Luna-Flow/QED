@@ -19,9 +19,13 @@ pub suberror SigError {
   DefinitionIsCyclic
   GhostTypeVariable
   InvalidTypeWitness
+  InvalidTypePredicate
+  InvalidTypeRepName
   InvalidTypeArity
   TypeWitnessArityMismatch
+  TypeWitnessPredicateMismatch
   TypeConstructorAlreadyExists
+  TypeRepresentationAlreadyExists
   TypeMismatch
 }
 
@@ -32,6 +36,7 @@ pub type ConstId = Int
 priv struct TheoryState {
   def_heads : Array[String]
   witnessed_tycons : Array[(String, Int)]
+  type_rep_heads : Array[String]
   next_const_id : ConstId
 }
 
@@ -379,6 +384,7 @@ pub fn empty_kernel_state() -> KernelState {
     theory: TheoryState::{
       def_heads: [],
       witnessed_tycons: [],
+      type_rep_heads: [],
       next_const_id: 0,
     },
   }
@@ -441,6 +447,7 @@ pub fn ks_add_const(
             theory: TheoryState::{
               def_heads: state.theory.def_heads,
               witnessed_tycons: state.theory.witnessed_tycons,
+              type_rep_heads: state.theory.type_rep_heads,
               next_const_id: state.theory.next_const_id + 1,
             },
           })
@@ -464,6 +471,11 @@ pub fn ks_has_type_witness(
     let (name, a) = pair
     name == tycon && a == arity
   })
+}
+
+///|
+pub fn ks_has_type_rep_head(state : KernelState, name : String) -> Bool {
+  state.theory.type_rep_heads.contains(name)
 }
 
 ///|
@@ -543,6 +555,8 @@ pub fn ks_register_type_definition(
   state : KernelState,
   tycon : String,
   arity : Int,
+  rep_name : String,
+  predicate : Term,
   witness : Thm,
 ) -> Result[KernelState, SigError] {
   if arity < 0 {
@@ -551,41 +565,54 @@ pub fn ks_register_type_definition(
   if tycon == "" {
     return Err(InvalidTypeArity)
   }
+  if rep_name == "" || is_reserved_symbol(rep_name) {
+    return Err(InvalidTypeRepName)
+  }
   if ks_has_tycon(state, tycon) {
     return Err(TypeConstructorAlreadyExists)
+  }
+  if ks_has_type_rep_head(state, rep_name) || ks_has_def_head(state, rep_name) {
+    return Err(TypeRepresentationAlreadyExists)
+  }
+  if ks_lookup_const(state, rep_name) is Some(_) {
+    return Err(TypeRepresentationAlreadyExists)
+  }
+  if !term_is_closed(predicate) {
+    return Err(InvalidTypePredicate)
+  }
+  match type_of(predicate) {
+    Some(pred_ty) =>
+      if !is_bool_ty(pred_ty) {
+        return Err(InvalidTypePredicate)
+      }
+    None => return Err(InvalidTypePredicate)
+  }
+  if !term_const_instances_ok(state, predicate) {
+    return Err(InvalidTypePredicate)
+  }
+  if term_tyvars(predicate).length() > arity {
+    return Err(TypeWitnessArityMismatch)
   }
   if thm_hyp_count(witness) != 0 {
     return Err(InvalidTypeWitness)
   }
   match thm_concl(witness) {
-    Ok(c) => {
-      if !term_is_closed(c) {
-        return Err(InvalidTypeWitness)
+    Ok(c) =>
+      if !term_alpha_eq(c, predicate) {
+        return Err(TypeWitnessPredicateMismatch)
       }
-      match type_of(c) {
-        Some(ty) => {
-          if !is_bool_ty(ty) {
-            return Err(InvalidTypeWitness)
-          }
-          if !term_const_instances_ok(state, c) {
-            return Err(InvalidTypeWitness)
-          }
-          if term_tyvars(c).length() > arity {
-            return Err(TypeWitnessArityMismatch)
-          }
-        }
-        None => return Err(InvalidTypeWitness)
-      }
-    }
     Err(_) => return Err(InvalidTypeWitness)
   }
   let witnessed = state.theory.witnessed_tycons.copy()
   witnessed.push((tycon, arity))
+  let reps = state.theory.type_rep_heads.copy()
+  reps.push(rep_name)
   Ok(KernelState::{
     sig: state.sig,
     theory: TheoryState::{
       def_heads: state.theory.def_heads,
       witnessed_tycons: witnessed,
+      type_rep_heads: reps,
       next_const_id: state.theory.next_const_id,
     },
   })
@@ -637,6 +664,7 @@ pub fn ks_define_const(
                     theory: TheoryState::{
                       def_heads,
                       witnessed_tycons: state.theory.witnessed_tycons,
+                      type_rep_heads: state.theory.type_rep_heads,
                       next_const_id: state.theory.next_const_id + 1,
                     },
                   }

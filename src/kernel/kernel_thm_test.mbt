@@ -15,10 +15,13 @@ fn[T] expect_ok_sig_for_thm(res : Result[T, SigError]) -> T {
 }
 
 ///|
-fn type_witness_thm_for_inst() -> Thm {
+fn type_witness_bundle_for_inst() -> (Term, Thm) {
   let a = mk_tyvar("A")
   let x = mk_var("x", a)
-  expect_ok(refl(mk_abs(x, x)))
+  let id = mk_abs(x, x)
+  let pred = expect_ok(mk_eq(id, id))
+  let witness = expect_ok(refl(id))
+  (pred, witness)
 }
 
 ///|
@@ -38,6 +41,16 @@ test "mk_eq enforces same type on both sides" {
   let x = mk_var("x", a)
   let y = mk_var("y", b)
   assert_true(mk_eq(x, y) is Err(TypeMismatch))
+}
+
+///|
+test "rules reject malformed named binder typing at boundary" {
+  let a = mk_tyvar("A")
+  let b = mk_tyvar("B")
+  let x_a = mk_var("x", a)
+  let x_b = mk_var("x", b)
+  let bad = mk_abs(x_a, x_b)
+  assert_true(refl(bad) is Err(BoundaryFailure))
 }
 
 ///|
@@ -183,8 +196,9 @@ test "inst_type enforces admissible type targets" {
 
   assert_true(inst_type(st0, [("A", custom)], th) is Err(InvalidInstantiation))
 
+  let (pred, witness) = type_witness_bundle_for_inst()
   let st1 = expect_ok_sig_for_thm(
-    ks_register_type_definition(st0, "custom", 1, type_witness_thm_for_inst()),
+    ks_register_type_definition(st0, "custom", 1, "RepCustom", pred, witness),
   )
   assert_true(inst_type(st1, [("A", custom)], th) is Ok(_))
 }
