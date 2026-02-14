@@ -225,6 +225,7 @@ pub suberror SigError {
   GhostTypeVariable
   InvalidTypeWitness
   InvalidTypeArity
+  TypeConstructorAlreadyExists
   TypeMismatch
 }
 

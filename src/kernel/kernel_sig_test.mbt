@@ -157,6 +157,29 @@ test "type definition registration validates tycon name and arity" {
 }
 
 ///|
+test "type definition registration enforces tycon freshness" {
+  let st0 = empty_kernel_state()
+  let witness = type_witness_thm("W_fresh")
+  let st1 = expect_ok_sig(ks_register_type_definition(st0, "fresh", 1, witness))
+  assert_true(
+    ks_register_type_definition(st1, "fresh", 1, witness)
+    is Err(TypeConstructorAlreadyExists),
+  )
+  assert_true(
+    ks_register_type_definition(st1, "fresh", 2, witness)
+    is Err(TypeConstructorAlreadyExists),
+  )
+  assert_true(
+    ks_register_type_definition(st0, "bool", 0, witness)
+    is Err(TypeConstructorAlreadyExists),
+  )
+  assert_true(
+    ks_register_type_definition(st0, "fun", 2, witness)
+    is Err(TypeConstructorAlreadyExists),
+  )
+}
+
+///|
 test "state admissible type checks honor witnesses and builtin tycons" {
   let st0 = empty_kernel_state()
   let a = mk_tyvar("A")

@@ -20,6 +20,7 @@ pub suberror SigError {
   GhostTypeVariable
   InvalidTypeWitness
   InvalidTypeArity
+  TypeConstructorAlreadyExists
   TypeMismatch
 }
 
@@ -416,6 +417,17 @@ pub fn ks_has_type_witness(
 }
 
 ///|
+fn ks_has_tycon(state : KernelState, tycon : String) -> Bool {
+  if tycon == "bool" || tycon == "fun" {
+    return true
+  }
+  state.theory.witnessed_tycons.any(fn(pair) {
+    let (name, _) = pair
+    name == tycon
+  })
+}
+
+///|
 pub fn ks_const_schema(state : KernelState, name : String) -> HolType? {
   sig_lookup_const(state.sig, name)
 }
@@ -461,6 +473,9 @@ pub fn ks_register_type_definition(
   if tycon == "" {
     return Err(InvalidTypeArity)
   }
+  if ks_has_tycon(state, tycon) {
+    return Err(TypeConstructorAlreadyExists)
+  }
   if thm_hyp_count(witness) != 0 {
     return Err(InvalidTypeWitness)
   }
@@ -471,12 +486,6 @@ pub fn ks_register_type_definition(
         None => return Err(InvalidTypeWitness)
       }
     Err(_) => return Err(InvalidTypeWitness)
-  }
-  if is_builtin_tycon(tycon, arity) {
-    return Ok(state)
-  }
-  if ks_has_type_witness(state, tycon, arity) {
-    return Ok(state)
   }
   let witnessed = state.theory.witnessed_tycons.copy()
   witnessed.push((tycon, arity))
