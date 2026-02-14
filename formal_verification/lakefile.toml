@@ -1,0 +1,11 @@
+name = "QEDFV"
+version = "0.1.0"
+defaultTargets = ["QEDFV"]
+
+[[lean_lib]]
+name = "QEDFV"
+
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+rev = "v4.26.0"
