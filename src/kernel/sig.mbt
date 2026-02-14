@@ -480,11 +480,15 @@ pub fn ks_register_type_definition(
     return Err(InvalidTypeWitness)
   }
   match thm_concl(witness) {
-    Ok(c) =>
+    Ok(c) => {
+      if !term_is_closed(c) {
+        return Err(InvalidTypeWitness)
+      }
       match type_of(c) {
         Some(ty) => if !is_bool_ty(ty) { return Err(InvalidTypeWitness) }
         None => return Err(InvalidTypeWitness)
       }
+    }
     Err(_) => return Err(InvalidTypeWitness)
   }
   let witnessed = state.theory.witnessed_tycons.copy()

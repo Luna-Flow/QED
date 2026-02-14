@@ -132,8 +132,13 @@ test "ks_define_const rejects ghost type variables in rhs term" {
 test "type definition registration is fail-closed without witness" {
   let st0 = empty_kernel_state()
   let bad_witness = expect_ok_any_sig_test(assume(mk_const("P", bool_ty())))
+  let open_witness = expect_ok_any_sig_test(refl(mk_var("x", bool_ty())))
   assert_true(
     ks_register_type_definition(st0, "newty", 1, bad_witness)
+    is Err(InvalidTypeWitness),
+  )
+  assert_true(
+    ks_register_type_definition(st0, "newty", 1, open_witness)
     is Err(InvalidTypeWitness),
   )
   let witness = type_witness_thm("W")
