@@ -125,3 +125,141 @@
 ## 未决项（若无则写 None）
 
 None。
+
+## 增量修订（构造性闭包版）
+
+- 将 `SpecOK` 小节中的 *Theorem Goal* 升级为正式定理，并补入“单步 spec 头消去”的构造性证明法：
+  - 在文稿内定义 `erase_spec` 递归消去器；
+  - 给出基于导出树大小的良基归纳不变式。
+- 新增 `Constructive Closure: Derivation Objects and Erasure Operators` 小节：
+  - 引入有限导出对象 `Derives(D, s)`；
+  - 明确 `erase_def` / `erase_spec` / `erase_typedef` 三类消去器；
+  - 给出三条对应正确性定理（旧语言句子保持）。
+- 将 `Meta-Theorem Target` 升级为正式全局保守性元定理：
+  - 显式写出有限扩展序列上的逐步回擦组合证明；
+  - 由每步 gate 消去正确性推出全局 `T' ⊢ φ => T ⊢ φ`。
+- 文档状态与 P0 checklist 同步更新：
+  - `Current Status` 改为“文稿内构造性闭包已给出”；
+  - checklist 新增“导出对象系统”与“分 gate 消去 + 组合定理”两项。
+
+## 增量修订（双分区与权威边界）
+
+- 在主文稿前部新增 `Part I: Logic Core (Normative)` 与 *Authority Contract*：
+  - 明确 Part I 是唯一逻辑规范源；
+  - 明确 De Bruijn 与 scope 属于逻辑正确性机制，不是可选工程细节。
+- 将工程段入口重命名为 `Part II: Engineering Realization (Informative + Conformance)`：
+  - 显式声明 Part II 下游于 Part I，不得反向定义逻辑。
+- 新增 `Conformance Obligations (Part I -> Part II)` 子节：
+  - 规则一致性、边界一致性、scope 稳定性、gate 一致性、证书非权威性五条实现符合性义务。
+- `Documentation Maintenance Notes` 首句改写为双分区维护口径：
+  - Part I 作为逻辑真源维护；
+  - Part II 作为对 Part I 的符合性报告层维护。
+
+## 增量修订（De Bruijn / Scope 证明强化）
+
+- 在 De Bruijn 小节新增三条桥接定理：
+  - `Lowering Preserves Typing`；
+  - `Lifting Preserves Typing up to Alpha`；
+  - `Boundary Commutation with Capture-Avoiding Substitution`。
+- 将 scoped shadowing 三条命题由 proof sketch 改为完整证明文本（按定义逐步推出）。
+- 新增 `Resolution Freeze under Scope Mutation` 定理：
+  - 形式化声明已解析项在后续 `push/add/pop` 序列下的前提不变性；
+  - 明确 scope 仅影响未来命名解析，不回写既有 resolved 对象。
+
+## 增量修订（Phase 自动推进：Part I 去工程化 + Part II 收敛）
+
+- Part I 文案去工程绑定化（不改逻辑内容）：
+  - Abstract 从 “implementation-aware specification” 改为 “formal mathematical specification”；
+  - `Type Grammar` / `Term Grammar` 的 “In implementation terms” 改写为 “One canonical concrete representation”；
+  - boundary/scope 段落中的 API/实现措辞改写为抽象语义措辞（保持可实现性但不依赖某一实现）。
+- `MK_COMB` 小节由 `Type Preservation Sketch` 升级为 `Type Preservation Theorem`：
+  - 保留原推导结构并补为完整“Proof.”结尾样式。
+- Part II 收敛为符合性语义：
+  - error taxonomy 对齐段由 “normative for final API” 改为 “conformance target for engineering realizations”；
+  - Appendix B 尾句改为 “logic-closure + conformance/regression gate”。
+
+## 增量修订（Phase 自动推进：Part II 符合性闭包）
+
+- `Engineering Correspondence` 补充“informative only”边界声明：
+  - 模块映射仅用于审计覆盖，不改变 Part I 的任何定义/定理。
+- 新增 `Conformance Transfer Theorem` 小节：
+  - 定义 `Faithful Realization`（满足五条 conformance obligations）；
+  - 给出实现到逻辑的传递定理：若实现接受 sequent $s$，则 Part I 可导出 $s$；
+  - 证明法采用 acceptance trace 重建：规则映射、边界引理替换、scope 稳定性擦除、gate 对应、证书事件丢弃。
+- Primitive Rules 引导段去实现耦合：
+  - 将 “parallel with implementation updates” 改为 “Part I side conditions are authoritative”。
+
+## 增量修订（Phase 自动推进：Primitive Rules 构造性闭包增强）
+
+- 在 `Rule Schema` 章节末新增 `Rule-Level Constructive Preservation Capsules`：
+  - 统一给出 `Preserve_R : valid(Premises_R) => valid(Conclusion_R)` 的构造性模板；
+  - 为 10 条 primitive rules 分别给出胶囊化保持声明（含 `INST_TYPE` 的 gate/coherence/instance 三重约束）；
+  - 新增 `Rule Capsule Closure` 汇总定理，明确“逐规则案例分析 + 胶囊调用”即可构成 P1 义务闭包。
+
+## 增量修订（Phase 自动推进：双分区审计清单闭环）
+
+- Appendix B（P0 checklist）扩展 Part II 一致性项：
+  - 新增 24-28 条，覆盖 Part II 下游声明、五项 conformance obligations、transfer theorem、非权威映射、error taxonomy 的 conformance 定位。
+- 新增 Appendix G `Part II Conformance Audit Scenarios`：
+  - Rule-fidelity replay；
+  - Boundary-fidelity；
+  - Scope-fidelity stability；
+  - Gate-fidelity；
+  - Certificate non-authority。
+- 至此形成 “Part I 逻辑闭包 + Part II 符合性闭包” 双审计结构。
+
+## 增量修订（Phase 自动推进：语义假设包与一致性层补强）
+
+- 在 `Semantic Assumptions` 下补入模型类封装：
+  - 新增 `Admissible Model Class` 定义（typing/denotation + Choice + Infinity anchor + gate-admitted定理）。
+  - 新增 `Model-Class Non-Emptiness` 假设，显式化“非平凡模型存在”前提。
+- 新增一致性转移结论：
+  - `Semantic Non-Triviality Transfer`（反模型推出不可导）；
+  - `Consistency Witness Form`（在同一模型类语义下排除同句与其否定的同时可导）。
+
+## 增量修订（Phase 自动推进：声明-证明追溯矩阵）
+
+- 新增 Appendix H `Claim-to-Proof Trace Matrix`：
+  - 给出 C1..C10 十条高层主张到“定义锚点/证明锚点”的短路径映射；
+  - 覆盖 rule soundness、三类 gate conservativity、scope/boundary 稳定性、global conservativity、conformance transfer、non-triviality、certificate non-authority。
+- 附录尾部新增 review rule：
+  - 每条主张目标为 “claim -> definition -> theorem” 三步可达，便于审稿与交叉复核。
+
+## 增量修订（Phase 自动推进：术语一致性精修）
+
+- Part I 术语进一步去工程化并统一：
+  - `external modules` 改为 `external contexts`；
+  - `implementation-level check` 改为 `admission-procedure check`；
+  - `module boundaries and test responsibilities` 改为 proof-block 视角叙述；
+  - infinity-anchor 与 canonical-theorem 处的 `implementation` 用词替换为 realization/presentation 语义。
+- 维护说明与审计场景同步统一措辞：
+  - `APIs evolve` 改为 `realization interfaces evolve`；
+  - Appendix F 的 schema widening 场景改为 admission-procedure 语义。
+- Notation 统一：
+  - 语义解释记号统一为 `"denote"(t, rho, M)`，与后文 boundary denotation 引理保持同一参数约定。
+
+## 增量修订（Phase 自动推进：闭环锚点补齐）
+
+- 在 Part II `Audit Certificates and Replay Interface` 补齐缺失定义锚点：
+  - 新增 `Admissible(T, t_h)` 定义（由 Part I `Derives` 对象与 gate 合法性见证）；
+  - 新增 `SentenceInLanguage(T_0, t_h)` 定义（闭句 + base language 符号约束）。
+- `ConservativeReplayOK` 现在使用已显式定义的谓词，不再依赖隐式语义前提。
+
+## 增量修订（符号书写一致性修复）
+
+- 修复替换记号中的斜杠书写一致性：
+  - 将 `t[s/x]` 统一为 `t[s\/x]`；
+  - 与文中既有 `s[u\/x]` 记法保持一致，避免 `[A/B]` 形式在审阅与渲染中产生歧义。
+
+## 增量修订（语气优化）
+
+- 全文语气向“论文叙述风格”收敛，保持逻辑内容不变：
+  - `Authority Contract` 调整为 `Normative Scope`，并将部分强命令式句型改为学术叙述句型；
+  - Part II 开场从“实现钩子”口径改为“具体 realization 与 conformance 记录”口径；
+  - `Documentation Maintenance Notes` 改为 `Concluding Remarks`，`Near-term maintenance focus` 改为 `Future refinement directions`。
+- 附录语气统一：
+  - `Audit Scenarios` 统一改为 `Validation Scenarios`；
+  - 末尾由 “required before claiming” 改为 “provide structured evidence for ...”。
+- 细节语义一致性：
+  - 语义解释记号统一为 `"denote"(t, rho, M)`（与后文 denotation 引理一致）；
+  - `ConservativeReplayOK` 相关谓词在文中具名定义，减少隐式术语。
