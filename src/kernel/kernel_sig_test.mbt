@@ -50,6 +50,24 @@ test "sig supports lexical shadowing and pop restoration" {
 }
 
 ///|
+test "sig supports principal schema instantiation checks" {
+  let a = mk_tyvar("A")
+  let sig0 = empty_sig()
+  let sig1 = expect_ok_sig(sig_add_const_idempotent_e(sig0, "id", fun_ty(a, a)))
+  let bool = bool_ty()
+
+  let ok_inst = sig_mk_const_instance(sig1, "id", fun_ty(bool, bool))
+  assert_true(ok_inst is Some(Const("id", _)))
+
+  let bad_inst = sig_mk_const_instance(sig1, "id", fun_ty(bool, a))
+  assert_true(bad_inst is None)
+  assert_true(
+    sig_mk_const_instance_e(sig1, "id", fun_ty(bool, a))
+    is Err(InvalidConstInstance),
+  )
+}
+
+///|
 test "kernel state enforces DefHeads monotonicity across pop" {
   let st0 = empty_kernel_state()
   let p = mk_const("P", bool_ty())
@@ -158,4 +176,17 @@ test "kernel state exposes stable const ids for lookups" {
     (Some(v1), Some(v2)) => assert_false(v1 == v2)
     _ => assert_false(true)
   }
+}
+
+///|
+test "kernel state exposes schema-checked instance constructor" {
+  let st0 = empty_kernel_state()
+  let a = mk_tyvar("A")
+  let bool = bool_ty()
+  let st1 = expect_ok_sig(ks_add_const(st0, "id", fun_ty(a, a)))
+  assert_true(ks_mk_const_instance(st1, "id", fun_ty(bool, bool)) is Ok(_))
+  assert_true(
+    ks_mk_const_instance(st1, "id", fun_ty(bool, a))
+    is Err(InvalidConstInstance),
+  )
 }

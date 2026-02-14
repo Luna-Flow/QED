@@ -9,6 +9,7 @@ pub enum GlobalSig {
 pub suberror SigError {
   DuplicateConstName
   ConstTypeConflict
+  InvalidConstInstance
   UnknownConst
   ScopeUnderflow
   InvalidConstRhs
@@ -245,9 +246,43 @@ pub fn sig_mk_const(sig : GlobalSig, name : String) -> Term? {
 }
 
 ///|
+pub fn sig_mk_const_instance(
+  sig : GlobalSig,
+  name : String,
+  inst_ty : HolType,
+) -> Term? {
+  match sig_lookup_const(sig, name) {
+    Some(schema) =>
+      if ty_is_instance_of(inst_ty, schema) {
+        Some(mk_const(name, inst_ty))
+      } else {
+        None
+      }
+    None => None
+  }
+}
+
+///|
 pub fn sig_mk_const_e(sig : GlobalSig, name : String) -> Result[Term, SigError] {
   match sig_lookup_const(sig, name) {
     Some(ty) => Ok(mk_const(name, ty))
+    None => Err(UnknownConst)
+  }
+}
+
+///|
+pub fn sig_mk_const_instance_e(
+  sig : GlobalSig,
+  name : String,
+  inst_ty : HolType,
+) -> Result[Term, SigError] {
+  match sig_lookup_const(sig, name) {
+    Some(schema) =>
+      if ty_is_instance_of(inst_ty, schema) {
+        Ok(mk_const(name, inst_ty))
+      } else {
+        Err(InvalidConstInstance)
+      }
     None => Err(UnknownConst)
   }
 }
@@ -339,6 +374,15 @@ pub fn ks_pop_scope(state : KernelState) -> Result[KernelState, SigError] {
 ///|
 pub fn ks_lookup_const(state : KernelState, name : String) -> HolType? {
   sig_lookup_const(state.sig, name)
+}
+
+///|
+pub fn ks_mk_const_instance(
+  state : KernelState,
+  name : String,
+  inst_ty : HolType,
+) -> Result[Term, SigError] {
+  sig_mk_const_instance_e(state.sig, name, inst_ty)
 }
 
 ///|

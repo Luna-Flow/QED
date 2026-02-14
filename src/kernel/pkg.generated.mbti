@@ -94,6 +94,8 @@ pub fn ks_lookup_const(KernelState, String) -> HolType?
 
 pub fn ks_lookup_const_id(KernelState, String) -> Int?
 
+pub fn ks_mk_const_instance(KernelState, String, HolType) -> Result[Term, SigError]
+
 pub fn ks_pop_scope(KernelState) -> Result[KernelState, SigError]
 
 pub fn ks_push_scope(KernelState) -> KernelState
@@ -143,6 +145,10 @@ pub fn sig_lookup_const_id(GlobalSig, String) -> Int?
 pub fn sig_mk_const(GlobalSig, String) -> Term?
 
 pub fn sig_mk_const_e(GlobalSig, String) -> Result[Term, SigError]
+
+pub fn sig_mk_const_instance(GlobalSig, String, HolType) -> Term?
+
+pub fn sig_mk_const_instance_e(GlobalSig, String, HolType) -> Result[Term, SigError]
 
 pub fn sig_pop_scope(GlobalSig) -> GlobalSig?
 
@@ -208,6 +214,7 @@ pub suberror LogicError {
 pub suberror SigError {
   DuplicateConstName
   ConstTypeConflict
+  InvalidConstInstance
   UnknownConst
   ScopeUnderflow
   InvalidConstRhs
