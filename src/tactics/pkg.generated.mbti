@@ -1,7 +1,19 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "Luna-Flow/QED/tactics"
 
+import {
+  "Luna-Flow/QED/kernel",
+}
+
 // Values
+pub fn goal_concl(Goal) -> @kernel.Term
+
+pub fn goal_hyp_count(Goal) -> Int
+
+pub fn mk_goal(Array[@kernel.Term], @kernel.Term) -> Goal
+
+pub fn solve_by_assume(Goal) -> Result[@kernel.Thm, @kernel.LogicError]
+
 pub fn tactics_engine_phase0_ready() -> Bool
 
 pub fn tactics_goal_phase0_ready() -> Bool
@@ -9,6 +21,10 @@ pub fn tactics_goal_phase0_ready() -> Bool
 // Errors
 
 // Types and methods
+pub struct Goal {
+  hyps : Array[@kernel.Term]
+  concl : @kernel.Term
+}
 
 // Type aliases
 

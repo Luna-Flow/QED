@@ -1,10 +1,20 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "Luna-Flow/QED/logic"
 
+import {
+  "Luna-Flow/QED/kernel",
+}
+
 // Values
+pub fn logic_assume(@kernel.Term) -> Result[@kernel.Thm, @kernel.LogicError]
+
 pub fn logic_bool_phase0_ready() -> Bool
 
 pub fn logic_equal_phase0_ready() -> Bool
+
+pub fn logic_refl(@kernel.Term) -> Result[@kernel.Thm, @kernel.LogicError]
+
+pub fn logic_trans(@kernel.Thm, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
 
 // Errors
 

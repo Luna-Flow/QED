@@ -1,5 +1,13 @@
 ///|
-/// Phase 0 placeholder for logic bool layer.
+/// Minimal bool-facing wrapper over kernel ASSUME.
+pub fn logic_assume(
+  prop : @kernel.Term,
+) -> Result[@kernel.Thm, @kernel.LogicError] {
+  @kernel.assume(prop)
+}
+
+///|
+/// Phase readiness probe.
 pub fn logic_bool_phase0_ready() -> Bool {
   true
 }
