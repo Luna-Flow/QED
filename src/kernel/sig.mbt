@@ -401,7 +401,7 @@ pub fn ks_define_const(
       if !ty_eq(rhs_ty, decl_ty) {
         return Err(TypeMismatch)
       }
-      if !tyvars_subset(rhs_ty, decl_ty) {
+      if !term_tyvars_subset(rhs, decl_ty) {
         return Err(GhostTypeVariable)
       }
       match sig_add_const(state.sig, name, decl_ty) {

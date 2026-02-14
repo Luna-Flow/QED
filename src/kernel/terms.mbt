@@ -570,3 +570,39 @@ pub fn term_apply_ty_subst_unsafe(
       )
   }
 }
+
+///|
+fn push_unique_string(out : Array[String], v : String) -> Unit {
+  if !out.contains(v) {
+    out.push(v)
+  }
+}
+
+///|
+fn union_strings(a : Array[String], b : Array[String]) -> Array[String] {
+  let out = a.copy()
+  b.each(fn(v) { push_unique_string(out, v) })
+  out
+}
+
+///|
+fn term_tyvars_impl(term : Term) -> Array[String] {
+  match term {
+    Var(_, ty) => tyvars(ty)
+    Const(_, ty) => tyvars(ty)
+    Comb(f, x) => union_strings(term_tyvars_impl(f), term_tyvars_impl(x))
+    Abs(v, body) => union_strings(term_tyvars_impl(v), term_tyvars_impl(body))
+  }
+}
+
+///|
+pub fn term_tyvars(term : Term) -> Array[String] {
+  term_tyvars_impl(term)
+}
+
+///|
+pub fn term_tyvars_subset(term : Term, ty : HolType) -> Bool {
+  let rhs = term_tyvars(term)
+  let lhs = tyvars(ty)
+  rhs.all(fn(v) { lhs.contains(v) })
+}

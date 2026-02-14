@@ -394,3 +394,17 @@ test "terms term_apply_ty_subst updates all embedded types" {
     None => assert_false(true)
   }
 }
+
+///|
+test "terms term_tyvars tracks type variables in nested annotations" {
+  let a = mk_tyvar("A")
+  let b = mk_tyvar("B")
+  let f = mk_const("f", fun_ty(a, b))
+  let x = mk_var("x", a)
+  let t = mk_abs(x, mk_comb(f, x))
+  let tvs = term_tyvars(t)
+  assert_true(tvs.contains("A"))
+  assert_true(tvs.contains("B"))
+  assert_true(term_tyvars_subset(t, fun_ty(a, b)))
+  assert_false(term_tyvars_subset(t, a))
+}

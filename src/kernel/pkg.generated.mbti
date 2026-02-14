@@ -158,6 +158,10 @@ pub fn term_is_closed(Term) -> Bool
 
 pub fn term_to_string(Term) -> String
 
+pub fn term_tyvars(Term) -> Array[String]
+
+pub fn term_tyvars_subset(Term, HolType) -> Bool
+
 pub fn thm_concl(Thm) -> Result[Term, LogicError]
 
 pub fn thm_hyp_count(Thm) -> Int

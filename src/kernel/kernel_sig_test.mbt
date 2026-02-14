@@ -67,6 +67,18 @@ test "ks_define_const rejects reserved symbol and type mismatch" {
 }
 
 ///|
+test "ks_define_const rejects ghost type variables in rhs term" {
+  let st0 = empty_kernel_state()
+  let a = mk_tyvar("A")
+  let pred = mk_const("pred", fun_ty(a, bool_ty()))
+  let c = mk_const("c", a)
+  let rhs = mk_comb(pred, c)
+  assert_true(
+    ks_define_const(st0, "g", bool_ty(), rhs) is Err(GhostTypeVariable),
+  )
+}
+
+///|
 test "type definition registration is fail-closed without witness" {
   let st0 = empty_kernel_state()
   assert_true(
