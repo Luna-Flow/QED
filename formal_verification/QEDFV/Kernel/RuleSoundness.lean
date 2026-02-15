@@ -71,6 +71,7 @@ def primitive_sound_INST_TYPE : Prop :=
     ModelSubstLaws m ->
     valid_ty_subst theta ->
     admissible_ty_image k.T theta ->
+    typeSubstObjectLevelSequent theta A ->
     typing_preserved_under_ty_subst theta A ->
     def_inst_coherent theta A ->
     const_instance_ok theta A ->
@@ -82,6 +83,7 @@ def primitive_sound_INST : Prop :=
   forall (m : Model) (_k : KernelState) (sigma : TermSubst) (A : Sequent),
     ModelSubstLaws m ->
     valid_term_subst sigma ->
+    termSubstObjectLevelSequent sigma A ->
     Valid m A ->
     Valid m (applyTermSubstSequent sigma A)
 
@@ -200,7 +202,8 @@ theorem primitive_sound_DEDUCT_ANTISYM_RULE_proved : primitive_sound_DEDUCT_ANTI
   exact m.validEqIntro A.concl B.concl hAConcl hBConcl
 
 theorem primitive_sound_INST_TYPE_proved : primitive_sound_INST_TYPE := by
-  intro m k theta A hLaws hSubst hImg hTyping hDef hConst hStruct hA
+  intro m k theta A hLaws hSubst hImg hObj hTyping hDef hConst hStruct hA
+  have _hObjUsed : typeSubstObjectLevelSequent theta A := hObj
   have hPrem : InstTypePremises k theta A := by
     exact ⟨hSubst, hImg, hTyping, hDef, hConst, hStruct⟩
   have hNoFailure : instTypeFailure k theta A = none :=
@@ -209,7 +212,8 @@ theorem primitive_sound_INST_TYPE_proved : primitive_sound_INST_TYPE := by
   exact hLaws.typeSubstPreservesValid k theta A hSubst hImg hTyping hDef hConst hStruct hA
 
 theorem primitive_sound_INST_proved : primitive_sound_INST := by
-  intro m k sigma A hLaws hSubst hA
+  intro m k sigma A hLaws hSubst hObj hA
+  have _hObjUsed : termSubstObjectLevelSequent sigma A := hObj
   exact hLaws.termSubstPreservesValid sigma A hSubst hA
 
 theorem primitive_sound_all_proved : primitive_sound_all := by

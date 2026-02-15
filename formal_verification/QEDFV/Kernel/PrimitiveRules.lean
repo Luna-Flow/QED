@@ -76,13 +76,79 @@ def thetaParamNames (theta : TypeSubst) : Array Lean.Name :=
 def thetaLevels (theta : TypeSubst) : Array Lean.Level :=
   theta.toArray.map (fun p => holTypeToLevel p.snd)
 
-def applyTypeSubstExpr (theta : TypeSubst) (e : DbExpr) : DbExpr :=
+def applyTypeLevelSnapshot (theta : TypeSubst) (e : DbExpr) : DbExpr :=
   e.instantiateLevelParamsArray (thetaParamNames theta) (thetaLevels theta)
+
+def applyTypeSubstExprObj (theta : TypeSubst) : DbExpr -> DbExpr
+  | .sort u => applyTypeLevelSnapshot theta (.sort u)
+  | .const n ls => applyTypeLevelSnapshot theta (.const n ls)
+  | .app f x => .app (applyTypeSubstExprObj theta f) (applyTypeSubstExprObj theta x)
+  | .lam n ty body bi =>
+      .lam n (applyTypeSubstExprObj theta ty) (applyTypeSubstExprObj theta body) bi
+  | .forallE n ty body bi =>
+      .forallE n (applyTypeSubstExprObj theta ty) (applyTypeSubstExprObj theta body) bi
+  | .letE n ty val body nondep =>
+      .letE n
+        (applyTypeSubstExprObj theta ty)
+        (applyTypeSubstExprObj theta val)
+        (applyTypeSubstExprObj theta body)
+        nondep
+  | .mdata md body => .mdata md (applyTypeSubstExprObj theta body)
+  | .proj s i body => .proj s i (applyTypeSubstExprObj theta body)
+  | e => e
+
+def applyTypeSubstExpr (theta : TypeSubst) (e : DbExpr) : DbExpr :=
+  applyTypeSubstExprObj theta e
+
+theorem applyTypeSubstExpr_object_level (theta : TypeSubst) (e : DbExpr) :
+    applyTypeSubstExpr theta e = applyTypeSubstExprObj theta e := by
+  rfl
+
+@[simp] theorem applyTypeSubstExpr_lam
+    (theta : TypeSubst)
+    (n : Lean.Name)
+    (ty body : DbExpr)
+    (bi : Lean.BinderInfo) :
+    applyTypeSubstExpr theta (.lam n ty body bi) =
+      .lam n (applyTypeSubstExpr theta ty) (applyTypeSubstExpr theta body) bi := by
+  simp [applyTypeSubstExpr, applyTypeSubstExprObj]
+
+@[simp] theorem applyTypeSubstExpr_forall
+    (theta : TypeSubst)
+    (n : Lean.Name)
+    (ty body : DbExpr)
+    (bi : Lean.BinderInfo) :
+    applyTypeSubstExpr theta (.forallE n ty body bi) =
+      .forallE n (applyTypeSubstExpr theta ty) (applyTypeSubstExpr theta body) bi := by
+  simp [applyTypeSubstExpr, applyTypeSubstExprObj]
+
+@[simp] theorem applyTypeSubstExpr_let
+    (theta : TypeSubst)
+    (n : Lean.Name)
+    (ty val body : DbExpr)
+    (nondep : Bool) :
+    applyTypeSubstExpr theta (.letE n ty val body nondep) =
+      .letE n
+        (applyTypeSubstExpr theta ty)
+        (applyTypeSubstExpr theta val)
+        (applyTypeSubstExpr theta body)
+        nondep := by
+  simp [applyTypeSubstExpr, applyTypeSubstExprObj]
 
 def applyTypeSubstSequent (theta : TypeSubst) (s : Sequent) : Sequent :=
   { hyps := s.hyps.map (applyTypeSubstExpr theta)
   , concl := applyTypeSubstExpr theta s.concl
   }
+
+def typeSubstObjectLevelSequent (theta : TypeSubst) (s : Sequent) : Prop :=
+  applyTypeSubstSequent theta s =
+    { hyps := s.hyps.map (applyTypeSubstExprObj theta)
+    , concl := applyTypeSubstExprObj theta s.concl
+    }
+
+theorem typeSubstObjectLevelSequent_proved (theta : TypeSubst) (s : Sequent) :
+    typeSubstObjectLevelSequent theta s := by
+  rfl
 
 def typing_preserved_under_ty_subst (theta : TypeSubst) (s : Sequent) : Prop :=
   QEDExprWF (applyTypeSubstExpr theta s.concl) ∧
@@ -150,13 +216,39 @@ def lookupTermDbSubst (snapshot : List (Lean.Name × DbExpr)) (n : Lean.Name) : 
 def dropTermDbSubstKey (snapshot : List (Lean.Name × DbExpr)) (n : Lean.Name) : List (Lean.Name × DbExpr) :=
   snapshot.filter (fun p => p.fst != n)
 
+theorem lookupTermDbSubst_drop_same
+    (snapshot : List (Lean.Name × DbExpr))
+    (n : Lean.Name) :
+    lookupTermDbSubst (dropTermDbSubstKey snapshot n) n = none := by
+  have hFindFalse :
+      ∀ xs : List (Lean.Name × DbExpr),
+        (match List.find? (fun a => false) xs with
+        | some (_, rhs) => some rhs
+        | none => none) = none := by
+    intro xs
+    induction xs with
+    | nil =>
+        rfl
+    | cons hd tl ih =>
+        simp [List.find?, ih]
+  unfold lookupTermDbSubst dropTermDbSubstKey
+  induction snapshot with
+  | nil =>
+      simp
+  | cons hd tl ih =>
+      cases hd with
+      | mk fst rhs =>
+          by_cases hEq : fst = n
+          · simpa [hEq] using hFindFalse tl
+          · simpa [hEq] using hFindFalse tl
+
 def termSubstSnapshot (sigma : TermSubst) : List (Lean.Name × DbExpr) :=
   sigma.map (fun p => (.str .anonymous p.fst, termToDbExprApprox p.snd))
 
 def termSubstArray (sigma : TermSubst) : Array DbExpr :=
   sigma.toArray.map (fun p => termToDbExprApprox p.snd)
 
-partial def applyTermSubstExprWith (snapshot : List (Lean.Name × DbExpr)) : DbExpr -> DbExpr
+def applyTermSubstExprWith (snapshot : List (Lean.Name × DbExpr)) : DbExpr -> DbExpr
   | .const n ls =>
       match lookupTermDbSubst snapshot n with
       | some rhs => rhs
@@ -185,13 +277,67 @@ partial def applyTermSubstExprWith (snapshot : List (Lean.Name × DbExpr)) : DbE
   | .proj s i body => .proj s i (applyTermSubstExprWith snapshot body)
   | e => e
 
+@[simp] theorem applyTermSubstExprWith_lam
+    (snapshot : List (Lean.Name × DbExpr))
+    (n : Lean.Name)
+    (ty body : DbExpr)
+    (bi : Lean.BinderInfo) :
+    applyTermSubstExprWith snapshot (.lam n ty body bi) =
+      .lam n
+        (applyTermSubstExprWith snapshot ty)
+        (applyTermSubstExprWith (dropTermDbSubstKey snapshot n) body)
+        bi := by
+  simp [applyTermSubstExprWith]
+
+@[simp] theorem applyTermSubstExprWith_forall
+    (snapshot : List (Lean.Name × DbExpr))
+    (n : Lean.Name)
+    (ty body : DbExpr)
+    (bi : Lean.BinderInfo) :
+    applyTermSubstExprWith snapshot (.forallE n ty body bi) =
+      .forallE n
+        (applyTermSubstExprWith snapshot ty)
+        (applyTermSubstExprWith (dropTermDbSubstKey snapshot n) body)
+        bi := by
+  simp [applyTermSubstExprWith]
+
+@[simp] theorem applyTermSubstExprWith_let
+    (snapshot : List (Lean.Name × DbExpr))
+    (n : Lean.Name)
+    (ty val body : DbExpr)
+    (nondep : Bool) :
+    applyTermSubstExprWith snapshot (.letE n ty val body nondep) =
+      .letE n
+        (applyTermSubstExprWith snapshot ty)
+        (applyTermSubstExprWith snapshot val)
+        (applyTermSubstExprWith (dropTermDbSubstKey snapshot n) body)
+        nondep := by
+  simp [applyTermSubstExprWith]
+
 def applyTermSubstExpr (sigma : TermSubst) (e : DbExpr) : DbExpr :=
   applyTermSubstExprWith (termSubstSnapshot sigma) e
+
+theorem applyTermSubstExpr_parallel_snapshot
+    (sigma : TermSubst)
+    (e : DbExpr) :
+    applyTermSubstExpr sigma e =
+      applyTermSubstExprWith (termSubstSnapshot sigma) e := by
+  rfl
 
 def applyTermSubstSequent (sigma : TermSubst) (s : Sequent) : Sequent :=
   { hyps := s.hyps.map (applyTermSubstExpr sigma)
   , concl := applyTermSubstExpr sigma s.concl
   }
+
+def termSubstObjectLevelSequent (sigma : TermSubst) (s : Sequent) : Prop :=
+  applyTermSubstSequent sigma s =
+    { hyps := s.hyps.map (applyTermSubstExprWith (termSubstSnapshot sigma))
+    , concl := applyTermSubstExprWith (termSubstSnapshot sigma) s.concl
+    }
+
+theorem termSubstObjectLevelSequent_proved (sigma : TermSubst) (s : Sequent) :
+    termSubstObjectLevelSequent sigma s := by
+  rfl
 
 inductive InstTypeFailure where
   | invalidSubstitution
@@ -360,6 +506,7 @@ inductive Derivable (k : KernelState) : Sequent -> Prop where
   | instType (theta : TypeSubst) (A : Sequent) :
       valid_ty_subst theta ->
       admissible_ty_image k.T theta ->
+      typeSubstObjectLevelSequent theta A ->
       typing_preserved_under_ty_subst theta A ->
       def_inst_coherent theta A ->
       const_instance_ok theta A ->
@@ -368,6 +515,7 @@ inductive Derivable (k : KernelState) : Sequent -> Prop where
       Derivable k (applyTypeSubstSequent theta A)
   | inst (sigma : TermSubst) (A : Sequent) :
       valid_term_subst sigma ->
+      termSubstObjectLevelSequent sigma A ->
       Derivable k A ->
       Derivable k (applyTermSubstSequent sigma A)
 

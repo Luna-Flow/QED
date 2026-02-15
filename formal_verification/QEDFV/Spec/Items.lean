@@ -670,6 +670,7 @@ def SEC14_RULE_INST_TYPE : Prop :=
   ∀ k : KernelState, ∀ theta : TypeSubst, ∀ A : Sequent,
     valid_ty_subst theta ->
     admissible_ty_image k.T theta ->
+    typeSubstObjectLevelSequent theta A ->
     typing_preserved_under_ty_subst theta A ->
     def_inst_coherent theta A ->
     const_instance_ok theta A ->
@@ -678,18 +679,19 @@ def SEC14_RULE_INST_TYPE : Prop :=
     Derivable k (applyTypeSubstSequent theta A)
 
 theorem SEC14_RULE_INST_TYPE_proved : SEC14_RULE_INST_TYPE := by
-  intro k theta A hValid hAdmissible hTyping hDef hConst hStruct hA
-  exact Derivable.instType (k := k) theta A hValid hAdmissible hTyping hDef hConst hStruct hA
+  intro k theta A hValid hAdmissible hObj hTyping hDef hConst hStruct hA
+  exact Derivable.instType (k := k) theta A hValid hAdmissible hObj hTyping hDef hConst hStruct hA
 
 def SEC14_RULE_INST : Prop :=
   ∀ k : KernelState, ∀ sigma : TermSubst, ∀ A : Sequent,
     valid_term_subst sigma ->
+    termSubstObjectLevelSequent sigma A ->
     Derivable k A ->
     Derivable k (applyTermSubstSequent sigma A)
 
 theorem SEC14_RULE_INST_proved : SEC14_RULE_INST := by
-  intro k sigma A hValid hA
-  exact Derivable.inst (k := k) sigma A hValid hA
+  intro k sigma A hValid hObj hA
+  exact Derivable.inst (k := k) sigma A hValid hObj hA
 
 def SEC15_SOUNDNESS_STRATEGY : Prop :=
   kernel_soundness_target
