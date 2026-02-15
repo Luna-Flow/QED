@@ -14,14 +14,17 @@ theorem audit_e1_typed_core_injectivity_proved : audit_e1_typed_core_injectivity
   exact typed_core_injectivity n1 n2 t1 t2 b1 b2 bi1 bi2 h
 
 def audit_e2_trans_middle_term_guard : Prop :=
-  forall k A B,
+  forall k A B x y y' z,
+    A.concl = mkEqExpr x y ->
+    B.concl = mkEqExpr y' z ->
+    AlphaEqExpr y y' ->
     Derivable k A ->
     Derivable k B ->
-    Derivable k { hyps := hypsUnion A.hyps B.hyps, concl := B.concl }
+    Derivable k { hyps := hypsUnion A.hyps B.hyps, concl := mkEqExpr x z }
 
 theorem audit_e2_trans_middle_term_guard_proved : audit_e2_trans_middle_term_guard := by
-  intro k A B hA hB
-  exact Derivable.trans (k := k) A B hA hB
+  intro k A B x y y' z hEqA hEqB hMid hA hB
+  exact Derivable.trans (k := k) A B x y y' z hEqA hEqB hMid hA hB
 
 def audit_e3_beta_binder_agreement : Prop := appendixE_beta_binder_agreement_obligation
 

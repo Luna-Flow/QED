@@ -4,6 +4,7 @@ import QEDFV.Signature.TypeDef
 import QEDFV.Subst.TypeSubst
 import QEDFV.Subst.TermSubst
 import QEDFV.Db.ExprCore
+import QEDFV.Db.Operations
 
 namespace QEDFV
 
@@ -15,10 +16,32 @@ def EqExpr (e : DbExpr) : Prop :=
   | Lean.Expr.app (Lean.Expr.app (Lean.Expr.const `Eq _) _) _ => True
   | _ => False
 
+def eqSides? : DbExpr -> Option (DbExpr × DbExpr)
+  | Lean.Expr.app (Lean.Expr.app (Lean.Expr.const `Eq _) lhs) rhs => some (lhs, rhs)
+  | _ => none
+
 def IsBoolExpr (e : DbExpr) : Prop := EqExpr e
 
 theorem isBoolExpr_mkEqExpr (lhs rhs : DbExpr) : IsBoolExpr (mkEqExpr lhs rhs) := by
   simp [IsBoolExpr, EqExpr, mkEqExpr]
+
+theorem eqSides?_mkEqExpr (lhs rhs : DbExpr) :
+    eqSides? (mkEqExpr lhs rhs) = some (lhs, rhs) := by
+  simp [eqSides?, mkEqExpr]
+
+theorem alphaEq_mkEqExpr_left
+    {a b c : DbExpr}
+    (h : AlphaEqExpr a b) :
+    AlphaEqExpr (mkEqExpr a c) (mkEqExpr b c) := by
+  unfold AlphaEqExpr at h ⊢
+  simpa [mkEqExpr, alphaNorm] using h
+
+theorem alphaEq_mkEqExpr_right
+    {a b c : DbExpr}
+    (h : AlphaEqExpr b c) :
+    AlphaEqExpr (mkEqExpr a b) (mkEqExpr a c) := by
+  unfold AlphaEqExpr at h ⊢
+  simpa [mkEqExpr, alphaNorm] using h
 
 def typeAdmissibleIn (t : TheoryState) : HolType -> Prop
   | .tyvar _ => True
@@ -37,22 +60,14 @@ def holTypeToLevel : HolType -> Lean.Level
   | .tyapp k args =>
       args.foldl (fun acc ty => .max acc (holTypeToLevel ty)) (.param (.str .anonymous k))
 
-def thetaLevels (theta : TypeSubst) : List Lean.Level :=
-  theta.map (fun p => holTypeToLevel p.snd)
+def thetaParamNames (theta : TypeSubst) : Array Lean.Name :=
+  theta.toArray.map (fun p => .str .anonymous p.fst)
 
-partial def applyTypeSubstExpr (theta : TypeSubst) : DbExpr -> DbExpr
-  | .app f a => .app (applyTypeSubstExpr theta f) (applyTypeSubstExpr theta a)
-  | .lam n ty body bi =>
-      .lam n (applyTypeSubstExpr theta ty) (applyTypeSubstExpr theta body) bi
-  | .forallE n ty body bi =>
-      .forallE n (applyTypeSubstExpr theta ty) (applyTypeSubstExpr theta body) bi
-  | .letE n ty val body nonDep =>
-      .letE n (applyTypeSubstExpr theta ty) (applyTypeSubstExpr theta val)
-        (applyTypeSubstExpr theta body) nonDep
-  | .mdata md body => .mdata md (applyTypeSubstExpr theta body)
-  | .proj n i body => .proj n i (applyTypeSubstExpr theta body)
-  | .const n ls => .const n (ls ++ thetaLevels theta)
-  | e => e
+def thetaLevels (theta : TypeSubst) : Array Lean.Level :=
+  theta.toArray.map (fun p => holTypeToLevel p.snd)
+
+def applyTypeSubstExpr (theta : TypeSubst) (e : DbExpr) : DbExpr :=
+  e.instantiateLevelParamsArray (thetaParamNames theta) (thetaLevels theta)
 
 def applyTypeSubstSequent (theta : TypeSubst) (s : Sequent) : Sequent :=
   { hyps := s.hyps.map (applyTypeSubstExpr theta)
@@ -81,22 +96,11 @@ partial def termToDbExprApprox : Term -> DbExpr
   | .comb f x => .app (termToDbExprApprox f) (termToDbExprApprox x)
   | .abs n _ body => .lam (.str .anonymous n) (.const `Unit []) (termToDbExprApprox body) .default
 
-partial def applyTermSubstExpr (_sigma : TermSubst) : DbExpr -> DbExpr
-  | .bvar i =>
-      match _sigma.drop i with
-      | (_, t) :: _ => termToDbExprApprox t
-      | [] => .bvar i
-  | .app f a => .app (applyTermSubstExpr _sigma f) (applyTermSubstExpr _sigma a)
-  | .lam n ty body bi =>
-      .lam n (applyTermSubstExpr _sigma ty) (applyTermSubstExpr _sigma body) bi
-  | .forallE n ty body bi =>
-      .forallE n (applyTermSubstExpr _sigma ty) (applyTermSubstExpr _sigma body) bi
-  | .letE n ty val body nonDep =>
-      .letE n (applyTermSubstExpr _sigma ty) (applyTermSubstExpr _sigma val)
-        (applyTermSubstExpr _sigma body) nonDep
-  | .mdata md body => .mdata md (applyTermSubstExpr _sigma body)
-  | .proj n i body => .proj n i (applyTermSubstExpr _sigma body)
-  | e => e
+def termSubstArray (sigma : TermSubst) : Array DbExpr :=
+  sigma.toArray.map (fun p => termToDbExprApprox p.snd)
+
+def applyTermSubstExpr (sigma : TermSubst) (e : DbExpr) : DbExpr :=
+  dbInstantiateRev e (termSubstArray sigma)
 
 def applyTermSubstSequent (sigma : TermSubst) (s : Sequent) : Sequent :=
   { hyps := s.hyps.map (applyTermSubstExpr sigma)
@@ -137,9 +141,12 @@ inductive Derivable (k : KernelState) : Sequent -> Prop where
   | assume (p : DbExpr) :
       IsBoolExpr p ->
       Derivable k { hyps := [p], concl := p }
-  | trans (A B : Sequent) :
+  | trans (A B : Sequent) (x y y' z : DbExpr) :
+      A.concl = mkEqExpr x y ->
+      B.concl = mkEqExpr y' z ->
+      AlphaEqExpr y y' ->
       Derivable k A -> Derivable k B ->
-      Derivable k { hyps := hypsUnion A.hyps B.hyps, concl := B.concl }
+      Derivable k { hyps := hypsUnion A.hyps B.hyps, concl := mkEqExpr x z }
   | mkComb (A B : Sequent) :
       Derivable k A -> Derivable k B ->
       Derivable k { hyps := hypsUnion A.hyps B.hyps, concl := A.concl }
@@ -147,15 +154,22 @@ inductive Derivable (k : KernelState) : Sequent -> Prop where
       Derivable k A -> Derivable k A
   | beta (A : Sequent) :
       Derivable k A -> Derivable k A
-  | eqMp (A B : Sequent) :
+  | eqMp (A B : Sequent) (p q p' : DbExpr) :
+      A.concl = mkEqExpr p q ->
+      AlphaEqExpr p p' ->
+      B.concl = p' ->
+      IsBoolExpr p ->
       Derivable k A -> Derivable k B ->
-      Derivable k { hyps := hypsUnion A.hyps B.hyps, concl := B.concl }
+      Derivable k { hyps := hypsUnion A.hyps B.hyps, concl := q }
   | deductAntisym (A B : Sequent) :
       alphaSetEq
         (hypsUnion (hypsRemove A.hyps B.concl) (hypsRemove B.hyps A.concl))
         (hypsUnion A.hyps B.hyps) ->
       Derivable k A -> Derivable k B ->
-      Derivable k { hyps := hypsUnion A.hyps B.hyps, concl := mkEqExpr A.concl B.concl }
+      Derivable k
+        { hyps := hypsUnion (hypsRemove A.hyps B.concl) (hypsRemove B.hyps A.concl)
+        , concl := mkEqExpr A.concl B.concl
+        }
   | instType (theta : TypeSubst) (A : Sequent) :
       valid_ty_subst theta ->
       admissible_ty_image k.T theta ->

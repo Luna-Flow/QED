@@ -24,6 +24,19 @@ def alphaNorm : DbExpr -> DbExpr
 def AlphaEqExpr (e1 e2 : DbExpr) : Prop :=
   alphaNorm e1 = alphaNorm e2
 
+theorem alphaEq_refl (e : DbExpr) : AlphaEqExpr e e := by
+  rfl
+
+theorem alphaEq_symm {e1 e2 : DbExpr} :
+    AlphaEqExpr e1 e2 -> AlphaEqExpr e2 e1 := by
+  intro h
+  exact Eq.symm h
+
+theorem alphaEq_trans {e1 e2 e3 : DbExpr} :
+    AlphaEqExpr e1 e2 -> AlphaEqExpr e2 e3 -> AlphaEqExpr e1 e3 := by
+  intro h12 h23
+  exact Eq.trans h12 h23
+
 def memAlpha (e : DbExpr) (s : Finset DbExpr) : Prop :=
   ∃ e', e' ∈ s ∧ AlphaEqExpr e e'
 

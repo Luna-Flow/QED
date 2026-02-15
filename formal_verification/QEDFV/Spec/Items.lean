@@ -591,14 +591,17 @@ theorem SEC14_RULE_ASSUME_proved : SEC14_RULE_ASSUME := by
   exact Derivable.assume (k := k) p h
 
 def SEC14_RULE_TRANS : Prop :=
-  ∀ k : KernelState, ∀ A B : Sequent,
+  ∀ k : KernelState, ∀ A B : Sequent, ∀ x y y' z : DbExpr,
+    A.concl = mkEqExpr x y ->
+    B.concl = mkEqExpr y' z ->
+    AlphaEqExpr y y' ->
     Derivable k A ->
     Derivable k B ->
-    Derivable k { hyps := hypsUnion A.hyps B.hyps, concl := B.concl }
+    Derivable k { hyps := hypsUnion A.hyps B.hyps, concl := mkEqExpr x z }
 
 theorem SEC14_RULE_TRANS_proved : SEC14_RULE_TRANS := by
-  intro k A B hA hB
-  exact Derivable.trans (k := k) A B hA hB
+  intro k A B x y y' z hEqA hEqB hMid hA hB
+  exact Derivable.trans (k := k) A B x y y' z hEqA hEqB hMid hA hB
 
 def SEC14_RULE_MK_COMB : Prop :=
   ∀ k : KernelState, ∀ A B : Sequent,
@@ -625,14 +628,18 @@ theorem SEC14_RULE_BETA_proved : SEC14_RULE_BETA := by
   exact Derivable.beta (k := k) A hA
 
 def SEC14_RULE_EQ_MP : Prop :=
-  ∀ k : KernelState, ∀ A B : Sequent,
+  ∀ k : KernelState, ∀ A B : Sequent, ∀ p q p' : DbExpr,
+    A.concl = mkEqExpr p q ->
+    AlphaEqExpr p p' ->
+    B.concl = p' ->
+    IsBoolExpr p ->
     Derivable k A ->
     Derivable k B ->
-    Derivable k { hyps := hypsUnion A.hyps B.hyps, concl := B.concl }
+    Derivable k { hyps := hypsUnion A.hyps B.hyps, concl := q }
 
 theorem SEC14_RULE_EQ_MP_proved : SEC14_RULE_EQ_MP := by
-  intro k A B hA hB
-  exact Derivable.eqMp (k := k) A B hA hB
+  intro k A B p q p' hEq hAlpha hPrem hBool hA hB
+  exact Derivable.eqMp (k := k) A B p q p' hEq hAlpha hPrem hBool hA hB
 
 def SEC14_RULE_DEDUCT : Prop :=
   ∀ k : KernelState, ∀ A B : Sequent,
@@ -641,7 +648,10 @@ def SEC14_RULE_DEDUCT : Prop :=
       (hypsUnion A.hyps B.hyps) ->
     Derivable k A ->
     Derivable k B ->
-    Derivable k { hyps := hypsUnion A.hyps B.hyps, concl := mkEqExpr A.concl B.concl }
+    Derivable k
+      { hyps := hypsUnion (hypsRemove A.hyps B.concl) (hypsRemove B.hyps A.concl)
+      , concl := mkEqExpr A.concl B.concl
+      }
 
 theorem SEC14_RULE_DEDUCT_proved : SEC14_RULE_DEDUCT := by
   intro k A B hAlpha hA hB

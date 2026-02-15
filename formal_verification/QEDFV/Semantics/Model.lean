@@ -6,6 +6,16 @@ structure Model where
   ValidExpr : DbExpr -> Prop
   validEqRefl : ∀ t : DbExpr, ValidExpr (mkEqExpr t t)
   validEqIntro : ∀ p q : DbExpr, ValidExpr p -> ValidExpr q -> ValidExpr (mkEqExpr p q)
+  validEqTrans :
+    ∀ p q r : DbExpr,
+      ValidExpr (mkEqExpr p q) ->
+      ValidExpr (mkEqExpr q r) ->
+      ValidExpr (mkEqExpr p r)
+  validEqMp :
+    ∀ p q : DbExpr,
+      ValidExpr (mkEqExpr p q) ->
+      ValidExpr p ->
+      ValidExpr q
 
 abbrev Valid (m : Model) (s : Sequent) : Prop :=
   (forall h, h ∈ s.hyps -> m.ValidExpr h) -> m.ValidExpr s.concl
