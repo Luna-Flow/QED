@@ -166,11 +166,13 @@ theorem implementation_to_logic_transfer_with_trace
       derivationRuleTrace (r.replayDerivation s) = r.replayPrimitiveTrace s ∧
       primitiveInstanceTrace (r.replayPrimitiveTrace s) := by
   rcases hFaithful.trace s hAccept with ⟨hTraceEq, hPrimTrace⟩
+  have hCert : certificateNonAuthority r := by
+    exact certificate_non_authority_from_replay r hFaithful.replay
   refine ⟨r.kernel, ?_, hTraceEq, hPrimTrace⟩
   exact derives_implies_derivable r.kernel
     (stripGateCertificates (r.replayDerivation s))
     s
-    (hFaithful.cert s hAccept)
+    (hCert s hAccept)
 
 theorem implementation_to_logic_transfer
     (r : Realization)
