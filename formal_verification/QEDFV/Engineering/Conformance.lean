@@ -122,6 +122,10 @@ theorem implementation_to_logic_transfer
     (s : Sequent)
     (hAccept : r.accepts s) :
     ∃ k, Derivable k s := by
-  exact ⟨r.kernel, hFaithful.rule s hAccept⟩
+  refine ⟨r.kernel, ?_⟩
+  exact derives_implies_derivable r.kernel
+    (stripGateCertificates (r.replayDerivation s))
+    s
+    (hFaithful.cert s hAccept)
 
 end QEDFV

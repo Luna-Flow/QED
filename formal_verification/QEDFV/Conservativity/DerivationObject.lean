@@ -42,4 +42,23 @@ theorem derives_gate_iff
     Derives k (.gate g cert d s) target ↔ target = s ∧ Derives k d s := by
   simp [Derives]
 
+theorem derives_implies_derivable
+    (k : KernelState) :
+    ∀ d s, Derives k d s -> Derivable k s
+  | .leaf _, s, hDerives => by
+      simp [Derives] at hDerives
+      rcases hDerives with ⟨hTarget, hDerivable⟩
+      subst hTarget
+      exact hDerivable
+  | .rule _ _ seq, s, hDerives => by
+      simp [Derives] at hDerives
+      rcases hDerives with ⟨hTarget, hDerivable, _hChildren⟩
+      subst hTarget
+      exact hDerivable
+  | .gate _ _ d seq, s, hDerives => by
+      simp [Derives] at hDerives
+      rcases hDerives with ⟨hTarget, hChild⟩
+      subst hTarget
+      exact derives_implies_derivable k d _ hChild
+
 end QEDFV
