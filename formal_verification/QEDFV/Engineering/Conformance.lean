@@ -3,10 +3,16 @@ import QEDFV.Engineering.RuleMapping
 
 namespace QEDFV
 
+structure PrimitiveInstance where
+  ruleName : String
+  target : Sequent
+deriving Repr
+
 structure Realization where
   kernel : KernelState
   accepts : Sequent -> Prop
   replayDerivation : Sequent -> DerivationObj
+  replayPrimitiveInstances : Sequent -> List PrimitiveInstance
   replayPrimitiveTrace : Sequent -> List String
   replayCertificates : Sequent -> List (GateKind × String)
 
@@ -35,16 +41,69 @@ def derivationRuleTraceList : List DerivationObj -> List String
 
 end
 
+mutual
+
+def derivationPrimitiveInstances : DerivationObj -> List PrimitiveInstance
+  | .leaf _ => []
+  | .rule r ds s =>
+      { ruleName := r, target := s } :: derivationPrimitiveInstancesList ds
+  | .gate _ _ d _ => derivationPrimitiveInstances d
+
+def derivationPrimitiveInstancesList : List DerivationObj -> List PrimitiveInstance
+  | [] => []
+  | d :: ds =>
+      derivationPrimitiveInstances d ++ derivationPrimitiveInstancesList ds
+
+end
+
+def primitiveInstanceNames (trace : List PrimitiveInstance) : List String :=
+  trace.map (fun inst => inst.ruleName)
+
+theorem primitiveInstanceNames_append
+    (xs ys : List PrimitiveInstance) :
+    primitiveInstanceNames (xs ++ ys) =
+      primitiveInstanceNames xs ++ primitiveInstanceNames ys := by
+  simp [primitiveInstanceNames, List.map_append]
+
+mutual
+
+theorem derivationRuleTrace_eq_instanceNames :
+    ∀ d,
+      derivationRuleTrace d =
+        primitiveInstanceNames (derivationPrimitiveInstances d)
+  | .leaf _ => by
+      simp [derivationRuleTrace, derivationPrimitiveInstances, primitiveInstanceNames]
+  | .rule r ds s => by
+      simp [derivationRuleTrace, derivationPrimitiveInstances,
+        derivationRuleTraceList_eq_instanceNamesList, primitiveInstanceNames]
+  | .gate g cert d s => by
+      simpa [derivationRuleTrace, derivationPrimitiveInstances] using
+        derivationRuleTrace_eq_instanceNames d
+
+theorem derivationRuleTraceList_eq_instanceNamesList :
+    ∀ ds,
+      derivationRuleTraceList ds =
+        primitiveInstanceNames (derivationPrimitiveInstancesList ds)
+  | [] => by
+      simp [derivationRuleTraceList, derivationPrimitiveInstancesList, primitiveInstanceNames]
+  | d :: ds => by
+      simp [derivationRuleTraceList, derivationPrimitiveInstancesList,
+        derivationRuleTrace_eq_instanceNames, derivationRuleTraceList_eq_instanceNamesList,
+        primitiveInstanceNames_append]
+
+end
+
 def primitiveRuleName (name : String) : Prop :=
   ∃ entry, entry ∈ ruleToImplementationMapping ∧ entry.ruleName = name
 
-def primitiveInstanceTrace (trace : List String) : Prop :=
-  ∀ name, name ∈ trace -> primitiveRuleName name
+def primitiveInstanceTrace (trace : List PrimitiveInstance) : Prop :=
+  ∀ inst, inst ∈ trace -> primitiveRuleName inst.ruleName
 
 def replayTraceFidelity (r : Realization) : Prop :=
   ∀ s, r.accepts s ->
-    derivationRuleTrace (r.replayDerivation s) = r.replayPrimitiveTrace s ∧
-    primitiveInstanceTrace (r.replayPrimitiveTrace s)
+    derivationPrimitiveInstances (r.replayDerivation s) = r.replayPrimitiveInstances s ∧
+    primitiveInstanceNames (r.replayPrimitiveInstances s) = r.replayPrimitiveTrace s ∧
+    primitiveInstanceTrace (r.replayPrimitiveInstances s)
 
 def gateCertificateWellFormed (_t : TheoryState) (_kind : GateKind) (cert : String) : Prop :=
   cert ≠ ""
@@ -205,16 +264,37 @@ theorem implementation_to_logic_transfer_with_trace
     (s : Sequent)
     (hAccept : r.accepts s) :
     ∃ k, Derivable k s ∧
-      derivationRuleTrace (r.replayDerivation s) = r.replayPrimitiveTrace s ∧
-      primitiveInstanceTrace (r.replayPrimitiveTrace s) := by
-  rcases hFaithful.trace s hAccept with ⟨hTraceEq, hPrimTrace⟩
+      derivationPrimitiveInstances (r.replayDerivation s) = r.replayPrimitiveInstances s ∧
+      primitiveInstanceNames (r.replayPrimitiveInstances s) = r.replayPrimitiveTrace s ∧
+      primitiveInstanceTrace (r.replayPrimitiveInstances s) := by
+  rcases hFaithful.trace s hAccept with ⟨hInstEq, hNameEq, hPrimTrace⟩
   have hCert : certificateNonAuthority r := by
     exact certificate_non_authority_from_replay r hFaithful.replay
-  refine ⟨r.kernel, ?_, hTraceEq, hPrimTrace⟩
+  refine ⟨r.kernel, ?_, hInstEq, hNameEq, hPrimTrace⟩
   exact derives_implies_derivable r.kernel
     (stripGateCertificates (r.replayDerivation s))
     s
     (hCert s hAccept)
+
+theorem implementation_to_logic_transfer_with_rule_trace
+    (r : Realization)
+    (hFaithful : FaithfulRealization r)
+    (s : Sequent)
+    (hAccept : r.accepts s) :
+    ∃ k, Derivable k s ∧
+      derivationRuleTrace (r.replayDerivation s) = r.replayPrimitiveTrace s ∧
+      primitiveInstanceTrace (r.replayPrimitiveInstances s) := by
+  rcases implementation_to_logic_transfer_with_trace r hFaithful s hAccept with
+    ⟨k, hDerivable, hInstEq, hNameEq, hPrimInst⟩
+  have hRuleTraceEq : derivationRuleTrace (r.replayDerivation s) = r.replayPrimitiveTrace s := by
+    calc
+      derivationRuleTrace (r.replayDerivation s)
+          = primitiveInstanceNames (derivationPrimitiveInstances (r.replayDerivation s)) := by
+              simpa using derivationRuleTrace_eq_instanceNames (r.replayDerivation s)
+      _ = primitiveInstanceNames (r.replayPrimitiveInstances s) := by
+            simp [hInstEq]
+      _ = r.replayPrimitiveTrace s := hNameEq
+  exact ⟨k, hDerivable, hRuleTraceEq, hPrimInst⟩
 
 theorem implementation_to_logic_transfer
     (r : Realization)
@@ -223,7 +303,7 @@ theorem implementation_to_logic_transfer
     (hAccept : r.accepts s) :
     ∃ k, Derivable k s := by
   rcases implementation_to_logic_transfer_with_trace r hFaithful s hAccept with
-    ⟨k, hDerivable, _hTraceEq, _hTrace⟩
+    ⟨k, hDerivable, _hInstEq, _hNameEq, _hTrace⟩
   exact ⟨k, hDerivable⟩
 
 end QEDFV

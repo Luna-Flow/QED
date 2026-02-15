@@ -44,4 +44,17 @@ theorem appendix_g_certificate_non_authority_proved : appendix_g_certificate_non
   intro r h
   exact h.cert
 
+def appendix_g_transfer_trace_alignment : Prop :=
+  ∀ r : Realization, ∀ s : Sequent,
+    FaithfulRealization r ->
+    r.accepts s ->
+    ∃ k, Derivable k s ∧
+      derivationPrimitiveInstances (r.replayDerivation s) = r.replayPrimitiveInstances s ∧
+      primitiveInstanceNames (r.replayPrimitiveInstances s) = r.replayPrimitiveTrace s ∧
+      primitiveInstanceTrace (r.replayPrimitiveInstances s)
+
+theorem appendix_g_transfer_trace_alignment_proved : appendix_g_transfer_trace_alignment := by
+  intro r s hFaithful hAccept
+  exact implementation_to_logic_transfer_with_trace r hFaithful s hAccept
+
 end QEDFV

@@ -1042,8 +1042,9 @@ def SEC16_TRANSFER_THEOREM : Prop :=
     FaithfulRealization r ->
     r.accepts s ->
     ∃ k, Derivable k s ∧
-      derivationRuleTrace (r.replayDerivation s) = r.replayPrimitiveTrace s ∧
-      primitiveInstanceTrace (r.replayPrimitiveTrace s)
+      derivationPrimitiveInstances (r.replayDerivation s) = r.replayPrimitiveInstances s ∧
+      primitiveInstanceNames (r.replayPrimitiveInstances s) = r.replayPrimitiveTrace s ∧
+      primitiveInstanceTrace (r.replayPrimitiveInstances s)
 
 theorem SEC16_TRANSFER_THEOREM_proved : SEC16_TRANSFER_THEOREM := by
   intro r s hFaithful hAccept
@@ -1055,7 +1056,8 @@ def APPG_PARTII_CONFORMANCE : Prop :=
   appendix_g_scope_fidelity ∧
   appendix_g_replay_trace_fidelity ∧
   appendix_g_gate_fidelity ∧
-  appendix_g_certificate_non_authority
+  appendix_g_certificate_non_authority ∧
+  appendix_g_transfer_trace_alignment
 
 theorem APPG_PARTII_CONFORMANCE_proved : APPG_PARTII_CONFORMANCE := by
   exact ⟨
@@ -1064,7 +1066,8 @@ theorem APPG_PARTII_CONFORMANCE_proved : APPG_PARTII_CONFORMANCE := by
     appendix_g_scope_fidelity_proved,
     appendix_g_replay_trace_fidelity_proved,
     appendix_g_gate_fidelity_proved,
-    appendix_g_certificate_non_authority_proved
+    appendix_g_certificate_non_authority_proved,
+    appendix_g_transfer_trace_alignment_proved
   ⟩
 
 def APPH_CLAIM_TRACE_MATRIX : Prop := appendix_h_matrix_complete
