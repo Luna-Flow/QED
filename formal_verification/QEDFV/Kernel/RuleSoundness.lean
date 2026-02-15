@@ -205,18 +205,16 @@ theorem primitive_sound_DEDUCT_ANTISYM_RULE_proved : primitive_sound_DEDUCT_ANTI
 
 theorem primitive_sound_INST_TYPE_proved : primitive_sound_INST_TYPE := by
   intro m k theta A hLaws hSubst hImg hObj hTyping hDef hConst hStruct hA
-  have _hObjUsed : typeSubstObjectLevelSequent theta A := hObj
   have hPrem : InstTypePremises k theta A := by
     exact ⟨hSubst, hImg, hTyping, hDef, hConst, hStruct⟩
   have hNoFailure : instTypeFailure k theta A = none :=
     instTypeFailure_none_of_premises k theta A hPrem
   have _ : instTypeFailure k theta A = none := hNoFailure
-  exact hLaws.typeSubstPreservesValid k theta A hSubst hImg hTyping hDef hConst hStruct hA
+  exact hLaws.typeSubstPreservesValid k theta A hSubst hImg hObj hTyping hDef hConst hStruct hA
 
 theorem primitive_sound_INST_proved : primitive_sound_INST := by
   intro m k sigma A hLaws hSubst hObj hA
-  have _hObjUsed : termSubstObjectLevelSequent sigma A := hObj
-  exact hLaws.termSubstPreservesValid sigma A hSubst hA
+  exact hLaws.termSubstPreservesValid sigma A hSubst hObj hA
 
 theorem primitive_sound_all_proved : primitive_sound_all := by
   exact ⟨

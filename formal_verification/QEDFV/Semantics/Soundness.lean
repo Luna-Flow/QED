@@ -15,6 +15,7 @@ def dep_edge_modelclass_instantiation_capsules : Prop :=
     k.T = t ->
     valid_ty_subst theta ->
     admissible_ty_image k.T theta ->
+    typeSubstObjectLevelSequent theta s ->
     typing_preserved_under_ty_subst theta s ->
     def_inst_coherent theta s ->
     const_instance_ok theta s ->
@@ -23,6 +24,7 @@ def dep_edge_modelclass_instantiation_capsules : Prop :=
     Valid mc.model (applyTypeSubstSequent theta s)) ∧
   (∀ t (mc : AdmissibleModelClass t) (sigma : TermSubst) (s : Sequent),
     valid_term_subst sigma ->
+    termSubstObjectLevelSequent sigma s ->
     Valid mc.model s ->
     Valid mc.model (applyTermSubstSequent sigma s))
 
@@ -57,10 +59,10 @@ theorem dep_edge_modelclass_nonempty_proved : dep_edge_modelclass_nonempty := by
 theorem dep_edge_modelclass_instantiation_capsules_proved :
     dep_edge_modelclass_instantiation_capsules := by
   constructor
-  · intro t mc k theta s hState hSubst hImg hTyping hDef hConst hStruct hValid
-    exact modelclass_inst_type_preserves_valid t mc k theta s hState hSubst hImg hTyping hDef hConst hStruct hValid
-  · intro t mc sigma s hSubst hValid
-    exact modelclass_inst_term_preserves_valid t mc sigma s hSubst hValid
+  · intro t mc k theta s hState hSubst hImg hObj hTyping hDef hConst hStruct hValid
+    exact modelclass_inst_type_preserves_valid t mc k theta s hState hSubst hImg hObj hTyping hDef hConst hStruct hValid
+  · intro t mc sigma s hSubst hObj hValid
+    exact modelclass_inst_term_preserves_valid t mc sigma s hSubst hObj hValid
 
 theorem dep_edge_modelclass_alpha_capsule_proved : dep_edge_modelclass_alpha_capsule := by
   intro t mc e1 e2 hAlpha hValid

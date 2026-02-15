@@ -41,6 +41,7 @@ structure ModelSubstLaws (m : Model) where
     ∀ (k : KernelState) (theta : TypeSubst) (s : Sequent),
       valid_ty_subst theta ->
       admissible_ty_image k.T theta ->
+      typeSubstObjectLevelSequent theta s ->
       typing_preserved_under_ty_subst theta s ->
       def_inst_coherent theta s ->
       const_instance_ok theta s ->
@@ -50,6 +51,7 @@ structure ModelSubstLaws (m : Model) where
   termSubstPreservesValid :
     ∀ (sigma : TermSubst) (s : Sequent),
       valid_term_subst sigma ->
+      termSubstObjectLevelSequent sigma s ->
       Valid m s ->
       Valid m (applyTermSubstSequent sigma s)
 
@@ -72,6 +74,7 @@ theorem bundle_inst_type_capsule
     (s : Sequent)
     (hSubst : valid_ty_subst theta)
     (hImg : admissible_ty_image k.T theta)
+    (hObj : typeSubstObjectLevelSequent theta s)
     (hTyping : typing_preserved_under_ty_subst theta s)
     (hDef : def_inst_coherent theta s)
     (hConst : const_instance_ok theta s)
@@ -79,7 +82,7 @@ theorem bundle_inst_type_capsule
     (hValid : Valid m s) :
     Valid m (applyTypeSubstSequent theta s) := by
   exact bundle.subst.typeSubstPreservesValid
-    k theta s hSubst hImg hTyping hDef hConst hStruct hValid
+    k theta s hSubst hImg hObj hTyping hDef hConst hStruct hValid
 
 theorem bundle_inst_term_capsule
     (m : Model)
@@ -87,9 +90,10 @@ theorem bundle_inst_term_capsule
     (sigma : TermSubst)
     (s : Sequent)
     (hSubst : valid_term_subst sigma)
+    (hObj : termSubstObjectLevelSequent sigma s)
     (hValid : Valid m s) :
     Valid m (applyTermSubstSequent sigma s) := by
-  exact bundle.subst.termSubstPreservesValid sigma s hSubst hValid
+  exact bundle.subst.termSubstPreservesValid sigma s hSubst hObj hValid
 
 theorem bundle_alpha_capsule
     (m : Model)

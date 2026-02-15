@@ -27,6 +27,7 @@ theorem modelclass_inst_type_preserves_valid
     (hState : k.T = t)
     (hSubst : valid_ty_subst theta)
     (hImg : admissible_ty_image k.T theta)
+    (hObj : typeSubstObjectLevelSequent theta s)
     (hTyping : typing_preserved_under_ty_subst theta s)
     (hDef : def_inst_coherent theta s)
     (hConst : const_instance_ok theta s)
@@ -35,7 +36,7 @@ theorem modelclass_inst_type_preserves_valid
     Valid mc.model (applyTypeSubstSequent theta s) := by
   subst hState
   exact bundle_inst_type_capsule
-    mc.model mc.lawBundle k theta s hSubst hImg hTyping hDef hConst hStruct hValid
+    mc.model mc.lawBundle k theta s hSubst hImg hObj hTyping hDef hConst hStruct hValid
 
 theorem modelclass_inst_term_preserves_valid
     (t : TheoryState)
@@ -43,9 +44,10 @@ theorem modelclass_inst_term_preserves_valid
     (sigma : TermSubst)
     (s : Sequent)
     (hSubst : valid_term_subst sigma)
+    (hObj : termSubstObjectLevelSequent sigma s)
     (hValid : Valid mc.model s) :
     Valid mc.model (applyTermSubstSequent sigma s) := by
-  exact bundle_inst_term_capsule mc.model mc.lawBundle sigma s hSubst hValid
+  exact bundle_inst_term_capsule mc.model mc.lawBundle sigma s hSubst hObj hValid
 
 theorem modelclass_alpha_respect
     (t : TheoryState)
