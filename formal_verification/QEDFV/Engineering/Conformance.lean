@@ -78,9 +78,51 @@ end
 def gateFidelity (r : Realization) : Prop :=
   ∀ s, r.accepts s ->
     gateChecked r.kernel.T (r.replayDerivation s) ∧
-    derivationGateTrace (r.replayDerivation s) = r.replayCertificates s ∧
-    (∀ gc, gc ∈ r.replayCertificates s ->
-      gateCertificateWellFormed r.kernel.T gc.fst gc.snd)
+    derivationGateTrace (r.replayDerivation s) = r.replayCertificates s
+
+mutual
+
+theorem gateChecked_trace_wf
+    (t : TheoryState) :
+    ∀ d gc, gateChecked t d -> gc ∈ derivationGateTrace d ->
+      gateCertificateWellFormed t gc.fst gc.snd
+  | .leaf _, gc, _hCheck, hMem => by
+      cases hMem
+  | .rule _ ds _, gc, hCheck, hMem => by
+      exact gateCheckedList_trace_wf t ds gc hCheck hMem
+  | .gate kind cert d _, gc, hCheck, hMem => by
+      rcases hCheck with ⟨hCert, hChild⟩
+      simp [derivationGateTrace] at hMem
+      rcases hMem with hHead | hTail
+      · cases hHead
+        exact hCert
+      · exact gateChecked_trace_wf t d gc hChild hTail
+
+theorem gateCheckedList_trace_wf
+    (t : TheoryState) :
+    ∀ ds gc, gateCheckedList t ds -> gc ∈ derivationGateTraceList ds ->
+      gateCertificateWellFormed t gc.fst gc.snd
+  | [], gc, hCheck, hMem => by
+      cases hMem
+  | d :: ds, gc, hCheck, hMem => by
+      rcases hCheck with ⟨hHead, hTail⟩
+      simp [derivationGateTraceList] at hMem
+      rcases hMem with hHeadMem | hTailMem
+      · exact gateChecked_trace_wf t d gc hHead hHeadMem
+      · exact gateCheckedList_trace_wf t ds gc hTail hTailMem
+
+end
+
+theorem gateFidelity_replay_certificate_wf
+    (r : Realization)
+    (hGate : gateFidelity r) :
+    ∀ s gc, r.accepts s -> gc ∈ r.replayCertificates s ->
+      gateCertificateWellFormed r.kernel.T gc.fst gc.snd := by
+  intro s gc hAccept hMem
+  rcases hGate s hAccept with ⟨hChecked, hTraceEq⟩
+  have hMemTrace : gc ∈ derivationGateTrace (r.replayDerivation s) := by
+    simpa [hTraceEq] using hMem
+  exact gateChecked_trace_wf r.kernel.T (r.replayDerivation s) gc hChecked hMemTrace
 
 mutual
 
