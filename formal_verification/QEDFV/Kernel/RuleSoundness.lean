@@ -17,7 +17,7 @@ def primitive_sound_TRANS : Prop :=
     ModelAlphaLaws m ->
     A.concl = mkEqExpr x y ->
     B.concl = mkEqExpr y' z ->
-    AlphaEqExpr y y' ->
+    transMiddleTypedCoreGuard y y' ->
     Valid m A ->
     Valid m B ->
     Valid m { hyps := alphaUnion A.hyps B.hyps, concl := mkEqExpr x z }
@@ -39,7 +39,7 @@ def primitive_sound_ABS : Prop :=
 
 def primitive_sound_BETA : Prop :=
   forall (m : Model) (_k : KernelState) (r : TypedBetaRedex),
-    betaBinderAgreement r ->
+    betaTypedCoreGuard r ->
     Valid m { hyps := [], concl := mkEqExpr (betaRedexExpr r) (typedBetaContract r) }
 
 def primitive_sound_EQ_MP : Prop :=
@@ -108,7 +108,8 @@ theorem primitive_sound_ASSUME_proved : primitive_sound_ASSUME := by
   exact hHyps p (by simp)
 
 theorem primitive_sound_TRANS_proved : primitive_sound_TRANS := by
-  intro m k A B x y y' z hAlphaLaws hEqA hEqB hMid hA hB hHyps
+  intro m k A B x y y' z hAlphaLaws hEqA hEqB hMidGuard hA hB hHyps
+  have hMid : AlphaEqExpr y y' := transMiddleTypedCoreGuard_alpha hMidGuard
   have hAConcl : m.ValidExpr A.concl := by
     refine hA ?_
     intro h hh
@@ -156,7 +157,8 @@ theorem primitive_sound_ABS_proved : primitive_sound_ABS := by
   exact m.validEqCongrLam n ty s t hEqST
 
 theorem primitive_sound_BETA_proved : primitive_sound_BETA := by
-  intro m k r hAgree hHyps
+  intro m k r hGuard hHyps
+  have hAgree : betaBinderAgreement r := hGuard.1
   exact m.validBeta r hAgree
 
 theorem primitive_sound_EQ_MP_proved : primitive_sound_EQ_MP := by

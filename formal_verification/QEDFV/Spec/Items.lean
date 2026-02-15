@@ -405,13 +405,16 @@ theorem SEC9_LIFT_CONGRUENCE_proved : SEC9_LIFT_CONGRUENCE := by
   exact h.liftChoiceCongruence d1 d2 t1 t2 hEq hL1 hL2
 
 def SEC9_TYPE_SENSITIVE_CORE_MATCH : Prop :=
-  ∀ bc : BoundaryConversion, ∀ _h : BoundaryLaws bc, ∀ t : Term, ∀ d : DbExpr,
-    bc.lowerTerm t = some d ->
-    ∃ t', bc.liftTerm d = some t' ∧ AlphaEq t' t
+  ∀ bc : BoundaryConversion, ∀ _h : BoundaryLaws bc,
+    ∀ t1 t2 : Term, ∀ d1 d2 : DbExpr,
+      AlphaEq t1 t2 ->
+      bc.lowerTerm t1 = some d1 ->
+      bc.lowerTerm t2 = some d2 ->
+      TypedCoreMatch d1 d2
 
 theorem SEC9_TYPE_SENSITIVE_CORE_MATCH_proved : SEC9_TYPE_SENSITIVE_CORE_MATCH := by
-  intro bc h t d hLower
-  exact h.denotationPreservationTerm t d hLower
+  intro bc h t1 t2 d1 d2 hAlpha hLower1 hLower2
+  exact boundary_typed_core_match_of_alpha bc h t1 t2 d1 d2 hAlpha hLower1 hLower2
 
 def SEC9_DENOT_TERM : Prop :=
   ∀ bc : BoundaryConversion, ∀ _h : BoundaryLaws bc, ∀ t : Term, ∀ d : DbExpr,
@@ -595,7 +598,7 @@ def SEC14_RULE_TRANS : Prop :=
   ∀ k : KernelState, ∀ A B : Sequent, ∀ x y y' z : DbExpr,
     A.concl = mkEqExpr x y ->
     B.concl = mkEqExpr y' z ->
-    AlphaEqExpr y y' ->
+    transMiddleTypedCoreGuard y y' ->
     Derivable k A ->
     Derivable k B ->
     Derivable k { hyps := alphaUnion A.hyps B.hyps, concl := mkEqExpr x z }
@@ -629,7 +632,7 @@ theorem SEC14_RULE_ABS_proved : SEC14_RULE_ABS := by
 
 def SEC14_RULE_BETA : Prop :=
   ∀ k : KernelState, ∀ r : TypedBetaRedex,
-    betaBinderAgreement r ->
+    betaTypedCoreGuard r ->
     Derivable k { hyps := [], concl := mkEqExpr (betaRedexExpr r) (typedBetaContract r) }
 
 theorem SEC14_RULE_BETA_proved : SEC14_RULE_BETA := by

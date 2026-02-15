@@ -44,6 +44,15 @@ theorem alphaEq_mkEqExpr_right
   unfold AlphaEqExpr at h ⊢
   simpa [mkEqExpr, alphaNorm] using h
 
+def transMiddleTypedCoreGuard (y y' : DbExpr) : Prop :=
+  AlphaEqExpr y y' ∧ QEDExprWF y ∧ QEDExprWF y'
+
+theorem transMiddleTypedCoreGuard_alpha
+    {y y' : DbExpr}
+    (h : transMiddleTypedCoreGuard y y') :
+    AlphaEqExpr y y' := by
+  exact h.1
+
 def mkCombEqExpr (f g x y : DbExpr) : DbExpr :=
   mkEqExpr (Lean.Expr.app f x) (Lean.Expr.app g y)
 
@@ -52,6 +61,23 @@ def mkAbsEqExpr (n : Lean.Name) (ty s t : DbExpr) : DbExpr :=
 
 def betaRedexExpr (r : TypedBetaRedex) : DbExpr :=
   Lean.Expr.app (Lean.Expr.lam .anonymous r.binderTy r.body .default) r.arg
+
+def betaTypedCoreGuard (r : TypedBetaRedex) : Prop :=
+  betaBinderAgreement r ∧
+  QEDExprWF (betaRedexExpr r) ∧
+  QEDExprWF (typedBetaContract r)
+
+theorem betaTypedCoreGuard_of_binder
+    (hObligation : appendixE_beta_binder_agreement_obligation)
+    (r : TypedBetaRedex)
+    (h : betaBinderAgreement r) :
+    betaTypedCoreGuard r := by
+  rcases h with ⟨hTy, hBody, hArg⟩
+  refine ⟨?_, ?_, ?_⟩
+  · exact ⟨hTy, hBody, hArg⟩
+  · unfold betaRedexExpr
+    exact ⟨⟨hTy, hBody⟩, hArg⟩
+  · exact hObligation r (by exact ⟨hTy, hBody, hArg⟩)
 
 def typeAdmissibleIn (t : TheoryState) : HolType -> Prop
   | .tyvar _ => True
@@ -471,7 +497,7 @@ inductive Derivable (k : KernelState) : Sequent -> Prop where
   | trans (A B : Sequent) (x y y' z : DbExpr) :
       A.concl = mkEqExpr x y ->
       B.concl = mkEqExpr y' z ->
-      AlphaEqExpr y y' ->
+      transMiddleTypedCoreGuard y y' ->
       Derivable k A -> Derivable k B ->
       Derivable k { hyps := alphaUnion A.hyps B.hyps, concl := mkEqExpr x z }
   | mkComb (A B : Sequent) (f g x y : DbExpr) :
@@ -485,7 +511,7 @@ inductive Derivable (k : KernelState) : Sequent -> Prop where
       Derivable k A ->
       Derivable k { hyps := A.hyps, concl := mkAbsEqExpr n ty s t }
   | beta (r : TypedBetaRedex) :
-      betaBinderAgreement r ->
+      betaTypedCoreGuard r ->
       Derivable k { hyps := [], concl := mkEqExpr (betaRedexExpr r) (typedBetaContract r) }
   | eqMp (A B : Sequent) (p q p' : DbExpr) :
       A.concl = mkEqExpr p q ->

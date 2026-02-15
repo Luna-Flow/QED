@@ -6,6 +6,9 @@ namespace QEDFV
 abbrev AlphaEq (t1 t2 : Term) : Prop := t1 = t2
 abbrev DbEq (d1 d2 : DbExpr) : Prop := d1 = d2
 
+def TypedCoreMatch (d1 d2 : DbExpr) : Prop :=
+  DbEq d1 d2 ∧ QEDExprWF d1 ∧ QEDExprWF d2
+
 structure BoundaryConversion where
   lowerTerm : Term -> Option DbExpr
   liftTerm : DbExpr -> Option Term
@@ -41,8 +44,38 @@ structure BoundaryLaws (bc : BoundaryConversion) where
     ∀ hs c dhs dc,
       bc.lowerSequent hs c = some (dhs, dc) ->
       bc.liftSequent dhs dc ≠ none
+  typedCoreWfLowering :
+    ∀ t d,
+      bc.lowerTerm t = some d ->
+      QEDExprWF d
+  typedCoreMatchLowering :
+    ∀ t1 t2 d1 d2,
+      AlphaEq t1 t2 ->
+      bc.lowerTerm t1 = some d1 ->
+      bc.lowerTerm t2 = some d2 ->
+      TypedCoreMatch d1 d2
 
 abbrev boundaryConversionTotalityObligation (bc : BoundaryConversion) : Prop :=
   forall t, (bc.lowerTerm t).isSome
+
+theorem boundary_typed_core_match_of_alpha
+    (bc : BoundaryConversion)
+    (h : BoundaryLaws bc)
+    (t1 t2 : Term)
+    (d1 d2 : DbExpr)
+    (hAlpha : AlphaEq t1 t2)
+    (hLower1 : bc.lowerTerm t1 = some d1)
+    (hLower2 : bc.lowerTerm t2 = some d2) :
+    TypedCoreMatch d1 d2 := by
+  exact h.typedCoreMatchLowering t1 t2 d1 d2 hAlpha hLower1 hLower2
+
+theorem boundary_typed_core_wf_of_lower
+    (bc : BoundaryConversion)
+    (h : BoundaryLaws bc)
+    (t : Term)
+    (d : DbExpr)
+    (hLower : bc.lowerTerm t = some d) :
+    QEDExprWF d := by
+  exact h.typedCoreWfLowering t d hLower
 
 end QEDFV
