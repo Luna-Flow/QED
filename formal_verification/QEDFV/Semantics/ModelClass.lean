@@ -4,8 +4,7 @@ namespace QEDFV
 
 structure AdmissibleModelClass (t : TheoryState) where
   model : Model
-  substLaws : ModelSubstLaws model
-  alphaLaws : ModelAlphaLaws model
+  lawBundle : ModelLawBundle model
   choiceCompatible : Prop
   infinityAnchor : Prop
   gateAdmitted : Prop
@@ -35,7 +34,8 @@ theorem modelclass_inst_type_preserves_valid
     (hValid : Valid mc.model s) :
     Valid mc.model (applyTypeSubstSequent theta s) := by
   subst hState
-  exact mc.substLaws.typeSubstPreservesValid k theta s hSubst hImg hTyping hDef hConst hStruct hValid
+  exact bundle_inst_type_capsule
+    mc.model mc.lawBundle k theta s hSubst hImg hTyping hDef hConst hStruct hValid
 
 theorem modelclass_inst_term_preserves_valid
     (t : TheoryState)
@@ -45,7 +45,16 @@ theorem modelclass_inst_term_preserves_valid
     (hSubst : valid_term_subst sigma)
     (hValid : Valid mc.model s) :
     Valid mc.model (applyTermSubstSequent sigma s) := by
-  exact mc.substLaws.termSubstPreservesValid sigma s hSubst hValid
+  exact bundle_inst_term_capsule mc.model mc.lawBundle sigma s hSubst hValid
+
+theorem modelclass_alpha_respect
+    (t : TheoryState)
+    (mc : AdmissibleModelClass t)
+    {e1 e2 : DbExpr}
+    (hAlpha : AlphaEqExpr e1 e2)
+    (hValid : mc.model.ValidExpr e1) :
+    mc.model.ValidExpr e2 := by
+  exact bundle_alpha_capsule mc.model mc.lawBundle hAlpha hValid
 
 def modelClassNonempty (t : TheoryState) : Prop :=
   Nonempty (AdmissibleModelClass t)

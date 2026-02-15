@@ -60,4 +60,44 @@ structure ModelAlphaLaws (m : Model) where
       m.ValidExpr e1 ->
       m.ValidExpr e2
 
+structure ModelLawBundle (m : Model) where
+  subst : ModelSubstLaws m
+  alpha : ModelAlphaLaws m
+
+theorem bundle_inst_type_capsule
+    (m : Model)
+    (bundle : ModelLawBundle m)
+    (k : KernelState)
+    (theta : TypeSubst)
+    (s : Sequent)
+    (hSubst : valid_ty_subst theta)
+    (hImg : admissible_ty_image k.T theta)
+    (hTyping : typing_preserved_under_ty_subst theta s)
+    (hDef : def_inst_coherent theta s)
+    (hConst : const_instance_ok theta s)
+    (hStruct : theorem_structure_preserved theta s)
+    (hValid : Valid m s) :
+    Valid m (applyTypeSubstSequent theta s) := by
+  exact bundle.subst.typeSubstPreservesValid
+    k theta s hSubst hImg hTyping hDef hConst hStruct hValid
+
+theorem bundle_inst_term_capsule
+    (m : Model)
+    (bundle : ModelLawBundle m)
+    (sigma : TermSubst)
+    (s : Sequent)
+    (hSubst : valid_term_subst sigma)
+    (hValid : Valid m s) :
+    Valid m (applyTermSubstSequent sigma s) := by
+  exact bundle.subst.termSubstPreservesValid sigma s hSubst hValid
+
+theorem bundle_alpha_capsule
+    (m : Model)
+    (bundle : ModelLawBundle m)
+    {e1 e2 : DbExpr}
+    (hAlpha : AlphaEqExpr e1 e2)
+    (hValid : m.ValidExpr e1) :
+    m.ValidExpr e2 := by
+  exact bundle.alpha.alphaRespect hAlpha hValid
+
 end QEDFV
