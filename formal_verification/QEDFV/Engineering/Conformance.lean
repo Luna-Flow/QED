@@ -1,4 +1,5 @@
 import QEDFV.Conservativity.GlobalConservativity
+import QEDFV.Engineering.RuleMapping
 
 namespace QEDFV
 
@@ -6,6 +7,7 @@ structure Realization where
   kernel : KernelState
   accepts : Sequent -> Prop
   replayDerivation : Sequent -> DerivationObj
+  replayPrimitiveTrace : Sequent -> List String
   replayCertificates : Sequent -> List (GateKind × String)
 
 def ruleFidelity (r : Realization) : Prop :=
@@ -20,8 +22,45 @@ def boundaryFidelity (r : Realization) : Prop :=
 def scopeFidelity (r : Realization) : Prop :=
   ∀ s, r.accepts s -> ScopedWF r.kernel.S
 
+mutual
+
+def derivationRuleTrace : DerivationObj -> List String
+  | .leaf _ => []
+  | .rule r ds _ => r :: derivationRuleTraceList ds
+  | .gate _ _ d _ => derivationRuleTrace d
+
+def derivationRuleTraceList : List DerivationObj -> List String
+  | [] => []
+  | d :: ds => derivationRuleTrace d ++ derivationRuleTraceList ds
+
+end
+
+def primitiveRuleName (name : String) : Prop :=
+  ∃ entry, entry ∈ ruleToImplementationMapping ∧ entry.ruleName = name
+
+def primitiveInstanceTrace (trace : List String) : Prop :=
+  ∀ name, name ∈ trace -> primitiveRuleName name
+
+def replayTraceFidelity (r : Realization) : Prop :=
+  ∀ s, r.accepts s ->
+    derivationRuleTrace (r.replayDerivation s) = r.replayPrimitiveTrace s ∧
+    primitiveInstanceTrace (r.replayPrimitiveTrace s)
+
 def gateCertificateWellFormed (_t : TheoryState) (_kind : GateKind) (cert : String) : Prop :=
   cert ≠ ""
+
+mutual
+
+def derivationGateTrace : DerivationObj -> List (GateKind × String)
+  | .leaf _ => []
+  | .rule _ ds _ => derivationGateTraceList ds
+  | .gate kind cert d _ => (kind, cert) :: derivationGateTrace d
+
+def derivationGateTraceList : List DerivationObj -> List (GateKind × String)
+  | [] => []
+  | d :: ds => derivationGateTrace d ++ derivationGateTraceList ds
+
+end
 
 mutual
 
@@ -39,6 +78,7 @@ end
 def gateFidelity (r : Realization) : Prop :=
   ∀ s, r.accepts s ->
     gateChecked r.kernel.T (r.replayDerivation s) ∧
+    derivationGateTrace (r.replayDerivation s) = r.replayCertificates s ∧
     (∀ gc, gc ∈ r.replayCertificates s ->
       gateCertificateWellFormed r.kernel.T gc.fst gc.snd)
 
@@ -113,8 +153,24 @@ structure FaithfulRealization (r : Realization) : Prop where
   replay : replayFidelity r
   boundary : boundaryFidelity r
   scope : scopeFidelity r
+  trace : replayTraceFidelity r
   gate : gateFidelity r
   cert : certificateNonAuthority r
+
+theorem implementation_to_logic_transfer_with_trace
+    (r : Realization)
+    (hFaithful : FaithfulRealization r)
+    (s : Sequent)
+    (hAccept : r.accepts s) :
+    ∃ k, Derivable k s ∧
+      derivationRuleTrace (r.replayDerivation s) = r.replayPrimitiveTrace s ∧
+      primitiveInstanceTrace (r.replayPrimitiveTrace s) := by
+  rcases hFaithful.trace s hAccept with ⟨hTraceEq, hPrimTrace⟩
+  refine ⟨r.kernel, ?_, hTraceEq, hPrimTrace⟩
+  exact derives_implies_derivable r.kernel
+    (stripGateCertificates (r.replayDerivation s))
+    s
+    (hFaithful.cert s hAccept)
 
 theorem implementation_to_logic_transfer
     (r : Realization)
@@ -122,10 +178,8 @@ theorem implementation_to_logic_transfer
     (s : Sequent)
     (hAccept : r.accepts s) :
     ∃ k, Derivable k s := by
-  refine ⟨r.kernel, ?_⟩
-  exact derives_implies_derivable r.kernel
-    (stripGateCertificates (r.replayDerivation s))
-    s
-    (hFaithful.cert s hAccept)
+  rcases implementation_to_logic_transfer_with_trace r hFaithful s hAccept with
+    ⟨k, hDerivable, _hTraceEq, _hTrace⟩
+  exact ⟨k, hDerivable⟩
 
 end QEDFV

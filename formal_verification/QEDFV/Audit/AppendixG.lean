@@ -23,6 +23,13 @@ theorem appendix_g_scope_fidelity_proved : appendix_g_scope_fidelity := by
   intro r h
   exact h.scope
 
+def appendix_g_replay_trace_fidelity : Prop :=
+  ∀ r : Realization, FaithfulRealization r -> replayTraceFidelity r
+
+theorem appendix_g_replay_trace_fidelity_proved : appendix_g_replay_trace_fidelity := by
+  intro r h
+  exact h.trace
+
 def appendix_g_gate_fidelity : Prop :=
   ∀ r : Realization, FaithfulRealization r -> gateFidelity r
 

@@ -19,10 +19,11 @@ def appendix_h_claim_trace_matrix : List ClaimTraceEntry :=
   , { claimId := "C8_CONFORMANCE_TRANSFER", definitionAnchor := "QEDFV.FaithfulRealization", theoremAnchor := "QEDFV.implementation_to_logic_transfer" }
   , { claimId := "C9_NON_TRIVIALITY", definitionAnchor := "QEDFV.AdmissibleModelClass", theoremAnchor := "QEDFV.semantic_non_triviality_transfer" }
   , { claimId := "C10_CERT_NON_AUTHORITY", definitionAnchor := "QEDFV.certificateNonAuthority", theoremAnchor := "QEDFV.appendix_g_certificate_non_authority_proved" }
+  , { claimId := "C11_REPLAY_TRACE_TIGHTENING", definitionAnchor := "QEDFV.replayTraceFidelity", theoremAnchor := "QEDFV.appendix_g_replay_trace_fidelity_proved" }
   ]
 
 def appendix_h_matrix_complete : Prop :=
-  appendix_h_claim_trace_matrix.length = 10
+  appendix_h_claim_trace_matrix.length = 11
 
 theorem appendix_h_matrix_complete_proved : appendix_h_matrix_complete := by
   unfold appendix_h_matrix_complete appendix_h_claim_trace_matrix

@@ -1030,26 +1030,30 @@ theorem SEC15_CONSISTENCY_WITNESS_proved : SEC15_CONSISTENCY_WITNESS := by
 
 def SEC16_CONFORMANCE_OBLIGATIONS : Prop :=
   ∀ r : Realization, FaithfulRealization r ->
-    ruleFidelity r ∧ boundaryFidelity r ∧ scopeFidelity r ∧ gateFidelity r ∧ certificateNonAuthority r
+    ruleFidelity r ∧ boundaryFidelity r ∧ scopeFidelity r ∧
+    replayTraceFidelity r ∧ gateFidelity r ∧ certificateNonAuthority r
 
 theorem SEC16_CONFORMANCE_OBLIGATIONS_proved : SEC16_CONFORMANCE_OBLIGATIONS := by
   intro r h
-  exact ⟨h.rule, h.boundary, h.scope, h.gate, h.cert⟩
+  exact ⟨h.rule, h.boundary, h.scope, h.trace, h.gate, h.cert⟩
 
 def SEC16_TRANSFER_THEOREM : Prop :=
   ∀ r : Realization, ∀ s : Sequent,
     FaithfulRealization r ->
     r.accepts s ->
-    ∃ k, Derivable k s
+    ∃ k, Derivable k s ∧
+      derivationRuleTrace (r.replayDerivation s) = r.replayPrimitiveTrace s ∧
+      primitiveInstanceTrace (r.replayPrimitiveTrace s)
 
 theorem SEC16_TRANSFER_THEOREM_proved : SEC16_TRANSFER_THEOREM := by
   intro r s hFaithful hAccept
-  exact implementation_to_logic_transfer r hFaithful s hAccept
+  exact implementation_to_logic_transfer_with_trace r hFaithful s hAccept
 
 def APPG_PARTII_CONFORMANCE : Prop :=
   appendix_g_rule_fidelity_replay ∧
   appendix_g_boundary_fidelity ∧
   appendix_g_scope_fidelity ∧
+  appendix_g_replay_trace_fidelity ∧
   appendix_g_gate_fidelity ∧
   appendix_g_certificate_non_authority
 
@@ -1058,6 +1062,7 @@ theorem APPG_PARTII_CONFORMANCE_proved : APPG_PARTII_CONFORMANCE := by
     appendix_g_rule_fidelity_replay_proved,
     appendix_g_boundary_fidelity_proved,
     appendix_g_scope_fidelity_proved,
+    appendix_g_replay_trace_fidelity_proved,
     appendix_g_gate_fidelity_proved,
     appendix_g_certificate_non_authority_proved
   ⟩
