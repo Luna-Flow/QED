@@ -1,54 +1,106 @@
 # QED (Quite Easy Deduction)
 
-QED 是一个基于 MoonBit 的交互式定理证明器。当前开发以
-`doc/qed_formal_spec.pdf` 为唯一规范源，核心目标是构建 LCF 风格的可信内核。
+QED 是一个基于 MoonBit 的交互式定理证明器项目，采用 **kernel-first** 路线，
+以 LCF 风格可信边界为核心设计目标。
 
-## 当前内核状态（paper-aligned）
+当前唯一规范源：`doc/qed_formal_spec.pdf`（源文件：`doc/qed_formal_spec.typ`）。
 
-- `Thm` 已改为抽象对象（opaque），包外无法直接构造定理值。
-- primitive rules 统一使用显式失败语义（`Result[Thm, LogicError]`）。
-- 新增 state-checked 规则入口（`*_checked`）并在 logic/tactics/cmd 路径默认走 checked API。
-- 新增 state-bound 常量构造入口（`ks_mk_const` / `ks_mk_const_instance`），上层默认不直接伪造命名常量。
-- 等式构造 `mk_eq` 强制同型输入，拒绝异型等式。
-- 签名层包含 scope + theory 双层状态入口，并对 reserved symbol (`=`) 做硬约束。
-- `DefHeads` 单调历史、typedef `Rep` 头历史、以及定义依赖图门禁已落地到状态 API。
-- typedef 注册要求 witness 对当前状态可采纳（`thm_is_admissible`），并拒绝常量身份漂移后的 witness 复用。
-- 旧的 optional-return `sig_*` 变更接口已内收，不再作为 kernel 公共入口导出。
-- `SigError` 与 `LogicError` 已统一采用 MoonBit `suberror` 风格定义，错误分类可模式匹配且可扩展。
-- `kernel_audit_test.mbt` 已覆盖 Appendix C/D/E 的关键审计场景（定义历史、typedef 见证、多态实例、typed de Bruijn 守卫）。
-- `kernel_thm_wbtest.mbt` 额外覆盖 substitution capture 的白盒守卫（`VariableCaptured` 路径）。
+## 项目快照（截至 2026-02-15）
 
-## 论文映射（kernel）
+- Stage A（规范冻结）已完成，见 `doc/SPEC_FREEZE_CHECKLIST.md`（记录日期：2026-02-14）。
+- kernel 对外保持 checked/stateful 接口；`Thm` 为 opaque 类型，包外不可伪造。
+- `DefOK` / `TypeDefOK` / `SpecOK` 三类扩展门禁均已接入状态 API。
+- 支持 Infinity Anchor 注册与读取（`ind` 载体 + fail-closed 约束）。
+- 支持扩展证书轨迹与保守重放检查：
+  - `ks_extension_cert_count`
+  - `ks_extension_cert_at`
+  - `ks_conservative_replay_ok`
+- 错误体系为可模式匹配的 `suberror`：
+  - 逻辑层：`LogicError`
+  - 签名/扩展层：`SigError`
+- 本地验证（2026-02-15）：
+  - `moon test src/kernel` -> 106/106 passed
+  - `moon test` -> 121/121 passed
 
-- `Chapter 4-5`（types/terms 与边界转换）：`src/kernel/types.mbt`, `src/kernel/terms.mbt`, `src/kernel/kernel_terms_test.mbt`
-- `Chapter 6-7`（state model, scope discipline, DefHeads）：`src/kernel/sig.mbt`, `src/kernel/kernel_sig_test.mbt`, `src/kernel/kernel_audit_test.mbt`
-- `Chapter 8`（DefOK / TypeDefOK）：`src/kernel/sig.mbt`, `src/kernel/kernel_sig_test.mbt`, `src/kernel/kernel_audit_test.mbt`
-- `Chapter 9-11`（10 primitive rules + error semantics）：`src/kernel/thm.mbt`, `src/kernel/kernel_thm_test.mbt`
-- `Appendix C/D/E`（审计矩阵）：`src/kernel/kernel_audit_test.mbt`
-- 详细 traceability 矩阵：`doc/kernel_paper_traceability.md`
+## 当前能力边界
 
-## 项目结构
+### 1) Trusted kernel（已实现）
+
+- 类型与项核心（含 de Bruijn 表示与边界转换）。
+- 10 条 primitive rule 的 checked 入口（`*_checked`）。
+- 常量定义、类型定义、规格化引入等 gate 的 fail-closed 准入检查。
+- 常量身份（const-id）绑定与 theorem admissibility 检查，阻断状态漂移复用。
+
+### 2) 上层封装（可用但仍精简）
+
+- `logic`：对 kernel gate/rule 的稳定包装与语义透传。
+- `tactics`：最小策略引擎（当前含 `solve_by_assume`）。
+- `cmd`：phase0 冒烟路径（串起 kernel + tactics）。
+
+### 3) 审计与追溯（已接入）
+
+- 章节到实现映射：`doc/kernel_paper_traceability.md`
+- 关键审计回归：
+  - `src/kernel/kernel_audit_test.mbt`
+  - `src/kernel/kernel_thm_wbtest.mbt`
+
+## 目录结构
 
 ```text
-src/
-├── kernel/     # Trusted Kernel (LCF boundary)
-├── logic/      # Logic layer (minimal placeholders)
-├── tactics/    # Tactic layer (minimal placeholders)
-└── cmd/        # CLI layer (minimal placeholders)
+.
+├── src/
+│   ├── kernel/   # Trusted kernel: types/terms/sig/thm + audit tests
+│   ├── logic/    # Logic wrappers over kernel
+│   ├── tactics/  # Minimal tactic layer
+│   └── cmd/      # Phase0 CLI integration path
+├── doc/
+│   ├── qed_formal_spec.typ/pdf
+│   ├── kernel_paper_traceability.md
+│   ├── SPEC_FREEZE_CHECKLIST.md
+│   └── NEXT_STAGE.md
+├── formal_verification/  # Lean 4 formalization track (independent workstream)
+└── PLAN.md               # Execution plan for current implementation stream
 ```
 
-## 开发命令
+## 快速开始
+
+### 环境
+
+- 安装 MoonBit 工具链（本仓库最近一次验证环境：`moon 0.1.20260209`）。
+
+### 常用命令
 
 ```bash
+# 构建
 moon build
+
+# 核心门禁（推荐先跑）
 moon test src/kernel
+
+# 全量测试
 moon test
+
+# 维护接口与格式（提交前）
 moon info
 moon fmt
 ```
 
-当前默认门禁：`moon info && moon fmt && moon test`（同时覆盖 kernel 与上层 smoke 适配）。
+推荐提交前门禁：
 
-## 执行计划
+```bash
+moon info && moon fmt && moon test
+```
 
-详细分阶段计划见 `PLAN.md`。
+## 文档导航
+
+- 规范正文：`doc/qed_formal_spec.pdf`
+- 规范变更记录：`doc/qed_formal_spec_changelog.md`
+- kernel 追溯矩阵：`doc/kernel_paper_traceability.md`
+- 当前实现计划：`PLAN.md`
+- Lean 形式化计划：`formal_verification/PLAN.md`
+
+## 下一阶段重点（简述）
+
+1. 扩展 logic/tactics/cmd 的规则级正反测试，提升跨层可审计性。
+2. 持续保持实现与规范双向对账，避免“代码先行、规范缺失”。
+3. 固化 CI 门禁（`moon build && moon test src/kernel && moon test`）并扩展 traceability。
