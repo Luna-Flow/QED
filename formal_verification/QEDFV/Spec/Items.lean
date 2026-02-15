@@ -992,10 +992,18 @@ theorem SEC15_ERASE_TYPEDEF_proved : SEC15_ERASE_TYPEDEF := by
   exact erase_typedef_correct ks t0 k d s hDerives hOld
 
 def SEC15_GLOBAL_CONSERVATIVITY_FINITE : Prop :=
-  global_conservativity_target
+  ∀ ks t0 stepsL stepsR d s,
+    Derives ks d s ->
+    OldLang t0 s ->
+    Derives ks (eraseSequence (stepsL ++ stepsR) d) s ∧
+    eraseSequence (stepsL ++ stepsR) d =
+      eraseSequence stepsR (eraseSequence stepsL d)
 
 theorem SEC15_GLOBAL_CONSERVATIVITY_FINITE_proved : SEC15_GLOBAL_CONSERVATIVITY_FINITE := by
-  exact global_conservativity_target_proved
+  intro ks t0 stepsL stepsR d s hDerives hOld
+  refine ⟨?_, ?_⟩
+  · exact global_conservativity_finite_step_split ks t0 stepsL stepsR d s hDerives hOld
+  · exact eraseSequence_append stepsL stepsR d
 
 def SEC15_MODEL_CLASS : Prop :=
   ∀ t : TheoryState, modelClassNonempty t -> Nonempty (AdmissibleModelClass t)
@@ -1036,11 +1044,13 @@ theorem SEC15_CONSISTENCY_WITNESS_proved : SEC15_CONSISTENCY_WITNESS := by
 def SEC16_CONFORMANCE_OBLIGATIONS : Prop :=
   ∀ r : Realization, FaithfulRealization r ->
     ruleFidelity r ∧ boundaryFidelity r ∧ scopeFidelity r ∧
-    replayTraceFidelity r ∧ gateFidelity r ∧ certificateNonAuthority r
+    replayTraceFidelity r ∧ gateFidelity r ∧ certificateNonAuthority r ∧
+    conservativeReplayFidelity r
 
 theorem SEC16_CONFORMANCE_OBLIGATIONS_proved : SEC16_CONFORMANCE_OBLIGATIONS := by
   intro r h
-  exact ⟨h.rule, h.boundary, h.scope, h.trace, h.gate, h.cert⟩
+  exact ⟨h.rule, h.boundary, h.scope, h.trace, h.gate, h.cert,
+    faithful_realization_conservative_replay r h⟩
 
 def SEC16_TRANSFER_THEOREM : Prop :=
   ∀ r : Realization, ∀ s : Sequent,
@@ -1062,7 +1072,8 @@ def APPG_PARTII_CONFORMANCE : Prop :=
   appendix_g_replay_trace_fidelity ∧
   appendix_g_gate_fidelity ∧
   appendix_g_certificate_non_authority ∧
-  appendix_g_transfer_trace_alignment
+  appendix_g_transfer_trace_alignment ∧
+  appendix_g_conservative_replay_fidelity
 
 theorem APPG_PARTII_CONFORMANCE_proved : APPG_PARTII_CONFORMANCE := by
   exact ⟨
@@ -1072,7 +1083,8 @@ theorem APPG_PARTII_CONFORMANCE_proved : APPG_PARTII_CONFORMANCE := by
     appendix_g_replay_trace_fidelity_proved,
     appendix_g_gate_fidelity_proved,
     appendix_g_certificate_non_authority_proved,
-    appendix_g_transfer_trace_alignment_proved
+    appendix_g_transfer_trace_alignment_proved,
+    appendix_g_conservative_replay_fidelity_proved
   ⟩
 
 def APPH_CLAIM_TRACE_MATRIX : Prop := appendix_h_matrix_complete

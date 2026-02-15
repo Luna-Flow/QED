@@ -14,6 +14,7 @@ structure Realization where
   replayDerivation : Sequent -> DerivationObj
   replayPrimitiveInstances : Sequent -> List PrimitiveInstance
   replayPrimitiveTrace : Sequent -> List String
+  replayExtensionSteps : Sequent -> List ExtensionStep
   replayCertificates : Sequent -> List (GateKind × String)
 
 def ruleFidelity (r : Realization) : Prop :=
@@ -241,6 +242,10 @@ def certificateNonAuthority (r : Realization) : Prop :=
   ∀ s, r.accepts s ->
     Derives r.kernel (stripGateCertificates (r.replayDerivation s)) s
 
+def conservativeReplayFidelity (r : Realization) : Prop :=
+  ∀ s, r.accepts s ->
+    Derives r.kernel (eraseSequence (r.replayExtensionSteps s) (r.replayDerivation s)) s
+
 theorem certificate_non_authority_from_replay
     (r : Realization)
     (hReplay : replayFidelity r) :
@@ -248,6 +253,21 @@ theorem certificate_non_authority_from_replay
   intro s hAccept
   exact stripGateCertificates_preserves_derives r.kernel (r.replayDerivation s) s
     (hReplay s hAccept)
+
+theorem conservative_replay_from_replay_boundary
+    (r : Realization)
+    (hReplay : replayFidelity r)
+    (hBoundary : boundaryFidelity r) :
+    conservativeReplayFidelity r := by
+  intro s hAccept
+  exact global_conservativity_finite_step
+    r.kernel
+    r.kernel.T
+    (r.replayExtensionSteps s)
+    (r.replayDerivation s)
+    s
+    (hReplay s hAccept)
+    (hBoundary s hAccept)
 
 structure FaithfulRealization (r : Realization) : Prop where
   rule : ruleFidelity r
@@ -257,6 +277,12 @@ structure FaithfulRealization (r : Realization) : Prop where
   trace : replayTraceFidelity r
   gate : gateFidelity r
   cert : certificateNonAuthority r
+
+theorem faithful_realization_conservative_replay
+    (r : Realization)
+    (hFaithful : FaithfulRealization r) :
+    conservativeReplayFidelity r := by
+  exact conservative_replay_from_replay_boundary r hFaithful.replay hFaithful.boundary
 
 theorem implementation_to_logic_transfer_with_trace
     (r : Realization)

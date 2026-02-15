@@ -57,4 +57,11 @@ theorem appendix_g_transfer_trace_alignment_proved : appendix_g_transfer_trace_a
   intro r s hFaithful hAccept
   exact implementation_to_logic_transfer_with_trace r hFaithful s hAccept
 
+def appendix_g_conservative_replay_fidelity : Prop :=
+  ∀ r : Realization, FaithfulRealization r -> conservativeReplayFidelity r
+
+theorem appendix_g_conservative_replay_fidelity_proved : appendix_g_conservative_replay_fidelity := by
+  intro r hFaithful
+  exact faithful_realization_conservative_replay r hFaithful
+
 end QEDFV

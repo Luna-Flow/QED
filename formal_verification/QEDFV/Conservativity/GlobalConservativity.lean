@@ -17,6 +17,17 @@ def eraseSequence : List ExtensionStep -> DerivationObj -> DerivationObj
   | [], d => d
   | step :: rest, d => eraseSequence rest (eraseStep step d)
 
+theorem eraseSequence_append
+    (stepsL stepsR : List ExtensionStep)
+    (d : DerivationObj) :
+    eraseSequence (stepsL ++ stepsR) d =
+      eraseSequence stepsR (eraseSequence stepsL d) := by
+  induction stepsL generalizing d with
+  | nil =>
+      simp [eraseSequence]
+  | cons step rest ih =>
+      simp [eraseSequence, ih]
+
 theorem eraseStep_preserves_derivability
     (ks : KernelState)
     (t0 : TheoryState)
@@ -61,5 +72,20 @@ theorem global_conservativity_finite_step
     (hOld : OldLang t0 s) :
     Derives ks (eraseSequence steps d) s := by
   exact eraseSequence_preserves_derivability ks t0 steps d s hDerives hOld
+
+theorem global_conservativity_finite_step_split
+    (ks : KernelState)
+    (t0 : TheoryState)
+    (stepsL stepsR : List ExtensionStep)
+    (d : DerivationObj)
+    (s : Sequent)
+    (hDerives : Derives ks d s)
+    (hOld : OldLang t0 s) :
+    Derives ks (eraseSequence (stepsL ++ stepsR) d) s := by
+  have hL : Derives ks (eraseSequence stepsL d) s :=
+    eraseSequence_preserves_derivability ks t0 stepsL d s hDerives hOld
+  have hR : Derives ks (eraseSequence stepsR (eraseSequence stepsL d)) s :=
+    eraseSequence_preserves_derivability ks t0 stepsR (eraseSequence stepsL d) s hL hOld
+  simpa [eraseSequence_append] using hR
 
 end QEDFV
