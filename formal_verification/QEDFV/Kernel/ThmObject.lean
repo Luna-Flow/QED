@@ -49,6 +49,23 @@ def hypsUnion (s1 s2 : Finset DbExpr) : Finset DbExpr :=
 def hypsRemove (s : Finset DbExpr) (e : DbExpr) : Finset DbExpr :=
   s.filter (fun x => alphaNorm x != alphaNorm e)
 
+abbrev AlphaAssumptions := Finset DbExpr
+
+def alphaMember (e : DbExpr) (Γ : AlphaAssumptions) : Prop :=
+  memAlpha e Γ
+
+def alphaUnion (Γ Δ : AlphaAssumptions) : AlphaAssumptions :=
+  hypsUnion Γ Δ
+
+def alphaRemove (Γ : AlphaAssumptions) (e : DbExpr) : AlphaAssumptions :=
+  hypsRemove Γ e
+
+def alphaAssumptionEq (Γ Δ : AlphaAssumptions) : Prop :=
+  alphaSetEq Γ Δ
+
+theorem alphaMember_singleton_self (e : DbExpr) : alphaMember e [e] := by
+  exact ⟨e, by simp, alphaEq_refl e⟩
+
 theorem hypsUnion_idempotent (s : Finset DbExpr) :
     alphaSetEq (hypsUnion s s) s := by
   intro e
@@ -100,7 +117,22 @@ theorem hypsRemove_alpha_compatible
       simpa [hNorm] using hKeep
     exact List.mem_filter.mpr ⟨List.mem_filter.mp hIn |>.left, hKeep'⟩
 
+theorem alphaUnion_idempotent (Γ : AlphaAssumptions) :
+    alphaAssumptionEq (alphaUnion Γ Γ) Γ := by
+  exact hypsUnion_idempotent Γ
+
+theorem alphaUnion_commutative (Γ Δ : AlphaAssumptions) :
+    alphaAssumptionEq (alphaUnion Γ Δ) (alphaUnion Δ Γ) := by
+  exact hypsUnion_commutative Γ Δ
+
+theorem alphaRemove_compatible
+    (Γ : AlphaAssumptions)
+    (a b : DbExpr)
+    (hAlpha : AlphaEqExpr a b) :
+    alphaAssumptionEq (alphaRemove Γ a) (alphaRemove Γ b) := by
+  exact hypsRemove_alpha_compatible Γ a b hAlpha
+
 def assumptionsAsAlphaQuotients (th : Thm) : Prop :=
-  alphaSetEq (hypsUnion th.seq.hyps th.seq.hyps) th.seq.hyps
+  alphaAssumptionEq (alphaUnion th.seq.hyps th.seq.hyps) th.seq.hyps
 
 end QEDFV

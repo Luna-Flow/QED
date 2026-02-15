@@ -476,7 +476,7 @@ def SEC10_ASSUME_ALPHA_QUOTIENT : Prop :=
 
 theorem SEC10_ASSUME_ALPHA_QUOTIENT_proved : SEC10_ASSUME_ALPHA_QUOTIENT := by
   intro th
-  exact hypsUnion_idempotent th.seq.hyps
+  exact alphaUnion_idempotent th.seq.hyps
 
 def SEC11_DEF_RULE : Prop :=
   ∀ t : TheoryState, ∀ d : DefIntro,
@@ -584,11 +584,12 @@ theorem SEC14_RULE_REFL_proved : SEC14_RULE_REFL := by
 def SEC14_RULE_ASSUME : Prop :=
   ∀ k : KernelState, ∀ p : DbExpr,
     IsBoolExpr p ->
+    alphaMember p [p] ->
     Derivable k { hyps := [p], concl := p }
 
 theorem SEC14_RULE_ASSUME_proved : SEC14_RULE_ASSUME := by
-  intro k p h
-  exact Derivable.assume (k := k) p h
+  intro k p hBool hAlpha
+  exact Derivable.assume (k := k) p hBool hAlpha
 
 def SEC14_RULE_TRANS : Prop :=
   ∀ k : KernelState, ∀ A B : Sequent, ∀ x y y' z : DbExpr,
@@ -597,35 +598,43 @@ def SEC14_RULE_TRANS : Prop :=
     AlphaEqExpr y y' ->
     Derivable k A ->
     Derivable k B ->
-    Derivable k { hyps := hypsUnion A.hyps B.hyps, concl := mkEqExpr x z }
+    Derivable k { hyps := alphaUnion A.hyps B.hyps, concl := mkEqExpr x z }
 
 theorem SEC14_RULE_TRANS_proved : SEC14_RULE_TRANS := by
   intro k A B x y y' z hEqA hEqB hMid hA hB
   exact Derivable.trans (k := k) A B x y y' z hEqA hEqB hMid hA hB
 
 def SEC14_RULE_MK_COMB : Prop :=
-  ∀ k : KernelState, ∀ A B : Sequent,
+  ∀ k : KernelState, ∀ A B : Sequent, ∀ f g x y : DbExpr,
+    A.concl = mkEqExpr f g ->
+    B.concl = mkEqExpr x y ->
     Derivable k A ->
     Derivable k B ->
-    Derivable k { hyps := hypsUnion A.hyps B.hyps, concl := A.concl }
+    Derivable k { hyps := alphaUnion A.hyps B.hyps, concl := mkCombEqExpr f g x y }
 
 theorem SEC14_RULE_MK_COMB_proved : SEC14_RULE_MK_COMB := by
-  intro k A B hA hB
-  exact Derivable.mkComb (k := k) A B hA hB
+  intro k A B f g x y hEqA hEqB hA hB
+  exact Derivable.mkComb (k := k) A B f g x y hEqA hEqB hA hB
 
 def SEC14_RULE_ABS : Prop :=
-  ∀ k : KernelState, ∀ A : Sequent, Derivable k A -> Derivable k A
+  ∀ k : KernelState, ∀ A : Sequent, ∀ n : Lean.Name, ∀ ty s t : DbExpr,
+    A.concl = mkEqExpr s t ->
+    (∀ h, h ∈ A.hyps -> ¬ dbHasLooseBVar h 0) ->
+    Derivable k A ->
+    Derivable k { hyps := A.hyps, concl := mkAbsEqExpr n ty s t }
 
 theorem SEC14_RULE_ABS_proved : SEC14_RULE_ABS := by
-  intro k A hA
-  exact Derivable.abs (k := k) A hA
+  intro k A n ty s t hEq hNoLoose hA
+  exact Derivable.abs (k := k) A n ty s t hEq hNoLoose hA
 
 def SEC14_RULE_BETA : Prop :=
-  ∀ k : KernelState, ∀ A : Sequent, Derivable k A -> Derivable k A
+  ∀ k : KernelState, ∀ r : TypedBetaRedex,
+    betaBinderAgreement r ->
+    Derivable k { hyps := [], concl := mkEqExpr (betaRedexExpr r) (typedBetaContract r) }
 
 theorem SEC14_RULE_BETA_proved : SEC14_RULE_BETA := by
-  intro k A hA
-  exact Derivable.beta (k := k) A hA
+  intro k r hAgree
+  exact Derivable.beta (k := k) r hAgree
 
 def SEC14_RULE_EQ_MP : Prop :=
   ∀ k : KernelState, ∀ A B : Sequent, ∀ p q p' : DbExpr,
@@ -635,7 +644,7 @@ def SEC14_RULE_EQ_MP : Prop :=
     IsBoolExpr p ->
     Derivable k A ->
     Derivable k B ->
-    Derivable k { hyps := hypsUnion A.hyps B.hyps, concl := q }
+    Derivable k { hyps := alphaUnion A.hyps B.hyps, concl := q }
 
 theorem SEC14_RULE_EQ_MP_proved : SEC14_RULE_EQ_MP := by
   intro k A B p q p' hEq hAlpha hPrem hBool hA hB
@@ -643,13 +652,13 @@ theorem SEC14_RULE_EQ_MP_proved : SEC14_RULE_EQ_MP := by
 
 def SEC14_RULE_DEDUCT : Prop :=
   ∀ k : KernelState, ∀ A B : Sequent,
-    alphaSetEq
-      (hypsUnion (hypsRemove A.hyps B.concl) (hypsRemove B.hyps A.concl))
-      (hypsUnion A.hyps B.hyps) ->
+    alphaAssumptionEq
+      (alphaUnion (alphaRemove A.hyps B.concl) (alphaRemove B.hyps A.concl))
+      (alphaUnion A.hyps B.hyps) ->
     Derivable k A ->
     Derivable k B ->
     Derivable k
-      { hyps := hypsUnion (hypsRemove A.hyps B.concl) (hypsRemove B.hyps A.concl)
+      { hyps := alphaUnion (alphaRemove A.hyps B.concl) (alphaRemove B.hyps A.concl)
       , concl := mkEqExpr A.concl B.concl
       }
 
@@ -829,74 +838,99 @@ def SEC10_ALPHA_QUOTIENT_ASSUMPTIONS : Prop :=
 
 theorem SEC10_ALPHA_QUOTIENT_ASSUMPTIONS_proved : SEC10_ALPHA_QUOTIENT_ASSUMPTIONS := by
   intro th
-  exact hypsUnion_idempotent th.seq.hyps
+  exact alphaUnion_idempotent th.seq.hyps
 
 def SEC10_ALPHA_SET_IDEMPOTENCE : Prop :=
-  ∀ hyps : Finset DbExpr, alphaSetEq (hypsUnion hyps hyps) hyps
+  ∀ hyps : Finset DbExpr, alphaAssumptionEq (alphaUnion hyps hyps) hyps
 
 theorem SEC10_ALPHA_SET_IDEMPOTENCE_proved : SEC10_ALPHA_SET_IDEMPOTENCE := by
   intro hyps
-  exact hypsUnion_idempotent hyps
+  exact alphaUnion_idempotent hyps
 
 def SEC10_ALPHA_SET_COMM : Prop :=
-  ∀ h1 h2 : Finset DbExpr, alphaSetEq (hypsUnion h1 h2) (hypsUnion h2 h1)
+  ∀ h1 h2 : Finset DbExpr, alphaAssumptionEq (alphaUnion h1 h2) (alphaUnion h2 h1)
 
 theorem SEC10_ALPHA_SET_COMM_proved : SEC10_ALPHA_SET_COMM := by
   intro h1 h2
-  exact hypsUnion_commutative h1 h2
+  exact alphaUnion_commutative h1 h2
 
 def SEC10_ALPHA_REMOVE_COMPAT : Prop :=
   ∀ hyps : Finset DbExpr, ∀ a b : DbExpr, AlphaEqExpr a b ->
-    alphaSetEq (hypsRemove hyps a) (hypsRemove hyps b)
+    alphaAssumptionEq (alphaRemove hyps a) (alphaRemove hyps b)
 
 theorem SEC10_ALPHA_REMOVE_COMPAT_proved : SEC10_ALPHA_REMOVE_COMPAT := by
   intro hyps a b hAlpha
-  exact hypsRemove_alpha_compatible hyps a b hAlpha
+  exact alphaRemove_compatible hyps a b hAlpha
 
 def SEC14_INST_TYPE_VALID_SUBST : Prop :=
-  valid_ty_subst []
+  ∀ k : KernelState, ∀ theta : TypeSubst, ∀ s : Sequent,
+    ¬ valid_ty_subst theta ->
+    instTypeFailure k theta s = some .invalidSubstitution
 
 theorem SEC14_INST_TYPE_VALID_SUBST_proved : SEC14_INST_TYPE_VALID_SUBST := by
-  exact valid_ty_subst_empty
+  intro k theta s h
+  exact instTypeFailure_invalidSubstitution k theta s h
 
 def SEC14_INST_TYPE_ADMISSIBLE_IMAGE : Prop :=
-  ∀ t : TheoryState, admissible_ty_image t []
+  ∀ k : KernelState, ∀ theta : TypeSubst, ∀ s : Sequent,
+    valid_ty_subst theta ->
+    ¬ admissible_ty_image k.T theta ->
+    instTypeFailure k theta s = some .inadmissibleTypeTarget
 
 theorem SEC14_INST_TYPE_ADMISSIBLE_IMAGE_proved : SEC14_INST_TYPE_ADMISSIBLE_IMAGE := by
-  intro t
-  exact admissible_ty_image_empty t
+  intro k theta s hValid hInadmissible
+  exact instTypeFailure_inadmissibleTypeTarget k theta s hValid hInadmissible
 
 def SEC14_INST_TYPE_TYPING_PRESERVE : Prop :=
-  ∀ theta : TypeSubst, ∀ s : Sequent,
-    typing_preserved_under_ty_subst theta s ->
-    typing_preserved_under_ty_subst theta s
+  ∀ k : KernelState, ∀ theta : TypeSubst, ∀ s : Sequent,
+    valid_ty_subst theta ->
+    admissible_ty_image k.T theta ->
+    ¬ typing_preserved_under_ty_subst theta s ->
+    instTypeFailure k theta s = some .typingFailure
 
 theorem SEC14_INST_TYPE_TYPING_PRESERVE_proved : SEC14_INST_TYPE_TYPING_PRESERVE := by
-  intro theta s h
-  exact h
+  intro k theta s hValid hImg hTyping
+  exact instTypeFailure_typingFailure k theta s hValid hImg hTyping
 
 def SEC14_INST_TYPE_DEF_COHERENT : Prop :=
-  ∀ theta : TypeSubst, ∀ s : Sequent,
-    def_inst_coherent theta s -> def_inst_coherent theta s
+  ∀ k : KernelState, ∀ theta : TypeSubst, ∀ s : Sequent,
+    valid_ty_subst theta ->
+    admissible_ty_image k.T theta ->
+    typing_preserved_under_ty_subst theta s ->
+    ¬ def_inst_coherent theta s ->
+    instTypeFailure k theta s = some .definitionalCoherenceViolation
 
 theorem SEC14_INST_TYPE_DEF_COHERENT_proved : SEC14_INST_TYPE_DEF_COHERENT := by
-  intro theta s h
-  exact h
+  intro k theta s hValid hImg hTyping hDef
+  exact instTypeFailure_definitionalCoherenceViolation k theta s hValid hImg hTyping hDef
 
 def SEC14_INST_TYPE_CONST_INSTANCE_OK : Prop :=
-  ∀ theta : TypeSubst, ∀ s : Sequent,
-    const_instance_ok theta s -> const_instance_ok theta s
+  ∀ k : KernelState, ∀ theta : TypeSubst, ∀ s : Sequent,
+    valid_ty_subst theta ->
+    admissible_ty_image k.T theta ->
+    typing_preserved_under_ty_subst theta s ->
+    def_inst_coherent theta s ->
+    ¬ const_instance_ok theta s ->
+    instTypeFailure k theta s = some .constantInstanceMismatch
 
 theorem SEC14_INST_TYPE_CONST_INSTANCE_OK_proved : SEC14_INST_TYPE_CONST_INSTANCE_OK := by
-  intro theta s h
-  exact h
+  intro k theta s hValid hImg hTyping hDef hConst
+  exact instTypeFailure_constantInstanceMismatch k theta s hValid hImg hTyping hDef hConst
 
 def SEC14_INST_TYPE_STRUCTURE : Prop :=
-  ∀ theta : TypeSubst, ∀ s : Sequent, theorem_structure_preserved theta s
+  ∀ k : KernelState, ∀ theta : TypeSubst, ∀ s : Sequent,
+    valid_ty_subst theta ->
+    admissible_ty_image k.T theta ->
+    typing_preserved_under_ty_subst theta s ->
+    def_inst_coherent theta s ->
+    const_instance_ok theta s ->
+    ¬ theorem_structure_preserved theta s ->
+    instTypeFailure k theta s = some .malformedTheoremStructure
 
 theorem SEC14_INST_TYPE_STRUCTURE_proved : SEC14_INST_TYPE_STRUCTURE := by
-  intro theta s
-  exact theorem_structure_preserved_refl theta s
+  intro k theta s hValid hImg hTyping hDef hConst hStruct
+  exact instTypeFailure_malformedTheoremStructure
+    k theta s hValid hImg hTyping hDef hConst hStruct
 
 def SEC14_INST_TERM_VALID_SUBST : Prop :=
   valid_term_subst []

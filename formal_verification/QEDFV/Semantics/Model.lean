@@ -16,6 +16,19 @@ structure Model where
       ValidExpr (mkEqExpr p q) ->
       ValidExpr p ->
       ValidExpr q
+  validEqCongrApp :
+    ∀ f g x y : DbExpr,
+      ValidExpr (mkEqExpr f g) ->
+      ValidExpr (mkEqExpr x y) ->
+      ValidExpr (mkCombEqExpr f g x y)
+  validEqCongrLam :
+    ∀ n : Lean.Name, ∀ ty s t : DbExpr,
+      ValidExpr (mkEqExpr s t) ->
+      ValidExpr (mkAbsEqExpr n ty s t)
+  validBeta :
+    ∀ r : TypedBetaRedex,
+      betaBinderAgreement r ->
+      ValidExpr (mkEqExpr (betaRedexExpr r) (typedBetaContract r))
 
 abbrev Valid (m : Model) (s : Sequent) : Prop :=
   (forall h, h ∈ s.hyps -> m.ValidExpr h) -> m.ValidExpr s.concl

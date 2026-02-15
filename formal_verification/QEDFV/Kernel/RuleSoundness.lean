@@ -9,6 +9,7 @@ def primitive_sound_REFL : Prop :=
 def primitive_sound_ASSUME : Prop :=
   forall (m : Model) (_k : KernelState) (p : DbExpr),
     IsBoolExpr p ->
+    alphaMember p [p] ->
     Valid m { hyps := [p], concl := p }
 
 def primitive_sound_TRANS : Prop :=
@@ -19,21 +20,27 @@ def primitive_sound_TRANS : Prop :=
     AlphaEqExpr y y' ->
     Valid m A ->
     Valid m B ->
-    Valid m { hyps := hypsUnion A.hyps B.hyps, concl := mkEqExpr x z }
+    Valid m { hyps := alphaUnion A.hyps B.hyps, concl := mkEqExpr x z }
 
 def primitive_sound_MK_COMB : Prop :=
-  forall (m : Model) (_k : KernelState) (A B : Sequent),
+  forall (m : Model) (_k : KernelState) (A B : Sequent) (f g x y : DbExpr),
+    A.concl = mkEqExpr f g ->
+    B.concl = mkEqExpr x y ->
     Valid m A ->
     Valid m B ->
-    Valid m { hyps := hypsUnion A.hyps B.hyps, concl := A.concl }
+    Valid m { hyps := alphaUnion A.hyps B.hyps, concl := mkCombEqExpr f g x y }
 
 def primitive_sound_ABS : Prop :=
-  forall (m : Model) (_k : KernelState) (A : Sequent),
-    Valid m A -> Valid m A
+  forall (m : Model) (_k : KernelState) (A : Sequent) (n : Lean.Name) (ty s t : DbExpr),
+    A.concl = mkEqExpr s t ->
+    (∀ h, h ∈ A.hyps -> ¬ dbHasLooseBVar h 0) ->
+    Valid m A ->
+    Valid m { hyps := A.hyps, concl := mkAbsEqExpr n ty s t }
 
 def primitive_sound_BETA : Prop :=
-  forall (m : Model) (_k : KernelState) (A : Sequent),
-    Valid m A -> Valid m A
+  forall (m : Model) (_k : KernelState) (r : TypedBetaRedex),
+    betaBinderAgreement r ->
+    Valid m { hyps := [], concl := mkEqExpr (betaRedexExpr r) (typedBetaContract r) }
 
 def primitive_sound_EQ_MP : Prop :=
   forall (m : Model) (_k : KernelState) (A B : Sequent) (p q p' : DbExpr),
@@ -44,18 +51,18 @@ def primitive_sound_EQ_MP : Prop :=
     IsBoolExpr p ->
     Valid m A ->
     Valid m B ->
-    Valid m { hyps := hypsUnion A.hyps B.hyps, concl := q }
+    Valid m { hyps := alphaUnion A.hyps B.hyps, concl := q }
 
 def primitive_sound_DEDUCT_ANTISYM_RULE : Prop :=
   forall (m : Model) (_k : KernelState) (A B : Sequent),
     ModelAlphaLaws m ->
-    alphaSetEq
-      (hypsUnion (hypsRemove A.hyps B.concl) (hypsRemove B.hyps A.concl))
-      (hypsUnion A.hyps B.hyps) ->
+    alphaAssumptionEq
+      (alphaUnion (alphaRemove A.hyps B.concl) (alphaRemove B.hyps A.concl))
+      (alphaUnion A.hyps B.hyps) ->
     Valid m A ->
     Valid m B ->
     Valid m
-      { hyps := hypsUnion (hypsRemove A.hyps B.concl) (hypsRemove B.hyps A.concl)
+      { hyps := alphaUnion (alphaRemove A.hyps B.concl) (alphaRemove B.hyps A.concl)
       , concl := mkEqExpr A.concl B.concl
       }
 
@@ -95,7 +102,7 @@ theorem primitive_sound_REFL_proved : primitive_sound_REFL := by
   exact m.validEqRefl t
 
 theorem primitive_sound_ASSUME_proved : primitive_sound_ASSUME := by
-  intro m k p _ hHyps
+  intro m k p _ _ hHyps
   exact hHyps p (by simp)
 
 theorem primitive_sound_TRANS_proved : primitive_sound_TRANS := by
@@ -104,12 +111,12 @@ theorem primitive_sound_TRANS_proved : primitive_sound_TRANS := by
     refine hA ?_
     intro h hh
     exact hHyps h (by
-      simpa [hypsUnion] using (List.mem_append_left B.hyps hh))
+      simpa [alphaUnion, hypsUnion] using (List.mem_append_left B.hyps hh))
   have hBConcl : m.ValidExpr B.concl := by
     refine hB ?_
     intro h hh
     exact hHyps h (by
-      simpa [hypsUnion] using (List.mem_append_right A.hyps hh))
+      simpa [alphaUnion, hypsUnion] using (List.mem_append_right A.hyps hh))
   have hEqXY : m.ValidExpr (mkEqExpr x y) := by
     simpa [hEqA] using hAConcl
   have hEqY'Z : m.ValidExpr (mkEqExpr y' z) := by
@@ -119,18 +126,36 @@ theorem primitive_sound_TRANS_proved : primitive_sound_TRANS := by
   exact m.validEqTrans x y z hEqXY hEqYZ
 
 theorem primitive_sound_MK_COMB_proved : primitive_sound_MK_COMB := by
-  intro m k A B hA hB hHyps
-  exact hA (fun h hh =>
-    hHyps h (by
-      simpa [hypsUnion] using (List.mem_append_left B.hyps hh)))
+  intro m k A B f g x y hEqA hEqB hA hB hHyps
+  have hAConcl : m.ValidExpr A.concl := by
+    refine hA ?_
+    intro h hh
+    exact hHyps h (by
+      simpa [alphaUnion, hypsUnion] using (List.mem_append_left B.hyps hh))
+  have hBConcl : m.ValidExpr B.concl := by
+    refine hB ?_
+    intro h hh
+    exact hHyps h (by
+      simpa [alphaUnion, hypsUnion] using (List.mem_append_right A.hyps hh))
+  have hEqFG : m.ValidExpr (mkEqExpr f g) := by
+    simpa [hEqA] using hAConcl
+  have hEqXY : m.ValidExpr (mkEqExpr x y) := by
+    simpa [hEqB] using hBConcl
+  exact m.validEqCongrApp f g x y hEqFG hEqXY
 
 theorem primitive_sound_ABS_proved : primitive_sound_ABS := by
-  intro m k A hA
-  exact hA
+  intro m k A n ty s t hEq hNoLoose hA hHyps
+  have hEqST : m.ValidExpr (mkEqExpr s t) := by
+    have hAConcl : m.ValidExpr A.concl := by
+      refine hA ?_
+      intro h hh
+      exact hHyps h (by simpa [hEq] using hh)
+    simpa [hEq] using hAConcl
+  exact m.validEqCongrLam n ty s t hEqST
 
 theorem primitive_sound_BETA_proved : primitive_sound_BETA := by
-  intro m k A hA
-  exact hA
+  intro m k r hAgree hHyps
+  exact m.validBeta r hAgree
 
 theorem primitive_sound_EQ_MP_proved : primitive_sound_EQ_MP := by
   intro m k A B p q p' hAlphaLaws hEq hAlpha hPrem _hBool hA hB hHyps
@@ -138,7 +163,7 @@ theorem primitive_sound_EQ_MP_proved : primitive_sound_EQ_MP := by
     refine hA ?_
     intro h hh
     exact hHyps h (by
-      simpa [hypsUnion] using (List.mem_append_left B.hyps hh))
+      simpa [alphaUnion, hypsUnion] using (List.mem_append_left B.hyps hh))
   have hEqConcl : m.ValidExpr (mkEqExpr p q) := by
     simpa [hEq] using hAConcl
   have hPremConcl' : m.ValidExpr p' := by
@@ -146,7 +171,7 @@ theorem primitive_sound_EQ_MP_proved : primitive_sound_EQ_MP := by
       refine hB ?_
       intro h hh
       exact hHyps h (by
-        simpa [hypsUnion] using (List.mem_append_right A.hyps hh))
+        simpa [alphaUnion, hypsUnion] using (List.mem_append_right A.hyps hh))
     simpa [hPrem] using hBConcl
   have hPremConcl : m.ValidExpr p := by
     exact hAlphaLaws.alphaRespect (alphaEq_symm hAlpha) hPremConcl'
@@ -154,10 +179,10 @@ theorem primitive_sound_EQ_MP_proved : primitive_sound_EQ_MP := by
 
 theorem primitive_sound_DEDUCT_ANTISYM_RULE_proved : primitive_sound_DEDUCT_ANTISYM_RULE := by
   intro m k A B hAlphaLaws hAlpha hA hB hHyps
-  let remHyps := hypsUnion (hypsRemove A.hyps B.concl) (hypsRemove B.hyps A.concl)
-  have hUnion : ∀ h, h ∈ hypsUnion A.hyps B.hyps -> m.ValidExpr h := by
+  let remHyps := alphaUnion (alphaRemove A.hyps B.concl) (alphaRemove B.hyps A.concl)
+  have hUnion : ∀ h, h ∈ alphaUnion A.hyps B.hyps -> m.ValidExpr h := by
     intro h hhUnion
-    have hMemUnion : memAlpha h (hypsUnion A.hyps B.hyps) := ⟨h, hhUnion, alphaEq_refl h⟩
+    have hMemUnion : alphaMember h (alphaUnion A.hyps B.hyps) := ⟨h, hhUnion, alphaEq_refl h⟩
     have hMemRem : memAlpha h remHyps := (hAlpha h).2 hMemUnion
     rcases hMemRem with ⟨h', hhRem, hAlphaHH'⟩
     have hValid' : m.ValidExpr h' := hHyps h' hhRem
@@ -166,16 +191,21 @@ theorem primitive_sound_DEDUCT_ANTISYM_RULE_proved : primitive_sound_DEDUCT_ANTI
     refine hA ?_
     intro h hh
     exact hUnion h (by
-      simpa [hypsUnion] using (List.mem_append_left B.hyps hh))
+      simpa [alphaUnion, hypsUnion] using (List.mem_append_left B.hyps hh))
   have hBConcl : m.ValidExpr B.concl := by
     refine hB ?_
     intro h hh
     exact hUnion h (by
-      simpa [hypsUnion] using (List.mem_append_right A.hyps hh))
+      simpa [alphaUnion, hypsUnion] using (List.mem_append_right A.hyps hh))
   exact m.validEqIntro A.concl B.concl hAConcl hBConcl
 
 theorem primitive_sound_INST_TYPE_proved : primitive_sound_INST_TYPE := by
   intro m k theta A hLaws hSubst hImg hTyping hDef hConst hStruct hA
+  have hPrem : InstTypePremises k theta A := by
+    exact ⟨hSubst, hImg, hTyping, hDef, hConst, hStruct⟩
+  have hNoFailure : instTypeFailure k theta A = none :=
+    instTypeFailure_none_of_premises k theta A hPrem
+  have _ : instTypeFailure k theta A = none := hNoFailure
   exact hLaws.typeSubstPreservesValid k theta A hSubst hImg hTyping hDef hConst hStruct hA
 
 theorem primitive_sound_INST_proved : primitive_sound_INST := by
