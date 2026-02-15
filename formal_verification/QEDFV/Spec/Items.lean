@@ -699,6 +699,12 @@ theorem SEC15_SOUNDNESS_STRATEGY_proved : SEC15_SOUNDNESS_STRATEGY := by
 
 def SEC15_DEP_MAP : Prop := soundness_dependency_map_closed
 
+theorem SEC15_DEP_MAP_proved : SEC15_DEP_MAP := by
+  exact soundness_dependency_map_closed_proved
+
+theorem SEC15_DEP_MAP_kernel_target_proved : kernel_soundness_target := by
+  exact dep_map_implies_kernel_soundness_target SEC15_DEP_MAP_proved
+
 def SEC16_ERROR_TAXONOMY : Prop :=
   (∃ e : LogicError, e = e) ∧
   (∃ s : SigError, s = s) ∧

@@ -66,6 +66,12 @@ theorem dep_edge_modelclass_alpha_capsule_proved : dep_edge_modelclass_alpha_cap
   intro t mc e1 e2 hAlpha hValid
   exact modelclass_alpha_respect t mc hAlpha hValid
 
+theorem kernel_soundness_from_dep_edge
+    (hEdge : dep_edge_envelope_to_primitive) :
+    kernel_soundness_target := by
+  intro k hEnv
+  exact hEdge k hEnv
+
 theorem soundness_dependency_map_closed_proved : soundness_dependency_map_closed := by
   refine ⟨?_, ?_, ?_, ?_, ?_⟩
   · exact primitive_sound_all_proved
@@ -73,6 +79,31 @@ theorem soundness_dependency_map_closed_proved : soundness_dependency_map_closed
   · exact dep_edge_modelclass_nonempty_proved
   · exact dep_edge_modelclass_instantiation_capsules_proved
   · exact dep_edge_modelclass_alpha_capsule_proved
+
+theorem dep_map_extract_envelope_edge
+    (hMap : soundness_dependency_map_closed) :
+    dep_edge_envelope_to_primitive := by
+  exact hMap.2.1
+
+theorem dep_map_extract_nonempty_edge
+    (hMap : soundness_dependency_map_closed) :
+    dep_edge_modelclass_nonempty := by
+  exact hMap.2.2.1
+
+theorem dep_map_extract_instantiation_edges
+    (hMap : soundness_dependency_map_closed) :
+    dep_edge_modelclass_instantiation_capsules := by
+  exact hMap.2.2.2.1
+
+theorem dep_map_extract_alpha_edge
+    (hMap : soundness_dependency_map_closed) :
+    dep_edge_modelclass_alpha_capsule := by
+  exact hMap.2.2.2.2
+
+theorem dep_map_implies_kernel_soundness_target
+    (hMap : soundness_dependency_map_closed) :
+    kernel_soundness_target := by
+  exact kernel_soundness_from_dep_edge (dep_map_extract_envelope_edge hMap)
 
 def global_conservativity_target : Prop :=
   ∀ ks t0 steps d s,

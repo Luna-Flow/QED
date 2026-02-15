@@ -32,6 +32,8 @@ structure PartIVerification where
   eraseTypeDef : QEDFV.Spec.Items.SEC15_ERASE_TYPEDEF
   globalConservativity : QEDFV.Spec.Items.SEC15_GLOBAL_CONSERVATIVITY_FINITE
   soundnessStrategy : QEDFV.Spec.Items.SEC15_SOUNDNESS_STRATEGY
+  soundnessDepMap : QEDFV.Spec.Items.SEC15_DEP_MAP
+  soundnessDepMapKernelTarget : QEDFV.kernel_soundness_target
 
 def partI_semantic_alignment : Prop :=
   Nonempty PartIVerification
@@ -66,6 +68,8 @@ theorem partI_semantic_alignment_proved : partI_semantic_alignment := by
     eraseTypeDef := QEDFV.Spec.Items.SEC15_ERASE_TYPEDEF_proved
     globalConservativity := QEDFV.Spec.Items.SEC15_GLOBAL_CONSERVATIVITY_FINITE_proved
     soundnessStrategy := QEDFV.Spec.Items.SEC15_SOUNDNESS_STRATEGY_proved
+    soundnessDepMap := QEDFV.Spec.Items.SEC15_DEP_MAP_proved
+    soundnessDepMapKernelTarget := QEDFV.Spec.Items.SEC15_DEP_MAP_kernel_target_proved
   }⟩
 
 def partI_verification_complete : Prop :=
