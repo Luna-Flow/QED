@@ -17,7 +17,7 @@ deriving Repr
 def Derives (k : KernelState) : DerivationObj -> Sequent -> Prop
   | .leaf s, target => target = s ∧ Derivable k s
   | .rule _ ds s, target =>
-      target = s ∧ ∀ d, d ∈ ds -> ∃ sp, Derives k d sp
+      target = s ∧ Derivable k s ∧ ∀ d, d ∈ ds -> ∃ sp, Derives k d sp
   | .gate _ _ d s, target =>
       target = s ∧ Derives k d s
 

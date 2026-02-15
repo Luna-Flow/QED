@@ -17,7 +17,7 @@ def audit_e2_trans_middle_term_guard : Prop :=
   forall k A B,
     Derivable k A ->
     Derivable k B ->
-    Derivable k { hyps := A.hyps ++ B.hyps, concl := B.concl }
+    Derivable k { hyps := hypsUnion A.hyps B.hyps, concl := B.concl }
 
 theorem audit_e2_trans_middle_term_guard_proved : audit_e2_trans_middle_term_guard := by
   intro k A B hA hB

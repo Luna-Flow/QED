@@ -594,7 +594,7 @@ def SEC14_RULE_TRANS : Prop :=
   ∀ k : KernelState, ∀ A B : Sequent,
     Derivable k A ->
     Derivable k B ->
-    Derivable k { hyps := A.hyps ++ B.hyps, concl := B.concl }
+    Derivable k { hyps := hypsUnion A.hyps B.hyps, concl := B.concl }
 
 theorem SEC14_RULE_TRANS_proved : SEC14_RULE_TRANS := by
   intro k A B hA hB
@@ -604,7 +604,7 @@ def SEC14_RULE_MK_COMB : Prop :=
   ∀ k : KernelState, ∀ A B : Sequent,
     Derivable k A ->
     Derivable k B ->
-    Derivable k { hyps := A.hyps ++ B.hyps, concl := A.concl }
+    Derivable k { hyps := hypsUnion A.hyps B.hyps, concl := A.concl }
 
 theorem SEC14_RULE_MK_COMB_proved : SEC14_RULE_MK_COMB := by
   intro k A B hA hB
@@ -628,7 +628,7 @@ def SEC14_RULE_EQ_MP : Prop :=
   ∀ k : KernelState, ∀ A B : Sequent,
     Derivable k A ->
     Derivable k B ->
-    Derivable k { hyps := A.hyps ++ B.hyps, concl := B.concl }
+    Derivable k { hyps := hypsUnion A.hyps B.hyps, concl := B.concl }
 
 theorem SEC14_RULE_EQ_MP_proved : SEC14_RULE_EQ_MP := by
   intro k A B hA hB
@@ -636,13 +636,16 @@ theorem SEC14_RULE_EQ_MP_proved : SEC14_RULE_EQ_MP := by
 
 def SEC14_RULE_DEDUCT : Prop :=
   ∀ k : KernelState, ∀ A B : Sequent,
+    alphaSetEq
+      (hypsUnion (hypsRemove A.hyps B.concl) (hypsRemove B.hyps A.concl))
+      (hypsUnion A.hyps B.hyps) ->
     Derivable k A ->
     Derivable k B ->
-    Derivable k { hyps := A.hyps ++ B.hyps, concl := A.concl }
+    Derivable k { hyps := hypsUnion A.hyps B.hyps, concl := mkEqExpr A.concl B.concl }
 
 theorem SEC14_RULE_DEDUCT_proved : SEC14_RULE_DEDUCT := by
-  intro k A B hA hB
-  exact Derivable.deductAntisym (k := k) A B hA hB
+  intro k A B hAlpha hA hB
+  exact Derivable.deductAntisym (k := k) A B hAlpha hA hB
 
 def SEC14_RULE_INST_TYPE : Prop :=
   ∀ k : KernelState, ∀ theta : TypeSubst, ∀ A : Sequent,
@@ -653,7 +656,7 @@ def SEC14_RULE_INST_TYPE : Prop :=
     const_instance_ok theta A ->
     theorem_structure_preserved theta A ->
     Derivable k A ->
-    Derivable k A
+    Derivable k (applyTypeSubstSequent theta A)
 
 theorem SEC14_RULE_INST_TYPE_proved : SEC14_RULE_INST_TYPE := by
   intro k theta A hValid hAdmissible hTyping hDef hConst hStruct hA
@@ -663,7 +666,7 @@ def SEC14_RULE_INST : Prop :=
   ∀ k : KernelState, ∀ sigma : TermSubst, ∀ A : Sequent,
     valid_term_subst sigma ->
     Derivable k A ->
-    Derivable k A
+    Derivable k (applyTermSubstSequent sigma A)
 
 theorem SEC14_RULE_INST_proved : SEC14_RULE_INST := by
   intro k sigma A hValid hA

@@ -15,13 +15,13 @@ def primitive_sound_TRANS : Prop :=
   forall (m : Model) (_k : KernelState) (A B : Sequent),
     Valid m A ->
     Valid m B ->
-    Valid m { hyps := A.hyps ++ B.hyps, concl := B.concl }
+    Valid m { hyps := hypsUnion A.hyps B.hyps, concl := B.concl }
 
 def primitive_sound_MK_COMB : Prop :=
   forall (m : Model) (_k : KernelState) (A B : Sequent),
     Valid m A ->
     Valid m B ->
-    Valid m { hyps := A.hyps ++ B.hyps, concl := A.concl }
+    Valid m { hyps := hypsUnion A.hyps B.hyps, concl := A.concl }
 
 def primitive_sound_ABS : Prop :=
   forall (m : Model) (_k : KernelState) (A : Sequent),
@@ -35,16 +35,20 @@ def primitive_sound_EQ_MP : Prop :=
   forall (m : Model) (_k : KernelState) (A B : Sequent),
     Valid m A ->
     Valid m B ->
-    Valid m { hyps := A.hyps ++ B.hyps, concl := B.concl }
+    Valid m { hyps := hypsUnion A.hyps B.hyps, concl := B.concl }
 
 def primitive_sound_DEDUCT_ANTISYM_RULE : Prop :=
   forall (m : Model) (_k : KernelState) (A B : Sequent),
+    alphaSetEq
+      (hypsUnion (hypsRemove A.hyps B.concl) (hypsRemove B.hyps A.concl))
+      (hypsUnion A.hyps B.hyps) ->
     Valid m A ->
     Valid m B ->
-    Valid m { hyps := A.hyps ++ B.hyps, concl := A.concl }
+    Valid m { hyps := hypsUnion A.hyps B.hyps, concl := mkEqExpr A.concl B.concl }
 
 def primitive_sound_INST_TYPE : Prop :=
   forall (m : Model) (k : KernelState) (theta : TypeSubst) (A : Sequent),
+    ModelSubstLaws m ->
     valid_ty_subst theta ->
     admissible_ty_image k.T theta ->
     typing_preserved_under_ty_subst theta A ->
@@ -52,13 +56,14 @@ def primitive_sound_INST_TYPE : Prop :=
     const_instance_ok theta A ->
     theorem_structure_preserved theta A ->
     Valid m A ->
-    Valid m A
+    Valid m (applyTypeSubstSequent theta A)
 
 def primitive_sound_INST : Prop :=
   forall (m : Model) (_k : KernelState) (sigma : TermSubst) (A : Sequent),
+    ModelSubstLaws m ->
     valid_term_subst sigma ->
     Valid m A ->
-    Valid m A
+    Valid m (applyTermSubstSequent sigma A)
 
 def primitive_sound_all : Prop :=
   primitive_sound_REFL ∧
@@ -84,13 +89,13 @@ theorem primitive_sound_TRANS_proved : primitive_sound_TRANS := by
   intro m k A B hA hB hHyps
   exact hB (fun h hh =>
     hHyps h (by
-      exact List.mem_append_right A.hyps hh))
+      simpa [hypsUnion] using (List.mem_append_right A.hyps hh)))
 
 theorem primitive_sound_MK_COMB_proved : primitive_sound_MK_COMB := by
   intro m k A B hA hB hHyps
   exact hA (fun h hh =>
     hHyps h (by
-      exact List.mem_append_left B.hyps hh))
+      simpa [hypsUnion] using (List.mem_append_left B.hyps hh)))
 
 theorem primitive_sound_ABS_proved : primitive_sound_ABS := by
   intro m k A hA
@@ -104,21 +109,29 @@ theorem primitive_sound_EQ_MP_proved : primitive_sound_EQ_MP := by
   intro m k A B hA hB hHyps
   exact hB (fun h hh =>
     hHyps h (by
-      exact List.mem_append_right A.hyps hh))
+      simpa [hypsUnion] using (List.mem_append_right A.hyps hh)))
 
 theorem primitive_sound_DEDUCT_ANTISYM_RULE_proved : primitive_sound_DEDUCT_ANTISYM_RULE := by
-  intro m k A B hA hB hHyps
-  exact hA (fun h hh =>
-    hHyps h (by
-      exact List.mem_append_left B.hyps hh))
+  intro m k A B _hAlpha hA hB hHyps
+  have hAConcl : m.ValidExpr A.concl := by
+    refine hA ?_
+    intro h hh
+    exact hHyps h (by
+      simpa [hypsUnion] using (List.mem_append_left B.hyps hh))
+  have hBConcl : m.ValidExpr B.concl := by
+    refine hB ?_
+    intro h hh
+    exact hHyps h (by
+      simpa [hypsUnion] using (List.mem_append_right A.hyps hh))
+  exact m.validEqIntro A.concl B.concl hAConcl hBConcl
 
 theorem primitive_sound_INST_TYPE_proved : primitive_sound_INST_TYPE := by
-  intro m k theta A _ _ _ _ _ _ hA
-  exact hA
+  intro m k theta A hLaws hSubst hImg hTyping hDef hConst hStruct hA
+  exact hLaws.typeSubstPreservesValid k theta A hSubst hImg hTyping hDef hConst hStruct hA
 
 theorem primitive_sound_INST_proved : primitive_sound_INST := by
-  intro m k sigma A _ hA
-  exact hA
+  intro m k sigma A hLaws hSubst hA
+  exact hLaws.termSubstPreservesValid sigma A hSubst hA
 
 theorem primitive_sound_all_proved : primitive_sound_all := by
   exact ⟨

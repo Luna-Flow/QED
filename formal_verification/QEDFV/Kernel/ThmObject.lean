@@ -14,47 +14,78 @@ deriving Repr
 def thmHyps (th : Thm) : Finset DbExpr := th.seq.hyps
 def thmConcl (th : Thm) : DbExpr := th.seq.concl
 
-abbrev AlphaEqExpr (e1 e2 : DbExpr) : Prop := e1 = e2
+def alphaNorm : DbExpr -> DbExpr
+  | .bvar i => .bvar i
+  | .const n ls => .const n ls
+  | .app f a => .app (alphaNorm f) (alphaNorm a)
+  | .lam _ ty body bi => .lam .anonymous (alphaNorm ty) (alphaNorm body) bi
+  | e => e
+
+def AlphaEqExpr (e1 e2 : DbExpr) : Prop :=
+  alphaNorm e1 = alphaNorm e2
+
+def memAlpha (e : DbExpr) (s : Finset DbExpr) : Prop :=
+  ∃ e', e' ∈ s ∧ AlphaEqExpr e e'
 
 def alphaSetEq (s1 s2 : Finset DbExpr) : Prop :=
-  ∀ e, e ∈ s1 ↔ e ∈ s2
+  ∀ e, memAlpha e s1 ↔ memAlpha e s2
 
 def hypsUnion (s1 s2 : Finset DbExpr) : Finset DbExpr :=
   s1 ++ s2
 
 def hypsRemove (s : Finset DbExpr) (e : DbExpr) : Finset DbExpr :=
-  s.filter (fun x => x != e)
+  s.filter (fun x => alphaNorm x != alphaNorm e)
 
 theorem hypsUnion_idempotent (s : Finset DbExpr) :
     alphaSetEq (hypsUnion s s) s := by
   intro e
   constructor
-  · intro h
-    exact List.mem_append.mp h |>.elim id id
-  · intro h
-    exact List.mem_append.mpr (Or.inl h)
+  · intro hMem
+    rcases hMem with ⟨e', hIn, hAlpha⟩
+    rcases List.mem_append.mp hIn with hL | hR
+    · exact ⟨e', hL, hAlpha⟩
+    · exact ⟨e', hR, hAlpha⟩
+  · intro hMem
+    rcases hMem with ⟨e', hIn, hAlpha⟩
+    exact ⟨e', List.mem_append.mpr (Or.inl hIn), hAlpha⟩
 
 theorem hypsUnion_commutative (s1 s2 : Finset DbExpr) :
     alphaSetEq (hypsUnion s1 s2) (hypsUnion s2 s1) := by
   intro e
   constructor
-  · intro h
-    rcases List.mem_append.mp h with h1 | h2
-    · exact List.mem_append.mpr (Or.inr h1)
-    · exact List.mem_append.mpr (Or.inl h2)
-  · intro h
-    rcases List.mem_append.mp h with h2 | h1
-    · exact List.mem_append.mpr (Or.inr h2)
-    · exact List.mem_append.mpr (Or.inl h1)
+  · intro hMem
+    rcases hMem with ⟨e', hIn, hAlpha⟩
+    rcases List.mem_append.mp hIn with h1 | h2
+    · exact ⟨e', List.mem_append.mpr (Or.inr h1), hAlpha⟩
+    · exact ⟨e', List.mem_append.mpr (Or.inl h2), hAlpha⟩
+  · intro hMem
+    rcases hMem with ⟨e', hIn, hAlpha⟩
+    rcases List.mem_append.mp hIn with h2 | h1
+    · exact ⟨e', List.mem_append.mpr (Or.inr h2), hAlpha⟩
+    · exact ⟨e', List.mem_append.mpr (Or.inl h1), hAlpha⟩
 
 theorem hypsRemove_alpha_compatible
     (s : Finset DbExpr)
     (a b : DbExpr)
     (hAlpha : AlphaEqExpr a b) :
     alphaSetEq (hypsRemove s a) (hypsRemove s b) := by
-  subst hAlpha
   intro e
-  rfl
+  unfold memAlpha
+  constructor <;> intro hMem <;> rcases hMem with ⟨e', hIn, hEq⟩
+  · refine ⟨e', ?_, hEq⟩
+    have hKeep : (alphaNorm e' != alphaNorm a) = true := by
+      exact List.mem_filter.mp hIn |>.right
+    have hNorm : alphaNorm a = alphaNorm b := hAlpha
+    have hKeep' : (alphaNorm e' != alphaNorm b) = true := by
+      simpa [hNorm] using hKeep
+    exact List.mem_filter.mpr ⟨List.mem_filter.mp hIn |>.left, hKeep'⟩
+  · refine ⟨e', ?_, hEq⟩
+    have hKeep : (alphaNorm e' != alphaNorm b) = true := by
+      exact List.mem_filter.mp hIn |>.right
+    have hNorm : alphaNorm a = alphaNorm b := hAlpha
+    have hKeep' : (alphaNorm e' != alphaNorm a) = true := by
+      simpa [hNorm] using hKeep
+    exact List.mem_filter.mpr ⟨List.mem_filter.mp hIn |>.left, hKeep'⟩
 
 def assumptionsAsAlphaQuotients (th : Thm) : Prop :=
   alphaSetEq (hypsUnion th.seq.hyps th.seq.hyps) th.seq.hyps
