@@ -15,12 +15,22 @@ fn[T] expect_ok_sig_for_thm(res : Result[T, SigError]) -> T {
 }
 
 ///|
+fn closed_eq_witness_term_for_thm(ty : HolType) -> Term {
+  let x = mk_var("_w_thm", ty)
+  let body = expect_ok(mk_eq(x, x))
+  let pred = mk_abs(x, body)
+  mk_comb(mk_const("@", fun_ty(fun_ty(ty, bool_ty()), ty)), pred)
+}
+
+///|
 fn type_witness_bundle_for_inst() -> (Term, Thm) {
   let a = mk_tyvar("A")
   let x = mk_var("x", a)
   let pred_body = expect_ok(mk_eq(x, x))
   let pred = mk_abs(x, pred_body)
-  let witness = expect_ok(refl_checked(empty_kernel_state(), x))
+  let witness = expect_ok(
+    refl_checked(empty_kernel_state(), closed_eq_witness_term_for_thm(a)),
+  )
   (pred, witness)
 }
 

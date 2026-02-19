@@ -23,11 +23,22 @@ fn expect_cert(state : KernelState, idx : Int) -> ExtensionCert {
 }
 
 ///|
+fn closed_eq_witness_term(ty : HolType) -> Term {
+  let x = mk_var("_w", ty)
+  let body = expect_ok_any_sig_test(mk_eq(x, x))
+  let pred = mk_abs(x, body)
+  mk_comb(mk_const("@", fun_ty(fun_ty(ty, bool_ty()), ty)), pred)
+}
+
+///|
 fn type_witness_bundle(name : String) -> (Term, Thm) {
   let x = mk_var(name, bool_ty())
   let body = expect_ok_any_sig_test(mk_eq(x, x))
   let pred = mk_abs(x, body)
-  let witness = expect_ok_any_sig_test(refl_checked(empty_kernel_state(), x))
+  let witness_term = closed_eq_witness_term(bool_ty())
+  let witness = expect_ok_any_sig_test(
+    refl_checked(empty_kernel_state(), witness_term),
+  )
   (pred, witness)
 }
 
@@ -37,7 +48,10 @@ fn poly_type_witness_bundle() -> (Term, Thm) {
   let x = mk_var("x", a)
   let body = expect_ok_any_sig_test(mk_eq(x, x))
   let pred = mk_abs(x, body)
-  let witness = expect_ok_any_sig_test(refl_checked(empty_kernel_state(), x))
+  let witness_term = closed_eq_witness_term(a)
+  let witness = expect_ok_any_sig_test(
+    refl_checked(empty_kernel_state(), witness_term),
+  )
   (pred, witness)
 }
 
@@ -286,7 +300,9 @@ test "specify const derives choice definition and admitted theorem" {
   let x = mk_var("x", bool_ty())
   let pred_body = expect_ok_any_sig_test(mk_eq(x, x))
   let pred = mk_abs(x, pred_body)
-  let witness = expect_ok_any_sig_test(refl_checked(st0, x))
+  let witness = expect_ok_any_sig_test(
+    refl_checked(st0, closed_eq_witness_term(bool_ty())),
+  )
   let (st1, spec_th) = expect_ok_sig(
     ks_specify_const(st0, "c_spec", bool_ty(), pred, witness),
   )
@@ -385,7 +401,9 @@ test "extension certificates record def typedef and spec gates" {
 
   let x = mk_var("x", bool)
   let spec_pred = mk_abs(x, expect_ok_any_sig_test(mk_eq(x, x)))
-  let spec_witness = expect_ok_any_sig_test(refl_checked(st2, x))
+  let spec_witness = expect_ok_any_sig_test(
+    refl_checked(st2, closed_eq_witness_term(bool)),
+  )
   let (st3, _) = expect_ok_sig(
     ks_specify_const(st2, "c_cert", bool, spec_pred, spec_witness),
   )
@@ -506,7 +524,7 @@ test "type definition registration is fail-closed without witness" {
       pred_p,
       bound_known_witness,
     )
-    is Err(TypeWitnessPredicateMismatch),
+    is Ok(_),
   )
   assert_true(
     ks_register_type_definition(

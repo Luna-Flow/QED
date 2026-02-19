@@ -619,6 +619,110 @@ fn apply_unary_predicate(predicate : Term, arg : Term) -> Term? {
 }
 
 ///|
+fn match_predicate_instance_db(
+  pattern : DbTerm,
+  target : DbTerm,
+  binder_depth : Int,
+  binder_ty : HolType,
+  witness : DbTerm?,
+  used_outer : Bool,
+) -> (Bool, DbTerm?, Bool) {
+  match pattern {
+    DbBound(i, ty) =>
+      if i == binder_depth && ty_eq(ty, binder_ty) {
+        match witness {
+          Some(w) => (db_term_eq(w, target), witness, true)
+          None => (true, Some(target), true)
+        }
+      } else {
+        (db_term_eq(pattern, target), witness, used_outer)
+      }
+    DbFree(name, ty) =>
+      match target {
+        DbFree(name2, ty2) =>
+          (name == name2 && ty_eq(ty, ty2), witness, used_outer)
+        _ => (false, witness, used_outer)
+      }
+    DbConst(name, ty) =>
+      match target {
+        DbConst(name2, ty2) =>
+          (name == name2 && ty_eq(ty, ty2), witness, used_outer)
+        _ => (false, witness, used_outer)
+      }
+    DbComb(pf, px) =>
+      match target {
+        DbComb(tf, tx) => {
+          let (ok_f, witness_f, used_f) = match_predicate_instance_db(
+            pf, tf, binder_depth, binder_ty, witness, used_outer,
+          )
+          if !ok_f {
+            (false, witness_f, used_f)
+          } else {
+            match_predicate_instance_db(
+              px, tx, binder_depth, binder_ty, witness_f, used_f,
+            )
+          }
+        }
+        _ => (false, witness, used_outer)
+      }
+    DbAbs(dom, body) =>
+      match target {
+        DbAbs(dom2, body2) =>
+          if !ty_eq(dom, dom2) {
+            (false, witness, used_outer)
+          } else {
+            match_predicate_instance_db(
+              body,
+              body2,
+              binder_depth + 1,
+              binder_ty,
+              witness,
+              used_outer,
+            )
+          }
+        _ => (false, witness, used_outer)
+      }
+  }
+}
+
+///|
+fn theorem_witness_term_from_predicate(
+  predicate : Term,
+  witness_concl : Term,
+) -> Term? {
+  match (to_db_term(predicate), to_db_term(witness_concl)) {
+    (Some(DbAbs(dom_ty, body_db)), Some(concl_db)) => {
+      let (ok, witness_db, used_outer) = match_predicate_instance_db(
+        body_db,
+        concl_db,
+        0,
+        dom_ty,
+        None,
+        false,
+      )
+      if !ok {
+        return None
+      }
+      match witness_db {
+        Some(db_t) => from_db_term(db_t)
+        None =>
+          if used_outer {
+            None
+          } else {
+            Some(
+              mk_comb(
+                mk_const("@", fun_ty(fun_ty(dom_ty, bool_ty()), dom_ty)),
+                predicate,
+              ),
+            )
+          }
+      }
+    }
+    _ => None
+  }
+}
+
+///|
 fn mk_thm_from_terms(
   state : KernelState,
   hyps : Array[Term],
@@ -846,7 +950,10 @@ pub fn ks_thm_is_sentence_in_language(state : KernelState, th : Thm) -> Bool {
   match thm_concl(th) {
     Ok(concl) =>
       match type_of(concl) {
-        Some(ty) => is_bool_ty(ty) && term_const_instances_ok(state, concl)
+        Some(ty) =>
+          is_bool_ty(ty) &&
+          term_is_closed(concl) &&
+          term_const_instances_ok(state, concl)
         None => false
       }
     Err(_) => false
@@ -967,8 +1074,12 @@ pub fn ks_register_type_definition(
   }
   match thm_concl(witness) {
     Ok(c) =>
-      if !term_alpha_eq(c, pred_body) {
-        return Err(TypeWitnessPredicateMismatch)
+      match theorem_witness_term_from_predicate(predicate, c) {
+        Some(w_term) =>
+          if !term_is_closed(w_term) {
+            return Err(InvalidTypeWitness)
+          }
+        None => return Err(TypeWitnessPredicateMismatch)
       }
     Err(_) => return Err(InvalidTypeWitness)
   }
@@ -1214,8 +1325,8 @@ pub fn ks_specify_const(
   if !term_is_closed(predicate) {
     return Err(InvalidSpecificationPredicate)
   }
-  let (pred_dom, pred_body) = match predicate {
-    Abs(v, body) =>
+  let pred_dom = match predicate {
+    Abs(v, _) =>
       match v {
         Var(_, dom_ty) =>
           match type_of(predicate) {
@@ -1223,7 +1334,7 @@ pub fn ks_specify_const(
               if !ty_eq(dom_ty, dom2) || !is_bool_ty(cod) {
                 return Err(InvalidSpecificationPredicate)
               } else {
-                (dom_ty, body)
+                dom_ty
               }
             _ => return Err(InvalidSpecificationPredicate)
           }
@@ -1247,8 +1358,12 @@ pub fn ks_specify_const(
   }
   match thm_concl(witness) {
     Ok(c) =>
-      if !term_alpha_eq(c, pred_body) {
-        return Err(InvalidSpecificationWitness)
+      match theorem_witness_term_from_predicate(predicate, c) {
+        Some(w_term) =>
+          if !term_is_closed(w_term) {
+            return Err(InvalidSpecificationWitness)
+          }
+        None => return Err(InvalidSpecificationWitness)
       }
     Err(_) => return Err(InvalidSpecificationWitness)
   }

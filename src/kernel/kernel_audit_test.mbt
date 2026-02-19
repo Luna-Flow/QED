@@ -15,11 +15,21 @@ fn[T] expect_ok_sig_audit(res : Result[T, SigError]) -> T {
 }
 
 ///|
+fn closed_eq_witness_term_audit(ty : HolType) -> Term {
+  let x = mk_var("_w_audit", ty)
+  let body = expect_ok_audit(mk_eq(x, x))
+  let pred = mk_abs(x, body)
+  mk_comb(mk_const("@", fun_ty(fun_ty(ty, bool_ty()), ty)), pred)
+}
+
+///|
 fn typedef_bundle_for_audit(ty : HolType) -> (Term, Thm) {
   let x = mk_var("x_td_audit", ty)
   let pred_body = expect_ok_audit(mk_eq(x, x))
   let pred = mk_abs(x, pred_body)
-  let witness = expect_ok_audit(refl_checked(empty_kernel_state(), x))
+  let witness = expect_ok_audit(
+    refl_checked(empty_kernel_state(), closed_eq_witness_term_audit(ty)),
+  )
   (pred, witness)
 }
 
@@ -163,7 +173,9 @@ test "audit conservativity replay for old-language sentence" {
 
   let x = mk_var("x_spec_audit", bool)
   let spec_pred = mk_abs(x, expect_ok_audit(mk_eq(x, x)))
-  let spec_witness = expect_ok_audit(refl_checked(st2, x))
+  let spec_witness = expect_ok_audit(
+    refl_checked(st2, closed_eq_witness_term_audit(bool)),
+  )
   let (st3, _) = expect_ok_sig_audit(
     ks_specify_const(st2, "c_audit", bool, spec_pred, spec_witness),
   )
@@ -181,7 +193,9 @@ test "audit conservativity replay rejects non-old or non-sentence theorems" {
 
   let x = mk_var("x_spec_audit2", bool)
   let spec_pred = mk_abs(x, expect_ok_audit(mk_eq(x, x)))
-  let spec_witness = expect_ok_audit(refl_checked(st0, x))
+  let spec_witness = expect_ok_audit(
+    refl_checked(st0, closed_eq_witness_term_audit(bool)),
+  )
   let (st1, _) = expect_ok_sig_audit(
     ks_specify_const(st0, "c_new", bool, spec_pred, spec_witness),
   )
@@ -194,4 +208,9 @@ test "audit conservativity replay rejects non-old or non-sentence theorems" {
   let th_hyp = expect_ok_audit(assume_checked(st1, p))
   assert_false(ks_thm_is_sentence_in_language(st0, th_hyp))
   assert_false(ks_conservative_replay_ok(st0, st1, th_hyp))
+
+  let v_open = mk_var("v_open", bool)
+  let th_open = expect_ok_audit(refl_checked(st1, v_open))
+  assert_false(ks_thm_is_sentence_in_language(st0, th_open))
+  assert_false(ks_conservative_replay_ok(st0, st1, th_open))
 }

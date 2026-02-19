@@ -7,6 +7,20 @@ fn[T, E] expect_ok_logic(res : Result[T, E]) -> T {
 }
 
 ///|
+fn closed_eq_witness_term_logic(ty : @kernel.HolType) -> @kernel.Term {
+  let x = @kernel.mk_var("_w_logic", ty)
+  let body = expect_ok_logic(@kernel.mk_eq(x, x))
+  let pred = @kernel.mk_abs(x, body)
+  @kernel.mk_comb(
+    @kernel.mk_const(
+      "@",
+      @kernel.fun_ty(@kernel.fun_ty(ty, @kernel.bool_ty()), ty),
+    ),
+    pred,
+  )
+}
+
+///|
 fn typedef_bundle_logic(
   ty : @kernel.HolType,
   name : String,
@@ -14,7 +28,9 @@ fn typedef_bundle_logic(
   let x = @kernel.mk_var(name, ty)
   let body = expect_ok_logic(@kernel.mk_eq(x, x))
   let pred = @kernel.mk_abs(x, body)
-  let witness = expect_ok_logic(logic_refl(@kernel.empty_kernel_state(), x))
+  let witness = expect_ok_logic(
+    logic_refl(@kernel.empty_kernel_state(), closed_eq_witness_term_logic(ty)),
+  )
   (pred, witness)
 }
 
@@ -94,7 +110,9 @@ test "logic extension wrappers provide typedef, spec, and cert flow" {
 
   let x = @kernel.mk_var("x_spec_logic", bool)
   let spec_pred = @kernel.mk_abs(x, expect_ok_logic(@kernel.mk_eq(x, x)))
-  let spec_witness = expect_ok_logic(logic_refl(st1, x))
+  let spec_witness = expect_ok_logic(
+    logic_refl(st1, closed_eq_witness_term_logic(bool)),
+  )
   let (st2, spec_th) = expect_ok_logic(
     logic_specify_const(st1, "c_logic", bool, spec_pred, spec_witness),
   )
@@ -150,7 +168,9 @@ test "logic typedef wrapper enforces witness and freshness guards" {
     is Err(@kernel.InvalidTypeWitness),
   )
 
-  let good_w = expect_ok_logic(logic_refl(st0, x))
+  let good_w = expect_ok_logic(
+    logic_refl(st0, closed_eq_witness_term_logic(bool)),
+  )
   let st1 = expect_ok_logic(
     logic_register_typedef(st0, "ty_guard", [], "RepTyGuard", pred, good_w),
   )
@@ -250,7 +270,9 @@ test "logic conservative replay rejects new-language theorems" {
   )
   let x = @kernel.mk_var("x_cons_guard", bool)
   let pred = @kernel.mk_abs(x, expect_ok_logic(@kernel.mk_eq(x, x)))
-  let witness = expect_ok_logic(logic_refl(st0, x))
+  let witness = expect_ok_logic(
+    logic_refl(st0, closed_eq_witness_term_logic(bool)),
+  )
   let (st1, _) = expect_ok_logic(
     logic_specify_const(st0, "c_cons_guard", bool, pred, witness),
   )
