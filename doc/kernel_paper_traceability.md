@@ -5,6 +5,10 @@ Normative source: `doc/qed_formal_spec.pdf`
 This file maps formal requirements to concrete implementation and regression tests.
 The mapping is intentionally kernel-first and excludes non-kernel feature extensions.
 
+Note: the current repo also contains a non-dictionary runtime elaboration boundary in
+`src/elab` and `src/parser`. That layer is outside the trusted kernel, but it implements
+the paper's Section 7 engineering split between named elaboration and resolved/core typing.
+
 ## Trust Boundary
 
 - `Thm` is opaque at package boundary (`type Thm` in `pkg.generated.mbti`).
@@ -21,6 +25,15 @@ The mapping is intentionally kernel-first and excludes non-kernel feature extens
 | Sec. 8 | `DefOK` and `TypeDefOK` side conditions | `src/kernel/sig.mbt` (`ks_define_const*`, `ks_register_type_definition`) | `src/kernel/kernel_sig_test.mbt`, `src/kernel/kernel_audit_test.mbt` |
 | Sec. 9-11 | Primitive rule kernel + error taxonomy | `src/kernel/thm.mbt` | `src/kernel/kernel_thm_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt` |
 | Sec. 12-13 | Admissibility gate (`INST_TYPE`, theorem identity, schema-instance checks) | `src/kernel/thm.mbt`, `src/kernel/sig.mbt` | `src/kernel/kernel_thm_test.mbt`, `src/kernel/kernel_audit_test.mbt` |
+
+## Frontend Elaboration Mapping
+
+| Spec area | Requirement | Implementation | Tests |
+| --- | --- | --- | --- |
+| Sec. 7 | One-shot resolution boundary (`Sigma_c |- t mapsto t_r`) | `src/elab/resolved.mbt`, `src/parser/parser.mbt` | `src/elab/elab_test.mbt`, `src/parser/parser_test.mbt` |
+| Sec. 7 | Named elaboration judgment | `src/elab/resolved.mbt` | `src/elab/elab_test.mbt` |
+| Sec. 7 | Core typing over resolved terms | `src/elab/resolved.mbt` | `src/elab/elab_test.mbt`, `src/parser/parser_test.mbt` |
+| Sec. 7 | Parser/prover bridge through resolved boundary | `src/parser/parser.mbt`, `src/prover/prover.mbt` | `src/parser/parser_test.mbt`, `src/prover/prover_test.mbt` |
 
 ## Appendix Audit Mapping
 

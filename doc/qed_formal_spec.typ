@@ -332,7 +332,7 @@ and requires:
 
 Representative admissible step:
 $
-  "TypeDefOK"(T, k, a, "Rep", P, w) arrow.r.double T mapsto T + {"typedef" k / a}
+  "TypeDefOK"(T, k, a, "Rep", P, w) arrow.r.double T mapsto T + {"typedef" k"/"a}
 $
 
 *Definition (Typedef Product Contract).*
@@ -1776,6 +1776,522 @@ QED and HOL Light share the LCF principle and primitive-rule trust model, but QE
 
 These deltas are intentional and must be read as implementation-level policy choices, not changes to the object-logic proposition/equality calculus.
 
+== Lawful Axiomatic Type Classes via Dictionary Passing (Refinement Blueprint)
+
+This subsection records one refinement strategy for constrained generic reasoning in STT/HOL, without adding primitive kernel rules. The strategy follows three principles:
+
+1. class signatures + laws are encoded as higher-order boolean predicates,
+2. generic proofs carry class constraints as explicit assumptions/antecedents,
+3. concrete instances discharge those constraints by ordinary primitive instantiation + elimination rules.
+
+*Definition (Law Predicate Encoding).*
+For a class with one operation field, elaboration introduces a predicate over that operation. For semigroups:
+$
+  "IsSemigroup" : "fun"("fun"(alpha, "fun"(alpha, alpha)), "bool")
+$
+$
+  "IsSemigroup"(op) = forall x : alpha. forall y : alpha. forall z : alpha.
+  op(op(x)(y))(z) = op(x)(op(y)(z))
+$
+Admissibility is checked by the same definitional gate as other constants: fresh head, typed rhs, and no ghost type variables (`TVars` side condition in `DefOK`).
+
+*Definition (Constrained Generic Theorem Shape).*
+Generic theorem schemas are represented with explicit constraints:
+$
+  tack.r "IsSemigroup"(d) arrow.r.double "GenericBody"(d, u_1, ..., u_n)
+$
+Equivalent assumption-set presentations are also admissible:
+$
+  "IsSemigroup"(d) tack.r "GenericBody"(d, u_1, ..., u_n)
+$
+The equivalence between implication-style and assumption-style presentations is treated as an explicit derived-rule obligation over Part I primitives (not as parser sugar).
+
+*Definition (Frontend Instance Environment).*
+Dictionary resolution is performed against a dedicated instance environment $"I"$, separate from the scoped constant stack $"S"$.
+
+*Definition (Instance Record Shape).*
+An instance entry is represented as:
+$
+  i ::= ("cls", kappa_"cls", "ty", nu, "dict_schema", d_"gen", "reqs", Xi, "owner", M_"def", "vis", V)
+$
+where:
+
+- $kappa_"cls"$ is the class head identity;
+- $nu$ is a normalized target type expression;
+- $d_"gen"$ is the polymorphic dictionary schema term for this entry;
+- $Xi$ is a finite list of prerequisite class constraints (superclass/dependent constraints);
+- $M_"def"$ is the defining module identity;
+- $V$ is the visibility policy payload.
+
+*Definition (Type Normalization and Instance Key).*
+Type normalization used by resolution keys is:
+$
+  "NormTy" : "Type" -> "Type"
+$
+and instance keys are:
+$
+  "InstKey"(kappa_"cls", tau) := (kappa_"cls", "NormTy"(tau))
+$
+
+*Clarification (Role of `InstKey`).*
+`"InstKey"` is an indexing/caching artifact for frontend lookup acceleration. Logical
+instance selection is defined by schema matching (`"Match"`), not by key equality alone.
+
+*Scope Restriction (Single-Parameter Class Profile).*
+This realization profile supports only unary class heads and one target type argument per instance key.
+Multi-parameter classes are out of scope for this section and require separate coherence machinery (for example functional dependencies or equivalent constraints).
+
+*Definition (Type Equivalence Domain for Resolution).*
+Write:
+$
+  tau_1 equiv_"ty" tau_2
+$
+iff $tau_1$ and $tau_2$ are alpha-equivalent as simple types (same constructor tree, possibly different type-variable names).
+In the current STT kernel type grammar (`TyVal`/`TyApp`), there is no type-level beta/eta reduction; therefore key normalization is alpha-canonicalization, not higher-order type reduction.
+
+Canonical clauses for normalization:
+$
+  "NormTy"("TyVal"(a_i)) = "TyVal"(v_"idx"(a_i))
+$
+$
+  "NormTy"("TyApp"(k, [tau_1, ..., tau_n]))
+  = "TyApp"(k, ["NormTy"(tau_1), ..., "NormTy"(tau_n)])
+$
+where $"idx"$ maps each variable to first-occurrence order in a deterministic left-to-right traversal.
+
+*Definition (Parser Variable Stability for `NormTy`).*
+For any input type $tau$, let $"VarOrder"(tau)$ be the list of first occurrences of type variables produced by:
+
+1. depth-first traversal of the type syntax tree,
+2. left-to-right visit order of constructor arguments,
+3. recording only first occurrence of each variable.
+
+Let $"Ren"_tau$ map the $j$-th variable in $"VarOrder"(tau)$ to $"TyVal"(v_j)$.
+Normalization is then:
+$
+  "NormTy"(tau) := "TyRename"("Ren"_tau, tau)
+$
+
+Determinism/alpha-reflection clauses:
+$
+  tau_1 equiv_"ty" tau_2 arrow.r.double "VarOrder"(tau_1) and "VarOrder"(tau_2)
+  " induce alpha-equivalent normalized outputs"
+$
+so variable naming choices from parser/elaboration cannot change resolution outcomes.
+
+*Obligation (Normalization Stability under Type Equivalence).*
+Resolution conformance requires:
+$
+  tau_1 equiv_"ty" tau_2 arrow.r.double "NormTy"(tau_1) = "NormTy"(tau_2)
+$
+and conversely:
+$
+  "NormTy"(tau_1) = "NormTy"(tau_2) arrow.r.double tau_1 equiv_"ty" tau_2
+$
+
+*Definition (Instance Environment Carrier).*
+The environment is a class-indexed finite instance store:
+$
+  I : "ClassHead" arrow.r "FinSet"("InstRec")
+$
+with invariant:
+$
+  i in I(kappa_"cls") arrow.r.double "ClassOf"(i) = kappa_"cls"
+$
+
+*Definition (Type-Size Metric for Termination Checks).*
+$
+  "TySize"("TyVal"(a)) = 1
+$
+$
+  "TySize"("TyApp"(k, [tau_1, ..., tau_n]))
+  = 1 + "TySize"(tau_1) + ... + "TySize"(tau_n)
+$
+
+*Definition (Well-Formed Instance Environment).*
+Write:
+$
+  I tack.r "wf_I"
+$
+iff all conditions hold:
+
+1. *Finite store*: total entry set $"Entries"(I)$ is finite.
+2. *Schema normalization*: for each $i in "Entries"(I)$,
+   $
+     "TyOf"(i) = "NormTy"("TyOf"(i))
+   $
+3. *Class/index coherence*: if $i in I(kappa_"cls")$ then $"ClassOf"(i) = kappa_"cls"$.
+4. *Closed witness shape*: each entry has a closed law witness theorem of shape
+   $
+     tack.r "LawPred"("ClassOf"(i))("DictSchema"(i))
+   $
+   (empty assumptions at theorem-object level).
+5. *No overlap by unification*: for each class head $kappa_"cls"$ and distinct
+   $i_1, i_2 in I(kappa_"cls")$:
+   $
+     not "Unifiable"("TyOf"(i_1), "TyOf"(i_2))
+   $
+6. *No orphan*: for each entry $i$ in module $"OwnerMod"(i)$,
+   $
+     "OwnerMod"(i) = "OwnerClass"("ClassOf"(i))
+     " or "
+     "OwnerMod"(i) = "OwnerTyHead"("TypeHead"("TyOf"(i)))
+   $
+7. *Paterson-style decrease on prerequisites*: for each $i in "Entries"(I)$ and
+   each $(kappa_r, nu_r) in "Reqs"(i)$:
+   $
+     "TySize"(nu_r) < "TySize"("TyOf"(i))
+     " and "
+     "TVars"(nu_r) subset.eq "TVars"("TyOf"(i))
+   $
+8. *Prerequisite-key uniqueness*: for each entry $i$, normalized keys induced by $"Reqs"(i)$ are pairwise distinct.
+9. *Type-variable containment in prerequisites*:
+   $
+     "TVars"("Reqs"(i)) subset.eq "TVars"("TyOf"(i))
+   $
+   so prerequisite constraints cannot introduce unconstrained escaping type variables.
+
+*Definition (Module Resolution Context).*
+Resolution context is:
+$
+  Delta ::= ("mod", M_"cur", "visible", V_"cur")
+$
+with visibility predicate:
+$
+  "Visible"(Delta, i) := "OwnerMod"(i) in "VisibleMods"(Delta)
+$
+
+*Definition (Instance Admission Step).*
+Instance admission is a frontend state transition:
+$
+  I ; M tack.r "add_inst"(kappa_"cls", nu, d_"gen", Xi, V) mapsto I'
+$
+admissible only if:
+
+1. $nu = "NormTy"(nu)$;
+2. for each $i in I(kappa_"cls")$, $"Unifiable"("TyOf"(i), nu)$ is false;
+3. orphan side condition above holds for module $M$;
+4. $"TVars"(Xi) subset.eq "TVars"(nu)$;
+5. $"WitnessStratified"(I, (kappa_"cls", nu), i_"new")$;
+6. for each $(kappa_r, nu_r) in Xi$, $"TySize"(nu_r) < "TySize"(nu)$;
+7. $I' = "InsertInst"(I, kappa_"cls", i_"new")$;
+8. $I' tack.r "wf_I"$.
+
+*Definition (Global Resolution Coherence).*
+Define auxiliary predicates:
+
+$
+  "ResOut"(I, Delta, kappa_"cls", tau, d)
+  := (I ; Delta tack.r "Resolve"(kappa_"cls", tau) mapsto d)
+$
+$
+  "CanonEq"(d_1, d_2)
+  := ("CanonDict"(d_1) = "CanonDict"(d_2))
+$
+$
+  "ResUnique"(I, Delta, kappa_"cls", tau)
+  := forall d_1. forall d_2.
+     ("ResOut"(I, Delta, kappa_"cls", tau, d_1)
+      and "ResOut"(I, Delta, kappa_"cls", tau, d_2))
+     arrow.r.double "CanonEq"(d_1, d_2)
+$
+
+Then global coherence is:
+$
+  "Coherent"(I)
+  := forall Delta. forall kappa_"cls". forall tau.
+     "ResUnique"(I, Delta, kappa_"cls", tau)
+$
+
+*Theorem (Add-Instance Preservation).*
+$
+  (" "I tack.r "wf_I" ,
+  "Coherent"(I) ,
+  I ; M tack.r "add_inst"(kappa_"cls", nu, d_"gen", Xi, V) mapsto I'" ")
+  /
+  (" "I' tack.r "wf_I" and "Coherent"(I')" ")
+$
+This is the formal monotonicity contract required by module-wise extension: admissible
+instance admission preserves global coherence invariants.
+
+*Definition (Witness Stratification).*
+For candidate key $k$ and candidate entry $i$, write:
+$
+  "WitnessStratified"(I, k, i)
+$
+iff there exists a finite replay trace $"Pi"_w$ such that:
+
+1. $"ReplayPartI"("Pi"_w) mapsto (tack.r "LawPred"("ClassOf"(i))("DictSchema"(i)))$;
+2. $k in.not "ResolveKeys"("Pi"_w)$ (the witness trace does not resolve the key being admitted);
+3. $"ResolveKeys"("Pi"_w) subset.eq "EntryKeys"(I)$ (all resolution dependencies are in the old environment).
+
+*Definition (Resolution Judgment).*
+Implicit dictionary search is modeled as:
+$
+  I ; Delta tack.r "Resolve"(kappa_"cls", tau) mapsto d
+$
+Define the following premise shorthands:
+
+$
+  "NoFeedbackSubst"(theta, tau)
+  := "TVars"("TySubstRange"(theta)) subset.eq "TVars"("NormTy"(tau))
+$
+$
+  "TyMatch"(i, tau, theta)
+  := ("Dom"(theta) subset.eq "TVars"("TyOf"(i))
+      and "TySubst"(theta, "TyOf"(i)) = "NormTy"(tau)
+      and "NoFeedbackSubst"(theta, tau))
+$
+$
+  "Match"(I, kappa_"cls", tau, i, theta)
+  := (i in I(kappa_"cls") and "TyMatch"(i, tau, theta))
+$
+$
+  "ReqInst"(i, theta)
+  := "TySubstReqs"(theta, "Reqs"(i))
+$
+$
+  "ReqDecrease"(i, theta, tau)
+  := forall (kappa_r, tau_r) in "ReqInst"(i, theta).
+     "TySize"(tau_r) < "TySize"(tau)
+$
+$
+  "ReqOK"(I, Delta, i, theta, d_s)
+  := "ResolveReqs"(I, Delta, "ReqInst"(i, theta)) mapsto d_s
+$
+$
+  "BuildOK"(i, theta, d_s, d)
+  := d = "CanonDict"("BuildDict"(i, theta, d_s))
+     and "CoreTypeOK"(d, "TySubst"(theta, "DictTy"(i)))
+     and "ReplayLawOK"(i, theta, d_s, d)
+$
+
+*Definition (Dictionary Calculus for Instance Realization).*
+Each instance stores a polymorphic schema term $"DictSchema"(i) = d_"gen"$ with
+prerequisite dictionary placeholders $[v_1, ..., v_n]$ corresponding to $"Reqs"(i)$.
+Dictionary construction is:
+$
+  "BuildDict"(i, theta, [d_1, ..., d_n])
+  := "TermSubst"({v_1 mapsto d_1, ..., v_n mapsto d_n}, "TySubstTerm"(theta, d_"gen"))
+$
+This enforces a two-stage realization discipline:
+
+1. instantiate type parameters by $theta$ on the dictionary schema;
+2. fill prerequisite dictionary placeholders by resolved dictionaries.
+
+*Definition (Core Typing Contract for Dictionary Terms).*
+$
+  "CoreTypeOK"(d, tau) := ("empty" tack.r.r d : tau)
+$
+
+*Definition (Dictionary Canonicalization Policy).*
+$
+  "CanonDict" : "RTerm" -> "RTerm"
+$
+is a deterministic frontend alpha-canonicalization operator on resolved dictionary terms
+(stable binder renaming + stable constructor ordering; no semantic rewriting rule beyond alpha-normalization).
+No new Part I equality principle is introduced by this policy.
+
+*Definition (Deterministic Prerequisite Resolution).*
+Prerequisites are resolved over the declared order in $"Reqs"(i)$:
+$
+  "ResolveReqs"(I, Delta, []) mapsto []
+$
+$
+  (r = (kappa, tau) ,
+  I ; Delta tack.r "Resolve"(kappa, tau) mapsto d_r ,
+  "ResolveReqs"(I, Delta, Xi) mapsto d_s)
+  /
+  ("ResolveReqs"(I, Delta, "Cons"(r, Xi)) mapsto "Cons"(d_r, d_s))
+$
+Operationally, implementations maintain a $"Seen"$ key set during recursive calls; revisiting a key yields `"PrereqCycle"`.
+
+with success clause:
+$
+  (" "I tack.r "wf_I" ,
+  "Match"(I, kappa_"cls", tau, i, theta) ,
+  "Visible"(Delta, i) ,
+  "ReqDecrease"(i, theta, tau) ,
+  "ReqOK"(I, Delta, i, theta, d_s) ,
+  "BuildOK"(i, theta, d_s, d)" ")
+  /
+  (I ; Delta tack.r "Resolve"(kappa_"cls", tau) mapsto d)
+$
+where $"ResolveReqs"$ recursively resolves instantiated prerequisite constraints in
+$"ReqInst"(i, theta)$.
+
+*Theorem (Match Coherence from `wf_I`).*
+$
+  (" "I tack.r "wf_I" ,
+  "Match"(I, kappa_"cls", tau, i_1, theta_1) ,
+  "Match"(I, kappa_"cls", tau, i_2, theta_2)" ")
+  /
+  (i_1 = i_2)
+$
+Hence any two successful resolutions for one target class/type pair differ, at most, in
+substitution presentation and not in selected instance schema.
+
+*Lemma (BuildDict Typing Preservation).*
+$
+  (" "I tack.r "wf_I" ,
+  "Match"(I, kappa_"cls", tau, i, theta) ,
+  "ReqDecrease"(i, theta, tau) ,
+  "ReqOK"(I, Delta, i, theta, d_s) ,
+  "BuildOK"(i, theta, d_s, d)" ")
+  /
+  ("CoreTypeOK"(d, "TySubst"(theta, "DictTy"(i))) and "ReplayLawOK"(i, theta, d_s, d))
+$
+
+*Definition (Replay Obligation for Nested Dictionary Terms).*
+$"ReplayLawOK"(i, theta, d_s, d)$ holds iff elaboration emits a finite replay trace $"Pi"$ such that:
+
+1. $"Pi"$ is a sequence of Part I-admissible primitive-rule steps plus admissible gate references;
+2. replay of $"Pi"$ derives:
+   $
+     tack.r "LawPred"("ClassOf"(i))(d)
+   $
+3. every non-variable subterm constructor appearing in $d$ is either:
+  - a constant admitted by Part I definitional/specification/type gates, or
+  - a dictionary obtained from recursive prerequisite resolution in $d_s$.
+
+This condition prevents "frontend-only valid" nested dictionary constructions that lack Part I replay witnesses.
+
+*Definition (Logical Solvability Predicate).*
+Write:
+$
+  "Solvable"(I, Delta, kappa_"cls", tau)
+$
+iff there exist $i, theta$ such that:
+$
+  "Match"(I, kappa_"cls", tau, i, theta) and "Visible"(Delta, i)
+$
+and every prerequisite pair $r in "ReqInst"(i, theta)$ is recursively solvable under the same $(I, Delta)$.
+The recursion is interpreted under the well-founded decrease obligations from $"wf_I"$.
+
+*Theorem (Resolution Completeness on the Admissible Profile).*
+$
+  (" "I tack.r "wf_I" , "Solvable"(I, Delta, kappa_"cls", tau)" ")
+  /
+  (exists d. I ; Delta tack.r "Resolve"(kappa_"cls", tau) mapsto d)
+$
+
+*Theorem (Resolution Soundness to Solvability).*
+$
+  (I ; Delta tack.r "Resolve"(kappa_"cls", tau) mapsto d)
+  /
+  ("Solvable"(I, Delta, kappa_"cls", tau))
+$
+
+*Definition (Substitution Opacity / No-Feedback).*
+The substitution witness $theta$ used by `"Match"` and `"BuildDict"` is existential and
+resolution-local: it is not exported to callers and does not refine/modify the caller type environment.
+At matching time this is enforced syntactically by $"NoFeedbackSubst"(theta, tau)$.
+
+Formal boundary contract:
+$
+  (" "I ; Delta tack.r "Resolve"(kappa_"cls", tau) mapsto d ,
+  Gamma tack.r.r t_r : sigma" ")
+  /
+  (Gamma tack.r.r t_r : sigma)
+$
+So dictionary resolution can consume local matching evidence but cannot introduce
+new type-equality commitments into $Gamma$.
+
+*Definition (Resolution Failure Classification).*
+Resolution failure codes are:
+$
+  "ResolveError" ::= & "NoInstance"        && " key not found" \
+                   | & "InvisibleInstance" && " key found but not visible" \
+                   | & "AmbiguousInstance" && " malformed environment violates uniqueness" \
+                   | & "PrereqCycle"       && " recursive prerequisite cycle" \
+                   | & "PrereqFailure"     && " prerequisite resolution failed"
+$
+
+Layer-separation constraints for $"S"$ and $"I"$:
+
+- $"S"$ controls local name lookup/shadowing for ordinary terms only;
+- $"I"$ controls implicit instance resolution only;
+- push/pop on $"S"$ does not mutate $"I"$;
+- theorem-object acceptance in Part I never reads $"I"$ directly.
+
+*Definition (Instance Witness Obligation).*
+Each concrete instance provides a closed law witness:
+$
+  tack.r "IsSemigroup"("IntAdd")
+$
+
+*Admissibility Policy (Coherence-Oriented Baseline).*
+The baseline realization profile used for conformance adopts:
+
+1. *No local instances*: local scope mutation cannot introduce or remove implicit instances.
+2. *No overlap under matching*: for one class head, two distinct instance schemas must not be unifiable.
+3. *No orphan*: an instance declaration in module $"M"$ is admissible only if $"M"$ owns the class head or the target type head.
+4. *Fail on ambiguity*: if uniqueness cannot be established, elaboration fails and no theorem object is produced.
+
+*Refinement Pipeline (No New Kernel Rules).*
+Given a generic derivation and witness theorem:
+
+1. apply `INST_TYPE` to specialize type variables (e.g. $alpha := "int"$),
+2. apply `INST` to replace the dictionary variable (e.g. $d := "IntAdd"$),
+3. discharge the class antecedent using the witness theorem via an explicit Part I derived rule for implication elimination (constructed from `EQ_MP` or an equivalent `DEDUCT_ANTISYM_RULE` path).
+
+Resulting instance theorem shape:
+$
+  tack.r "GenericBody"("IntAdd", u_1, ..., u_n)
+$
+
+*Definition (Trait-Trace Erasure Function).*
+Elaboration traces with trait-resolution events are erased by:
+$
+  "EraseTraitTrace" : "TraitTrace" -> "PartITrace"
+$
+with clauses:
+
+1. dictionary-resolution events map to explicit `INST_TYPE`/`INST` substitutions with resolved dictionary terms;
+2. prerequisite-resolution events map to earlier substitutions in dependency order;
+3. law-discharge events map to explicit derived implication-elimination subtraces over Part I primitives;
+4. frontend bookkeeping-only events map to empty trace segments.
+
+*Theorem (Erasure Faithfulness for Trait Elaboration).*
+$
+  ("TraitAccept"(I, Delta, "Pi"_tr, s))
+  /
+  ("ReplayPartI"("EraseTraitTrace"("Pi"_tr)) mapsto (tack.r s))
+$
+
+*Meta-Theory Targets (Part II Conformance).*
+The following properties are required for this refinement profile:
+
+- *Resolution Uniqueness*: if $I ; Delta tack.r "Resolve"(kappa_"cls", tau) mapsto d_1$ and
+  $I ; Delta tack.r "Resolve"(kappa_"cls", tau) mapsto d_2$, then
+  $
+    "CanonDict"(d_1) = "CanonDict"(d_2)
+  $
+  (hence $d_1 equiv_alpha d_2$).
+- *Normalization Stability*: type-equivalent targets cannot diverge by normalization (`NormTy` respects and reflects $equiv_"ty"$).
+- *Resolution Termination*: recursive superclass/instance search must terminate on admissible instance graphs.
+- *Prerequisite Determinism*: ordered `"ResolveReqs"` evaluation yields one dictionary vector for each prerequisite list.
+- *Type-Variable Discipline*: prerequisite constraints satisfy $"TVars"(Xi) subset.eq "TVars"(tau)$ and do not escape admission context.
+- *Witness Stratification*: instance-law witnesses are provable from the old environment and cannot self-justify the to-be-admitted key.
+- *Resolution Completeness on Solvable Inputs*: every logically solvable visible key resolves successfully.
+- *Scope Insensitivity*: resolution outcomes are invariant under push/pop mutations of $"S"$ that do not alter $"I"$.
+- *Elaboration Erasure to Part I*: every accepted constrained elaboration trace erases to a derivation tree using only Part I primitive rules and admissible gate steps.
+
+*Boundary Clarification (LCF Discipline).*
+Resolution algorithms, candidate search order, and module visibility checks belong to frontend metatheory. Kernel trust remains unchanged: acceptance depends only on explicit dictionaryized terms and replayable Part I derivation traces.
+
+*Clarification (Syntactic vs Extensional Dictionary Equality).*
+In this profile, automatic resolution guarantees canonical syntactic representatives through `"CanonDict"`.
+Manually supplied dictionaries that are extensionally equal but syntactically different are not identified by extra kernel extensionality principles.
+This is a usability/coherence policy choice, not a kernel soundness risk.
+
+*Conservative Status Note.*
+Under the obligations above, this refinement is conservative with respect to Part I:
+
+- no new primitive inference rule is introduced,
+- all class-law usage is explicit in assumptions/antecedents,
+- all debt discharge is replayable as Part I primitive-rule traces.
+
 #keyblock("info", [Error Semantics Status], [
   Kernel gate/rule entrypoints use typed error channels (`LogicError` for theorem rules and `SigError` for theory/state admissions). The remaining option-style helpers are internal normalization/lookup utilities and are not trusted external admission interfaces.
 ])
@@ -1983,8 +2499,44 @@ Validation scenarios for faithful realization transfer from Part II into Part I:
 5. *Certificate Non-Authority Scenario*:
   supply valid-looking extension certificate metadata without matching admissibility derivation;
   expected result: no theorem acceptance; certificates are observability only.
+6. *Lawful Dictionary Instantiation Scenario*:
+  construct one constrained generic theorem schema plus one closed instance witness, then replay the instance proof via `INST_TYPE`, `INST`, and antecedent discharge;
+  expected result: final concrete theorem is accepted with no residual class-law assumption, and replay uses only Part I primitive-rule obligations.
+7. *No-Orphan Admission Scenario*:
+  declare an instance in module $"M"$ where $"M"$ owns neither the class head nor the target type head;
+  expected result: admission rejected before theorem construction.
+8. *Overlap Rejection Scenario*:
+  attempt to admit two schemas for one class head that are unifiable (for example $"Eq"(alpha)$ and $"Eq"("int")$);
+  expected result: second admission rejected and resolution remains unique.
+9. *Scope-Shadowing Invariance Scenario*:
+  run dictionary resolution before and after local push/add/pop shadowing operations over $"S"$ while keeping $"I"$ unchanged;
+  expected result: identical resolved dictionary (up to alpha-equivalence) and identical replayable theorem trace.
+10. *Normalization Completeness Scenario*:
+  query resolution with two alpha-equivalent target types $tau_1 equiv_"ty" tau_2$ that differ only by type-variable naming;
+  expected result: matching succeeds for both targets with equivalent substitutions (via `"NormTy"` invariance), and resolution returns alpha-equivalent canonical dictionaries.
+11. *Nested Dictionary Replay Scenario*:
+  construct an instance whose dictionary is built from prerequisite dictionaries and auxiliary admitted constants;
+  expected result: `"BuildOK"` holds only when `"CoreTypeOK"` and `"ReplayLawOK"` both hold, and replay yields a Part I law theorem for the built dictionary term.
+12. *Witness Self-Cycle Rejection Scenario*:
+  attempt to admit key $k$ with a witness trace that resolves $k$ itself;
+  expected result: `"WitnessStratified"` fails and admission is rejected.
+13. *Solvable-Implies-Resolvable Scenario*:
+  build a visible acyclic prerequisite chain satisfying $"Solvable"(I, Delta, kappa_"cls", tau)$;
+  expected result: resolution succeeds and returns some dictionary term $d$.
+14. *Polymorphic-Match Scenario*:
+  register one schema instance with head $"Eq"("list"(alpha))$ and query resolution at $"Eq"("list"("int"))$;
+  expected result: `"Match"` succeeds with some type substitution $theta$ and the resolved dictionary is well-typed at the instantiated dictionary type.
+15. *Add-Instance Coherence Preservation Scenario*:
+  start from coherent $I$, admit one new instance through `"add_inst"` that satisfies non-overlap/orphan/Paterson side conditions, then replay prior and new resolutions;
+  expected result: resulting environment remains `"wf_I"` and `"Coherent"`, and previously resolvable queries keep the same canonical dictionaries.
+16. *No-Feedback Resolution Scenario*:
+  run resolution for a constrained goal under a fixed typing context $Gamma$, then continue typing unrelated terms;
+  expected result: generated matching substitution $theta$ is not exported, and typing facts in $Gamma$ are unchanged.
+17. *Parser Variable Stability Scenario*:
+  resolve the same goal twice with alpha-renamed parser-level type variables in target annotations;
+  expected result: `"VarOrder"` + `"NormTy"` yield alpha-equivalent normalized targets, and resolution returns the same canonical dictionary.
 
-Together, these five scenarios provide structured evidence for Part II conformance completeness.
+Together, these seventeen scenarios provide structured evidence for Part II conformance completeness.
 
 = Appendix H: Claim-to-Proof Trace Matrix
 
