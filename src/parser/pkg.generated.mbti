@@ -1,0 +1,114 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Luna-Flow/QED/parser"
+
+import {
+  "Luna-Flow/QED/elab",
+  "Luna-Flow/QED/kernel",
+  "Luna-Flow/QED/tactics",
+}
+
+// Values
+pub fn empty_parse_env() -> ParseEnv
+
+pub fn lower_syn_goal_with_env(@kernel.KernelState, ParseEnv, SynGoal) -> Result[@tactics.Goal, ParseBridgeError]
+
+pub fn lower_syn_term_with_env(@kernel.KernelState, ParseEnv, SynTerm) -> Result[@kernel.Term, ParseBridgeError]
+
+pub fn parse_def_function(@kernel.KernelState, ParseEnv, String) -> Result[(@kernel.KernelState, @kernel.Thm), ParseBridgeError]
+
+pub fn parse_env_local_at(ParseEnv, Int) -> (String, @kernel.HolType)?
+
+pub fn parse_env_local_count(ParseEnv) -> Int
+
+pub fn parse_goal(@kernel.KernelState, String) -> Result[@tactics.Goal, ParseBridgeError]
+
+pub fn parse_goal_raw(String) -> Result[SynGoal, ParseError]
+
+pub fn parse_goal_with_env(@kernel.KernelState, ParseEnv, String) -> Result[@tactics.Goal, ParseBridgeError]
+
+pub fn parse_let(ParseEnv, String) -> Result[ParseEnv, ParseBridgeError]
+
+pub fn parse_resolved_goal_with_env(@kernel.KernelState, ParseEnv, String) -> Result[ResolvedGoal, ParseBridgeError]
+
+pub fn parse_resolved_term(@kernel.KernelState, String) -> Result[@elab.RTerm, ParseBridgeError]
+
+pub fn parse_resolved_term_with_env(@kernel.KernelState, ParseEnv, String) -> Result[@elab.RTerm, ParseBridgeError]
+
+pub fn parse_term(@kernel.KernelState, String) -> Result[@kernel.Term, ParseBridgeError]
+
+pub fn parse_term_raw(String) -> Result[SynTerm, ParseError]
+
+pub fn parse_term_with_env(@kernel.KernelState, ParseEnv, String) -> Result[@kernel.Term, ParseBridgeError]
+
+pub fn parse_theorem_script_raw(String) -> Result[SynTheoremScript, ParseError]
+
+pub fn parser_phase0_ready() -> Bool
+
+// Errors
+
+// Types and methods
+pub enum ParseBridgeError {
+  Parse(ParseError)
+  Sig(@kernel.SigError)
+  Logic(@kernel.LogicError)
+  Elab(@elab.ElabError)
+}
+
+pub struct ParseEnv {
+  locals : Array[(String, @kernel.HolType)]
+}
+
+pub struct ParseError {
+  code : ParseErrorCode
+  offset : Int
+  detail : String
+}
+
+pub enum ParseErrorCode {
+  UnexpectedToken
+  UnexpectedEof
+  MissingTurnstile
+  NonAssocChain
+  UnknownOperator
+  EmptyConclusion
+  EmptyHypothesis
+}
+
+pub struct ResolvedGoal {
+  hyps : Array[@elab.RTerm]
+  concl : @elab.RTerm
+}
+
+pub struct SynGoal {
+  hyps : Array[SynTerm]
+  concl : SynTerm
+}
+
+pub enum SynTacticStep {
+  Intro(String)
+  Exact(String)
+  Apply(String)
+  Assumption
+  Split
+  Left
+  Right
+}
+
+pub enum SynTerm {
+  Name(String)
+  Prefix(String, SynTerm)
+  App(SynTerm, SynTerm)
+  Infix(String, SynTerm, SynTerm)
+}
+
+pub struct SynTheoremScript {
+  name : String
+  goal : SynGoal
+  goal_src : String
+  steps : Array[SynTacticStep]
+}
+
+// Type aliases
+
+// Traits
+
