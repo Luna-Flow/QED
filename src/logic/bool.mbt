@@ -1,10 +1,10 @@
 ///|
 /// Minimal bool-facing wrapper over kernel ASSUME.
 pub fn logic_assume(
-  state : @kernel.KernelState,
-  prop : @kernel.Term,
-) -> Result[@kernel.Thm, @kernel.LogicError] {
-  @kernel.assume_checked(state, prop)
+  state : KernelState,
+  prop : Term,
+) -> Result[Thm, LogicError] {
+  assume_checked(state, prop)
 }
 
 ///|

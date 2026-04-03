@@ -6,11 +6,23 @@ import {
 }
 
 // Values
+pub fn default_prop_prelude() -> PropPrelude
+
+pub fn install_prop_prelude(@kernel.KernelState) -> Result[@kernel.KernelState, @kernel.SigError]
+
+pub fn logic_abs_rule(@kernel.KernelState, @kernel.Term, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
+
 pub fn logic_assume(@kernel.KernelState, @kernel.Term) -> Result[@kernel.Thm, @kernel.LogicError]
+
+pub fn logic_beta_rule(@kernel.KernelState, @kernel.Term) -> Result[@kernel.Thm, @kernel.LogicError]
 
 pub fn logic_bool_phase0_ready() -> Bool
 
 pub fn logic_conservative_replay_ok(@kernel.KernelState, @kernel.KernelState, @kernel.Thm) -> Bool
+
+pub fn logic_deduct_antisym(@kernel.KernelState, @kernel.Thm, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
+
+pub fn logic_eq_mp(@kernel.KernelState, @kernel.Thm, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
 
 pub fn logic_equal_phase0_ready() -> Bool
 
@@ -22,11 +34,21 @@ pub fn logic_extensions_phase0_ready() -> Bool
 
 pub fn logic_ind_infinity_anchor(@kernel.KernelState) -> Result[@kernel.Thm, @kernel.SigError]
 
+pub fn logic_inst(@kernel.KernelState, Array[(@kernel.Term, @kernel.Term)], @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
+
+pub fn logic_inst_type(@kernel.KernelState, Array[(String, @kernel.HolType)], @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
+
+pub fn logic_mk_comb_rule(@kernel.KernelState, @kernel.Thm, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
+
+pub fn logic_prop_prelude_phase0_ready() -> Bool
+
 pub fn logic_refl(@kernel.KernelState, @kernel.Term) -> Result[@kernel.Thm, @kernel.LogicError]
 
 pub fn logic_register_ind_infinity_anchor(@kernel.KernelState, @kernel.Thm) -> Result[@kernel.KernelState, @kernel.SigError]
 
 pub fn logic_register_typedef(@kernel.KernelState, String, Array[String], String, @kernel.Term, @kernel.Thm) -> Result[@kernel.KernelState, @kernel.SigError]
+
+pub fn logic_rules_phase0_ready() -> Bool
 
 pub fn logic_specify_const(@kernel.KernelState, String, @kernel.HolType, @kernel.Term, @kernel.Thm) -> Result[(@kernel.KernelState, @kernel.Thm), @kernel.SigError]
 
@@ -34,9 +56,43 @@ pub fn logic_trans(@kernel.KernelState, @kernel.Thm, @kernel.Thm) -> Result[@ker
 
 pub fn logic_typedef_contract(@kernel.KernelState, String) -> Result[(@kernel.Thm, @kernel.Thm, @kernel.Thm), @kernel.SigError]
 
+pub fn prop_dest_and(PropPrelude, @kernel.Term) -> (@kernel.Term, @kernel.Term)?
+
+pub fn prop_dest_imp(PropPrelude, @kernel.Term) -> (@kernel.Term, @kernel.Term)?
+
+pub fn prop_dest_not(PropPrelude, @kernel.Term) -> @kernel.Term?
+
+pub fn prop_dest_or(PropPrelude, @kernel.Term) -> (@kernel.Term, @kernel.Term)?
+
+pub fn prop_mk_and(@kernel.KernelState, PropPrelude, @kernel.Term, @kernel.Term) -> Result[@kernel.Term, @kernel.SigError]
+
+pub fn prop_mk_imp(@kernel.KernelState, PropPrelude, @kernel.Term, @kernel.Term) -> Result[@kernel.Term, @kernel.SigError]
+
+pub fn prop_mk_not(@kernel.KernelState, PropPrelude, @kernel.Term) -> Result[@kernel.Term, @kernel.SigError]
+
+pub fn prop_mk_or(@kernel.KernelState, PropPrelude, @kernel.Term, @kernel.Term) -> Result[@kernel.Term, @kernel.SigError]
+
+pub fn prop_prelude_has_rule(PropPrelude, String) -> Bool
+
+pub fn prop_prelude_rule_at(PropPrelude, Int) -> PropRule?
+
+pub fn prop_prelude_rule_count(PropPrelude) -> Int
+
 // Errors
 
 // Types and methods
+pub struct PropPrelude {
+  imp_name : String
+  not_name : String
+  and_name : String
+  or_name : String
+  rules : Array[PropRule]
+}
+
+pub struct PropRule {
+  name : String
+  premise_count : Int
+}
 
 // Type aliases
 
