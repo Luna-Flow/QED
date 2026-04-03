@@ -1,0 +1,131 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Luna-Flow/QED/elab"
+
+import {
+  "Luna-Flow/QED/kernel",
+}
+
+// Values
+pub fn elab_abs(String, @kernel.HolType, @kernel.Term) -> Result[@kernel.Term, @kernel.LogicError]
+
+pub fn elab_app(@kernel.Term, @kernel.Term) -> Result[@kernel.Term, @kernel.LogicError]
+
+pub fn elab_app2(@kernel.Term, @kernel.Term, @kernel.Term) -> Result[@kernel.Term, @kernel.LogicError]
+
+pub fn elab_check_core_type(@kernel.KernelState, ElabCtx, RTerm, @kernel.HolType) -> Bool
+
+pub fn elab_const(@kernel.KernelState, String) -> Result[@kernel.Term, @kernel.SigError]
+
+pub fn elab_const_instance(@kernel.KernelState, String, @kernel.HolType) -> Result[@kernel.Term, @kernel.SigError]
+
+pub fn elab_core_type_of(@kernel.KernelState, ElabCtx, RTerm) -> @kernel.HolType?
+
+pub fn elab_ctx_extend(ElabCtx, String, @kernel.HolType) -> ElabCtx
+
+pub fn elab_ctx_from_locals(Array[(String, @kernel.HolType)]) -> ElabCtx
+
+pub fn elab_eq(@kernel.Term, @kernel.Term) -> Result[@kernel.Term, @kernel.LogicError]
+
+pub fn elab_err_core_typing_failure(ElabError) -> Bool
+
+pub fn elab_err_invalid_const_instance(ElabError) -> Bool
+
+pub fn elab_err_scope_resolution_mismatch(ElabError) -> Bool
+
+pub fn elab_err_unknown_const(ElabError) -> Bool
+
+pub fn elab_err_unknown_name(ElabError) -> Bool
+
+pub fn elab_is_prop(@kernel.Term) -> Bool
+
+pub fn elab_lower_to_db(RTerm) -> Result[@kernel.DbTerm, ElabError]
+
+pub fn elab_lower_to_term(RTerm) -> Result[@kernel.Term, ElabError]
+
+pub fn elab_phase0_ready() -> Bool
+
+pub fn elab_require_prop(@kernel.Term) -> Result[@kernel.Term, @kernel.LogicError]
+
+pub fn elab_resolve_abs(@kernel.KernelState, ElabCtx, String, @kernel.HolType, RTerm) -> Result[RTerm, ElabError]
+
+pub fn elab_resolve_app(@kernel.KernelState, ElabCtx, RTerm, RTerm) -> Result[RTerm, ElabError]
+
+pub fn elab_resolve_const(@kernel.KernelState, String, @kernel.HolType) -> Result[ResolvedConst, ElabError]
+
+pub fn elab_resolve_const_by_name(@kernel.KernelState, String) -> Result[ResolvedConst, ElabError]
+
+pub fn elab_resolve_const_instance(@kernel.KernelState, String, @kernel.HolType) -> Result[RTerm, ElabError]
+
+pub fn elab_resolve_eq(@kernel.KernelState, ElabCtx, RTerm, RTerm) -> Result[RTerm, ElabError]
+
+pub fn elab_resolve_name(@kernel.KernelState, ElabCtx, String) -> Result[RTerm, ElabError]
+
+pub fn elab_resolve_named_term(@kernel.KernelState, ElabCtx, @kernel.Term) -> Result[RTerm, ElabError]
+
+pub fn elab_resolve_var(String, @kernel.HolType) -> RTerm
+
+pub fn elab_roundtrip_term(@kernel.KernelState, ElabCtx, @kernel.Term) -> Result[RTerm, ElabError]
+
+pub fn elab_var(String, @kernel.HolType) -> @kernel.Term
+
+pub fn empty_elab_ctx() -> ElabCtx
+
+pub fn rconst_id(ResolvedConst) -> Int
+
+pub fn rconst_inst_ty(ResolvedConst) -> @kernel.HolType
+
+pub fn rconst_name(ResolvedConst) -> String
+
+pub fn rconst_schema_ty(ResolvedConst) -> @kernel.HolType
+
+pub fn rterm_abs(String, @kernel.HolType, RTerm) -> RTerm
+
+pub fn rterm_collect_consts(RTerm) -> Array[ResolvedConst]
+
+pub fn rterm_collect_free_vars(RTerm) -> Array[(String, @kernel.HolType)]
+
+pub fn rterm_comb(RTerm, RTerm) -> RTerm
+
+pub fn rterm_const(ResolvedConst) -> RTerm
+
+pub fn rterm_eq(RTerm, RTerm) -> Bool
+
+pub fn rterm_to_string(RTerm) -> String
+
+pub fn rterm_var(String, @kernel.HolType) -> RTerm
+
+pub fn rterm_well_formed(@kernel.KernelState, ElabCtx, RTerm) -> Bool
+
+// Errors
+
+// Types and methods
+pub struct ElabCtx {
+  locals : Array[(String, @kernel.HolType)]
+}
+
+pub enum ElabError {
+  UnknownName(String)
+  UnknownConst(String)
+  InvalidConstInstance(String)
+  ScopeResolutionMismatch
+  CoreTypingFailure
+}
+
+pub enum RTerm {
+  RVar(String, @kernel.HolType)
+  RConst(ResolvedConst)
+  RComb(RTerm, RTerm)
+  RAbs(String, @kernel.HolType, RTerm)
+}
+
+pub struct ResolvedConst {
+  name : String
+  const_id : Int
+  inst_ty : @kernel.HolType
+  schema_ty : @kernel.HolType
+}
+
+// Type aliases
+
+// Traits
+
