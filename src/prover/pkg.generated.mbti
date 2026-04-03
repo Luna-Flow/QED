@@ -1,0 +1,37 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Luna-Flow/QED/prover"
+
+import {
+  "Luna-Flow/QED/kernel",
+  "Luna-Flow/QED/parser",
+  "Luna-Flow/QED/tactics",
+}
+
+// Values
+pub fn default_prover_options() -> ProverOptions
+
+pub fn prove_theorem_script(@kernel.KernelState, String, ProverOptions) -> Result[(@kernel.KernelState, @kernel.Thm), ProverError]
+
+pub fn prover_options(Bool) -> ProverOptions
+
+pub fn prover_phase0_ready() -> Bool
+
+// Errors
+
+// Types and methods
+pub enum ProverError {
+  Parse(@parser.ParseError)
+  Bridge(@parser.ParseBridgeError)
+  Tactic(@tactics.TacticExecError)
+  Sig(@kernel.SigError)
+  Logic(@kernel.LogicError)
+}
+
+pub struct ProverOptions {
+  auto_install_prelude : Bool
+}
+
+// Type aliases
+
+// Traits
+
