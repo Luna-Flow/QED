@@ -3,6 +3,7 @@ package "Luna-Flow/QED/tactics"
 
 import {
   "Luna-Flow/QED/kernel",
+  "Luna-Flow/QED/logic",
 }
 
 // Values
@@ -10,13 +11,49 @@ pub fn goal_concl(Goal) -> @kernel.Term
 
 pub fn goal_hyp_count(Goal) -> Int
 
+pub fn goal_hyps(Goal) -> Array[@kernel.Term]
+
 pub fn mk_goal(Array[@kernel.Term], @kernel.Term) -> Goal
 
+pub fn ps_apply(@kernel.KernelState, @logic.PropPrelude, ProofState, TacticStep) -> Result[ProofState, TacticExecError]
+
+pub fn ps_apply_script(@kernel.KernelState, @logic.PropPrelude, ProofState, Array[TacticStep]) -> Result[ProofState, TacticExecError]
+
+pub fn ps_current_goal(ProofState) -> Goal?
+
+pub fn ps_goal_count(ProofState) -> Int
+
+pub fn ps_init(Goal) -> ProofState
+
+pub fn ps_qed(ProofState) -> Result[@kernel.Thm, TacticExecError]
+
 pub fn solve_by_assume(@kernel.KernelState, Goal) -> Result[@kernel.Thm, @kernel.LogicError]
+
+pub fn solve_by_hyp(@kernel.KernelState, Goal) -> Result[@kernel.Thm, @kernel.LogicError]
+
+pub fn solve_by_refl(@kernel.KernelState, @kernel.Term) -> Result[@kernel.Thm, @kernel.LogicError]
+
+pub fn solve_by_trans(@kernel.KernelState, @kernel.Thm, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
+
+pub fn step_apply(String) -> TacticStep
+
+pub fn step_assumption() -> TacticStep
+
+pub fn step_exact(String) -> TacticStep
+
+pub fn step_intro(String) -> TacticStep
+
+pub fn step_left() -> TacticStep
+
+pub fn step_right() -> TacticStep
+
+pub fn step_split() -> TacticStep
 
 pub fn tactics_engine_phase0_ready() -> Bool
 
 pub fn tactics_goal_phase0_ready() -> Bool
+
+pub fn tactics_proof_state_phase0_ready() -> Bool
 
 // Errors
 
@@ -24,6 +61,43 @@ pub fn tactics_goal_phase0_ready() -> Bool
 pub struct Goal {
   hyps : Array[@kernel.Term]
   concl : @kernel.Term
+}
+
+pub struct LocalHyp {
+  name : String
+  term : @kernel.Term
+}
+
+pub struct PendingGoal {
+  hyps : Array[@kernel.Term]
+  concl : @kernel.Term
+  locals : Array[LocalHyp]
+}
+
+pub struct ProofState {
+  root_goal : Goal
+  pending : Array[PendingGoal]
+  final_thm : @kernel.Thm?
+}
+
+pub enum TacticExecError {
+  UnknownName(String)
+  GoalShapeMismatch(String)
+  ApplyMismatch(String)
+  NoGoals
+  UnsolvedGoals
+  ProofSynthesisUnavailable(String)
+  Logic(@kernel.LogicError)
+}
+
+pub enum TacticStep {
+  Intro(String)
+  Exact(String)
+  Apply(String)
+  Assumption
+  Split
+  Left
+  Right
 }
 
 // Type aliases
