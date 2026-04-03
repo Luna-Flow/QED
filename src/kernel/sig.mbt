@@ -319,16 +319,16 @@ pub fn sig_add_const_idempotent_e(
 
 ///|
 fn sig_mk_const(sig : GlobalSig, name : String) -> Term? {
-  match sig_lookup_const(sig, name) {
-    Some(ty) => Some(mk_const(name, ty))
+  match sig_lookup_const_with_id(sig, name) {
+    Some((id, ty)) => Some(mk_const_bound(name, ty, id))
     None => None
   }
 }
 
 ///|
 pub fn sig_mk_const_e(sig : GlobalSig, name : String) -> Result[Term, SigError] {
-  match sig_lookup_const(sig, name) {
-    Some(ty) => Ok(mk_const(name, ty))
+  match sig_lookup_const_with_id(sig, name) {
+    Some((id, ty)) => Ok(mk_const_bound(name, ty, id))
     None => Err(UnknownConst)
   }
 }
@@ -339,10 +339,10 @@ pub fn sig_mk_const_instance_e(
   name : String,
   inst_ty : HolType,
 ) -> Result[Term, SigError] {
-  match sig_lookup_const(sig, name) {
-    Some(schema) =>
+  match sig_lookup_const_with_id(sig, name) {
+    Some((id, schema)) =>
       if ty_is_instance_of(inst_ty, schema) {
-        Ok(mk_const(name, inst_ty))
+        Ok(mk_const_bound(name, inst_ty, id))
       } else {
         Err(InvalidConstInstance)
       }
@@ -591,7 +591,7 @@ fn term_mentions_tycon(term : Term, tycon : String) -> Bool {
   }
   match term {
     Var(_, ty) => type_has_tycon(ty, tycon)
-    Const(_, ty) => type_has_tycon(ty, tycon)
+    Const(_, ty, _) => type_has_tycon(ty, tycon)
     Comb(f, x) => term_mentions_tycon(f, tycon) || term_mentions_tycon(x, tycon)
     Abs(v, body) =>
       term_mentions_tycon(v, tycon) || term_mentions_tycon(body, tycon)
@@ -643,9 +643,9 @@ fn match_predicate_instance_db(
           (name == name2 && ty_eq(ty, ty2), witness, used_outer)
         _ => (false, witness, used_outer)
       }
-    DbConst(name, ty) =>
+    DbConst(name, ty, _) =>
       match target {
-        DbConst(name2, ty2) =>
+        DbConst(name2, ty2, _) =>
           (name == name2 && ty_eq(ty, ty2), witness, used_outer)
         _ => (false, witness, used_outer)
       }
@@ -816,13 +816,15 @@ fn eq_const_type_ok(ty : HolType) -> Bool {
 fn term_const_instances_ok(state : KernelState, term : Term) -> Bool {
   match term {
     Var(_, _) => true
-    Const(name, inst_ty) =>
+    Const(name, inst_ty, const_id) =>
       if name == "=" {
         eq_const_type_ok(inst_ty)
       } else {
-        match ks_const_schema(state, name) {
-          Some(schema_ty) => ty_is_instance_of(inst_ty, schema_ty)
-          None => false
+        match (ks_lookup_const_id(state, name), ks_const_schema(state, name)) {
+          (Some(current_id), Some(schema_ty)) =>
+            ty_is_instance_of(inst_ty, schema_ty) &&
+            (const_id < 0 || const_id == current_id)
+          _ => false
         }
       }
     Comb(f, x) =>
@@ -842,7 +844,7 @@ fn push_unique_name(out : Array[String], name : String) -> Unit {
 fn collect_term_const_names(term : Term, out : Array[String]) -> Unit {
   match term {
     Var(_, _) => ()
-    Const(name, _) => if name != "=" { push_unique_name(out, name) }
+    Const(name, _, _) => if name != "=" { push_unique_name(out, name) }
     Comb(f, x) => {
       collect_term_const_names(f, out)
       collect_term_const_names(x, out)

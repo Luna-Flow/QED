@@ -146,6 +146,8 @@ pub fn mk_comb_rule_checked(KernelState, Thm, Thm) -> Result[Thm, LogicError]
 
 pub fn mk_const(String, HolType) -> Term
 
+pub fn mk_const_bound(String, HolType, Int) -> Term
+
 pub fn mk_eq(Term, Term) -> Result[Term, LogicError]
 
 pub fn mk_tyapp(String, Array[HolType]) -> HolType
@@ -271,7 +273,7 @@ pub suberror SigError {
 pub enum DbTerm {
   DbBound(Int, HolType)
   DbFree(String, HolType)
-  DbConst(String, HolType)
+  DbConst(String, HolType, Int)
   DbComb(DbTerm, DbTerm)
   DbAbs(HolType, DbTerm)
 }
@@ -295,7 +297,7 @@ type KernelState
 
 pub enum Term {
   Var(String, HolType)
-  Const(String, HolType)
+  Const(String, HolType, Int)
   Comb(Term, Term)
   Abs(Term, Term)
 }

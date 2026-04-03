@@ -2,7 +2,7 @@
 /// HOL term representation used by the trusted kernel.
 pub enum Term {
   Var(String, HolType)
-  Const(String, HolType)
+  Const(String, HolType, Int)
   Comb(Term, Term)
   Abs(Term, Term)
 }
@@ -12,7 +12,7 @@ pub enum Term {
 pub enum DbTerm {
   DbBound(Int, HolType)
   DbFree(String, HolType)
-  DbConst(String, HolType)
+  DbConst(String, HolType, Int)
   DbComb(DbTerm, DbTerm)
   DbAbs(HolType, DbTerm)
 }
@@ -25,7 +25,12 @@ pub fn mk_var(name : String, ty : HolType) -> Term {
 
 ///|
 pub fn mk_const(name : String, ty : HolType) -> Term {
-  Const(name, ty)
+  Const(name, ty, -1)
+}
+
+///|
+pub fn mk_const_bound(name : String, ty : HolType, const_id : Int) -> Term {
+  Const(name, ty, const_id)
 }
 
 ///|
@@ -50,7 +55,7 @@ pub fn is_var(term : Term) -> Bool {
 ///|
 pub fn is_const(term : Term) -> Bool {
   match term {
-    Const(_, _) => true
+    Const(_, _, _) => true
     _ => false
   }
 }
@@ -83,7 +88,7 @@ pub fn dest_var(term : Term) -> (String, HolType)? {
 ///|
 pub fn dest_const(term : Term) -> (String, HolType)? {
   match term {
-    Const(name, ty) => Some((name, ty))
+    Const(name, ty, _) => Some((name, ty))
     _ => None
   }
 }
@@ -109,7 +114,7 @@ pub fn dest_abs(term : Term) -> (Term, Term)? {
 pub fn type_of(term : Term) -> HolType? {
   match term {
     Var(_, ty) => Some(ty)
-    Const(_, ty) => Some(ty)
+    Const(_, ty, _) => Some(ty)
     Comb(fn_term, arg_term) =>
       match (type_of(fn_term), type_of(arg_term)) {
         (Some(TyApp("fun", [dom, cod])), Some(arg_ty)) =>
@@ -142,7 +147,18 @@ pub fn kernel_terms_phase0_ready() -> Bool {
 pub fn term_to_string(term : Term) -> String {
   match term {
     Var(name, ty) => "Var(" + name + " : " + hol_type_to_string(ty) + ")"
-    Const(name, ty) => "Const(" + name + " : " + hol_type_to_string(ty) + ")"
+    Const(name, ty, const_id) =>
+      if const_id >= 0 {
+        "Const(" +
+        name +
+        "#" +
+        const_id.to_string() +
+        " : " +
+        hol_type_to_string(ty) +
+        ")"
+      } else {
+        "Const(" + name + " : " + hol_type_to_string(ty) + ")"
+      }
     Comb(fn_term, arg_term) =>
       "Comb(" + term_to_string(fn_term) + ", " + term_to_string(arg_term) + ")"
     Abs(var_term, body) =>
@@ -189,7 +205,7 @@ fn to_db_term_with_env(term : Term, env : Array[(String, HolType)]) -> DbTerm? {
         FreeVar => Some(DbFree(name, ty))
         TypeMismatch => None
       }
-    Const(name, ty) => Some(DbConst(name, ty))
+    Const(name, ty, const_id) => Some(DbConst(name, ty, const_id))
     Comb(f, x) =>
       match (to_db_term_with_env(f, env), to_db_term_with_env(x, env)) {
         (Some(f2), Some(x2)) => Some(DbComb(f2, x2))
@@ -220,7 +236,7 @@ fn collect_db_free_names(term : DbTerm, out : Array[String]) -> Unit {
   match term {
     DbBound(_, _) => ()
     DbFree(name, _) => if !out.contains(name) { out.push(name) }
-    DbConst(_, _) => ()
+    DbConst(_, _, _) => ()
     DbComb(f, x) => {
       collect_db_free_names(f, out)
       collect_db_free_names(x, out)
@@ -268,7 +284,7 @@ fn from_db_term_with_env(
       }
     }
     DbFree(name, ty) => Some(Var(name, ty))
-    DbConst(name, ty) => Some(Const(name, ty))
+    DbConst(name, ty, const_id) => Some(Const(name, ty, const_id))
     DbComb(f, x) =>
       match
         (
@@ -313,7 +329,18 @@ pub fn db_term_to_string(term : DbTerm) -> String {
     DbBound(i, ty) =>
       "BVar(" + i.to_string() + " : " + hol_type_to_string(ty) + ")"
     DbFree(name, ty) => "FVar(" + name + " : " + hol_type_to_string(ty) + ")"
-    DbConst(name, ty) => "Const(" + name + " : " + hol_type_to_string(ty) + ")"
+    DbConst(name, ty, const_id) =>
+      if const_id >= 0 {
+        "Const(" +
+        name +
+        "#" +
+        const_id.to_string() +
+        " : " +
+        hol_type_to_string(ty) +
+        ")"
+      } else {
+        "Const(" + name + " : " + hol_type_to_string(ty) + ")"
+      }
     DbComb(f, x) =>
       "Comb(" + db_term_to_string(f) + ", " + db_term_to_string(x) + ")"
     DbAbs(ty, body) =>
@@ -326,7 +353,8 @@ pub fn db_term_eq(lhs : DbTerm, rhs : DbTerm) -> Bool {
   match (lhs, rhs) {
     (DbBound(i1, ty1), DbBound(i2, ty2)) => i1 == i2 && ty_eq(ty1, ty2)
     (DbFree(n1, ty1), DbFree(n2, ty2)) => n1 == n2 && ty_eq(ty1, ty2)
-    (DbConst(n1, ty1), DbConst(n2, ty2)) => n1 == n2 && ty_eq(ty1, ty2)
+    (DbConst(n1, ty1, id1), DbConst(n2, ty2, id2)) =>
+      n1 == n2 && ty_eq(ty1, ty2) && id1 == id2
     (DbComb(f1, x1), DbComb(f2, x2)) => db_term_eq(f1, f2) && db_term_eq(x1, x2)
     (DbAbs(ty1, b1), DbAbs(ty2, b2)) => ty_eq(ty1, ty2) && db_term_eq(b1, b2)
     _ => false
@@ -338,7 +366,7 @@ pub fn db_has_free(term : DbTerm, needle : DbTerm) -> Bool {
   match term {
     DbBound(_, _) => false
     DbFree(_, _) => db_term_eq(term, needle)
-    DbConst(_, _) => false
+    DbConst(_, _, _) => false
     DbComb(f, x) => db_has_free(f, needle) || db_has_free(x, needle)
     DbAbs(_, body) => db_has_free(body, needle)
   }
@@ -370,7 +398,7 @@ fn db_shift_walk(delta : Int, cutoff : Int, term : DbTerm) -> DbTerm? {
         Some(term)
       }
     DbFree(_, _) => Some(term)
-    DbConst(_, _) => Some(term)
+    DbConst(_, _, _) => Some(term)
     DbComb(f, x) =>
       match (db_shift_walk(delta, cutoff, f), db_shift_walk(delta, cutoff, x)) {
         (Some(f2), Some(x2)) => Some(DbComb(f2, x2))
@@ -402,7 +430,7 @@ fn db_subst_walk(j : Int, s : DbTerm, cutoff : Int, term : DbTerm) -> DbTerm? {
         None => None
       }
     DbFree(_, _) => Some(term)
-    DbConst(_, _) => Some(term)
+    DbConst(_, _, _) => Some(term)
     DbComb(f, x) =>
       match (db_subst_walk(j, s, cutoff, f), db_subst_walk(j, s, cutoff, x)) {
         (Some(f2), Some(x2)) => Some(DbComb(f2, x2))
@@ -469,7 +497,8 @@ pub fn db_apply_ty_subst(
   match term {
     DbBound(i, ty) => DbBound(i, db_apply_ty_subst_to_type(subst, ty))
     DbFree(name, ty) => DbFree(name, db_apply_ty_subst_to_type(subst, ty))
-    DbConst(name, ty) => DbConst(name, db_apply_ty_subst_to_type(subst, ty))
+    DbConst(name, ty, const_id) =>
+      DbConst(name, db_apply_ty_subst_to_type(subst, ty), const_id)
     DbComb(f, x) =>
       DbComb(db_apply_ty_subst(subst, f), db_apply_ty_subst(subst, x))
     DbAbs(ty, body) =>
@@ -493,7 +522,7 @@ pub fn db_subst_free_parallel(
           Some(repl) => db_shift_walk(depth, 0, repl)
           None => Some(t)
         }
-      DbConst(_, _) => Some(t)
+      DbConst(_, _, _) => Some(t)
       DbComb(f, x) =>
         match (walk(depth, f, subst), walk(depth, x, subst)) {
           (Some(f2), Some(x2)) => Some(DbComb(f2, x2))
@@ -519,7 +548,7 @@ pub fn db_type_of(term : DbTerm) -> HolType? {
   match term {
     DbBound(_, ty) => Some(ty)
     DbFree(_, ty) => Some(ty)
-    DbConst(_, ty) => Some(ty)
+    DbConst(_, ty, _) => Some(ty)
     DbComb(f, arg) =>
       match (db_type_of(f), db_type_of(arg)) {
         (Some(TyApp("fun", [dom, cod])), Some(arg_ty)) =>
@@ -587,7 +616,7 @@ fn vars_union(
 pub fn free_vars(term : Term) -> Array[(String, HolType)] {
   match term {
     Var(name, ty) => [(name, ty)]
-    Const(_, _) => []
+    Const(_, _, _) => []
     Comb(f, x) => vars_union(free_vars(f), free_vars(x))
     Abs(var_term, body) =>
       match var_term {
@@ -612,7 +641,7 @@ pub fn term_is_closed(term : Term) -> Bool {
 pub fn term_has_const_named(term : Term, name : String) -> Bool {
   match term {
     Var(_, _) => false
-    Const(n, _) => n == name
+    Const(n, _, _) => n == name
     Comb(f, x) => term_has_const_named(f, name) || term_has_const_named(x, name)
     Abs(_, body) => term_has_const_named(body, name)
   }
@@ -637,7 +666,7 @@ pub fn term_apply_ty_subst_unsafe(
   let rew_ty = fn(ty : HolType) { type_subst_unsafe(subst, ty) }
   match term {
     Var(name, ty) => Var(name, rew_ty(ty))
-    Const(name, ty) => Const(name, rew_ty(ty))
+    Const(name, ty, const_id) => Const(name, rew_ty(ty), const_id)
     Comb(f, x) =>
       Comb(
         term_apply_ty_subst_unsafe(subst, f),
@@ -669,7 +698,7 @@ fn union_strings(a : Array[String], b : Array[String]) -> Array[String] {
 fn term_tyvars_impl(term : Term) -> Array[String] {
   match term {
     Var(_, ty) => tyvars(ty)
-    Const(_, ty) => tyvars(ty)
+    Const(_, ty, _) => tyvars(ty)
     Comb(f, x) => union_strings(term_tyvars_impl(f), term_tyvars_impl(x))
     Abs(v, body) => union_strings(term_tyvars_impl(v), term_tyvars_impl(body))
   }

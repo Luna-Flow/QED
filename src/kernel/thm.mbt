@@ -65,7 +65,7 @@ fn lift_term(term : DbTerm) -> Result[Term, LogicError] {
 ///|
 fn db_dest_eq(term : DbTerm) -> Result[(DbTerm, DbTerm), LogicError] {
   match term {
-    DbComb(DbComb(DbConst("=", eq_ty), lhs), rhs) =>
+    DbComb(DbComb(DbConst("=", eq_ty, _), lhs), rhs) =>
       match (db_type_of(lhs), db_type_of(rhs)) {
         (Some(lhs_ty), Some(rhs_ty)) =>
           if !db_eq_const_type_ok(eq_ty) {
@@ -102,7 +102,7 @@ fn db_mk_eq(lhs : DbTerm, rhs : DbTerm) -> Result[DbTerm, LogicError] {
         Err(TypeMismatch)
       } else {
         let eq_ty = fun_ty(ty_l, fun_ty(ty_l, bool_ty()))
-        Ok(DbComb(DbComb(DbConst("=", eq_ty), lhs), rhs))
+        Ok(DbComb(DbComb(DbConst("=", eq_ty, -1), lhs), rhs))
       }
     _ => Err(TypeMismatch)
   }
@@ -398,12 +398,29 @@ fn db_consts_of(term : DbTerm, out : Array[(String, HolType)]) -> Unit {
   match term {
     DbBound(_, _) => ()
     DbFree(_, _) => ()
-    DbConst(name, ty) => out.push((name, ty))
+    DbConst(name, ty, _) => out.push((name, ty))
     DbComb(f, x) => {
       db_consts_of(f, out)
       db_consts_of(x, out)
     }
     DbAbs(_, body) => db_consts_of(body, out)
+  }
+}
+
+///|
+fn db_const_bindings_of(term : DbTerm, out : Array[(String, ConstId)]) -> Unit {
+  match term {
+    DbBound(_, _) => ()
+    DbFree(_, _) => ()
+    DbConst(name, _, const_id) =>
+      if name != "=" && const_id >= 0 {
+        out.push((name, const_id))
+      }
+    DbComb(f, x) => {
+      db_const_bindings_of(f, out)
+      db_const_bindings_of(x, out)
+    }
+    DbAbs(_, body) => db_const_bindings_of(body, out)
   }
 }
 
@@ -423,19 +440,77 @@ fn theorem_const_names(th : Thm) -> Array[String] {
 }
 
 ///|
+fn resolve_bound_thm_const_ids(
+  th : Thm,
+) -> Result[Array[(String, ConstId)], LogicError] {
+  let seen : Array[(String, ConstId)] = []
+  let raw : Array[(String, ConstId)] = []
+  th.hyps.each(fn(h) { db_const_bindings_of(h, raw) })
+  db_const_bindings_of(th.concl, raw)
+  for pair in raw {
+    let (name, const_id) = pair
+    let mut found = false
+    for item in seen {
+      let (seen_name, seen_id) = item
+      if seen_name == name {
+        found = true
+        if seen_id != const_id {
+          return Err(InvalidInstantiation)
+        }
+      }
+    }
+    if !found {
+      seen.push((name, const_id))
+    }
+  }
+  Ok(seen)
+}
+
+///|
 fn resolve_thm_const_ids(
   state : KernelState,
   th : Thm,
 ) -> Result[Array[(String, ConstId)], LogicError] {
   let names = theorem_const_names(th)
+  let bound_ids = match resolve_bound_thm_const_ids(th) {
+    Ok(v) => v
+    Err(e) => return Err(e)
+  }
   let out : Array[(String, ConstId)] = []
   for name in names {
-    match ks_lookup_const_id(state, name) {
-      Some(id) => out.push((name, id))
-      None => return Err(TypeMismatch)
+    let mut used_bound = false
+    for pair in bound_ids {
+      let (bound_name, bound_id) = pair
+      if bound_name == name {
+        out.push((name, bound_id))
+        used_bound = true
+      }
+    }
+    if !used_bound {
+      match ks_lookup_const_id(state, name) {
+        Some(id) => out.push((name, id))
+        None => return Err(TypeMismatch)
+      }
     }
   }
   Ok(out)
+}
+
+///|
+fn collect_theorem_consts_with_ids(
+  term : DbTerm,
+  out : Array[(String, HolType, ConstId)],
+) -> Unit {
+  match term {
+    DbBound(_, _) => ()
+    DbFree(_, _) => ()
+    DbConst(name, ty, const_id) => out.push((name, ty, const_id))
+    DbComb(f, x) => {
+      collect_theorem_consts_with_ids(f, out)
+      collect_theorem_consts_with_ids(x, out)
+    }
+    DbAbs(_, body) => collect_theorem_consts_with_ids(body, out)
+  }
 }
 
 ///|
@@ -490,11 +565,11 @@ pub fn thm_bind_const_ids(
 
 ///|
 fn theorem_const_instances_ok(state : KernelState, th : Thm) -> Bool {
-  let consts : Array[(String, HolType)] = []
-  th.hyps.each(fn(h) { db_consts_of(h, consts) })
-  db_consts_of(th.concl, consts)
+  let consts : Array[(String, HolType, ConstId)] = []
+  th.hyps.each(fn(h) { collect_theorem_consts_with_ids(h, consts) })
+  collect_theorem_consts_with_ids(th.concl, consts)
   for item in consts {
-    let (name, inst_ty) = item
+    let (name, inst_ty, _) = item
     if name == "=" {
       if !db_eq_const_type_ok(inst_ty) {
         return false
@@ -505,6 +580,23 @@ fn theorem_const_instances_ok(state : KernelState, th : Thm) -> Bool {
           if !ty_is_instance_of(inst_ty, schema_ty) {
             return false
           }
+        _ => return false
+      }
+    }
+  }
+  true
+}
+
+///|
+fn theorem_const_ids_match_state(state : KernelState, th : Thm) -> Bool {
+  let consts : Array[(String, HolType, ConstId)] = []
+  th.hyps.each(fn(h) { collect_theorem_consts_with_ids(h, consts) })
+  collect_theorem_consts_with_ids(th.concl, consts)
+  for item in consts {
+    let (name, _, const_id) = item
+    if name != "=" && const_id >= 0 {
+      match ks_lookup_const_id(state, name) {
+        Some(current_id) => if current_id != const_id { return false }
         None => return false
       }
     }
@@ -523,7 +615,7 @@ fn theorem_def_inst_coherent(state : KernelState, th : Thm) -> Bool {
         match db_dest_eq(th.concl) {
           Ok((lhs, rhs)) =>
             match lhs {
-              DbConst(lhs_name, lhs_ty) =>
+              DbConst(lhs_name, lhs_ty, _) =>
                 if lhs_name != name {
                   false
                 } else {
@@ -557,6 +649,9 @@ fn ensure_thm_admissible(
       }
     }
     Err(e) => return Err(e)
+  }
+  if !theorem_const_ids_match_state(state, th) {
+    return Err(InvalidInstantiation)
   }
   if !theorem_const_instances_ok(state, th) {
     return Err(TypeMismatch)

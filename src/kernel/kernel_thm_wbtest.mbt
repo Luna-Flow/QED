@@ -9,7 +9,7 @@ test "wb inst substitution rejects captured bound image" {
 ///|
 test "wb inst substitution rejects non-free keys" {
   let a = mk_tyvar("A")
-  let key = DbConst("c", a)
+  let key = DbConst("c", a, -1)
   let value = DbFree("x", a)
   assert_true(
     validate_db_inst_subst([(key, value)]) is Err(InvalidInstantiation),

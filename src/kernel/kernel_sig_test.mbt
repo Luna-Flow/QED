@@ -169,7 +169,7 @@ test "sig supports principal schema instantiation checks" {
   let bool = bool_ty()
 
   let ok_inst = sig_mk_const_instance_e(sig1, "id", fun_ty(bool, bool))
-  assert_true(ok_inst is Ok(Const("id", _)))
+  assert_true(ok_inst is Ok(Const("id", _, _)))
 
   assert_true(
     sig_mk_const_instance_e(sig1, "id", fun_ty(bool, a))

@@ -6,7 +6,7 @@ test "terms constructors" {
   assert_true(v is Var("x", _))
 
   let c = mk_const("T", bool)
-  assert_true(c is Const("T", _))
+  assert_true(c is Const("T", _, _))
 }
 
 ///|
