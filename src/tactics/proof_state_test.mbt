@@ -95,6 +95,20 @@ test "proof state apply supports local implication and and_elim_l pattern" {
 }
 
 ///|
+test "proof state theorem-backed apply reconstructs final implication theorem" {
+  let (st, prelude, p, q, _) = setup_prop_env()
+  let and_pq = expect_ok_ps(prop_mk_and(st, prelude, p, q))
+  let target = expect_ok_ps(prop_mk_imp(st, prelude, and_pq, p))
+  let ps0 = ps_init(mk_goal([], target))
+  let ps1 = expect_ok_ps(ps_apply(st, prelude, ps0, step_intro("h")))
+  let ps2 = expect_ok_ps(ps_apply(st, prelude, ps1, step_apply("and_elim_l")))
+  let ps3 = expect_ok_ps(ps_apply(st, prelude, ps2, step_exact("h")))
+  let th = expect_ok_ps(ps_qed(ps3))
+  let concl = expect_ok_ps(thm_concl(th))
+  assert_true(term_logical_eq(concl, target) || term_alpha_eq(concl, target))
+}
+
+///|
 test "proof state and_elim_l closes when P Q are kernel constants" {
   let prelude = default_prop_prelude()
   let s0 = empty_kernel_state()
@@ -198,6 +212,50 @@ test "proof state left closes P -> P or Q with kernel constants" {
 }
 
 ///|
+test "proof state left reconstructs wrapped disjunction theorem" {
+  let (st, prelude, p, q, _) = setup_prop_env()
+  let or_pq = expect_ok_ps(prop_mk_or(st, prelude, p, q))
+  let target = expect_ok_ps(prop_mk_imp(st, prelude, p, or_pq))
+  let ps0 = ps_init(mk_goal([], target))
+  let ps1 = expect_ok_ps(ps_apply(st, prelude, ps0, step_intro("h")))
+  let ps2 = expect_ok_ps(ps_apply(st, prelude, ps1, step_left()))
+  let ps3 = expect_ok_ps(ps_apply(st, prelude, ps2, step_exact("h")))
+  let th = expect_ok_ps(ps_qed(ps3))
+  let concl = expect_ok_ps(thm_concl(th))
+  let concl_nf = match logic_beta_nf_bool_term_deep(st, concl) {
+    Ok(v) => v
+    Err(_) => concl
+  }
+  match prop_dest_imp(st, prelude, concl_nf) {
+    Some((lhs, rhs)) => {
+      assert_true(term_alpha_eq(lhs, p))
+      match prop_dest_or(st, prelude, rhs) {
+        Some((or_lhs, _)) => assert_true(term_alpha_eq(or_lhs, p))
+        None => panic()
+      }
+    }
+    None => panic()
+  }
+}
+
+///|
+test "proof state split reconstructs conjunction under implication prefixes" {
+  let (st, prelude, p, q, _) = setup_prop_env()
+  let and_pq = expect_ok_ps(prop_mk_and(st, prelude, p, q))
+  let imp_q_and = expect_ok_ps(prop_mk_imp(st, prelude, q, and_pq))
+  let target = expect_ok_ps(prop_mk_imp(st, prelude, p, imp_q_and))
+  let ps0 = ps_init(mk_goal([], target))
+  let ps1 = expect_ok_ps(ps_apply(st, prelude, ps0, step_intro("hp")))
+  let ps2 = expect_ok_ps(ps_apply(st, prelude, ps1, step_intro("hq")))
+  let ps3 = expect_ok_ps(ps_apply(st, prelude, ps2, step_split()))
+  let ps4 = expect_ok_ps(ps_apply(st, prelude, ps3, step_exact("hp")))
+  let ps5 = expect_ok_ps(ps_apply(st, prelude, ps4, step_exact("hq")))
+  let th = expect_ok_ps(ps_qed(ps5))
+  let concl = expect_ok_ps(thm_concl(th))
+  assert_true(term_logical_eq(concl, target) || term_alpha_eq(concl, target))
+}
+
+///|
 test "proof state reports unresolved goals and malformed steps" {
   let (st, prelude, p, q, _) = setup_prop_env()
   let ps0 = ps_init(mk_goal([], p))
@@ -263,7 +321,7 @@ test "proof state apply prefers local implication over theorem name collision" {
 }
 
 ///|
-test "proof state exact rejects context-derived theorem names" {
+test "proof state exact supports context-derived theorem names" {
   let (st, prelude, p, q, _) = setup_prop_env()
   let and_pq = expect_ok_ps(prop_mk_and(st, prelude, p, q))
   let goal = mk_goal([and_pq], p)
@@ -313,6 +371,46 @@ test "proof state exact supports context-derived not_elim" {
 }
 
 ///|
+test "proof state exact supports witness-based theorem names" {
+  let (st, prelude, p, q, _) = setup_prop_env()
+  let and_pq = expect_ok_ps(prop_mk_and(st, prelude, p, q))
+  let imp_pq = expect_ok_ps(prop_mk_imp(st, prelude, p, q))
+  let eq_pp = expect_ok_ps(mk_eq(p, p))
+  let eq_pq = expect_ok_ps(mk_eq(p, q))
+  let eq_qp = expect_ok_ps(mk_eq(q, p))
+
+  let ps_and = ps_init(mk_goal([p, q], and_pq))
+  let ps_and_done = expect_ok_ps(
+    ps_apply(st, prelude, ps_and, step_exact("and_intro")),
+  )
+  assert_true(ps_qed(ps_and_done) is Ok(_))
+
+  let ps_imp = ps_init(mk_goal([imp_pq, p], q))
+  let ps_imp_done = expect_ok_ps(
+    ps_apply(st, prelude, ps_imp, step_exact("imp_elim")),
+  )
+  assert_true(ps_qed(ps_imp_done) is Ok(_))
+
+  let ps_refl = ps_init(mk_goal([], eq_pp))
+  let ps_refl_done = expect_ok_ps(
+    ps_apply(st, prelude, ps_refl, step_exact("eq_refl")),
+  )
+  assert_true(ps_qed(ps_refl_done) is Ok(_))
+
+  let ps_sym = ps_init(mk_goal([eq_qp], eq_pq))
+  let ps_sym_done = expect_ok_ps(
+    ps_apply(st, prelude, ps_sym, step_exact("eq_sym")),
+  )
+  assert_true(ps_qed(ps_sym_done) is Ok(_))
+
+  let ps_mp = ps_init(mk_goal([eq_pq, p], q))
+  let ps_mp_done = expect_ok_ps(
+    ps_apply(st, prelude, ps_mp, step_exact("eq_mp")),
+  )
+  assert_true(ps_qed(ps_mp_done) is Ok(_))
+}
+
+///|
 test "proof state apply rejects direct-close theorem names" {
   let prelude = default_prop_prelude()
   let st0 = empty_kernel_state()
@@ -341,5 +439,41 @@ test "proof state apply rejects direct-close theorem names" {
   assert_true(
     ps_apply(st3, prelude3, ps_not, step_apply("not_elim"))
     is Err(ApplyMismatch(_)),
+  )
+
+  let ps_missing = ps_init(mk_goal([], q))
+  assert_true(
+    ps_apply(st2, prelude, ps_missing, step_apply("missing"))
+    is Err(UnknownName(_)),
+  )
+}
+
+///|
+test "proof state exact rejects apply-only or context-missing theorem names" {
+  let (st, prelude, p, q, _) = setup_prop_env()
+  let or_pq = expect_ok_ps(prop_mk_or(st, prelude, p, q))
+  let imp_p_or = expect_ok_ps(prop_mk_imp(st, prelude, p, or_pq))
+  let ps_apply_only = ps_init(mk_goal([], imp_p_or))
+  assert_true(
+    ps_apply(st, prelude, ps_apply_only, step_exact("or_intro_l"))
+    is Err(GoalShapeMismatch(_)),
+  )
+
+  let ps_missing_ctx = ps_init(mk_goal([p], p))
+  assert_true(
+    ps_apply(st, prelude, ps_missing_ctx, step_exact("and_elim_l"))
+    is Err(GoalShapeMismatch(_)),
+  )
+}
+
+///|
+test "proof state exact local hypothesis must directly witness current goal" {
+  let (st, prelude, p, q, _) = setup_prop_env()
+  let imp_qp = expect_ok_ps(prop_mk_imp(st, prelude, q, p))
+  let target = expect_ok_ps(prop_mk_imp(st, prelude, p, imp_qp))
+  let ps0 = ps_init(mk_goal([], target))
+  let ps1 = expect_ok_ps(ps_apply(st, prelude, ps0, step_intro("hp")))
+  assert_true(
+    ps_apply(st, prelude, ps1, step_exact("hp")) is Err(GoalShapeMismatch(_)),
   )
 }

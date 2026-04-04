@@ -1,10 +1,17 @@
 ///|
-using @kernel {type KernelState, type Thm, type SigError, type LogicError}
+using @kernel {
+  type KernelState,
+  type Term,
+  type Thm,
+  type SigError,
+  type LogicError,
+}
 
 ///|
 using @parser {
   type ParseError,
   type ParseBridgeError,
+  type SourceSpan,
   type SynTacticStep,
   empty_parse_env,
   parse_theorem_script_raw,
@@ -12,11 +19,20 @@ using @parser {
 }
 
 ///|
+using @elab {type ElabError}
+
+///|
 using @tactics {
+  type Goal,
+  type ProofState,
   type TacticStep,
   type TacticExecError,
+  local_hyp_name,
+  local_hyp_term,
+  ps_apply,
+  ps_current_local_hyps,
   ps_init,
-  ps_apply_script,
+  ps_current_goal,
   ps_qed,
   step_intro,
   step_exact,

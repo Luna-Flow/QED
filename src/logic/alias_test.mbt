@@ -58,9 +58,21 @@ using @kernel {
 
 ///|
 using @logic {
+  type PropApplyTheoremResolution,
+  type PropExactTheoremResolution,
+  type PropExactWitness,
+  type PropExactWitnessResolution,
+  type PropTheoremClass,
+  type PropTheoremEntry,
   type PropRefResolution,
+  logic_prop_theorem_count,
+  logic_prop_theorem_at,
+  logic_prop_theorem_entry,
   logic_prop_named_theorem,
   logic_prop_context_theorem,
   logic_prop_context_apply_theorem,
+  logic_prop_resolve_apply_theorem,
+  logic_prop_resolve_exact_theorem,
+  logic_prop_resolve_exact_witness,
   logic_prop_resolve_ref,
 }

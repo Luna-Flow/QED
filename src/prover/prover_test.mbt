@@ -9,6 +9,32 @@ fn[T, E] expect_ok_prover(res : Result[T, E]) -> T {
 }
 
 ///|
+fn expect_proved(result : ProverRunResult) -> ProverSuccess {
+  match result {
+    Proved(ok) => ok
+    Failed(_) => panic()
+  }
+}
+
+///|
+fn expect_failed(result : ProverRunResult) -> ProverFailure {
+  match result {
+    Proved(_) => panic()
+    Failed(err) => err
+  }
+}
+
+///|
+fn expect_diag_failed(
+  res : Result[(KernelState, Thm), ProverFailure],
+) -> ProverFailure {
+  match res {
+    Err(err) => err
+    Ok(_) => panic()
+  }
+}
+
+///|
 test "prove_theorem_script runs linear scripts with auto prelude install" {
   let st0 = expect_ok_prover(ks_add_const(empty_kernel_state(), "P", bool_ty()))
   let st1 = expect_ok_prover(ks_add_const(st0, "Q", bool_ty()))
@@ -37,6 +63,179 @@ test "prove_theorem_script runs linear scripts with auto prelude install" {
 
   let _ = expect_ok_prover(
     prove_theorem_script(st_out2, script3, default_prover_options()),
+  )
+}
+
+///|
+test "prove_theorem_script_detailed preserves theorem name on success" {
+  let st0 = expect_ok_prover(ks_add_const(empty_kernel_state(), "P", bool_ty()))
+  let result = prove_theorem_script_detailed(
+    st0,
+    "theorem t1 : ⊢ P -> P := by exact imp_refl",
+    default_prover_options(),
+  )
+  let ok = expect_proved(result)
+  let p = expect_ok_prover(ks_mk_const(ok.state, "P"))
+  let prelude = default_prop_prelude()
+  let target = expect_ok_prover(prop_mk_imp(ok.state, prelude, p, p))
+  let concl = expect_ok_prover(thm_concl(ok.thm))
+  assert_eq(ok.theorem_name, "t1")
+  assert_true(term_logical_eq(concl, target))
+}
+
+///|
+test "prove_theorem_script_detailed captures later-step tactic context" {
+  let script = "theorem bad : ⊢ T -> T := by intro h; apply truth"
+  let result = prove_theorem_script_detailed(
+    empty_kernel_state(),
+    script,
+    default_prover_options(),
+  )
+  let err = expect_failed(result)
+  let st_pre = expect_ok_prover(install_prop_prelude(empty_kernel_state()))
+  let prelude = default_prop_prelude()
+  let t_term = expect_ok_prover(ks_mk_const(st_pre, prelude.truth_name))
+
+  assert_eq(err.theorem_name, Some("bad"))
+  assert_true(
+    match err.kind {
+      Tactic => true
+      _ => false
+    },
+  )
+  assert_true(err.detail.contains("ApplyMismatch"))
+  assert_eq(err.step_index, Some(2))
+  assert_eq(err.goal_src, Some("⊢ T -> T"))
+  match err.goal_span {
+    Some(span) => {
+      assert_eq(span.start_offset, 14)
+      assert_eq(span.end_offset, 22)
+    }
+    None => panic()
+  }
+  match err.step_span {
+    Some(span) => {
+      assert_eq(span.start_offset, 38)
+      assert_eq(span.end_offset, 49)
+      assert_eq(err.raw_offset, Some(span.start_offset))
+    }
+    None => panic()
+  }
+  assert_eq(err.step_src, Some("apply truth"))
+  match err.current_goal {
+    Some(goal) => {
+      assert_eq(goal_hyps(goal).length(), 1)
+      assert_true(term_alpha_eq(goal_concl(goal), t_term))
+      assert_true(term_alpha_eq(goal_hyps(goal)[0], t_term))
+    }
+    None => panic()
+  }
+  assert_eq(err.local_hyps.length(), 1)
+  assert_eq(err.local_hyps[0].name, "h")
+  assert_true(term_alpha_eq(err.local_hyps[0].term, t_term))
+  assert_true(err.error is Tactic(ApplyMismatch(_)))
+}
+
+///|
+test "prove_theorem_script_detailed leaves parse failures without theorem context" {
+  let err = expect_failed(
+    prove_theorem_script_detailed(
+      empty_kernel_state(),
+      "theorem bad : ⊢ T := by ; exact truth",
+      default_prover_options(),
+    ),
+  )
+  assert_true(err.theorem_name is None)
+  assert_true(
+    match err.kind {
+      Parse => true
+      _ => false
+    },
+  )
+  assert_true(err.detail.contains("offset "))
+  assert_eq(err.raw_offset, Some(24))
+  assert_true(err.goal_src is None)
+  assert_true(err.goal_span is None)
+  assert_true(err.step_index is None)
+  assert_true(err.step_span is None)
+  assert_true(err.step_src is None)
+  assert_true(err.current_goal is None)
+  assert_eq(err.local_hyps.length(), 0)
+  assert_true(err.error is Parse(_))
+}
+
+///|
+test "prove_theorem_script_detailed records goal location for lowering failures" {
+  let err = expect_failed(
+    prove_theorem_script_detailed(
+      empty_kernel_state(),
+      "theorem bad : ⊢ P := by exact truth",
+      default_prover_options(),
+    ),
+  )
+  assert_eq(err.theorem_name, Some("bad"))
+  assert_true(
+    match err.kind {
+      Sig => true
+      _ => false
+    },
+  )
+  assert_eq(err.goal_src, Some("⊢ P"))
+  match err.goal_span {
+    Some(span) => {
+      assert_eq(span.start_offset, 14)
+      assert_eq(span.end_offset, 17)
+      assert_eq(err.raw_offset, Some(span.start_offset))
+    }
+    None => panic()
+  }
+  assert_true(err.step_index is None)
+  assert_true(err.step_span is None)
+  assert_true(err.step_src is None)
+  assert_true(err.current_goal is None)
+  assert_eq(err.local_hyps.length(), 0)
+  assert_true(err.error is Sig(_))
+}
+
+///|
+test "prove_theorem_script_with_diagnostics returns structured qedside failures" {
+  let err = expect_diag_failed(
+    prove_theorem_script_with_diagnostics(
+      empty_kernel_state(),
+      "theorem bad : ⊢ T -> T := by intro h",
+      default_prover_options(),
+    ),
+  )
+  assert_eq(err.theorem_name, Some("bad"))
+  assert_true(
+    match err.kind {
+      Tactic => true
+      _ => false
+    },
+  )
+  assert_true(err.detail.contains("UnsolvedGoals"))
+  assert_true(err.step_index is None)
+  assert_true(err.step_span is None)
+  assert_true(err.step_src is None)
+  assert_eq(err.goal_src, Some("⊢ T -> T"))
+  match err.current_goal {
+    Some(goal) => {
+      assert_eq(goal_hyps(goal).length(), 1)
+      assert_eq(err.local_hyps.length(), 1)
+      assert_eq(err.local_hyps[0].name, "h")
+      assert_true(term_alpha_eq(goal_concl(goal), err.local_hyps[0].term))
+    }
+    None => panic()
+  }
+}
+
+///|
+test "prove_theorem_script accepts block bodies with mixed separators" {
+  let st0 = expect_ok_prover(ks_add_const(empty_kernel_state(), "P", bool_ty()))
+  let st1 = expect_ok_prover(ks_add_const(st0, "Q", bool_ty()))
+  let script = "theorem t1 : ⊢ P ∧ Q -> P := by\n  intro h;\n  apply and_elim_l\n  exact h"
+  assert_true(
+    prove_theorem_script(st1, script, default_prover_options()) is Ok(_),
   )
 }
 
@@ -118,6 +317,34 @@ test "prove_theorem_script supports exact context-derived and truth names" {
 }
 
 ///|
+test "prove_theorem_script supports witness-based exact theorem names" {
+  let st0 = expect_ok_prover(ks_add_const(empty_kernel_state(), "P", bool_ty()))
+  let st1 = expect_ok_prover(ks_add_const(st0, "Q", bool_ty()))
+
+  let script1 = "theorem t7 : P, Q ⊢ P ∧ Q := by exact and_intro"
+  let script2 = "theorem t8 : P -> Q, P ⊢ Q := by exact imp_elim"
+  let script3 = "theorem t9 : ⊢ P = P := by exact eq_refl"
+  let script4 = "theorem t10 : Q = P ⊢ P = Q := by exact eq_sym"
+  let script5 = "theorem t11 : P = Q, P ⊢ Q := by exact eq_mp"
+
+  assert_true(
+    prove_theorem_script(st1, script1, default_prover_options()) is Ok(_),
+  )
+  assert_true(
+    prove_theorem_script(st1, script2, default_prover_options()) is Ok(_),
+  )
+  assert_true(
+    prove_theorem_script(st1, script3, default_prover_options()) is Ok(_),
+  )
+  assert_true(
+    prove_theorem_script(st1, script4, default_prover_options()) is Ok(_),
+  )
+  assert_true(
+    prove_theorem_script(st1, script5, default_prover_options()) is Ok(_),
+  )
+}
+
+///|
 test "prove_theorem_script rejects apply on direct-close theorem names" {
   let st0 = expect_ok_prover(ks_add_const(empty_kernel_state(), "Q", bool_ty()))
   assert_true(
@@ -135,6 +362,64 @@ test "prove_theorem_script rejects apply on direct-close theorem names" {
       default_prover_options(),
     )
     is Err(Tactic(ApplyMismatch(_))),
+  )
+}
+
+///|
+test "prove_theorem_script rejects exact on apply-only or unavailable theorem names" {
+  let st0 = expect_ok_prover(ks_add_const(empty_kernel_state(), "P", bool_ty()))
+  let st1 = expect_ok_prover(ks_add_const(st0, "Q", bool_ty()))
+  assert_true(
+    prove_theorem_script(
+      st1,
+      "theorem t : ⊢ P -> P ∨ Q := by exact or_intro_l",
+      default_prover_options(),
+    )
+    is Err(Tactic(GoalShapeMismatch(_))),
+  )
+  assert_true(
+    prove_theorem_script(
+      st1,
+      "theorem t : P ⊢ P := by exact and_elim_l",
+      default_prover_options(),
+    )
+    is Err(Tactic(GoalShapeMismatch(_))),
+  )
+}
+
+///|
+test "prove_theorem_script exact local hypothesis must directly witness the goal" {
+  let st0 = expect_ok_prover(ks_add_const(empty_kernel_state(), "P", bool_ty()))
+  let st1 = expect_ok_prover(ks_add_const(st0, "Q", bool_ty()))
+  assert_true(
+    prove_theorem_script(
+      st1,
+      "theorem t : ⊢ P -> Q -> P := by intro hp; exact hp",
+      default_prover_options(),
+    )
+    is Err(Tactic(GoalShapeMismatch(_))),
+  )
+}
+
+///|
+test "prove_theorem_script rejects apply on incompatible implication-backed names" {
+  let st0 = expect_ok_prover(ks_add_const(empty_kernel_state(), "P", bool_ty()))
+  let st1 = expect_ok_prover(ks_add_const(st0, "Q", bool_ty()))
+  assert_true(
+    prove_theorem_script(
+      st1,
+      "theorem t : ⊢ P := by apply and_elim_l",
+      default_prover_options(),
+    )
+    is Err(Tactic(ApplyMismatch(_))),
+  )
+  assert_true(
+    prove_theorem_script(
+      st1,
+      "theorem t : ⊢ P := by apply missing",
+      default_prover_options(),
+    )
+    is Err(Tactic(UnknownName(_))),
   )
 }
 

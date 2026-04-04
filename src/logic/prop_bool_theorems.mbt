@@ -508,6 +508,103 @@ fn prop_logical_or_same(
 }
 
 ///|
+fn terms_match(lhs : Term, rhs : Term) -> Bool {
+  term_logical_eq(lhs, rhs) || term_alpha_eq(lhs, rhs)
+}
+
+///|
+fn theorem_concl_matches(th : Thm, target : Term) -> Bool {
+  match theorem_concl(th) {
+    Ok(concl) => terms_match(concl, target)
+    Err(_) => false
+  }
+}
+
+///|
+fn find_matching_fact(pool : Array[Term], target : Term) -> Term? {
+  for item in pool {
+    if terms_match(item, target) {
+      return Some(item)
+    }
+  }
+  None
+}
+
+///|
+fn find_and_intro_facts(
+  state : KernelState,
+  prelude : PropPrelude,
+  pool : Array[Term],
+  goal_concl : Term,
+) -> (Term, Term)? {
+  match prop_dest_and(state, prelude, goal_concl) {
+    Some((lhs, rhs)) =>
+      match (find_matching_fact(pool, lhs), find_matching_fact(pool, rhs)) {
+        (Some(lhs_fact), Some(rhs_fact)) => Some((lhs_fact, rhs_fact))
+        _ => None
+      }
+    None => None
+  }
+}
+
+///|
+fn find_imp_elim_terms(
+  state : KernelState,
+  prelude : PropPrelude,
+  pool : Array[Term],
+  goal_concl : Term,
+) -> (Term, Term)? {
+  for imp_owner in pool {
+    match prop_dest_imp(state, prelude, imp_owner) {
+      Some((antecedent, consequent)) =>
+        if terms_match(consequent, goal_concl) {
+          match find_matching_fact(pool, antecedent) {
+            Some(antecedent_fact) => return Some((imp_owner, antecedent_fact))
+            None => ()
+          }
+        }
+      None => ()
+    }
+  }
+  None
+}
+
+///|
+fn find_reversed_eq_owner(pool : Array[Term], goal_concl : Term) -> Term? {
+  let (goal_lhs, goal_rhs) = match dest_eq(goal_concl) {
+    Ok(v) => v
+    Err(_) => return None
+  }
+  for owner in pool {
+    match dest_eq(owner) {
+      Ok((owner_lhs, owner_rhs)) =>
+        if terms_match(owner_lhs, goal_rhs) && terms_match(owner_rhs, goal_lhs) {
+          return Some(owner)
+        }
+      Err(_) => ()
+    }
+  }
+  None
+}
+
+///|
+fn find_eq_mp_terms(pool : Array[Term], goal_concl : Term) -> (Term, Term)? {
+  for eq_owner in pool {
+    match dest_eq(eq_owner) {
+      Ok((lhs, rhs)) =>
+        if terms_match(rhs, goal_concl) {
+          match find_matching_fact(pool, lhs) {
+            Some(lhs_fact) => return Some((eq_owner, lhs_fact))
+            None => ()
+          }
+        }
+      Err(_) => ()
+    }
+  }
+  None
+}
+
+///|
 pub fn logic_prop_or_intro_l_thm(
   state : KernelState,
   prelude : PropPrelude,
@@ -639,13 +736,17 @@ fn find_named_and_owner(
 }
 
 ///|
-pub fn logic_prop_named_theorem(
+fn logic_prop_direct_theorem(
   state : KernelState,
   prelude : PropPrelude,
-  name : String,
+  entry : PropTheoremEntry,
   goal_concl : Term,
 ) -> Thm? {
-  if name == "imp_refl" {
+  match entry.exact_class {
+    Some(DirectClose) => ()
+    _ => return None
+  }
+  if entry.name == "imp_refl" {
     match prop_dest_imp(state, prelude, goal_concl) {
       Some((lhs, rhs)) =>
         if bool_term_compat(state, lhs, rhs) {
@@ -658,7 +759,7 @@ pub fn logic_prop_named_theorem(
         }
       None => None
     }
-  } else if name == "truth" {
+  } else if entry.name == "truth" {
     match prelude_false_term(state, prelude) {
       Some(_f) =>
         match ks_mk_const(state, prelude.truth_name) {
@@ -675,21 +776,56 @@ pub fn logic_prop_named_theorem(
         }
       None => None
     }
+  } else if entry.name == "eq_refl" {
+    match dest_eq(goal_concl) {
+      Ok((lhs, rhs)) =>
+        if terms_match(lhs, rhs) {
+          match logic_refl(state, lhs) {
+            Ok(th) =>
+              if theorem_concl_matches(th, goal_concl) {
+                Some(th)
+              } else {
+                None
+              }
+            Err(_) => None
+          }
+        } else {
+          None
+        }
+      Err(_) => None
+    }
   } else {
     None
   }
 }
 
 ///|
-pub fn logic_prop_context_theorem(
+pub fn logic_prop_named_theorem(
   state : KernelState,
   prelude : PropPrelude,
   name : String,
+  goal_concl : Term,
+) -> Thm? {
+  match logic_prop_theorem_entry(name) {
+    Some(entry) => logic_prop_direct_theorem(state, prelude, entry, goal_concl)
+    None => None
+  }
+}
+
+///|
+fn logic_prop_context_exact_theorem(
+  state : KernelState,
+  prelude : PropPrelude,
+  entry : PropTheoremEntry,
   pool : Array[Term],
   goal_concl : Term,
 ) -> (Thm, Term)? {
-  if name == "and_elim_l" || name == "and_elim_r" {
-    let want_left = name == "and_elim_l"
+  match entry.exact_class {
+    Some(ContextDerived) => ()
+    _ => return None
+  }
+  if entry.name == "and_elim_l" || entry.name == "and_elim_r" {
+    let want_left = entry.name == "and_elim_l"
     match find_named_and_owner(state, prelude, pool, want_left, goal_concl) {
       Some(owner) => {
         let th_owner = match logic_assume(state, owner) {
@@ -711,7 +847,30 @@ pub fn logic_prop_context_theorem(
       }
       None => None
     }
-  } else if name == "not_elim" {
+  } else if entry.name == "and_intro" {
+    match find_and_intro_facts(state, prelude, pool, goal_concl) {
+      Some((lhs_fact, rhs_fact)) => {
+        let th_lhs = match logic_assume(state, lhs_fact) {
+          Ok(v) => v
+          Err(_) => return None
+        }
+        let th_rhs = match logic_assume(state, rhs_fact) {
+          Ok(v) => v
+          Err(_) => return None
+        }
+        match logic_prop_and_intro_thm(state, prelude, th_lhs, th_rhs) {
+          Ok(th) =>
+            if theorem_concl_matches(th, goal_concl) {
+              Some((th, lhs_fact))
+            } else {
+              None
+            }
+          Err(_) => None
+        }
+      }
+      None => None
+    }
+  } else if entry.name == "not_elim" {
     match prelude_false_term(state, prelude) {
       Some(false_term) =>
         if !bool_term_compat(state, goal_concl, false_term) {
@@ -764,7 +923,7 @@ pub fn logic_prop_context_theorem(
         }
       None => None
     }
-  } else if name == "ex_falso" {
+  } else if entry.name == "ex_falso" {
     match prelude_false_term(state, prelude) {
       Some(false_term) =>
         match find_matching_term(state, pool, false_term) {
@@ -789,21 +948,105 @@ pub fn logic_prop_context_theorem(
         }
       None => None
     }
+  } else if entry.name == "imp_elim" {
+    match find_imp_elim_terms(state, prelude, pool, goal_concl) {
+      Some((imp_owner, antecedent_fact)) => {
+        let th_imp = match logic_assume(state, imp_owner) {
+          Ok(v) => v
+          Err(_) => return None
+        }
+        let th_antecedent = match logic_assume(state, antecedent_fact) {
+          Ok(v) => v
+          Err(_) => return None
+        }
+        match logic_prop_imp_elim_thm(state, prelude, th_imp, th_antecedent) {
+          Ok(th) =>
+            if theorem_concl_matches(th, goal_concl) {
+              Some((th, imp_owner))
+            } else {
+              None
+            }
+          Err(_) => None
+        }
+      }
+      None => None
+    }
+  } else if entry.name == "eq_sym" {
+    match find_reversed_eq_owner(pool, goal_concl) {
+      Some(owner) => {
+        let th_owner = match logic_assume(state, owner) {
+          Ok(v) => v
+          Err(_) => return None
+        }
+        match logic_eq_sym(state, th_owner) {
+          Ok(th) =>
+            if theorem_concl_matches(th, goal_concl) {
+              Some((th, owner))
+            } else {
+              None
+            }
+          Err(_) => None
+        }
+      }
+      None => None
+    }
+  } else if entry.name == "eq_mp" {
+    match find_eq_mp_terms(pool, goal_concl) {
+      Some((eq_owner, lhs_fact)) => {
+        let th_eq = match logic_assume(state, eq_owner) {
+          Ok(v) => v
+          Err(_) => return None
+        }
+        let th_lhs = match logic_assume(state, lhs_fact) {
+          Ok(v) => v
+          Err(_) => return None
+        }
+        match logic_eq_mp_bool(state, th_eq, th_lhs) {
+          Ok(th) =>
+            if theorem_concl_matches(th, goal_concl) {
+              Some((th, eq_owner))
+            } else {
+              None
+            }
+          Err(_) => None
+        }
+      }
+      None => None
+    }
   } else {
     None
   }
 }
 
 ///|
-pub fn logic_prop_context_apply_theorem(
+pub fn logic_prop_context_theorem(
   state : KernelState,
   prelude : PropPrelude,
   name : String,
   pool : Array[Term],
   goal_concl : Term,
 ) -> (Thm, Term)? {
-  if name == "and_elim_l" || name == "and_elim_r" {
-    let want_left = name == "and_elim_l"
+  match logic_prop_theorem_entry(name) {
+    Some(entry) =>
+      logic_prop_context_exact_theorem(state, prelude, entry, pool, goal_concl)
+    None => None
+  }
+}
+
+///|
+fn logic_prop_apply_theorem(
+  state : KernelState,
+  prelude : PropPrelude,
+  entry : PropTheoremEntry,
+  pool : Array[Term],
+  goal_concl : Term,
+) -> (Thm, Term)? {
+  match entry.apply_class {
+    Some(ImplicationBacked) => ()
+    _ => return None
+  }
+  if entry.name == "and_elim_l" || entry.name == "and_elim_r" {
+    let want_left = entry.name == "and_elim_l"
     match find_named_and_owner(state, prelude, pool, want_left, goal_concl) {
       Some(owner) => {
         let th_owner = match logic_assume(state, owner) {
@@ -828,7 +1071,7 @@ pub fn logic_prop_context_apply_theorem(
       }
       None => None
     }
-  } else if name == "or_intro_l" {
+  } else if entry.name == "or_intro_l" {
     match prop_dest_or(state, prelude, goal_concl) {
       Some((lhs, rhs)) => {
         let th_lhs = match logic_assume(state, lhs) {
@@ -847,7 +1090,7 @@ pub fn logic_prop_context_apply_theorem(
       }
       None => None
     }
-  } else if name == "or_intro_r" {
+  } else if entry.name == "or_intro_r" {
     match prop_dest_or(state, prelude, goal_concl) {
       Some((lhs, rhs)) => {
         let th_rhs = match logic_assume(state, rhs) {
@@ -866,8 +1109,61 @@ pub fn logic_prop_context_apply_theorem(
       }
       None => None
     }
+  } else if entry.name == "eq_sym" {
+    match dest_eq(goal_concl) {
+      Ok((lhs, rhs)) =>
+        match mk_eq(rhs, lhs) {
+          Ok(antecedent) => {
+            let th_antecedent = match logic_assume(state, antecedent) {
+              Ok(v) => v
+              Err(_) => return None
+            }
+            let th_body = match logic_eq_sym(state, th_antecedent) {
+              Ok(v) => v
+              Err(_) => return None
+            }
+            match
+              logic_prop_imp_intro_thm(state, prelude, antecedent, th_body) {
+              Ok(th) => {
+                let imp_concl = match theorem_concl(th) {
+                  Ok(v) => v
+                  Err(_) => return None
+                }
+                match prop_dest_imp(state, prelude, imp_concl) {
+                  Some((imp_lhs, imp_rhs)) =>
+                    if terms_match(imp_lhs, antecedent) &&
+                      terms_match(imp_rhs, goal_concl) {
+                      Some((th, antecedent))
+                    } else {
+                      None
+                    }
+                  None => None
+                }
+              }
+              Err(_) => None
+            }
+          }
+          Err(_) => None
+        }
+      Err(_) => None
+    }
   } else {
     None
+  }
+}
+
+///|
+pub fn logic_prop_context_apply_theorem(
+  state : KernelState,
+  prelude : PropPrelude,
+  name : String,
+  pool : Array[Term],
+  goal_concl : Term,
+) -> (Thm, Term)? {
+  match logic_prop_theorem_entry(name) {
+    Some(entry) =>
+      logic_prop_apply_theorem(state, prelude, entry, pool, goal_concl)
+    None => None
   }
 }
 

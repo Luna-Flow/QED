@@ -62,6 +62,16 @@ pub struct LocalHyp {
 }
 
 ///|
+pub fn local_hyp_name(hyp : LocalHyp) -> String {
+  hyp.name
+}
+
+///|
+pub fn local_hyp_term(hyp : LocalHyp) -> Term {
+  hyp.term
+}
+
+///|
 pub enum PendingRefine {
   ImpBackwardTerm(Term)
   ImpBackwardTheorem(Thm)
@@ -90,6 +100,21 @@ pub struct PendingGoal {
   refine_chain : Array[PendingRefine]
   split_role : SplitRole
   or_ctx : OrContext
+}
+
+///|
+pub fn pending_goal_hyps(goal : PendingGoal) -> Array[Term] {
+  goal.hyps.copy()
+}
+
+///|
+pub fn pending_goal_concl(goal : PendingGoal) -> Term {
+  goal.concl
+}
+
+///|
+pub fn pending_goal_locals(goal : PendingGoal) -> Array[LocalHyp] {
+  goal.locals.copy()
 }
 
 ///|
@@ -131,6 +156,23 @@ pub fn ps_init(goal : Goal) -> ProofState {
 ///|
 pub fn ps_goal_count(ps : ProofState) -> Int {
   ps.pending.length()
+}
+
+///|
+pub fn ps_current_pending_goal(ps : ProofState) -> PendingGoal? {
+  if ps.pending.length() == 0 {
+    None
+  } else {
+    Some(ps.pending[0])
+  }
+}
+
+///|
+pub fn ps_current_local_hyps(ps : ProofState) -> Array[LocalHyp] {
+  match ps_current_pending_goal(ps) {
+    Some(goal) => goal.locals.copy()
+    None => []
+  }
 }
 
 ///|
@@ -190,6 +232,15 @@ fn find_local(locals : Array[LocalHyp], name : String) -> Term? {
 }
 
 ///|
+fn local_ref_bindings(locals : Array[LocalHyp]) -> Array[(String, Term)] {
+  let out : Array[(String, Term)] = []
+  for item in locals {
+    out.push((item.name, item.term))
+  }
+  out
+}
+
+///|
 fn hyps_have_alpha(hyps : Array[Term], term : Term) -> Bool {
   hyps.any(fn(h) { term_logical_eq(h, term) || term_alpha_eq(h, term) })
 }
@@ -212,15 +263,6 @@ fn find_imp_antecedent_with_imp(
 }
 
 ///|
-fn local_ref_bindings(locals : Array[LocalHyp]) -> Array[(String, Term)] {
-  let out : Array[(String, Term)] = []
-  for item in locals {
-    out.push((item.name, item.term))
-  }
-  out
-}
-
-///|
 fn fact_pool(g : PendingGoal) -> Array[Term] {
   let out : Array[Term] = []
   for h in g.hyps {
@@ -233,64 +275,15 @@ fn fact_pool(g : PendingGoal) -> Array[Term] {
 }
 
 ///|
-fn theorem_apply_antecedent(
-  state : KernelState,
-  prelude : PropPrelude,
-  theorem : Thm,
-  goal_concl : Term,
-) -> Term? {
-  let theorem_concl = match thm_concl(theorem) {
-    Ok(v) => v
-    Err(_) => return None
-  }
-  match prop_dest_imp(state, prelude, theorem_concl) {
-    Some((antecedent, consequent)) =>
-      if term_logical_eq(consequent, goal_concl) ||
-        term_alpha_eq(consequent, goal_concl) {
-        Some(antecedent)
-      } else {
-        None
-      }
-    None => None
-  }
-}
-
-///|
-fn named_apply_mismatch(name : String) -> TacticExecError {
-  if name == "and_elim_l" || name == "and_elim_r" {
-    ApplyMismatch("cannot match conjunction eliminator to current goal")
-  } else if name == "or_intro_l" {
-    ApplyMismatch("or_intro_l requires disjunction goal")
-  } else if name == "or_intro_r" {
-    ApplyMismatch("or_intro_r requires disjunction goal")
-  } else if name == "truth" || name == "not_elim" || name == "ex_falso" {
-    ApplyMismatch("named theorem is not an implication")
-  } else {
-    UnknownName(name)
-  }
-}
-
-///|
-fn exact_from_term(
+fn exact_from_local_witness(
   state : KernelState,
   prelude : PropPrelude,
   ps : ProofState,
   g : PendingGoal,
   rest : Array[PendingGoal],
-  t : Term,
+  _name : String,
+  _term : Term,
 ) -> Result[ProofState, TacticExecError] {
-  let hyp_bridge = g.hyps.any(fn(h) {
-    (term_logical_eq(h, g.concl) || term_alpha_eq(h, g.concl)) &&
-    (term_logical_eq(t, h) || term_alpha_eq(t, h))
-  })
-  let concl_ok = term_logical_eq(t, g.concl) ||
-    term_alpha_eq(t, g.concl) ||
-    hyp_bridge
-  if !concl_ok {
-    return Err(
-      GoalShapeMismatch("exact name does not match current conclusion"),
-    )
-  }
   let base = match logic_prop_close_hypothesis(state, g.hyps, g.concl) {
     Ok(v) => v
     Err(e) => return Err(Logic(e))
@@ -319,17 +312,32 @@ fn exact_from_theorem(
 }
 
 ///|
-fn exact_from_context_theorem(
+fn exact_from_witness(
   state : KernelState,
   prelude : PropPrelude,
   ps : ProofState,
   g : PendingGoal,
   rest : Array[PendingGoal],
-  theorem : Thm,
-  antecedent : Term,
+  witness : PropExactWitness,
 ) -> Result[ProofState, TacticExecError] {
-  let _ = antecedent
-  exact_from_theorem(state, prelude, ps, g, rest, theorem)
+  match witness {
+    ExactLocalHyp(name, term) =>
+      exact_from_local_witness(state, prelude, ps, g, rest, name, term)
+    ExactDirectTheorem(_, theorem) =>
+      exact_from_theorem(state, prelude, ps, g, rest, theorem)
+    ExactContextTheorem(_, theorem, _) =>
+      exact_from_theorem(state, prelude, ps, g, rest, theorem)
+  }
+}
+
+///|
+fn named_exact_mismatch() -> TacticExecError {
+  GoalShapeMismatch("exact witness does not directly close current goal")
+}
+
+///|
+fn named_apply_mismatch() -> TacticExecError {
+  ApplyMismatch("named theorem does not apply to current goal")
 }
 
 ///|
@@ -402,7 +410,7 @@ fn root_concl_compat(
 }
 
 ///|
-fn root_matches_thm(
+fn validate_root_theorem(
   state : KernelState,
   th : Thm,
   root : Goal,
@@ -475,7 +483,7 @@ fn root_matches_thm(
 }
 
 ///|
-fn propagate_finished(
+fn finalize_completed_theorem(
   state : KernelState,
   prelude : PropPrelude,
   root : Goal,
@@ -483,7 +491,7 @@ fn propagate_finished(
   th : Thm,
 ) -> Result[ProofState, TacticExecError] {
   if rest.length() == 0 {
-    match root_matches_thm(state, th, root, prelude) {
+    match validate_root_theorem(state, th, root, prelude) {
       Ok(_) =>
         Ok(ProofState::{ root_goal: root, pending: [], final_thm: Some(th) })
       Err(e) => Err(e)
@@ -498,7 +506,7 @@ fn propagate_finished(
 }
 
 ///|
-fn apply_base_and_refines(
+fn replay_goal_refines(
   state : KernelState,
   prelude : PropPrelude,
   g : PendingGoal,
@@ -536,7 +544,7 @@ fn apply_base_and_refines(
 }
 
 ///|
-fn discharge_or_wrap_goal(
+fn wrap_and_discharge_goal(
   state : KernelState,
   prelude : PropPrelude,
   g : PendingGoal,
@@ -563,6 +571,102 @@ fn discharge_or_wrap_goal(
 }
 
 ///|
+fn merge_split_goal_evidence(
+  state : KernelState,
+  prelude : PropPrelude,
+  left_th : Thm,
+  right_th : Thm,
+  and_term : Term,
+) -> Result[Thm, TacticExecError] {
+  match
+    logic_prop_merge_conjunction(state, prelude, left_th, right_th, and_term) {
+    Ok(v) => Ok(v)
+    Err(e) => Err(Logic(e))
+  }
+}
+
+///|
+fn store_split_left_partner(
+  root : Goal,
+  rest : Array[PendingGoal],
+  and_term : Term,
+  replayed : Thm,
+) -> Result[ProofState, TacticExecError] {
+  match split_pending_tail(rest) {
+    Some((hd, tl)) =>
+      match hd.split_role {
+        SplitRight(c2, None) =>
+          if term_alpha_eq(and_term, c2) {
+            let hd2 = PendingGoal::{
+              hyps: hd.hyps,
+              concl: hd.concl,
+              locals: hd.locals,
+              imp_prefix: hd.imp_prefix,
+              refine_chain: hd.refine_chain,
+              split_role: SplitRight(c2, Some(replayed)),
+              or_ctx: hd.or_ctx,
+            }
+            Ok(ProofState::{
+              root_goal: root,
+              pending: concat_pending([hd2], tl),
+              final_thm: None,
+            })
+          } else {
+            Err(GoalShapeMismatch("split conjunction mismatch"))
+          }
+        _ => Err(GoalShapeMismatch("expected split right partner"))
+      }
+    None => Err(GoalShapeMismatch("missing split partner goal"))
+  }
+}
+
+///|
+priv enum GoalEvidenceAdvance {
+  Waiting(ProofState)
+  Completed(Thm)
+}
+
+///|
+fn advance_goal_evidence(
+  state : KernelState,
+  prelude : PropPrelude,
+  root : Goal,
+  g : PendingGoal,
+  rest : Array[PendingGoal],
+  replayed : Thm,
+) -> Result[GoalEvidenceAdvance, TacticExecError] {
+  match g.split_role {
+    SplitNone =>
+      match wrap_and_discharge_goal(state, prelude, g, replayed) {
+        Ok(v) => Ok(Completed(v))
+        Err(e) => Err(e)
+      }
+    SplitLeft(and_term) =>
+      match store_split_left_partner(root, rest, and_term, replayed) {
+        Ok(v) => Ok(Waiting(v))
+        Err(e) => Err(e)
+      }
+    SplitRight(and_term, Some(th_l)) => {
+      let merged = match
+        merge_split_goal_evidence(state, prelude, th_l, replayed, and_term) {
+        Ok(v) => v
+        Err(e) => return Err(e)
+      }
+      match wrap_and_discharge_goal(state, prelude, g, merged) {
+        Ok(v) => Ok(Completed(v))
+        Err(e) => Err(e)
+      }
+    }
+    SplitRight(_, None) =>
+      Err(
+        ProofSynthesisUnavailable(
+          "internal: closed split right goal without partner evidence",
+        ),
+      )
+  }
+}
+
+///|
 fn finish_goal_evidence(
   state : KernelState,
   prelude : PropPrelude,
@@ -571,63 +675,15 @@ fn finish_goal_evidence(
   rest : Array[PendingGoal],
   base_th : Thm,
 ) -> Result[ProofState, TacticExecError] {
-  let t = match apply_base_and_refines(state, prelude, g, base_th) {
+  let replayed = match replay_goal_refines(state, prelude, g, base_th) {
     Ok(v) => v
     Err(e) => return Err(e)
   }
-  match g.split_role {
-    SplitNone => {
-      let t2 = match discharge_or_wrap_goal(state, prelude, g, t) {
-        Ok(v) => v
-        Err(e) => return Err(e)
-      }
-      propagate_finished(state, prelude, ps.root_goal, rest, t2)
-    }
-    SplitLeft(and_c) =>
-      match split_pending_tail(rest) {
-        Some((hd, tl)) =>
-          match hd.split_role {
-            SplitRight(c2, None) =>
-              if term_alpha_eq(and_c, c2) {
-                let hd2 = PendingGoal::{
-                  hyps: hd.hyps,
-                  concl: hd.concl,
-                  locals: hd.locals,
-                  imp_prefix: hd.imp_prefix,
-                  refine_chain: hd.refine_chain,
-                  split_role: SplitRight(c2, Some(t)),
-                  or_ctx: hd.or_ctx,
-                }
-                Ok(ProofState::{
-                  root_goal: ps.root_goal,
-                  pending: concat_pending([hd2], tl),
-                  final_thm: None,
-                })
-              } else {
-                Err(GoalShapeMismatch("split conjunction mismatch"))
-              }
-            _ => Err(GoalShapeMismatch("expected split right partner"))
-          }
-        None => Err(GoalShapeMismatch("missing split partner goal"))
-      }
-    SplitRight(and_c, Some(th_l)) => {
-      let th_m = match
-        logic_prop_merge_conjunction(state, prelude, th_l, t, and_c) {
-        Ok(v) => v
-        Err(e) => return Err(Logic(e))
-      }
-      let t2 = match discharge_or_wrap_goal(state, prelude, g, th_m) {
-        Ok(v) => v
-        Err(e) => return Err(e)
-      }
-      propagate_finished(state, prelude, ps.root_goal, rest, t2)
-    }
-    SplitRight(_, None) =>
-      Err(
-        ProofSynthesisUnavailable(
-          "internal: closed split right goal without partner evidence",
-        ),
-      )
+  match advance_goal_evidence(state, prelude, ps.root_goal, g, rest, replayed) {
+    Ok(Waiting(next_ps)) => Ok(next_ps)
+    Ok(Completed(th)) =>
+      finalize_completed_theorem(state, prelude, ps.root_goal, rest, th)
+    Err(e) => Err(e)
   }
 }
 
@@ -671,28 +727,20 @@ pub fn ps_apply(
         Err(GoalShapeMismatch("assumption cannot close current goal"))
       }
     Exact(name) =>
-      match find_local(g.locals, name) {
-        Some(t) => exact_from_term(state, prelude, ps, g, rest, t)
-        None =>
-          match
-            logic_prop_resolve_ref(
-              state,
-              prelude,
-              local_ref_bindings(g.locals),
-              fact_pool(g),
-              g.concl,
-              name,
-            ) {
-            Some(LocalFact(t)) =>
-              exact_from_term(state, prelude, ps, g, rest, t)
-            Some(NamedTheorem(th)) =>
-              exact_from_theorem(state, prelude, ps, g, rest, th)
-            Some(ContextDerived(th, antecedent)) =>
-              exact_from_context_theorem(
-                state, prelude, ps, g, rest, th, antecedent,
-              )
-            None => Err(UnknownName(name))
-          }
+      match
+        logic_prop_resolve_exact_witness(
+          state,
+          prelude,
+          local_ref_bindings(g.locals),
+          g.hyps,
+          g.concl,
+          name,
+        ) {
+        Some(PropExactWitnessResolution::ExactWitnessApplicable(witness)) =>
+          exact_from_witness(state, prelude, ps, g, rest, witness)
+        Some(PropExactWitnessResolution::ExactWitnessKnownButUnavailable) =>
+          Err(named_exact_mismatch())
+        None => Err(UnknownName(name))
       }
     Intro(name) =>
       match prop_dest_imp(state, prelude, g.concl) {
@@ -880,19 +928,16 @@ pub fn ps_apply(
               }
               None => Err(ApplyMismatch("and_intro requires conjunction goal"))
             }
-          } else if name == "and_elim_l" ||
-            name == "and_elim_r" ||
-            name == "or_intro_l" ||
-            name == "or_intro_r" {
+          } else {
             match
-              logic_prop_context_apply_theorem(
+              logic_prop_resolve_apply_theorem(
                 state,
                 prelude,
-                name,
                 fact_pool(g),
                 g.concl,
+                name,
               ) {
-              Some((th, antecedent)) => {
+              Some(PropApplyTheoremResolution::Applicable(th, antecedent)) => {
                 let rc = g.refine_chain.copy()
                 rc.push(ImpBackwardTheorem(th))
                 let (oh, ol, oip, _orc) = copy_goal_shape(g)
@@ -906,86 +951,9 @@ pub fn ps_apply(
                   or_ctx: g.or_ctx,
                 })
               }
-              None => Err(named_apply_mismatch(name))
-            }
-          } else {
-            match
-              logic_prop_resolve_ref(
-                state,
-                prelude,
-                local_ref_bindings(g.locals),
-                fact_pool(g),
-                g.concl,
-                name,
-              ) {
-              Some(LocalFact(term)) =>
-                match prop_dest_imp(state, prelude, term) {
-                  Some((antecedent, consequent)) =>
-                    if term_logical_eq(consequent, g.concl) ||
-                      term_alpha_eq(consequent, g.concl) {
-                      let rc = g.refine_chain.copy()
-                      rc.push(ImpBackwardTerm(term))
-                      let (oh, ol, oip, _orc) = copy_goal_shape(g)
-                      keep_one(PendingGoal::{
-                        hyps: oh,
-                        concl: antecedent,
-                        locals: ol,
-                        imp_prefix: oip,
-                        refine_chain: rc,
-                        split_role: g.split_role,
-                        or_ctx: g.or_ctx,
-                      })
-                    } else {
-                      Err(
-                        ApplyMismatch(
-                          "local implication does not target current goal",
-                        ),
-                      )
-                    }
-                  None => Err(ApplyMismatch("local name is not an implication"))
-                }
-              Some(NamedTheorem(th)) =>
-                match theorem_apply_antecedent(state, prelude, th, g.concl) {
-                  Some(antecedent) => {
-                    let rc = g.refine_chain.copy()
-                    rc.push(ImpBackwardTheorem(th))
-                    let (oh, ol, oip, _orc) = copy_goal_shape(g)
-                    keep_one(PendingGoal::{
-                      hyps: oh,
-                      concl: antecedent,
-                      locals: ol,
-                      imp_prefix: oip,
-                      refine_chain: rc,
-                      split_role: g.split_role,
-                      or_ctx: g.or_ctx,
-                    })
-                  }
-                  None =>
-                    Err(
-                      ApplyMismatch(
-                        "named theorem implication does not target current goal",
-                      ),
-                    )
-                }
-              Some(ContextDerived(th, antecedent)) =>
-                match theorem_apply_antecedent(state, prelude, th, g.concl) {
-                  Some(_) => {
-                    let rc = g.refine_chain.copy()
-                    rc.push(ImpBackwardTheorem(th))
-                    let (oh, ol, oip, _orc) = copy_goal_shape(g)
-                    keep_one(PendingGoal::{
-                      hyps: oh,
-                      concl: antecedent,
-                      locals: ol,
-                      imp_prefix: oip,
-                      refine_chain: rc,
-                      split_role: g.split_role,
-                      or_ctx: g.or_ctx,
-                    })
-                  }
-                  None => Err(named_apply_mismatch(name))
-                }
-              None => Err(named_apply_mismatch(name))
+              Some(PropApplyTheoremResolution::KnownButUnavailable) =>
+                Err(named_apply_mismatch())
+              None => Err(UnknownName(name))
             }
           }
       }

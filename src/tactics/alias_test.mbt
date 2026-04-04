@@ -9,9 +9,11 @@ using @kernel {
   bool_ty,
   ks_add_const,
   ks_mk_const,
+  mk_eq,
   mk_const,
   mk_var,
   term_alpha_eq,
+  term_logical_eq,
   thm_concl,
 }
 

@@ -14,12 +14,14 @@ using @kernel {
 ///|
 using @logic {
   type PropPrelude,
-  type PropRefResolution,
+  type PropApplyTheoremResolution,
+  type PropExactWitness,
+  type PropExactWitnessResolution,
   prop_dest_imp,
   prop_dest_and,
   prop_dest_or,
-  logic_prop_context_apply_theorem,
-  logic_prop_resolve_ref,
+  logic_prop_resolve_apply_theorem,
+  logic_prop_resolve_exact_witness,
 }
 
 ///|

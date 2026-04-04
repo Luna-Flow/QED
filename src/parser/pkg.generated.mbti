@@ -87,9 +87,24 @@ pub struct ResolvedGoal {
   concl : @elab.RTerm
 }
 
+pub struct SourceSpan {
+  start_offset : Int
+  end_offset : Int
+}
+
 pub struct SynGoal {
   hyps : Array[SynTerm]
   concl : SynTerm
+}
+
+pub struct SynScriptBody {
+  steps : Array[SynScriptStep]
+}
+
+pub struct SynScriptStep {
+  step : SynTacticStep
+  span : SourceSpan
+  src : String
 }
 
 pub enum SynTacticStep {
@@ -113,7 +128,8 @@ pub struct SynTheoremScript {
   name : String
   goal : SynGoal
   goal_src : String
-  steps : Array[SynTacticStep]
+  goal_span : SourceSpan
+  body : SynScriptBody
 }
 
 // Type aliases

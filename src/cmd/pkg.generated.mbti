@@ -1,0 +1,70 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Luna-Flow/QED/cmd"
+
+import {
+  "Luna-Flow/QED/kernel",
+}
+
+// Values
+pub fn cmd_exit_code(CmdRunResult) -> Int
+
+pub fn cmd_failure_kind_to_string(CmdFailureKind) -> String
+
+pub fn cmd_options(Bool) -> CmdOptions
+
+pub fn cmd_render_result(CmdRunResult) -> String
+
+pub fn cmd_run_argv(Array[String], CmdOptions) -> CmdRunResult
+
+pub fn cmd_run_script(String, String, CmdOptions) -> CmdRunResult
+
+pub fn default_cmd_options() -> CmdOptions
+
+// Errors
+
+// Types and methods
+pub struct CmdFailure {
+  path : String
+  theorem_name : String?
+  kind : CmdFailureKind
+  step_index : Int?
+  current_goal_summary : String?
+  local_hyps : Array[CmdLocalHypSummary]
+  detail : String
+}
+
+pub enum CmdFailureKind {
+  Usage
+  Io
+  Parse
+  Bridge
+  Tactic
+  Sig
+  Logic
+}
+
+pub struct CmdLocalHypSummary {
+  name : String
+  term_summary : String
+}
+
+pub struct CmdOptions {
+  auto_install_prelude : Bool
+}
+
+pub enum CmdRunResult {
+  Success(CmdSuccess)
+  Failure(CmdFailure)
+}
+
+pub struct CmdSuccess {
+  path : String
+  theorem_name : String
+  conclusion : @kernel.Term
+  conclusion_summary : String
+}
+
+// Type aliases
+
+// Traits
+

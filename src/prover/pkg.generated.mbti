@@ -12,11 +12,23 @@ pub fn default_prover_options() -> ProverOptions
 
 pub fn prove_theorem_script(@kernel.KernelState, String, ProverOptions) -> Result[(@kernel.KernelState, @kernel.Thm), ProverError]
 
+pub fn prove_theorem_script_detailed(@kernel.KernelState, String, ProverOptions) -> ProverRunResult
+
+pub fn prove_theorem_script_with_diagnostics(@kernel.KernelState, String, ProverOptions) -> Result[(@kernel.KernelState, @kernel.Thm), ProverFailure]
+
 pub fn prover_options(Bool) -> ProverOptions
 
 // Errors
 
 // Types and methods
+pub enum ProverDiagnosticKind {
+  Parse
+  Bridge
+  Tactic
+  Sig
+  Logic
+}
+
 pub enum ProverError {
   Parse(@parser.ParseError)
   Bridge(@parser.ParseBridgeError)
@@ -25,8 +37,39 @@ pub enum ProverError {
   Logic(@kernel.LogicError)
 }
 
+pub struct ProverFailure {
+  theorem_name : String?
+  kind : ProverDiagnosticKind
+  detail : String
+  raw_offset : Int?
+  goal_src : String?
+  goal_span : @parser.SourceSpan?
+  step_index : Int?
+  step_span : @parser.SourceSpan?
+  step_src : String?
+  current_goal : @tactics.Goal?
+  local_hyps : Array[ProverLocalHyp]
+  error : ProverError
+}
+
+pub struct ProverLocalHyp {
+  name : String
+  term : @kernel.Term
+}
+
 pub struct ProverOptions {
   auto_install_prelude : Bool
+}
+
+pub enum ProverRunResult {
+  Proved(ProverSuccess)
+  Failed(ProverFailure)
+}
+
+pub struct ProverSuccess {
+  state : @kernel.KernelState
+  theorem_name : String
+  thm : @kernel.Thm
 }
 
 // Type aliases

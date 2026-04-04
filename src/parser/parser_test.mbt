@@ -117,6 +117,11 @@ fn[T, E] expect_ok_parser(res : Result[T, E]) -> T {
 }
 
 ///|
+fn expect_script_step(step : SynScriptStep) -> SynTacticStep {
+  step.step
+}
+
+///|
 fn expect_parse_error(res : Result[SynTerm, ParseError]) -> ParseError {
   match res {
     Err(e) => e
@@ -527,9 +532,17 @@ test "parse theorem script raw supports linear by-steps" {
   match parse_theorem_script_raw(src) {
     Ok(s) => {
       assert_eq(s.name, "t1")
-      assert_eq(s.steps.length(), 2)
-      assert_true(s.steps[0] is Intro("h"))
-      assert_true(s.steps[1] is Exact("h"))
+      assert_eq(s.goal_span.start_offset, 13)
+      assert_eq(s.goal_span.end_offset, 21)
+      assert_eq(s.body.steps.length(), 2)
+      assert_true(expect_script_step(s.body.steps[0]) is Intro("h"))
+      assert_eq(s.body.steps[0].src, "intro h")
+      assert_eq(s.body.steps[0].span.start_offset, 28)
+      assert_eq(s.body.steps[0].span.end_offset, 35)
+      assert_true(expect_script_step(s.body.steps[1]) is Exact("h"))
+      assert_eq(s.body.steps[1].src, "exact h")
+      assert_eq(s.body.steps[1].span.start_offset, 37)
+      assert_eq(s.body.steps[1].span.end_offset, 44)
       assert_eq(s.goal.hyps.length(), 0)
     }
     Err(_) => panic()
@@ -543,7 +556,7 @@ test "parse theorem script raw normalizes turnstile escapes and keeps raw offset
     Ok(s) => {
       assert_eq(s.name, "t1")
       assert_eq(s.goal_src, "⊢ P -> P")
-      assert_eq(s.steps.length(), 2)
+      assert_eq(s.body.steps.length(), 2)
     }
     Err(_) => panic()
   }
@@ -564,6 +577,42 @@ test "parse theorem script raw normalizes turnstile escapes and keeps raw offset
 }
 
 ///|
+test "parse theorem script raw supports block bodies and mixed separators" {
+  let src = "theorem t1 : ⊢ P -> P := by\n  intro h;\n  exact h"
+  match parse_theorem_script_raw(src) {
+    Ok(s) => {
+      assert_eq(s.name, "t1")
+      assert_eq(s.body.steps.length(), 2)
+      assert_true(expect_script_step(s.body.steps[0]) is Intro("h"))
+      assert_eq(s.body.steps[0].src, "intro h")
+      assert_true(expect_script_step(s.body.steps[1]) is Exact("h"))
+      assert_eq(s.body.steps[1].src, "exact h")
+      assert_true(
+        s.body.steps[0].span.start_offset < s.body.steps[1].span.start_offset,
+      )
+    }
+    Err(_) => panic()
+  }
+}
+
+///|
+test "parse theorem script raw keeps raw offsets for block body errors" {
+  let src = "theorem t1 : ⊢ P -> P := by\n\nexact h"
+  match parse_theorem_script_raw(src) {
+    Err(e) => {
+      assert_true(
+        match e.code {
+          UnexpectedToken => true
+          _ => false
+        },
+      )
+      assert_eq(e.offset, 28)
+    }
+    Ok(_) => panic()
+  }
+}
+
+///|
 test "parse theorem script raw rejects malformed bodies" {
   assert_true(parse_theorem_script_raw("theorem t : ⊢ P := by") is Err(_))
   assert_true(
@@ -571,5 +620,9 @@ test "parse theorem script raw rejects malformed bodies" {
   )
   assert_true(
     parse_theorem_script_raw("theorem t : ⊢ P := by ; exact h") is Err(_),
+  )
+  assert_true(
+    parse_theorem_script_raw("theorem t : ⊢ P := by intro h\n; exact h")
+    is Err(_),
   )
 }

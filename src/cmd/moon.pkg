@@ -1,0 +1,14 @@
+import {
+  "Luna-Flow/QED/elab",
+  "Luna-Flow/QED/kernel",
+  "Luna-Flow/QED/parser",
+  "Luna-Flow/QED/prover",
+  "Luna-Flow/QED/tactics",
+  "moonbitlang/core/env",
+  "moonbitlang/x/fs",
+  "moonbitlang/x/sys",
+}
+
+options(
+  "is-main": true,
+)

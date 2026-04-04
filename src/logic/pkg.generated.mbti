@@ -116,9 +116,21 @@ pub fn logic_prop_replay_imp_elim_backward(@kernel.KernelState, PropPrelude, Arr
 
 pub fn logic_prop_replay_imp_elim_backward_thm(@kernel.KernelState, PropPrelude, Array[@kernel.Term], @kernel.Thm, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
 
+pub fn logic_prop_resolve_apply_theorem(@kernel.KernelState, PropPrelude, Array[@kernel.Term], @kernel.Term, String) -> PropApplyTheoremResolution?
+
+pub fn logic_prop_resolve_exact_theorem(@kernel.KernelState, PropPrelude, Array[@kernel.Term], @kernel.Term, String) -> PropExactTheoremResolution?
+
+pub fn logic_prop_resolve_exact_witness(@kernel.KernelState, PropPrelude, Array[(String, @kernel.Term)], Array[@kernel.Term], @kernel.Term, String) -> PropExactWitnessResolution?
+
 pub fn logic_prop_resolve_ref(@kernel.KernelState, PropPrelude, Array[(String, @kernel.Term)], Array[@kernel.Term], @kernel.Term, String) -> PropRefResolution?
 
 pub fn logic_prop_strengthen_to_hyps(@kernel.KernelState, Array[@kernel.Term], @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
+
+pub fn logic_prop_theorem_at(Int) -> PropTheoremEntry?
+
+pub fn logic_prop_theorem_count() -> Int
+
+pub fn logic_prop_theorem_entry(String) -> PropTheoremEntry?
 
 pub fn logic_prop_truth_const_thm(@kernel.KernelState, PropPrelude) -> Result[@kernel.Thm, @kernel.LogicError]
 
@@ -177,6 +189,27 @@ pub fn prop_truth_name(PropPrelude) -> String
 // Errors
 
 // Types and methods
+pub enum PropApplyTheoremResolution {
+  Applicable(@kernel.Thm, @kernel.Term)
+  KnownButUnavailable
+}
+
+pub enum PropExactTheoremResolution {
+  ExactApplicable(@kernel.Thm)
+  ExactKnownButUnavailable
+}
+
+pub enum PropExactWitness {
+  ExactLocalHyp(String, @kernel.Term)
+  ExactDirectTheorem(String, @kernel.Thm)
+  ExactContextTheorem(String, @kernel.Thm, Array[@kernel.Term])
+}
+
+pub enum PropExactWitnessResolution {
+  ExactWitnessApplicable(PropExactWitness)
+  ExactWitnessKnownButUnavailable
+}
+
 pub struct PropPrelude {
   truth_name : String
   false_name : String
@@ -196,6 +229,19 @@ pub enum PropRefResolution {
 pub struct PropRule {
   name : String
   premise_count : Int
+}
+
+pub enum PropTheoremClass {
+  DirectClose
+  ImplicationBacked
+  ContextDerived
+}
+
+pub struct PropTheoremEntry {
+  name : String
+  premise_count : Int
+  exact_class : PropTheoremClass?
+  apply_class : PropTheoremClass?
 }
 
 // Type aliases

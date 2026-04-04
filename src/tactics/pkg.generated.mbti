@@ -13,13 +13,27 @@ pub fn goal_hyp_count(Goal) -> Int
 
 pub fn goal_hyps(Goal) -> Array[@kernel.Term]
 
+pub fn local_hyp_name(LocalHyp) -> String
+
+pub fn local_hyp_term(LocalHyp) -> @kernel.Term
+
 pub fn mk_goal(Array[@kernel.Term], @kernel.Term) -> Goal
+
+pub fn pending_goal_concl(PendingGoal) -> @kernel.Term
+
+pub fn pending_goal_hyps(PendingGoal) -> Array[@kernel.Term]
+
+pub fn pending_goal_locals(PendingGoal) -> Array[LocalHyp]
 
 pub fn ps_apply(@kernel.KernelState, @logic.PropPrelude, ProofState, TacticStep) -> Result[ProofState, TacticExecError]
 
 pub fn ps_apply_script(@kernel.KernelState, @logic.PropPrelude, ProofState, Array[TacticStep]) -> Result[ProofState, TacticExecError]
 
 pub fn ps_current_goal(ProofState) -> Goal?
+
+pub fn ps_current_local_hyps(ProofState) -> Array[LocalHyp]
+
+pub fn ps_current_pending_goal(ProofState) -> PendingGoal?
 
 pub fn ps_goal_count(ProofState) -> Int
 
