@@ -1,25 +1,4 @@
 ///|
-using @kernel {
-  type HolType,
-  type Term,
-  type Thm,
-  bool_ty,
-  empty_kernel_state,
-  fun_ty,
-  ind_ty,
-  ks_add_const,
-  ks_mk_const,
-  ks_push_scope,
-  mk_abs,
-  mk_comb,
-  mk_const,
-  mk_eq,
-  mk_tyvar,
-  mk_var,
-  thm_hyp_count,
-}
-
-///|
 fn[T, E] expect_ok_logic(res : Result[T, E]) -> T {
   match res {
     Ok(v) => v

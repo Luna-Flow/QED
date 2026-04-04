@@ -13,8 +13,3 @@ pub fn logic_trans(
 ) -> Result[Thm, LogicError] {
   trans_checked(state, th1, th2)
 }
-
-///|
-pub fn logic_equal_phase0_ready() -> Bool {
-  true
-}

@@ -1,5 +1,6 @@
 import {
   "Luna-Flow/QED/kernel",
   "Luna-Flow/QED/elab",
+  "Luna-Flow/QED/logic",
   "Luna-Flow/QED/tactics",
 }

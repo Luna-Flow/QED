@@ -14,8 +14,6 @@ pub fn prove_theorem_script(@kernel.KernelState, String, ProverOptions) -> Resul
 
 pub fn prover_options(Bool) -> ProverOptions
 
-pub fn prover_phase0_ready() -> Bool
-
 // Errors
 
 // Types and methods

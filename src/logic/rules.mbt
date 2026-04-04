@@ -59,8 +59,3 @@ pub fn logic_inst(
 ) -> Result[Thm, LogicError] {
   inst_checked(state, subst, th)
 }
-
-///|
-pub fn logic_rules_phase0_ready() -> Bool {
-  true
-}

@@ -42,8 +42,6 @@ pub fn elab_lower_to_db(RTerm) -> Result[@kernel.DbTerm, ElabError]
 
 pub fn elab_lower_to_term(RTerm) -> Result[@kernel.Term, ElabError]
 
-pub fn elab_phase0_ready() -> Bool
-
 pub fn elab_require_prop(@kernel.Term) -> Result[@kernel.Term, @kernel.LogicError]
 
 pub fn elab_resolve_abs(@kernel.KernelState, ElabCtx, String, @kernel.HolType, RTerm) -> Result[RTerm, ElabError]

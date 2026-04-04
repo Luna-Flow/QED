@@ -1,24 +1,4 @@
 ///|
-using @kernel {
-  type ConstId,
-  type DbTerm,
-  dest_abs,
-  dest_comb,
-  dest_const,
-  dest_eq,
-  dest_var,
-  fun_ty,
-  ks_const_schema,
-  ks_lookup_const_id,
-  mk_const,
-  mk_const_bound,
-  term_alpha_eq,
-  to_db_term,
-  ty_eq,
-  ty_is_instance_of,
-}
-
-///|
 pub struct ElabCtx {
   locals : Array[(String, HolType)]
 }
@@ -252,17 +232,16 @@ pub fn rterm_well_formed(
 ///|
 pub fn rterm_to_string(term : RTerm) -> String {
   match term {
-    RVar(name, ty) =>
-      "RVar(" + name + " : " + @kernel.hol_type_to_string(ty) + ")"
+    RVar(name, ty) => "RVar(" + name + " : " + hol_type_to_string(ty) + ")"
     RConst(rc) =>
       "RConst(" +
       rc.name +
       "#" +
       rc.const_id.to_string() +
       " : " +
-      @kernel.hol_type_to_string(rc.inst_ty) +
+      hol_type_to_string(rc.inst_ty) +
       " <= " +
-      @kernel.hol_type_to_string(rc.schema_ty) +
+      hol_type_to_string(rc.schema_ty) +
       ")"
     RComb(f, x) =>
       "RComb(" + rterm_to_string(f) + ", " + rterm_to_string(x) + ")"
@@ -270,7 +249,7 @@ pub fn rterm_to_string(term : RTerm) -> String {
       "RAbs(" +
       name +
       " : " +
-      @kernel.hol_type_to_string(ty) +
+      hol_type_to_string(ty) +
       ", " +
       rterm_to_string(body) +
       ")"
@@ -471,7 +450,7 @@ pub fn elab_core_type_of(
       match
         (elab_core_type_of(state, ctx, f), elab_core_type_of(state, ctx, x)) {
         (Some(f_ty), Some(x_ty)) =>
-          match @kernel.dest_fun_ty(f_ty) {
+          match dest_fun_ty(f_ty) {
             Some((dom, cod)) => if ty_eq(dom, x_ty) { Some(cod) } else { None }
             None => None
           }
@@ -508,9 +487,8 @@ fn lower_to_term_go(term : RTerm) -> Term {
       } else {
         mk_const_bound(rc.name, rc.inst_ty, rc.const_id)
       }
-    RComb(f, x) => @kernel.mk_comb(lower_to_term_go(f), lower_to_term_go(x))
-    RAbs(name, ty, body) =>
-      @kernel.mk_abs(mk_var(name, ty), lower_to_term_go(body))
+    RComb(f, x) => mk_comb(lower_to_term_go(f), lower_to_term_go(x))
+    RAbs(name, ty, body) => mk_abs(mk_var(name, ty), lower_to_term_go(body))
   }
 }
 

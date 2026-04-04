@@ -56,6 +56,7 @@ pub type ExtensionCert = (ExtensionGate, Array[String], String)
 priv struct TheoryState {
   def_heads : Array[String]
   def_const_deps : Array[(String, Array[String])]
+  def_theorems : Array[(String, Thm)]
   witnessed_tycons : Array[(String, Int)]
   type_rep_heads : Array[String]
   type_abs_heads : Array[String]
@@ -108,6 +109,7 @@ fn append_extension_cert(
     theory: TheoryState::{
       def_heads: state.theory.def_heads,
       def_const_deps: state.theory.def_const_deps,
+      def_theorems: state.theory.def_theorems,
       witnessed_tycons: state.theory.witnessed_tycons,
       type_rep_heads: state.theory.type_rep_heads,
       type_abs_heads: state.theory.type_abs_heads,
@@ -384,6 +386,7 @@ pub fn empty_kernel_state() -> KernelState {
     theory: TheoryState::{
       def_heads: [],
       def_const_deps: [],
+      def_theorems: [],
       witnessed_tycons: [("ind", 0)],
       type_rep_heads: [],
       type_abs_heads: [],
@@ -432,6 +435,9 @@ pub fn ks_mk_const_instance(
   name : String,
   inst_ty : HolType,
 ) -> Result[Term, SigError] {
+  if !ks_type_is_admissible(state, inst_ty) {
+    return Err(TypeMismatch)
+  }
   sig_mk_const_instance_e(state.sig, name, inst_ty)
 }
 
@@ -441,6 +447,9 @@ pub fn ks_add_const(
   name : String,
   ty : HolType,
 ) -> Result[KernelState, SigError] {
+  if !ks_type_is_admissible(state, ty) {
+    return Err(TypeMismatch)
+  }
   if is_reserved_symbol(name) {
     return Err(ReservedSymbol)
   }
@@ -469,6 +478,7 @@ pub fn ks_add_const(
             theory: TheoryState::{
               def_heads: state.theory.def_heads,
               def_const_deps: state.theory.def_const_deps,
+              def_theorems: state.theory.def_theorems,
               witnessed_tycons: state.theory.witnessed_tycons,
               type_rep_heads: state.theory.type_rep_heads,
               type_abs_heads: state.theory.type_abs_heads,
@@ -486,6 +496,31 @@ pub fn ks_add_const(
 ///|
 pub fn ks_has_def_head(state : KernelState, name : String) -> Bool {
   state.theory.def_heads.contains(name)
+}
+
+///|
+fn lookup_definition_theorem(
+  defs : Array[(String, Thm)],
+  name : String,
+) -> Thm? {
+  for item in defs {
+    let (n, th) = item
+    if n == name {
+      return Some(th)
+    }
+  }
+  None
+}
+
+///|
+pub fn ks_definition_theorem(
+  state : KernelState,
+  name : String,
+) -> Result[Thm, SigError] {
+  match lookup_definition_theorem(state.theory.def_theorems, name) {
+    Some(th) => Ok(th)
+    None => Err(UnknownConst)
+  }
 }
 
 ///|
@@ -771,6 +806,7 @@ pub fn ks_register_ind_infinity_axiom(
               theory: TheoryState::{
                 def_heads: state.theory.def_heads,
                 def_const_deps: state.theory.def_const_deps,
+                def_theorems: state.theory.def_theorems,
                 witnessed_tycons: state.theory.witnessed_tycons,
                 type_rep_heads: state.theory.type_rep_heads,
                 type_abs_heads: state.theory.type_abs_heads,
@@ -813,12 +849,39 @@ fn eq_const_type_ok(ty : HolType) -> Bool {
 }
 
 ///|
+fn term_types_are_admissible(state : KernelState, term : Term) -> Bool {
+  let node_ty_ok = match type_of(term) {
+    Some(ty) => ks_type_is_admissible(state, ty)
+    None => false
+  }
+  if !node_ty_ok {
+    return false
+  }
+  match term {
+    Var(_, ty) => ks_type_is_admissible(state, ty)
+    Const(_, ty, _) => ks_type_is_admissible(state, ty)
+    Comb(f, x) =>
+      term_types_are_admissible(state, f) && term_types_are_admissible(state, x)
+    Abs(v, body) =>
+      match v {
+        Var(_, ty) =>
+          ks_type_is_admissible(state, ty) &&
+          term_types_are_admissible(state, body)
+        _ => false
+      }
+  }
+}
+
+///|
 fn term_const_instances_ok(state : KernelState, term : Term) -> Bool {
+  if !term_types_are_admissible(state, term) {
+    return false
+  }
   match term {
     Var(_, _) => true
     Const(name, inst_ty, const_id) =>
       if name == "=" {
-        eq_const_type_ok(inst_ty)
+        eq_const_type_ok(inst_ty) && ks_type_is_admissible(state, inst_ty)
       } else {
         match (ks_lookup_const_id(state, name), ks_const_schema(state, name)) {
           (Some(current_id), Some(schema_ty)) =>
@@ -1122,6 +1185,7 @@ pub fn ks_register_type_definition(
     theory: TheoryState::{
       def_heads: state.theory.def_heads,
       def_const_deps: state.theory.def_const_deps,
+      def_theorems: state.theory.def_theorems,
       witnessed_tycons: witnessed,
       type_rep_heads: reps,
       type_abs_heads: abses,
@@ -1175,6 +1239,7 @@ pub fn ks_register_type_definition(
     theory: TheoryState::{
       def_heads: state1.theory.def_heads,
       def_const_deps: state1.theory.def_const_deps,
+      def_theorems: state1.theory.def_theorems,
       witnessed_tycons: state1.theory.witnessed_tycons,
       type_rep_heads: state1.theory.type_rep_heads,
       type_abs_heads: state1.theory.type_abs_heads,
@@ -1219,6 +1284,9 @@ pub fn ks_define_const(
   if term_has_const_named(rhs, name) {
     return Err(DefinitionIsCyclic)
   }
+  if !ks_type_is_admissible(state, decl_ty) {
+    return Err(InvalidConstRhs)
+  }
   match type_of(rhs) {
     Some(rhs_ty) => {
       if !ty_eq(rhs_ty, decl_ty) {
@@ -1250,11 +1318,13 @@ pub fn ks_define_const(
                   def_heads.push(name)
                   let def_const_deps = state.theory.def_const_deps.copy()
                   def_const_deps.push((name, rhs_consts))
+                  let def_theorems = state.theory.def_theorems.copy()
                   let state2 = KernelState::{
                     sig: sig2,
                     theory: TheoryState::{
                       def_heads,
                       def_const_deps,
+                      def_theorems,
                       witnessed_tycons: state.theory.witnessed_tycons,
                       type_rep_heads: state.theory.type_rep_heads,
                       type_abs_heads: state.theory.type_abs_heads,
@@ -1268,13 +1338,31 @@ pub fn ks_define_const(
                     Some(eq_db) =>
                       match
                         thm_bind_const_ids(state2, mk_def_thm(name, eq_db)) {
-                        Ok(def_th) => thm_to_string(def_th)
+                        Ok(def_th) => {
+                          def_theorems.push((name, def_th))
+                          thm_to_string(def_th)
+                        }
                         Err(_) => return Err(InvalidConstRhs)
                       }
                     None => return Err(InvalidConstRhs)
                   }
+                  let state2b = KernelState::{
+                    sig: state2.sig,
+                    theory: TheoryState::{
+                      def_heads: state2.theory.def_heads,
+                      def_const_deps: state2.theory.def_const_deps,
+                      def_theorems,
+                      witnessed_tycons: state2.theory.witnessed_tycons,
+                      type_rep_heads: state2.theory.type_rep_heads,
+                      type_abs_heads: state2.theory.type_abs_heads,
+                      typedef_contracts: state2.theory.typedef_contracts,
+                      extension_certs: state2.theory.extension_certs,
+                      ind_infinity_axiom: state2.theory.ind_infinity_axiom,
+                      next_const_id: state2.theory.next_const_id,
+                    },
+                  }
                   let state3 = append_extension_cert(
-                    state2,
+                    state2b,
                     DefOK,
                     [name],
                     digest,
@@ -1324,6 +1412,9 @@ pub fn ks_specify_const(
   predicate : Term,
   witness : Thm,
 ) -> Result[(KernelState, Thm), SigError] {
+  if !ks_type_is_admissible(state, decl_ty) {
+    return Err(InvalidSpecificationPredicate)
+  }
   if !term_is_closed(predicate) {
     return Err(InvalidSpecificationPredicate)
   }

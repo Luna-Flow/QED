@@ -1,22 +1,4 @@
 ///|
-using @kernel {
-  db_term_eq,
-  dest_fun_ty,
-  bool_ty,
-  empty_kernel_state,
-  fun_ty,
-  ind_ty,
-  ks_add_const,
-  ks_push_scope,
-  mk_comb,
-  mk_const,
-  mk_tyvar,
-  mk_var,
-  ty_eq,
-  type_of,
-}
-
-///|
 fn[T, E] expect_ok_elab(res : Result[T, E]) -> T {
   match res {
     Ok(v) => v
@@ -156,7 +138,7 @@ test "resolved abstraction lowers to debruijn consistently" {
   }
   let term = expect_ok_elab(elab_lower_to_term(rt))
   let db1 = expect_ok_elab(elab_lower_to_db(rt))
-  let db2 = match @kernel.to_db_term(term) {
+  let db2 = match to_db_term(term) {
     Some(v) => v
     None => panic()
   }

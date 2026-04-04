@@ -14,6 +14,10 @@ pub fn lower_syn_goal_with_env(@kernel.KernelState, ParseEnv, SynGoal) -> Result
 
 pub fn lower_syn_term_with_env(@kernel.KernelState, ParseEnv, SynTerm) -> Result[@kernel.Term, ParseBridgeError]
 
+pub fn normalize_parser_input(String) -> Result[NormalizedInput, ParseError]
+
+pub fn normalized_input_raw_offset_at(NormalizedInput, Int) -> Int
+
 pub fn parse_def_function(@kernel.KernelState, ParseEnv, String) -> Result[(@kernel.KernelState, @kernel.Thm), ParseBridgeError]
 
 pub fn parse_env_local_at(ParseEnv, Int) -> (String, @kernel.HolType)?
@@ -42,11 +46,15 @@ pub fn parse_term_with_env(@kernel.KernelState, ParseEnv, String) -> Result[@ker
 
 pub fn parse_theorem_script_raw(String) -> Result[SynTheoremScript, ParseError]
 
-pub fn parser_phase0_ready() -> Bool
-
 // Errors
 
 // Types and methods
+pub struct NormalizedInput {
+  text : String
+  raw_offsets : Array[Int]
+  raw_length : Int
+}
+
 pub enum ParseBridgeError {
   Parse(ParseError)
   Sig(@kernel.SigError)

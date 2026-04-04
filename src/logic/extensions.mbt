@@ -68,8 +68,3 @@ pub fn logic_conservative_replay_ok(
 ) -> Bool {
   ks_conservative_replay_ok(base_state, extended_state, th)
 }
-
-///|
-pub fn logic_extensions_phase0_ready() -> Bool {
-  true
-}

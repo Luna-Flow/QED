@@ -4,6 +4,8 @@ package "Luna-Flow/QED/kernel"
 // Values
 pub fn abs_rule_checked(KernelState, Term, Thm) -> Result[Thm, LogicError]
 
+pub fn add_assum_checked(KernelState, Term, Thm) -> Result[Thm, LogicError]
+
 pub fn assume_checked(KernelState, Term) -> Result[Thm, LogicError]
 
 pub fn beta_rule_checked(KernelState, Term) -> Result[Thm, LogicError]
@@ -76,10 +78,6 @@ pub fn is_tyvar(HolType) -> Bool
 
 pub fn is_var(Term) -> Bool
 
-pub fn kernel_terms_phase0_ready() -> Bool
-
-pub fn kernel_thm_phase0_ready() -> Bool
-
 pub fn ks_add_const(KernelState, String, HolType) -> Result[KernelState, SigError]
 
 pub fn ks_conservative_replay_ok(KernelState, KernelState, Thm) -> Bool
@@ -89,6 +87,8 @@ pub fn ks_const_schema(KernelState, String) -> HolType?
 pub fn ks_define_const(KernelState, String, HolType, Term) -> Result[(KernelState, Term), SigError]
 
 pub fn ks_define_const_thm(KernelState, String, HolType, Term) -> Result[(KernelState, Thm), SigError]
+
+pub fn ks_definition_theorem(KernelState, String) -> Result[Thm, SigError]
 
 pub fn ks_extension_cert_at(KernelState, Int) -> (ExtensionGate, Array[String], String)?
 
@@ -185,6 +185,8 @@ pub fn term_apply_ty_subst_unsafe(Array[(String, HolType)], Term) -> Term
 pub fn term_has_const_named(Term, String) -> Bool
 
 pub fn term_is_closed(Term) -> Bool
+
+pub fn term_logical_eq(Term, Term) -> Bool
 
 pub fn term_to_string(Term) -> String
 

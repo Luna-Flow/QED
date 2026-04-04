@@ -8,7 +8,10 @@ pub fn logic_assume(
 }
 
 ///|
-/// Phase readiness probe.
-pub fn logic_bool_phase0_ready() -> Bool {
-  true
+pub fn logic_add_assum(
+  state : KernelState,
+  hyp : Term,
+  th : Thm,
+) -> Result[Thm, LogicError] {
+  add_assum_checked(state, hyp, th)
 }

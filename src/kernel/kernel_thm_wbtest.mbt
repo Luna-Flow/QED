@@ -33,3 +33,30 @@ test "wb db_subst_free_parallel fails closed on shift overflow" {
   let repl = DbBound(max, ty)
   assert_true(db_subst_free_parallel(term, [(key, repl)]) is None)
 }
+
+///|
+fn[T, E] expect_ok_wb(res : Result[T, E]) -> T {
+  match res {
+    Ok(v) => v
+    Err(_) => panic()
+  }
+}
+
+///|
+test "wb ghost typed theorems fail admissibility and sentence checks" {
+  let st = empty_kernel_state()
+  let ghost = mk_tyapp("ghost", [])
+  let x = mk_var("xg_wb", ghost)
+  let idg = mk_abs(x, x)
+  let eq = expect_ok_wb(mk_eq(idg, idg))
+  let eq_db = match to_db_term(eq) {
+    Some(v) => v
+    None => panic()
+  }
+  let th = mk_thm([], eq_db)
+
+  assert_true(ensure_thm_admissible(st, th) is Err(InvalidInstantiation))
+  assert_false(thm_is_admissible(st, th))
+  assert_false(ks_thm_is_sentence_in_language(st, th))
+  assert_false(ks_conservative_replay_ok(st, st, th))
+}

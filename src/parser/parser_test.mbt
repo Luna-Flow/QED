@@ -1,39 +1,4 @@
 ///|
-using @kernel {
-  type Term,
-  type KernelState,
-  type Thm,
-  bool_ty,
-  empty_kernel_state,
-  ks_add_const,
-  mk_tyvar,
-  ty_eq,
-  fun_ty,
-  dest_var,
-  dest_const,
-  refl_checked,
-  type_of,
-  to_db_term,
-  db_term_to_string,
-  thm_concl,
-  dest_eq,
-  ks_pop_scope,
-  ks_push_scope,
-}
-
-///|
-using @tactics {solve_by_hyp}
-
-///|
-using @elab {
-  empty_elab_ctx,
-  elab_core_type_of,
-  elab_lower_to_term,
-  rconst_id,
-  rterm_const,
-}
-
-///|
 fn parse_err_nonassoc(res : Result[SynTerm, ParseError]) -> Bool {
   match res {
     Err(e) =>
@@ -152,6 +117,45 @@ fn[T, E] expect_ok_parser(res : Result[T, E]) -> T {
 }
 
 ///|
+fn expect_parse_error(res : Result[SynTerm, ParseError]) -> ParseError {
+  match res {
+    Err(e) => e
+    Ok(_) => panic()
+  }
+}
+
+///|
+test "normalize_parser_input canonicalizes escaped operators and whitespace" {
+  let norm = expect_ok_parser(
+    normalize_parser_input("  theorem  t  :  |-  \\not P \\imp Q \\and R ;  "),
+  )
+  assert_eq(norm.text, "theorem t : ⊢ ¬ P -> Q ∧ R ;")
+  assert_eq(normalized_input_raw_offset_at(norm, 0), 2)
+  assert_eq(normalized_input_raw_offset_at(norm, norm.text.length()), 45)
+}
+
+///|
+test "parse offsets remain aligned to raw input after normalization" {
+  let err = expect_parse_error(parse_term_raw("  \\not   (P"))
+  assert_true(
+    match err.code {
+      UnexpectedEof => true
+      _ => false
+    },
+  )
+  assert_eq(err.offset, 11)
+
+  let err2 = expect_parse_error(parse_term_raw("P \\xor Q"))
+  assert_true(
+    match err2.code {
+      UnknownOperator => true
+      _ => false
+    },
+  )
+  assert_eq(err2.offset, 2)
+}
+
+///|
 test "parse_term_raw succeeds on base term forms" {
   assert_true(parse_term_raw("P") is Ok(Name("P")))
   assert_true(parse_term_raw("f x") is Ok(App(Name("f"), Name("x"))))
@@ -242,6 +246,16 @@ test "parse_goal_raw succeeds on standard goal forms" {
     }
     Err(_) => panic()
   }
+
+  match parse_goal_raw("  P , Q   |-   P ") {
+    Ok(g) => {
+      assert_eq(g.hyps.length(), 2)
+      assert_true(g.hyps[0] is Name("P"))
+      assert_true(g.hyps[1] is Name("Q"))
+      assert_true(g.concl is Name("P"))
+    }
+    Err(_) => panic()
+  }
 }
 
 ///|
@@ -267,21 +281,16 @@ test "parse_term bridge maps parse and kernel errors" {
 ///|
 test "parse_term bridge lowers and/or infix into bool constants" {
   let bool = bool_ty()
-  let bool_binop = fun_ty(bool, fun_ty(bool, bool))
   let st0 = empty_kernel_state()
   let st1 = expect_ok_parser(ks_add_const(st0, "P", bool))
   let st2 = expect_ok_parser(ks_add_const(st1, "Q", bool))
   let st3 = expect_ok_parser(ks_add_const(st2, "R", bool))
-  let st4 = expect_ok_parser(ks_add_const(st3, "and", bool_binop))
-  let st5 = expect_ok_parser(ks_add_const(st4, "or", bool_binop))
-  let st6 = expect_ok_parser(ks_add_const(st5, "imp", bool_binop))
-  let st7 = expect_ok_parser(ks_add_const(st6, "not", fun_ty(bool, bool)))
 
-  let t_and = expect_ok_parser(parse_term(st7, "P ∧ Q"))
-  let t_or = expect_ok_parser(parse_term(st7, "P \\or R"))
-  let t_mix = expect_ok_parser(parse_term(st7, "P ∨ Q ∧ R"))
-  let t_imp = expect_ok_parser(parse_term(st7, "P -> Q"))
-  let t_not = expect_ok_parser(parse_term(st7, "¬ P"))
+  let t_and = expect_ok_parser(parse_term(st3, "P ∧ Q"))
+  let t_or = expect_ok_parser(parse_term(st3, "P \\or R"))
+  let t_mix = expect_ok_parser(parse_term(st3, "P ∨ Q ∧ R"))
+  let t_imp = expect_ok_parser(parse_term(st3, "P -> Q"))
+  let t_not = expect_ok_parser(parse_term(st3, "¬ P"))
 
   assert_true(type_of(t_and) is Some(_))
   assert_true(type_of(t_or) is Some(_))
@@ -295,30 +304,50 @@ test "parse_term bridge lowers and/or infix into bool constants" {
 }
 
 ///|
-test "bridge for implication/not reports unknown constants when prelude absent" {
+test "bridge expands implication/not without requiring prelude constants in state" {
   let bool = bool_ty()
   let st0 = empty_kernel_state()
   let st1 = expect_ok_parser(ks_add_const(st0, "P", bool))
   let st2 = expect_ok_parser(ks_add_const(st1, "Q", bool))
-  assert_true(bridge_err_unknown_const(parse_term(st2, "P -> Q")))
-  assert_true(bridge_err_unknown_const(parse_term(st2, "¬ P")))
+  assert_true(parse_term(st2, "P -> Q") is Ok(_))
+  assert_true(parse_term(st2, "¬ P") is Ok(_))
 }
 
 ///|
-test "parse_goal bridge works with tactics solve_by_hyp" {
+test "bridge reports structured logic error for non-bool connectors" {
+  let env0 = empty_parse_env()
+  let env1 = expect_ok_parser(parse_let(env0, "let x : A"))
+  let env2 = expect_ok_parser(parse_let(env1, "let y : A"))
+  assert_true(
+    match parse_term_with_env(empty_kernel_state(), env2, "x -> y") {
+      Err(Logic(NotBoolTerm)) => true
+      _ => false
+    },
+  )
+}
+
+///|
+test "parse_goal bridge works with proof_state assumption tactic" {
   let bool = bool_ty()
   let st0 = empty_kernel_state()
   let st1 = expect_ok_parser(ks_add_const(st0, "P", bool))
   let st2 = expect_ok_parser(ks_add_const(st1, "Q", bool))
+  let prelude = default_prop_prelude()
 
   let goal_ok = expect_ok_parser(parse_goal(st2, "P |- P"))
-  assert_true(solve_by_hyp(st2, goal_ok) is Ok(_))
+  let ps_ok = ps_init(goal_ok)
+  assert_true(ps_apply(st2, prelude, ps_ok, step_assumption()) is Ok(_))
 
   let goal_ok_unicode = expect_ok_parser(parse_goal(st2, "P ⊢ P"))
-  assert_true(solve_by_hyp(st2, goal_ok_unicode) is Ok(_))
+  let ps_ok_unicode = ps_init(goal_ok_unicode)
+  assert_true(ps_apply(st2, prelude, ps_ok_unicode, step_assumption()) is Ok(_))
 
   let goal_bad = expect_ok_parser(parse_goal(st2, "Q |- P"))
-  assert_true(solve_by_hyp(st2, goal_bad) is Err(AlphaMismatch))
+  let ps_bad = ps_init(goal_bad)
+  assert_true(
+    ps_apply(st2, prelude, ps_bad, step_assumption())
+    is Err(GoalShapeMismatch(_)),
+  )
 }
 
 ///|
@@ -360,12 +389,33 @@ test "let declaration parses arrow type for free variable" {
 }
 
 ///|
+test "let and def declarations accept normalized compatible input" {
+  let env0 = empty_parse_env()
+  let env1 = expect_ok_parser(parse_let(env0, "  let   f  :  A \\imp bool "))
+  let (_, ty) = match parse_env_local_at(env1, 0) {
+    Some(v) => v
+    None => panic()
+  }
+  assert_true(ty_eq(ty, fun_ty(mk_tyvar("A"), bool_ty())))
+
+  let st0 = empty_kernel_state()
+  let (st1, _) = expect_ok_parser(
+    parse_def_function(st0, empty_parse_env(), "def id(x : A) : A {  x  }"),
+  )
+  let id_term = expect_ok_parser(parse_term(st1, "id"))
+  assert_true(type_of(id_term) is Some(_))
+}
+
+///|
 test "parse_goal_with_env can consume local propositions" {
   let env0 = empty_parse_env()
   let env1 = expect_ok_parser(parse_let(env0, "let p : bool"))
   let st = empty_kernel_state()
   let goal = expect_ok_parser(parse_goal_with_env(st, env1, "p ⊢ p"))
-  assert_true(solve_by_hyp(st, goal) is Ok(_))
+  assert_true(
+    ps_apply(st, default_prop_prelude(), ps_init(goal), step_assumption())
+    is Ok(_),
+  )
 }
 
 ///|
@@ -481,6 +531,33 @@ test "parse theorem script raw supports linear by-steps" {
       assert_eq(s.goal.hyps.length(), 0)
     }
     Err(_) => panic()
+  }
+}
+
+///|
+test "parse theorem script raw normalizes turnstile escapes and keeps raw offsets" {
+  let src = "theorem t1 :  |-  P \\imp P := by intro h; exact h"
+  match parse_theorem_script_raw(src) {
+    Ok(s) => {
+      assert_eq(s.name, "t1")
+      assert_eq(s.goal_src, "⊢ P -> P")
+      assert_eq(s.steps.length(), 2)
+    }
+    Err(_) => panic()
+  }
+
+  match
+    parse_theorem_script_raw("theorem t1 :  |-  P \\imp P := by ; exact h") {
+    Err(e) => {
+      assert_true(
+        match e.code {
+          UnexpectedToken => true
+          _ => false
+        },
+      )
+      assert_eq(e.offset, 33)
+    }
+    Ok(_) => panic()
   }
 }
 

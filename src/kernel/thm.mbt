@@ -219,10 +219,23 @@ fn assume(prop : Term) -> Result[Thm, LogicError] {
 }
 
 ///|
+/// HOL weakening: if Γ ⊢ φ then Γ, ψ ⊢ φ for any bool proposition ψ.
+fn add_assum(th : Thm, hyp : Term) -> Result[Thm, LogicError] {
+  match lower_term(hyp) {
+    Ok(h) =>
+      match expect_bool(h) {
+        Ok(_) => Ok(mk_thm(db_hyps_union(th.hyps, [h]), th.concl))
+        Err(e) => Err(e)
+      }
+    Err(e) => Err(e)
+  }
+}
+
+///|
 fn trans(th1 : Thm, th2 : Thm) -> Result[Thm, LogicError] {
   match (db_dest_eq(th1.concl), db_dest_eq(th2.concl)) {
     (Ok((l1, r1)), Ok((l2, r2))) =>
-      if !db_term_eq(r1, l2) {
+      if !db_term_logical_eq(r1, l2) {
         Err(AlphaMismatch)
       } else {
         match db_mk_eq(l1, r2) {
@@ -262,20 +275,77 @@ fn mk_comb_rule(th_fg : Thm, th_xy : Thm) -> Result[Thm, LogicError] {
 }
 
 ///|
+/// Lift de Bruijn indices `>= cutoff` by `delta` (standard binder introduction).
+fn db_lift_bvars(term : DbTerm, cutoff : Int, delta : Int) -> DbTerm {
+  match term {
+    DbBound(i, t) =>
+      if i >= cutoff {
+        DbBound(i + delta, t)
+      } else {
+        DbBound(i, t)
+      }
+    DbFree(_, _) => term
+    DbConst(_, _, _) => term
+    DbComb(f, a) =>
+      DbComb(db_lift_bvars(f, cutoff, delta), db_lift_bvars(a, cutoff, delta))
+    DbAbs(ty, b) => DbAbs(ty, db_lift_bvars(b, cutoff + 1, delta))
+  }
+}
+
+///|
+/// After `db_shift_all_bvars(_, 1)`, replace the given free variable with `BVar(0)`.
+fn db_subst_free_with_bvar0(
+  term : DbTerm,
+  name : String,
+  fty : HolType,
+) -> DbTerm {
+  match term {
+    DbBound(i, t) => DbBound(i, t)
+    DbFree(n, t) =>
+      if n == name && ty_eq(t, fty) {
+        DbBound(0, fty)
+      } else {
+        term
+      }
+    DbConst(_, _, _) => term
+    DbComb(f, a) =>
+      DbComb(
+        db_subst_free_with_bvar0(f, name, fty),
+        db_subst_free_with_bvar0(a, name, fty),
+      )
+    DbAbs(inner_ty, b) =>
+      DbAbs(inner_ty, db_subst_free_with_bvar0(b, name, fty))
+  }
+}
+
+///|
+fn db_abstract_body_for_abs_rule(
+  term : DbTerm,
+  name : String,
+  fty : HolType,
+) -> DbTerm {
+  let lifted = db_lift_bvars(term, 0, 1)
+  db_subst_free_with_bvar0(lifted, name, fty)
+}
+
+///|
 fn abs_rule(x : Term, th : Thm) -> Result[Thm, LogicError] {
   match lower_term(x) {
     Ok(x_db) =>
       match x_db {
-        DbFree(_, ty) =>
+        DbFree(name, ty) =>
           if th.hyps.any(fn(h) { db_has_free(h, x_db) }) {
             Err(VarFreeInHyp)
           } else {
             match db_dest_eq(th.concl) {
-              Ok((lhs, rhs)) =>
-                match db_mk_eq(DbAbs(ty, lhs), DbAbs(ty, rhs)) {
+              Ok((lhs, rhs)) => {
+                let lhs2 = db_abstract_body_for_abs_rule(lhs, name, ty)
+                let rhs2 = db_abstract_body_for_abs_rule(rhs, name, ty)
+                match db_mk_eq(DbAbs(ty, lhs2), DbAbs(ty, rhs2)) {
                   Ok(eq) => Ok(mk_thm(th.hyps, eq))
                   Err(e) => Err(e)
                 }
+              }
               Err(e) => Err(e)
             }
           }
@@ -319,7 +389,7 @@ fn eq_mp(th_eq : Thm, th_p : Thm) -> Result[Thm, LogicError] {
     Ok((lhs, rhs)) =>
       match (expect_bool(lhs), expect_bool(rhs), expect_bool(th_p.concl)) {
         (Ok(_), Ok(_), Ok(_)) =>
-          if !db_term_eq(lhs, th_p.concl) {
+          if !db_term_logical_eq(lhs, th_p.concl) {
             Err(AlphaMismatch)
           } else {
             Ok(mk_thm(db_hyps_union(th_eq.hyps, th_p.hyps), rhs))
@@ -564,6 +634,25 @@ pub fn thm_bind_const_ids(
 }
 
 ///|
+fn db_term_types_admissible(state : KernelState, term : DbTerm) -> Bool {
+  match term {
+    DbBound(_, ty) => ks_type_is_admissible(state, ty)
+    DbFree(_, ty) => ks_type_is_admissible(state, ty)
+    DbConst(_, ty, _) => ks_type_is_admissible(state, ty)
+    DbComb(f, x) =>
+      db_term_types_admissible(state, f) && db_term_types_admissible(state, x)
+    DbAbs(ty, body) =>
+      ks_type_is_admissible(state, ty) && db_term_types_admissible(state, body)
+  }
+}
+
+///|
+fn theorem_types_admissible(state : KernelState, th : Thm) -> Bool {
+  th.hyps.all(fn(h) { db_term_types_admissible(state, h) }) &&
+  db_term_types_admissible(state, th.concl)
+}
+
+///|
 fn theorem_const_instances_ok(state : KernelState, th : Thm) -> Bool {
   let consts : Array[(String, HolType, ConstId)] = []
   th.hyps.each(fn(h) { collect_theorem_consts_with_ids(h, consts) })
@@ -571,7 +660,7 @@ fn theorem_const_instances_ok(state : KernelState, th : Thm) -> Bool {
   for item in consts {
     let (name, inst_ty, _) = item
     if name == "=" {
-      if !db_eq_const_type_ok(inst_ty) {
+      if !db_eq_const_type_ok(inst_ty) || !ks_type_is_admissible(state, inst_ty) {
         return false
       }
     } else {
@@ -653,6 +742,9 @@ fn ensure_thm_admissible(
   if !theorem_const_ids_match_state(state, th) {
     return Err(InvalidInstantiation)
   }
+  if !theorem_types_admissible(state, th) {
+    return Err(InvalidInstantiation)
+  }
   if !theorem_const_instances_ok(state, th) {
     return Err(TypeMismatch)
   }
@@ -700,6 +792,30 @@ pub fn assume_checked(
         Ok(stamped) =>
           match ensure_thm_admissible(state, stamped) {
             Ok(_) => Ok(stamped)
+            Err(e) => Err(e)
+          }
+        Err(e) => Err(e)
+      }
+    Err(e) => Err(e)
+  }
+}
+
+///|
+pub fn add_assum_checked(
+  state : KernelState,
+  hyp : Term,
+  th : Thm,
+) -> Result[Thm, LogicError] {
+  match ensure_thm_admissible(state, th) {
+    Ok(_) =>
+      match add_assum(th, hyp) {
+        Ok(out) =>
+          match thm_stamp_const_ids(state, out) {
+            Ok(stamped) =>
+              match ensure_thm_admissible(state, stamped) {
+                Ok(_) => Ok(stamped)
+                Err(e) => Err(e)
+              }
             Err(e) => Err(e)
           }
         Err(e) => Err(e)
@@ -954,9 +1070,4 @@ pub fn inst_checked(
       }
     Err(e) => Err(e)
   }
-}
-
-///|
-pub fn kernel_thm_phase0_ready() -> Bool {
-  true
 }

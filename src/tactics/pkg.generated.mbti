@@ -27,14 +27,6 @@ pub fn ps_init(Goal) -> ProofState
 
 pub fn ps_qed(ProofState) -> Result[@kernel.Thm, TacticExecError]
 
-pub fn solve_by_assume(@kernel.KernelState, Goal) -> Result[@kernel.Thm, @kernel.LogicError]
-
-pub fn solve_by_hyp(@kernel.KernelState, Goal) -> Result[@kernel.Thm, @kernel.LogicError]
-
-pub fn solve_by_refl(@kernel.KernelState, @kernel.Term) -> Result[@kernel.Thm, @kernel.LogicError]
-
-pub fn solve_by_trans(@kernel.KernelState, @kernel.Thm, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
-
 pub fn step_apply(String) -> TacticStep
 
 pub fn step_assumption() -> TacticStep
@@ -49,12 +41,6 @@ pub fn step_right() -> TacticStep
 
 pub fn step_split() -> TacticStep
 
-pub fn tactics_engine_phase0_ready() -> Bool
-
-pub fn tactics_goal_phase0_ready() -> Bool
-
-pub fn tactics_proof_state_phase0_ready() -> Bool
-
 // Errors
 
 // Types and methods
@@ -68,16 +54,38 @@ pub struct LocalHyp {
   term : @kernel.Term
 }
 
+pub enum OrContext {
+  OrNone
+  OrPendingLeft(@kernel.Term, @kernel.Term)
+  OrPendingRight(@kernel.Term, @kernel.Term)
+}
+
 pub struct PendingGoal {
   hyps : Array[@kernel.Term]
   concl : @kernel.Term
   locals : Array[LocalHyp]
+  imp_prefix : Array[@kernel.Term]
+  refine_chain : Array[PendingRefine]
+  split_role : SplitRole
+  or_ctx : OrContext
+}
+
+pub enum PendingRefine {
+  ImpBackward(@kernel.Term)
+  AndElimLeft(@kernel.Term)
+  AndElimRight(@kernel.Term)
 }
 
 pub struct ProofState {
   root_goal : Goal
   pending : Array[PendingGoal]
   final_thm : @kernel.Thm?
+}
+
+pub enum SplitRole {
+  SplitNone
+  SplitLeft(@kernel.Term)
+  SplitRight(@kernel.Term, @kernel.Thm?)
 }
 
 pub enum TacticExecError {

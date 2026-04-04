@@ -1,51 +1,4 @@
 ///|
-using @kernel {
-  type HolType,
-  type KernelState,
-  type LogicError,
-  type SigError,
-  type Term,
-  type Thm,
-  bool_ty,
-  empty_kernel_state,
-  ind_ty,
-  mk_eq,
-  mk_tyvar,
-  mk_tyapp,
-  mk_var,
-  fun_ty,
-  ks_add_const,
-  ks_define_const_thm,
-  ks_mk_const,
-  ks_mk_const_instance,
-  mk_abs,
-  type_of,
-}
-
-///|
-using @elab {
-  type ElabCtx,
-  type ElabError,
-  type RTerm,
-  elab_ctx_from_locals,
-  elab_err_core_typing_failure,
-  elab_err_invalid_const_instance,
-  elab_err_scope_resolution_mismatch,
-  elab_err_unknown_const,
-  elab_err_unknown_name,
-  elab_lower_to_term,
-  elab_resolve_app,
-  elab_resolve_const_by_name,
-  elab_resolve_eq,
-  elab_resolve_name,
-  rterm_comb,
-  rterm_const,
-}
-
-///|
-using @tactics {type Goal, mk_goal}
-
-///|
 pub enum SynTerm {
   Name(String)
   Prefix(String, SynTerm)
@@ -62,6 +15,13 @@ pub struct SynGoal {
 ///|
 pub struct ParseEnv {
   locals : Array[(String, HolType)]
+}
+
+///|
+pub struct NormalizedInput {
+  text : String
+  raw_offsets : Array[Int]
+  raw_length : Int
 }
 
 ///|
@@ -173,6 +133,137 @@ pub fn parse_env_local_at(env : ParseEnv, idx : Int) -> (String, HolType)? {
     None
   } else {
     Some(env.locals[idx])
+  }
+}
+
+///|
+fn parse_env_lookup(env : ParseEnv, name : String) -> HolType? {
+  let mut i = env.locals.length()
+  while i > 0 {
+    i = i - 1
+    let (n, ty) = env.locals[i]
+    if n == name {
+      return Some(ty)
+    }
+  }
+  None
+}
+
+///|
+pub fn normalized_input_raw_offset_at(
+  input : NormalizedInput,
+  idx : Int,
+) -> Int {
+  if idx < 0 {
+    0
+  } else if idx >= input.raw_offsets.length() {
+    input.raw_length
+  } else {
+    input.raw_offsets[idx]
+  }
+}
+
+///|
+fn push_normalized_char(
+  chars : Array[Char],
+  raw_offsets : Array[Int],
+  c : Char,
+  raw_off : Int,
+) -> Unit {
+  chars.push(c)
+  raw_offsets.push(raw_off)
+}
+
+///|
+pub fn normalize_parser_input(
+  src : String,
+) -> Result[NormalizedInput, ParseError] {
+  let out_chars : Array[Char] = []
+  let raw_offsets : Array[Int] = []
+  loop (src.view(), 0, false, 0) {
+    ([], off, _, _) =>
+      Ok(NormalizedInput::{
+        text: String::from_iter(out_chars.iter()),
+        raw_offsets,
+        raw_length: off,
+      })
+    ([c, .. rest], off, pending_space, space_off) =>
+      if c.is_ascii_whitespace() {
+        if out_chars.length() == 0 {
+          continue (rest, off + 1, false, 0)
+        } else if pending_space {
+          continue (rest, off + 1, true, space_off)
+        } else {
+          continue (rest, off + 1, true, off)
+        }
+      } else {
+        if pending_space && out_chars.length() > 0 {
+          push_normalized_char(out_chars, raw_offsets, ' ', space_off)
+        }
+        if c == '\\' {
+          match rest {
+            [r, ..] if is_name_start(r) => {
+              let (esc_name, rest2, n) = read_name(rest)
+              if esc_name == "and" {
+                push_normalized_char(out_chars, raw_offsets, '∧', off)
+                continue (rest2, off + n + 1, false, 0)
+              } else if esc_name == "or" {
+                push_normalized_char(out_chars, raw_offsets, '∨', off)
+                continue (rest2, off + n + 1, false, 0)
+              } else if esc_name == "not" {
+                push_normalized_char(out_chars, raw_offsets, '¬', off)
+                continue (rest2, off + n + 1, false, 0)
+              } else if esc_name == "imp" {
+                push_normalized_char(out_chars, raw_offsets, '-', off)
+                push_normalized_char(out_chars, raw_offsets, '>', off)
+                continue (rest2, off + n + 1, false, 0)
+              } else {
+                Err(
+                  mk_parse_error(
+                    UnknownOperator,
+                    off,
+                    "unknown escaped operator `\\" + esc_name + "`",
+                  ),
+                )
+              }
+            }
+            _ =>
+              Err(
+                mk_parse_error(
+                  UnknownOperator,
+                  off,
+                  "unknown operator near `\\`",
+                ),
+              )
+          }
+        } else if c == '|' {
+          match rest {
+            ['-', .. rest2] => {
+              push_normalized_char(out_chars, raw_offsets, '⊢', off)
+              continue (rest2, off + 2, false, 0)
+            }
+            _ => {
+              push_normalized_char(out_chars, raw_offsets, c, off)
+              continue (rest, off + 1, false, 0)
+            }
+          }
+        } else {
+          push_normalized_char(out_chars, raw_offsets, c, off)
+          continue (rest, off + 1, false, 0)
+        }
+      }
+  }
+}
+
+///|
+fn map_parse_error_offset(
+  input : NormalizedInput,
+  err : ParseError,
+) -> ParseError {
+  ParseError::{
+    code: err.code,
+    offset: normalized_input_raw_offset_at(input, err.offset),
+    detail: err.detail,
   }
 }
 
@@ -784,36 +875,7 @@ fn parse_term_tokens(tokens : Array[Token]) -> Result[SynTerm, ParseError] {
 }
 
 ///|
-fn slice_tokens_with_end(
-  tokens : Array[Token],
-  start : Int,
-  end : Int,
-) -> Array[Token] {
-  let out : Array[Token] = []
-  let mut i = start
-  while i < end {
-    out.push(tokens[i])
-    i = i + 1
-  }
-  let end_offset = if end > start { tokens[end - 1].offset + 1 } else { start }
-  out.push(Token::{ kind: TkEnd, offset: end_offset })
-  out
-}
-
-///|
-pub fn parse_term_raw(src : String) -> Result[SynTerm, ParseError] {
-  match lex_tokens(src) {
-    Ok(tokens) => parse_term_tokens(tokens)
-    Err(e) => Err(e)
-  }
-}
-
-///|
-pub fn parse_goal_raw(src : String) -> Result[SynGoal, ParseError] {
-  let tokens = match lex_tokens(src) {
-    Ok(v) => v
-    Err(e) => return Err(e)
-  }
+fn parse_goal_tokens(tokens : Array[Token]) -> Result[SynGoal, ParseError] {
   let n = tokens.length()
   let end_idx = n - 1
   let mut depth = 0
@@ -933,6 +995,67 @@ pub fn parse_goal_raw(src : String) -> Result[SynGoal, ParseError] {
 }
 
 ///|
+fn slice_tokens_with_end(
+  tokens : Array[Token],
+  start : Int,
+  end : Int,
+) -> Array[Token] {
+  let out : Array[Token] = []
+  let mut i = start
+  while i < end {
+    out.push(tokens[i])
+    i = i + 1
+  }
+  let end_offset = if end > start { tokens[end - 1].offset + 1 } else { start }
+  out.push(Token::{ kind: TkEnd, offset: end_offset })
+  out
+}
+
+///|
+fn parse_term_raw_normalized(
+  input : NormalizedInput,
+) -> Result[SynTerm, ParseError] {
+  match lex_tokens(input.text) {
+    Ok(tokens) =>
+      match parse_term_tokens(tokens) {
+        Ok(term) => Ok(term)
+        Err(e) => Err(map_parse_error_offset(input, e))
+      }
+    Err(e) => Err(map_parse_error_offset(input, e))
+  }
+}
+
+///|
+pub fn parse_term_raw(src : String) -> Result[SynTerm, ParseError] {
+  match normalize_parser_input(src) {
+    Ok(input) => parse_term_raw_normalized(input)
+    Err(e) => Err(e)
+  }
+}
+
+///|
+fn parse_goal_raw_normalized(
+  input : NormalizedInput,
+) -> Result[SynGoal, ParseError] {
+  let tokens = match lex_tokens(input.text) {
+    Ok(v) => v
+    Err(e) => return Err(map_parse_error_offset(input, e))
+  }
+  match parse_goal_tokens(tokens) {
+    Ok(goal) => Ok(goal)
+    Err(e) => Err(map_parse_error_offset(input, e))
+  }
+}
+
+///|
+pub fn parse_goal_raw(src : String) -> Result[SynGoal, ParseError] {
+  match normalize_parser_input(src) {
+    Ok(input) => parse_goal_raw_normalized(input)
+    Err(e) => Err(e)
+  }
+}
+
+///|
 fn tokens_to_src(tokens : Array[Token], start : Int, end : Int) -> String {
   let out : Array[String] = []
   let mut i = start
@@ -997,9 +1120,13 @@ fn parse_script_step_tokens(
 pub fn parse_theorem_script_raw(
   src : String,
 ) -> Result[SynTheoremScript, ParseError] {
-  let tokens = match lex_tokens(src) {
+  let input = match normalize_parser_input(src) {
     Ok(v) => v
     Err(e) => return Err(e)
+  }
+  let tokens = match lex_tokens(input.text) {
+    Ok(v) => v
+    Err(e) => return Err(map_parse_error_offset(input, e))
   }
   let end_idx = tokens.length() - 1
   if end_idx < 5 {
@@ -1009,10 +1136,13 @@ pub fn parse_theorem_script_raw(
     TkName("theorem") => ()
     _ =>
       return Err(
-        mk_parse_error(
-          UnexpectedToken,
-          token_at(tokens, 0).offset,
-          "expected `theorem`",
+        map_parse_error_offset(
+          input,
+          mk_parse_error(
+            UnexpectedToken,
+            token_at(tokens, 0).offset,
+            "expected `theorem`",
+          ),
         ),
       )
   }
@@ -1020,10 +1150,13 @@ pub fn parse_theorem_script_raw(
     TkName(n) => n
     _ =>
       return Err(
-        mk_parse_error(
-          UnexpectedToken,
-          token_at(tokens, 1).offset,
-          "expected theorem name",
+        map_parse_error_offset(
+          input,
+          mk_parse_error(
+            UnexpectedToken,
+            token_at(tokens, 1).offset,
+            "expected theorem name",
+          ),
         ),
       )
   }
@@ -1031,10 +1164,13 @@ pub fn parse_theorem_script_raw(
     TkColon => ()
     _ =>
       return Err(
-        mk_parse_error(
-          UnexpectedToken,
-          token_at(tokens, 2).offset,
-          "expected `:` after theorem name",
+        map_parse_error_offset(
+          input,
+          mk_parse_error(
+            UnexpectedToken,
+            token_at(tokens, 2).offset,
+            "expected `:` after theorem name",
+          ),
         ),
       )
   }
@@ -1057,14 +1193,23 @@ pub fn parse_theorem_script_raw(
   }
   let k = match assign_idx {
     Some(v) => v
-    None => return Err(mk_parse_error(UnexpectedToken, 0, "missing `:=`"))
+    None =>
+      return Err(
+        map_parse_error_offset(
+          input,
+          mk_parse_error(UnexpectedToken, 0, "missing `:=`"),
+        ),
+      )
   }
   if k <= 3 {
     return Err(
-      mk_parse_error(
-        EmptyConclusion,
-        token_at(tokens, 2).offset,
-        "empty theorem goal",
+      map_parse_error_offset(
+        input,
+        mk_parse_error(
+          EmptyConclusion,
+          token_at(tokens, 2).offset,
+          "empty theorem goal",
+        ),
       ),
     )
   }
@@ -1072,18 +1217,22 @@ pub fn parse_theorem_script_raw(
     TkName("by") => ()
     _ =>
       return Err(
-        mk_parse_error(
-          UnexpectedToken,
-          token_at(tokens, k + 1).offset,
-          "expected `by` after `:=`",
+        map_parse_error_offset(
+          input,
+          mk_parse_error(
+            UnexpectedToken,
+            token_at(tokens, k + 1).offset,
+            "expected `by` after `:=`",
+          ),
         ),
       )
   }
 
   let goal_src = tokens_to_src(tokens, 3, k)
-  let goal = match parse_goal_raw(goal_src) {
+  let goal_tokens = slice_tokens_with_end(tokens, 3, k)
+  let goal = match parse_goal_tokens(goal_tokens) {
     Ok(v) => v
-    Err(e) => return Err(e)
+    Err(e) => return Err(map_parse_error_offset(input, e))
   }
 
   let steps : Array[SynTacticStep] = []
@@ -1094,10 +1243,13 @@ pub fn parse_theorem_script_raw(
       TkSemi => {
         if seg_start == j {
           return Err(
-            mk_parse_error(
-              UnexpectedToken,
-              tokens[j].offset,
-              "empty tactic step",
+            map_parse_error_offset(
+              input,
+              mk_parse_error(
+                UnexpectedToken,
+                tokens[j].offset,
+                "empty tactic step",
+              ),
             ),
           )
         }
@@ -1109,7 +1261,7 @@ pub fn parse_theorem_script_raw(
         }
         match parse_script_step_tokens(seg) {
           Ok(st) => steps.push(st)
-          Err(e) => return Err(e)
+          Err(e) => return Err(map_parse_error_offset(input, e))
         }
         seg_start = j + 1
       }
@@ -1126,15 +1278,18 @@ pub fn parse_theorem_script_raw(
     }
     match parse_script_step_tokens(seg) {
       Ok(st) => steps.push(st)
-      Err(e) => return Err(e)
+      Err(e) => return Err(map_parse_error_offset(input, e))
     }
   }
   if steps.length() == 0 {
     return Err(
-      mk_parse_error(
-        UnexpectedEof,
-        token_at(tokens, k + 1).offset,
-        "empty theorem script body",
+      map_parse_error_offset(
+        input,
+        mk_parse_error(
+          UnexpectedEof,
+          token_at(tokens, k + 1).offset,
+          "empty theorem script body",
+        ),
       ),
     )
   }
@@ -1198,32 +1353,30 @@ fn map_elab_error(err : ElabError) -> ParseBridgeError {
 }
 
 ///|
-fn resolve_syn_term(
+fn lower_syn_term_basis(
   state : KernelState,
   env : ParseEnv,
   term : SynTerm,
-) -> Result[RTerm, ParseBridgeError] {
-  let ctx = elab_ctx_of(env)
+) -> Result[Term, ParseBridgeError] {
   match term {
     Name(name) =>
-      match elab_resolve_name(state, ctx, name) {
-        Ok(t) => Ok(t)
-        Err(e) => Err(map_elab_error(e))
+      match parse_env_lookup(env, name) {
+        Some(ty) => Ok(mk_var(name, ty))
+        None =>
+          match ks_mk_const(state, name) {
+            Ok(t) => Ok(t)
+            Err(e) => Err(Sig(e))
+          }
       }
     Prefix(op, inner) =>
       if op == "¬" {
-        match
-          (
-            resolve_syn_term(state, env, inner),
-            elab_resolve_const_by_name(state, "not"),
-          ) {
-          (Ok(t), Ok(not_c)) =>
-            match elab_resolve_app(state, ctx, rterm_const(not_c), t) {
-              Ok(out) => Ok(out)
-              Err(e) => Err(map_elab_error(e))
-            }
-          (Err(e), _) => Err(e)
-          (_, Err(e)) => Err(map_elab_error(e))
+        let t = match lower_syn_term_basis(state, env, inner) {
+          Ok(v) => v
+          Err(e) => return Err(e)
+        }
+        match prop_mk_not(state, default_prop_prelude(), t) {
+          Ok(v) => Ok(v)
+          Err(e) => Err(Logic(e))
         }
       } else {
         Err(
@@ -1236,6 +1389,119 @@ fn resolve_syn_term(
           ),
         )
       }
+    App(f, x) => {
+      let f2 = match lower_syn_term_basis(state, env, f) {
+        Ok(v) => v
+        Err(e) => return Err(e)
+      }
+      let x2 = match lower_syn_term_basis(state, env, x) {
+        Ok(v) => v
+        Err(e) => return Err(e)
+      }
+      match elab_app(f2, x2) {
+        Ok(v) => Ok(v)
+        Err(e) => Err(Logic(e))
+      }
+    }
+    Infix(op, lhs, rhs) =>
+      if op == "=" {
+        let l = match lower_syn_term_basis(state, env, lhs) {
+          Ok(v) => v
+          Err(e) => return Err(e)
+        }
+        let r = match lower_syn_term_basis(state, env, rhs) {
+          Ok(v) => v
+          Err(e) => return Err(e)
+        }
+        match elab_eq(l, r) {
+          Ok(v) => Ok(v)
+          Err(e) => Err(Logic(e))
+        }
+      } else if op == "->" {
+        let l = match lower_syn_term_basis(state, env, lhs) {
+          Ok(v) => v
+          Err(e) => return Err(e)
+        }
+        let r = match lower_syn_term_basis(state, env, rhs) {
+          Ok(v) => v
+          Err(e) => return Err(e)
+        }
+        match prop_mk_imp(state, default_prop_prelude(), l, r) {
+          Ok(v) => Ok(v)
+          Err(e) => Err(Logic(e))
+        }
+      } else if op == "∧" {
+        let l = match lower_syn_term_basis(state, env, lhs) {
+          Ok(v) => v
+          Err(e) => return Err(e)
+        }
+        let r = match lower_syn_term_basis(state, env, rhs) {
+          Ok(v) => v
+          Err(e) => return Err(e)
+        }
+        match prop_mk_and(state, default_prop_prelude(), l, r) {
+          Ok(v) => Ok(v)
+          Err(e) => Err(Logic(e))
+        }
+      } else if op == "∨" {
+        let l = match lower_syn_term_basis(state, env, lhs) {
+          Ok(v) => v
+          Err(e) => return Err(e)
+        }
+        let r = match lower_syn_term_basis(state, env, rhs) {
+          Ok(v) => v
+          Err(e) => return Err(e)
+        }
+        match prop_mk_or(state, default_prop_prelude(), l, r) {
+          Ok(v) => Ok(v)
+          Err(e) => Err(Logic(e))
+        }
+      } else {
+        Err(
+          Parse(
+            mk_parse_error(UnknownOperator, 0, "unsupported infix `" + op + "`"),
+          ),
+        )
+      }
+  }
+}
+
+///|
+fn resolve_syn_term(
+  state : KernelState,
+  env : ParseEnv,
+  term : SynTerm,
+) -> Result[RTerm, ParseBridgeError] {
+  match term {
+    Prefix(_, _)
+    | Infix("->", _, _)
+    | Infix("∧", _, _)
+    | Infix("∨", _, _) => {
+      let named = match lower_syn_term_basis(state, env, term) {
+        Ok(v) => v
+        Err(e) => return Err(e)
+      }
+      let ctx = elab_ctx_of(env)
+      return match elab_resolve_named_term(state, ctx, named) {
+        Ok(v) => Ok(v)
+        Err(e) => Err(map_elab_error(e))
+      }
+    }
+    _ => ()
+  }
+  let ctx = elab_ctx_of(env)
+  match term {
+    Name(name) =>
+      match elab_resolve_name(state, ctx, name) {
+        Ok(t) => Ok(t)
+        Err(e) => Err(map_elab_error(e))
+      }
+    Prefix(op, _) =>
+      Err(
+        Parse(
+          mk_parse_error(UnknownOperator, 0, "unsupported prefix `" + op + "`"),
+        ),
+      )
     App(f, x) =>
       match (resolve_syn_term(state, env, f), resolve_syn_term(state, env, x)) {
         (Ok(f2), Ok(x2)) =>
@@ -1247,24 +1513,7 @@ fn resolve_syn_term(
         (_, Err(e)) => Err(e)
       }
     Infix(op, lhs, rhs) =>
-      if op == "->" {
-        match
-          (
-            resolve_syn_term(state, env, lhs),
-            resolve_syn_term(state, env, rhs),
-            elab_resolve_const_by_name(state, "imp"),
-          ) {
-          (Ok(l), Ok(r), Ok(c)) =>
-            match
-              elab_resolve_app(state, ctx, rterm_comb(rterm_const(c), l), r) {
-              Ok(t) => Ok(t)
-              Err(e) => Err(map_elab_error(e))
-            }
-          (Err(e), _, _) => Err(e)
-          (_, Err(e), _) => Err(e)
-          (_, _, Err(e)) => Err(map_elab_error(e))
-        }
-      } else if op == "=" {
+      if op == "=" {
         match
           (resolve_syn_term(state, env, lhs), resolve_syn_term(state, env, rhs)) {
           (Ok(l), Ok(r)) =>
@@ -1274,24 +1523,6 @@ fn resolve_syn_term(
             }
           (Err(e), _) => Err(e)
           (_, Err(e)) => Err(e)
-        }
-      } else if op == "∧" || op == "∨" {
-        let const_name = if op == "∧" { "and" } else { "or" }
-        match
-          (
-            resolve_syn_term(state, env, lhs),
-            resolve_syn_term(state, env, rhs),
-            elab_resolve_const_by_name(state, const_name),
-          ) {
-          (Ok(l), Ok(r), Ok(c)) =>
-            match
-              elab_resolve_app(state, ctx, rterm_comb(rterm_const(c), l), r) {
-              Ok(t) => Ok(t)
-              Err(e) => Err(map_elab_error(e))
-            }
-          (Err(e), _, _) => Err(e)
-          (_, Err(e), _) => Err(e)
-          (_, _, Err(e)) => Err(map_elab_error(e))
         }
       } else {
         Err(
@@ -1449,9 +1680,13 @@ pub fn parse_let(
   env : ParseEnv,
   src : String,
 ) -> Result[ParseEnv, ParseBridgeError] {
-  let tokens = match lex_tokens(src) {
+  let input = match normalize_parser_input(src) {
     Ok(v) => v
     Err(e) => return Err(Parse(e))
+  }
+  let tokens = match lex_tokens(input.text) {
+    Ok(v) => v
+    Err(e) => return Err(Parse(map_parse_error_offset(input, e)))
   }
   let i = 0
   match token_at(tokens, i).kind {
@@ -1459,10 +1694,13 @@ pub fn parse_let(
     _ =>
       return Err(
         Parse(
-          mk_parse_error(
-            UnexpectedToken,
-            token_at(tokens, i).offset,
-            "expected `let` declaration",
+          map_parse_error_offset(
+            input,
+            mk_parse_error(
+              UnexpectedToken,
+              token_at(tokens, i).offset,
+              "expected `let` declaration",
+            ),
           ),
         ),
       )
@@ -1472,10 +1710,13 @@ pub fn parse_let(
     _ =>
       return Err(
         Parse(
-          mk_parse_error(
-            UnexpectedToken,
-            token_at(tokens, i + 1).offset,
-            "expected local variable name after `let`",
+          map_parse_error_offset(
+            input,
+            mk_parse_error(
+              UnexpectedToken,
+              token_at(tokens, i + 1).offset,
+              "expected local variable name after `let`",
+            ),
           ),
         ),
       )
@@ -1485,27 +1726,33 @@ pub fn parse_let(
     _ =>
       return Err(
         Parse(
-          mk_parse_error(
-            UnexpectedToken,
-            token_at(tokens, i2).offset,
-            "expected `:` in let declaration",
+          map_parse_error_offset(
+            input,
+            mk_parse_error(
+              UnexpectedToken,
+              token_at(tokens, i2).offset,
+              "expected `:` in let declaration",
+            ),
           ),
         ),
       )
   }
   let (ty, j) = match parse_type(tokens, i2 + 1) {
     Ok(v) => v
-    Err(e) => return Err(Parse(e))
+    Err(e) => return Err(Parse(map_parse_error_offset(input, e)))
   }
   match token_at(tokens, j).kind {
     TkEnd => ()
     _ =>
       return Err(
         Parse(
-          mk_parse_error(
-            UnexpectedToken,
-            token_at(tokens, j).offset,
-            "unexpected trailing token in let declaration",
+          map_parse_error_offset(
+            input,
+            mk_parse_error(
+              UnexpectedToken,
+              token_at(tokens, j).offset,
+              "unexpected trailing token in let declaration",
+            ),
           ),
         ),
       )
@@ -1521,9 +1768,13 @@ pub fn parse_def_function(
   env : ParseEnv,
   src : String,
 ) -> Result[(KernelState, Thm), ParseBridgeError] {
-  let tokens = match lex_tokens(src) {
+  let input = match normalize_parser_input(src) {
     Ok(v) => v
     Err(e) => return Err(Parse(e))
+  }
+  let tokens = match lex_tokens(input.text) {
+    Ok(v) => v
+    Err(e) => return Err(Parse(map_parse_error_offset(input, e)))
   }
 
   let i0 = 0
@@ -1532,10 +1783,13 @@ pub fn parse_def_function(
     _ =>
       return Err(
         Parse(
-          mk_parse_error(
-            UnexpectedToken,
-            token_at(tokens, i0).offset,
-            "expected `def` declaration",
+          map_parse_error_offset(
+            input,
+            mk_parse_error(
+              UnexpectedToken,
+              token_at(tokens, i0).offset,
+              "expected `def` declaration",
+            ),
           ),
         ),
       )
@@ -1546,10 +1800,13 @@ pub fn parse_def_function(
     _ =>
       return Err(
         Parse(
-          mk_parse_error(
-            UnexpectedToken,
-            token_at(tokens, i0 + 1).offset,
-            "expected function name after `def`",
+          map_parse_error_offset(
+            input,
+            mk_parse_error(
+              UnexpectedToken,
+              token_at(tokens, i0 + 1).offset,
+              "expected function name after `def`",
+            ),
           ),
         ),
       )
@@ -1560,10 +1817,13 @@ pub fn parse_def_function(
     _ =>
       return Err(
         Parse(
-          mk_parse_error(
-            UnexpectedToken,
-            token_at(tokens, i1).offset,
-            "expected `(` after function name",
+          map_parse_error_offset(
+            input,
+            mk_parse_error(
+              UnexpectedToken,
+              token_at(tokens, i1).offset,
+              "expected `(` after function name",
+            ),
           ),
         ),
       )
@@ -1574,10 +1834,13 @@ pub fn parse_def_function(
     _ =>
       return Err(
         Parse(
-          mk_parse_error(
-            UnexpectedToken,
-            token_at(tokens, i1 + 1).offset,
-            "expected parameter name in `def`",
+          map_parse_error_offset(
+            input,
+            mk_parse_error(
+              UnexpectedToken,
+              token_at(tokens, i1 + 1).offset,
+              "expected parameter name in `def`",
+            ),
           ),
         ),
       )
@@ -1588,10 +1851,13 @@ pub fn parse_def_function(
     _ =>
       return Err(
         Parse(
-          mk_parse_error(
-            UnexpectedToken,
-            token_at(tokens, i2).offset,
-            "expected `:` after parameter name",
+          map_parse_error_offset(
+            input,
+            mk_parse_error(
+              UnexpectedToken,
+              token_at(tokens, i2).offset,
+              "expected `:` after parameter name",
+            ),
           ),
         ),
       )
@@ -1599,7 +1865,7 @@ pub fn parse_def_function(
 
   let (param_ty, i3) = match parse_type(tokens, i2 + 1) {
     Ok(v) => v
-    Err(e) => return Err(Parse(e))
+    Err(e) => return Err(Parse(map_parse_error_offset(input, e)))
   }
 
   match token_at(tokens, i3).kind {
@@ -1607,10 +1873,13 @@ pub fn parse_def_function(
     _ =>
       return Err(
         Parse(
-          mk_parse_error(
-            UnexpectedToken,
-            token_at(tokens, i3).offset,
-            "expected `)` after parameter type",
+          map_parse_error_offset(
+            input,
+            mk_parse_error(
+              UnexpectedToken,
+              token_at(tokens, i3).offset,
+              "expected `)` after parameter type",
+            ),
           ),
         ),
       )
@@ -1621,10 +1890,13 @@ pub fn parse_def_function(
     _ =>
       return Err(
         Parse(
-          mk_parse_error(
-            UnexpectedToken,
-            token_at(tokens, i3 + 1).offset,
-            "expected `:` before return type",
+          map_parse_error_offset(
+            input,
+            mk_parse_error(
+              UnexpectedToken,
+              token_at(tokens, i3 + 1).offset,
+              "expected `:` before return type",
+            ),
           ),
         ),
       )
@@ -1632,7 +1904,7 @@ pub fn parse_def_function(
 
   let (ret_ty, i4) = match parse_type(tokens, i3 + 2) {
     Ok(v) => v
-    Err(e) => return Err(Parse(e))
+    Err(e) => return Err(Parse(map_parse_error_offset(input, e)))
   }
 
   match token_at(tokens, i4).kind {
@@ -1640,10 +1912,13 @@ pub fn parse_def_function(
     _ =>
       return Err(
         Parse(
-          mk_parse_error(
-            UnexpectedToken,
-            token_at(tokens, i4).offset,
-            "expected `{` before function body",
+          map_parse_error_offset(
+            input,
+            mk_parse_error(
+              UnexpectedToken,
+              token_at(tokens, i4).offset,
+              "expected `{` before function body",
+            ),
           ),
         ),
       )
@@ -1677,10 +1952,13 @@ pub fn parse_def_function(
   if missing_rbrace {
     return Err(
       Parse(
-        mk_parse_error(
-          UnexpectedEof,
-          token_at(tokens, i4).offset,
-          "missing `}` for function body",
+        map_parse_error_offset(
+          input,
+          mk_parse_error(
+            UnexpectedEof,
+            token_at(tokens, i4).offset,
+            "missing `}` for function body",
+          ),
         ),
       ),
     )
@@ -1689,7 +1967,7 @@ pub fn parse_def_function(
   let body_tokens = slice_tokens_with_end(tokens, i4 + 1, j)
   let body_syn = match parse_term_tokens(body_tokens) {
     Ok(v) => v
-    Err(e) => return Err(Parse(e))
+    Err(e) => return Err(Parse(map_parse_error_offset(input, e)))
   }
 
   match token_at(tokens, j + 1).kind {
@@ -1697,10 +1975,13 @@ pub fn parse_def_function(
     _ =>
       return Err(
         Parse(
-          mk_parse_error(
-            UnexpectedToken,
-            token_at(tokens, j + 1).offset,
-            "unexpected trailing token after function body",
+          map_parse_error_offset(
+            input,
+            mk_parse_error(
+              UnexpectedToken,
+              token_at(tokens, j + 1).offset,
+              "unexpected trailing token after function body",
+            ),
           ),
         ),
       )
@@ -1727,9 +2008,4 @@ pub fn parse_def_function(
     Ok((st2, th)) => Ok((st2, th))
     Err(e) => Err(Sig(e))
   }
-}
-
-///|
-pub fn parser_phase0_ready() -> Bool {
-  true
 }

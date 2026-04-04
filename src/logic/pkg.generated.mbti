@@ -12,11 +12,23 @@ pub fn install_prop_prelude(@kernel.KernelState) -> Result[@kernel.KernelState, 
 
 pub fn logic_abs_rule(@kernel.KernelState, @kernel.Term, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
 
+pub fn logic_add_assum(@kernel.KernelState, @kernel.Term, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
+
+pub fn logic_apply_fun_eq(@kernel.KernelState, @kernel.Thm, @kernel.Term) -> Result[@kernel.Thm, @kernel.LogicError]
+
+pub fn logic_apply_fun_eq2(@kernel.KernelState, @kernel.Thm, @kernel.Term, @kernel.Term) -> Result[@kernel.Thm, @kernel.LogicError]
+
 pub fn logic_assume(@kernel.KernelState, @kernel.Term) -> Result[@kernel.Thm, @kernel.LogicError]
+
+pub fn logic_beta_nf_bool_term(@kernel.KernelState, @kernel.Term) -> Result[@kernel.Term, @kernel.LogicError]
+
+pub fn logic_beta_nf_bool_term_deep(@kernel.KernelState, @kernel.Term) -> Result[@kernel.Term, @kernel.LogicError]
+
+pub fn logic_beta_normalize_eq(@kernel.KernelState, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
 
 pub fn logic_beta_rule(@kernel.KernelState, @kernel.Term) -> Result[@kernel.Thm, @kernel.LogicError]
 
-pub fn logic_bool_phase0_ready() -> Bool
+pub fn logic_bool_false_def_thm(@kernel.KernelState, PropPrelude) -> Result[@kernel.Thm, @kernel.SigError]
 
 pub fn logic_conservative_replay_ok(@kernel.KernelState, @kernel.KernelState, @kernel.Thm) -> Bool
 
@@ -24,13 +36,13 @@ pub fn logic_deduct_antisym(@kernel.KernelState, @kernel.Thm, @kernel.Thm) -> Re
 
 pub fn logic_eq_mp(@kernel.KernelState, @kernel.Thm, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
 
-pub fn logic_equal_phase0_ready() -> Bool
+pub fn logic_eq_mp_bool(@kernel.KernelState, @kernel.Thm, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
+
+pub fn logic_eq_sym(@kernel.KernelState, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
 
 pub fn logic_extension_cert_at(@kernel.KernelState, Int) -> (@kernel.ExtensionGate, Array[String], String)?
 
 pub fn logic_extension_cert_count(@kernel.KernelState) -> Int
-
-pub fn logic_extensions_phase0_ready() -> Bool
 
 pub fn logic_ind_infinity_anchor(@kernel.KernelState) -> Result[@kernel.Thm, @kernel.SigError]
 
@@ -40,7 +52,79 @@ pub fn logic_inst_type(@kernel.KernelState, Array[(String, @kernel.HolType)], @k
 
 pub fn logic_mk_comb_rule(@kernel.KernelState, @kernel.Thm, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
 
-pub fn logic_prop_prelude_phase0_ready() -> Bool
+pub fn logic_normalize_prop_beta(@kernel.KernelState, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
+
+pub fn logic_prop_and_elim_l_thm(@kernel.KernelState, PropPrelude, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
+
+pub fn logic_prop_and_elim_r_thm(@kernel.KernelState, PropPrelude, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
+
+pub fn logic_prop_and_intro_thm(@kernel.KernelState, PropPrelude, @kernel.Thm, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
+
+pub fn logic_prop_assume(@kernel.KernelState, @kernel.Term) -> Result[@kernel.Thm, @kernel.LogicError]
+
+pub fn logic_prop_close_hypothesis(@kernel.KernelState, Array[@kernel.Term], @kernel.Term) -> Result[@kernel.Thm, @kernel.LogicError]
+
+pub fn logic_prop_def_and(@kernel.KernelState, PropPrelude) -> Result[@kernel.Thm, @kernel.SigError]
+
+pub fn logic_prop_def_imp(@kernel.KernelState, PropPrelude) -> Result[@kernel.Thm, @kernel.SigError]
+
+pub fn logic_prop_def_lhs(@kernel.Thm) -> Result[@kernel.Term, @kernel.LogicError]
+
+pub fn logic_prop_def_not(@kernel.KernelState, PropPrelude) -> Result[@kernel.Thm, @kernel.SigError]
+
+pub fn logic_prop_def_or(@kernel.KernelState, PropPrelude) -> Result[@kernel.Thm, @kernel.SigError]
+
+pub fn logic_prop_def_rhs(@kernel.Thm) -> Result[@kernel.Term, @kernel.LogicError]
+
+pub fn logic_prop_discharge_imp_prefix(@kernel.KernelState, PropPrelude, Array[@kernel.Term], @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
+
+pub fn logic_prop_ensure_sequent(@kernel.KernelState, Array[@kernel.Term], @kernel.Term, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
+
+pub fn logic_prop_ex_falso_thm(@kernel.KernelState, PropPrelude, @kernel.Thm, @kernel.Term) -> Result[@kernel.Thm, @kernel.LogicError]
+
+pub fn logic_prop_false_term() -> @kernel.Term
+
+pub fn logic_prop_imp_elim_thm(@kernel.KernelState, PropPrelude, @kernel.Thm, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
+
+pub fn logic_prop_imp_intro_thm(@kernel.KernelState, PropPrelude, @kernel.Term, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
+
+pub fn logic_prop_imp_refl(@kernel.KernelState, PropPrelude, @kernel.Term) -> Result[@kernel.Thm, @kernel.LogicError]
+
+pub fn logic_prop_merge_conjunction(@kernel.KernelState, PropPrelude, @kernel.Thm, @kernel.Thm, @kernel.Term) -> Result[@kernel.Thm, @kernel.LogicError]
+
+pub fn logic_prop_not_elim(@kernel.KernelState, PropPrelude, @kernel.Thm, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
+
+pub fn logic_prop_or_intro_l_thm(@kernel.KernelState, PropPrelude, @kernel.Thm, @kernel.Term) -> Result[@kernel.Thm, @kernel.LogicError]
+
+pub fn logic_prop_or_intro_r_thm(@kernel.KernelState, PropPrelude, @kernel.Term, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
+
+pub fn logic_prop_or_wrap_left(@kernel.KernelState, PropPrelude, @kernel.Term, @kernel.Term, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
+
+pub fn logic_prop_or_wrap_right(@kernel.KernelState, PropPrelude, @kernel.Term, @kernel.Term, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
+
+pub fn logic_prop_replay_and_elim_l(@kernel.KernelState, PropPrelude, @kernel.Term, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
+
+pub fn logic_prop_replay_and_elim_r(@kernel.KernelState, PropPrelude, @kernel.Term, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
+
+pub fn logic_prop_replay_imp_elim_backward(@kernel.KernelState, PropPrelude, Array[@kernel.Term], @kernel.Term, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
+
+pub fn logic_prop_strengthen_to_hyps(@kernel.KernelState, Array[@kernel.Term], @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
+
+pub fn logic_prop_truth_const_thm(@kernel.KernelState, PropPrelude) -> Result[@kernel.Thm, @kernel.LogicError]
+
+pub fn logic_prop_truth_term() -> @kernel.Term
+
+pub fn logic_prop_truth_thm(@kernel.KernelState) -> Result[@kernel.Thm, @kernel.LogicError]
+
+pub fn logic_prop_unfold_and(@kernel.KernelState, PropPrelude, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
+
+pub fn logic_prop_unfold_head(@kernel.KernelState, @kernel.Thm, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
+
+pub fn logic_prop_unfold_imp(@kernel.KernelState, PropPrelude, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
+
+pub fn logic_prop_unfold_not(@kernel.KernelState, PropPrelude, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
+
+pub fn logic_prop_unfold_or(@kernel.KernelState, PropPrelude, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
 
 pub fn logic_refl(@kernel.KernelState, @kernel.Term) -> Result[@kernel.Thm, @kernel.LogicError]
 
@@ -48,29 +132,29 @@ pub fn logic_register_ind_infinity_anchor(@kernel.KernelState, @kernel.Thm) -> R
 
 pub fn logic_register_typedef(@kernel.KernelState, String, Array[String], String, @kernel.Term, @kernel.Thm) -> Result[@kernel.KernelState, @kernel.SigError]
 
-pub fn logic_rules_phase0_ready() -> Bool
-
 pub fn logic_specify_const(@kernel.KernelState, String, @kernel.HolType, @kernel.Term, @kernel.Thm) -> Result[(@kernel.KernelState, @kernel.Thm), @kernel.SigError]
 
 pub fn logic_trans(@kernel.KernelState, @kernel.Thm, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
 
 pub fn logic_typedef_contract(@kernel.KernelState, String) -> Result[(@kernel.Thm, @kernel.Thm, @kernel.Thm), @kernel.SigError]
 
-pub fn prop_dest_and(PropPrelude, @kernel.Term) -> (@kernel.Term, @kernel.Term)?
+pub fn prop_dest_and(@kernel.KernelState, PropPrelude, @kernel.Term) -> (@kernel.Term, @kernel.Term)?
 
-pub fn prop_dest_imp(PropPrelude, @kernel.Term) -> (@kernel.Term, @kernel.Term)?
+pub fn prop_dest_imp(@kernel.KernelState, PropPrelude, @kernel.Term) -> (@kernel.Term, @kernel.Term)?
 
-pub fn prop_dest_not(PropPrelude, @kernel.Term) -> @kernel.Term?
+pub fn prop_dest_not(@kernel.KernelState, PropPrelude, @kernel.Term) -> @kernel.Term?
 
-pub fn prop_dest_or(PropPrelude, @kernel.Term) -> (@kernel.Term, @kernel.Term)?
+pub fn prop_dest_or(@kernel.KernelState, PropPrelude, @kernel.Term) -> (@kernel.Term, @kernel.Term)?
 
-pub fn prop_mk_and(@kernel.KernelState, PropPrelude, @kernel.Term, @kernel.Term) -> Result[@kernel.Term, @kernel.SigError]
+pub fn prop_false_name(PropPrelude) -> String
 
-pub fn prop_mk_imp(@kernel.KernelState, PropPrelude, @kernel.Term, @kernel.Term) -> Result[@kernel.Term, @kernel.SigError]
+pub fn prop_mk_and(@kernel.KernelState, PropPrelude, @kernel.Term, @kernel.Term) -> Result[@kernel.Term, @kernel.LogicError]
 
-pub fn prop_mk_not(@kernel.KernelState, PropPrelude, @kernel.Term) -> Result[@kernel.Term, @kernel.SigError]
+pub fn prop_mk_imp(@kernel.KernelState, PropPrelude, @kernel.Term, @kernel.Term) -> Result[@kernel.Term, @kernel.LogicError]
 
-pub fn prop_mk_or(@kernel.KernelState, PropPrelude, @kernel.Term, @kernel.Term) -> Result[@kernel.Term, @kernel.SigError]
+pub fn prop_mk_not(@kernel.KernelState, PropPrelude, @kernel.Term) -> Result[@kernel.Term, @kernel.LogicError]
+
+pub fn prop_mk_or(@kernel.KernelState, PropPrelude, @kernel.Term, @kernel.Term) -> Result[@kernel.Term, @kernel.LogicError]
 
 pub fn prop_prelude_has_rule(PropPrelude, String) -> Bool
 
@@ -78,10 +162,14 @@ pub fn prop_prelude_rule_at(PropPrelude, Int) -> PropRule?
 
 pub fn prop_prelude_rule_count(PropPrelude) -> Int
 
+pub fn prop_truth_name(PropPrelude) -> String
+
 // Errors
 
 // Types and methods
 pub struct PropPrelude {
+  truth_name : String
+  false_name : String
   imp_name : String
   not_name : String
   and_name : String

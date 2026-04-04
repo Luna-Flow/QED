@@ -92,8 +92,3 @@ pub fn elab_require_prop(term : Term) -> Result[Term, LogicError] {
     None => Err(type_mismatch_error())
   }
 }
-
-///|
-pub fn elab_phase0_ready() -> Bool {
-  true
-}

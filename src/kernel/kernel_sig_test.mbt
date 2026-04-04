@@ -863,6 +863,45 @@ test "state admissible type checks honor witnesses and builtin tycons" {
 }
 
 ///|
+test "kernel state rejects ghost type constructors at trusted admission boundaries" {
+  let st0 = empty_kernel_state()
+  let ghost = mk_tyapp("ghost", [])
+  let x = mk_var("xg", ghost)
+  let rhs = mk_abs(x, x)
+
+  assert_true(ks_add_const(st0, "ghost_c", ghost) is Err(TypeMismatch))
+  assert_true(ks_mk_const_instance(st0, "@", ghost) is Err(TypeMismatch))
+  assert_true(
+    ks_define_const(st0, "ghost_id", fun_ty(ghost, ghost), rhs)
+    is Err(InvalidConstRhs),
+  )
+
+  let bool = bool_ty()
+  let w = mk_var("w_bool_guard", bool)
+  let bool_pred = mk_abs(w, expect_ok_any_sig_test(mk_eq(w, w)))
+  let bool_witness = expect_ok_any_sig_test(
+    refl_checked(st0, closed_eq_witness_term(bool)),
+  )
+
+  let ghost_pred = mk_abs(x, expect_ok_any_sig_test(mk_eq(x, x)))
+  assert_true(
+    ks_register_type_definition(
+      st0,
+      "ghostty",
+      [],
+      "RepGhostTy",
+      ghost_pred,
+      bool_witness,
+    )
+    is Err(InvalidTypePredicate),
+  )
+  assert_true(
+    ks_specify_const(st0, "ghost_spec", ghost, ghost_pred, bool_witness)
+    is Err(InvalidSpecificationPredicate),
+  )
+}
+
+///|
 test "kernel state exposes stable const ids for lookups" {
   let st0 = empty_kernel_state()
   let a = mk_tyvar("A")

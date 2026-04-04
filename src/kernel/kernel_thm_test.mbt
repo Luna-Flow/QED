@@ -60,6 +60,15 @@ test "checked theorem wrappers enforce state admissibility" {
 }
 
 ///|
+test "checked theorem wrappers reject ghost type constructors in theorem terms" {
+  let st = empty_kernel_state()
+  let ghost = mk_tyapp("ghost", [])
+  let x = mk_var("x", ghost)
+  let idg = mk_abs(x, x)
+  assert_true(refl_checked(st, idg) is Err(InvalidInstantiation))
+}
+
+///|
 test "checked trans rejects theorem under wrong kernel state" {
   let bool = bool_ty()
   let st0 = empty_kernel_state()

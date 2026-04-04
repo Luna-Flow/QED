@@ -23,8 +23,3 @@ pub fn goal_hyps(goal : Goal) -> Array[Term] {
 pub fn goal_concl(goal : Goal) -> Term {
   goal.concl
 }
-
-///|
-pub fn tactics_goal_phase0_ready() -> Bool {
-  true
-}

@@ -138,11 +138,6 @@ pub fn type_of(term : Term) -> HolType? {
 }
 
 ///|
-pub fn kernel_terms_phase0_ready() -> Bool {
-  true
-}
-
-///|
 /// Pretty printer for debug and test output.
 pub fn term_to_string(term : Term) -> String {
   match term {
@@ -319,6 +314,30 @@ pub fn from_db_term(term : DbTerm) -> Term? {
 pub fn term_alpha_eq(lhs : Term, rhs : Term) -> Bool {
   match (to_db_term(lhs), to_db_term(rhs)) {
     (Some(d1), Some(d2)) => db_term_eq(d1, d2)
+    _ => false
+  }
+}
+
+///|
+/// Same as `db_term_eq` except `DbConst` compares only name and type, not const_id.
+fn db_term_logical_eq(lhs : DbTerm, rhs : DbTerm) -> Bool {
+  match (lhs, rhs) {
+    (DbBound(i1, ty1), DbBound(i2, ty2)) => i1 == i2 && ty_eq(ty1, ty2)
+    (DbFree(n1, ty1), DbFree(n2, ty2)) => n1 == n2 && ty_eq(ty1, ty2)
+    (DbConst(n1, ty1, _), DbConst(n2, ty2, _)) => n1 == n2 && ty_eq(ty1, ty2)
+    (DbComb(f1, x1), DbComb(f2, x2)) =>
+      db_term_logical_eq(f1, f2) && db_term_logical_eq(x1, x2)
+    (DbAbs(ty1, b1), DbAbs(ty2, b2)) =>
+      ty_eq(ty1, ty2) && db_term_logical_eq(b1, b2)
+    _ => false
+  }
+}
+
+///|
+/// Structural equality on kernel terms ignoring const_id stamps (name + type must match).
+pub fn term_logical_eq(lhs : Term, rhs : Term) -> Bool {
+  match (to_db_term(lhs), to_db_term(rhs)) {
+    (Some(d1), Some(d2)) => db_term_logical_eq(d1, d2)
     _ => false
   }
 }
