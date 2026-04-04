@@ -116,7 +116,7 @@ QED 采用 kernel-first 架构。唯一 theorem-construction boundary 是 `src/k
 
 - 名称解析顺序始终是 `local > const`。
 - 输入会先经过 `normalize_parser_input`：
-  - `\\not` / `\\and` / `\\or` / `\\imp` 会归一化为规范形式；
+  - `\not` / `\and` / `\or` / `\imp` 会归一化为规范形式；
   - `|-` 会归一化为 `⊢`；
   - 基础冗余空白会被压缩；
   - 这个阶段不会做 AST 级 pretty print。
@@ -125,8 +125,9 @@ QED 采用 kernel-first 架构。唯一 theorem-construction boundary 是 `src/k
   - term：`¬`、`∧`、`∨`、`->`、`=`
   - goal：`⊢`
 - 兼容输入仍接受：
-  - `\\not`、`\\and`、`\\or`、`\\imp`
+  - `\not`、`\and`、`\or`、`\imp`
   - `|-`
+- 不再接受旧式 ASCII 连接词写法：`/\`、`\/`
 - theorem script raw 入口已支持：
   - `theorem <name> : <goal> := by <step>; <step>; ...`
 
@@ -205,6 +206,26 @@ QED 采用 kernel-first 架构。唯一 theorem-construction boundary 是 `src/k
 - `left`
 - `right`
 
+当前 `exact` / `apply` 已不再局限于 local-name-only operation。
+
+- `exact` 先解析 local hypothesis；若 local miss，则可解析一小组稳定命题定理名。
+- `apply` 先解析 local implication；若 local miss，则可解析一小组稳定命题定理名或上下文派生命题定理。
+- 当前 direct-close theorem names 包括：
+  - `imp_refl`
+  - `truth`
+  - `and_elim_l`
+  - `and_elim_r`
+  - `not_elim`
+  - `ex_falso`
+- 当前 implication-backed apply names 包括：
+  - `and_elim_l`
+  - `and_elim_r`
+  - `or_intro_l`
+  - `or_intro_r`
+- 这些名字都必须 replay 到现有 kernel-checked `Thm`；它们不是新的 proof authority。
+- `exact` 不会隐式退化成 `apply`。
+- `apply` 只接受 implication theorem；对 `truth` / `not_elim` / `ex_falso` 这类 direct-close theorem name 必须诚实失败。
+
 当前语义边界必须这样理解：
 
 - `tactics` 负责变换未解目标栈；
@@ -226,9 +247,8 @@ QED 采用 kernel-first 架构。唯一 theorem-construction boundary 是 `src/k
 
 按现在的代码走向，后续正确的工程方向应当是：
 
-- 增加 connector replay builders；
-- 给 `ProofState` 增加 theorem evidence / continuation；
-- 继续扩展战术与回放覆盖，使更多脚本可走通与 M1 相同的 checked 路径；
+- 继续扩展 stable theorem reference / replay builders；
+- 继续扩展 `exact` / `apply` 的 theorem-backed 覆盖，使更多脚本可走通与 M1 相同的 checked 路径；
 - 让整个可执行前端越来越接近 Part II 所要求的 faithful realization，而不是在 parser、tactics 或 prover 中引入 ad-hoc proof shortcut。
 
 ## Not Implemented
@@ -245,6 +265,7 @@ QED 采用 kernel-first 架构。唯一 theorem-construction boundary 是 `src/k
 - higher-order unification
 - richer theorem-script block syntax
 - 接受任意 term 参数的 `exact` / `apply`
+- 超出当前稳定 theorem 名字集的任意 theorem environment 引用
 - 从任意 `ProofState` / 任意 theorem script 到 kernel `Thm` 的**完备**重建（当前仅为已支持子集）
 
 其中最重要的边界是：论文中的 dictionary passing / lawful axiomatic type classes 仍然是 refinement blueprint，不是当前仓库里的可执行能力。

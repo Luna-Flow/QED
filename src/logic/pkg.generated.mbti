@@ -64,6 +64,10 @@ pub fn logic_prop_assume(@kernel.KernelState, @kernel.Term) -> Result[@kernel.Th
 
 pub fn logic_prop_close_hypothesis(@kernel.KernelState, Array[@kernel.Term], @kernel.Term) -> Result[@kernel.Thm, @kernel.LogicError]
 
+pub fn logic_prop_context_apply_theorem(@kernel.KernelState, PropPrelude, String, Array[@kernel.Term], @kernel.Term) -> (@kernel.Thm, @kernel.Term)?
+
+pub fn logic_prop_context_theorem(@kernel.KernelState, PropPrelude, String, Array[@kernel.Term], @kernel.Term) -> (@kernel.Thm, @kernel.Term)?
+
 pub fn logic_prop_def_and(@kernel.KernelState, PropPrelude) -> Result[@kernel.Thm, @kernel.SigError]
 
 pub fn logic_prop_def_imp(@kernel.KernelState, PropPrelude) -> Result[@kernel.Thm, @kernel.SigError]
@@ -92,6 +96,8 @@ pub fn logic_prop_imp_refl(@kernel.KernelState, PropPrelude, @kernel.Term) -> Re
 
 pub fn logic_prop_merge_conjunction(@kernel.KernelState, PropPrelude, @kernel.Thm, @kernel.Thm, @kernel.Term) -> Result[@kernel.Thm, @kernel.LogicError]
 
+pub fn logic_prop_named_theorem(@kernel.KernelState, PropPrelude, String, @kernel.Term) -> @kernel.Thm?
+
 pub fn logic_prop_not_elim(@kernel.KernelState, PropPrelude, @kernel.Thm, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
 
 pub fn logic_prop_or_intro_l_thm(@kernel.KernelState, PropPrelude, @kernel.Thm, @kernel.Term) -> Result[@kernel.Thm, @kernel.LogicError]
@@ -107,6 +113,10 @@ pub fn logic_prop_replay_and_elim_l(@kernel.KernelState, PropPrelude, @kernel.Te
 pub fn logic_prop_replay_and_elim_r(@kernel.KernelState, PropPrelude, @kernel.Term, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
 
 pub fn logic_prop_replay_imp_elim_backward(@kernel.KernelState, PropPrelude, Array[@kernel.Term], @kernel.Term, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
+
+pub fn logic_prop_replay_imp_elim_backward_thm(@kernel.KernelState, PropPrelude, Array[@kernel.Term], @kernel.Thm, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
+
+pub fn logic_prop_resolve_ref(@kernel.KernelState, PropPrelude, Array[(String, @kernel.Term)], Array[@kernel.Term], @kernel.Term, String) -> PropRefResolution?
 
 pub fn logic_prop_strengthen_to_hyps(@kernel.KernelState, Array[@kernel.Term], @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
 
@@ -175,6 +185,12 @@ pub struct PropPrelude {
   and_name : String
   or_name : String
   rules : Array[PropRule]
+}
+
+pub enum PropRefResolution {
+  LocalFact(@kernel.Term)
+  NamedTheorem(@kernel.Thm)
+  ContextDerived(@kernel.Thm, @kernel.Term)
 }
 
 pub struct PropRule {

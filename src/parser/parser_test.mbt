@@ -206,6 +206,8 @@ test "parse_term_raw reports nonassoc chain and malformed input" {
   assert_true(parse_err_nonassoc(parse_term_raw("a = b = c")))
   assert_true(parse_err_unknown_operator(parse_term_raw("a \\xor b")))
   assert_true(parse_err_unknown_operator(parse_term_raw("\\foo P")))
+  assert_true(parse_err_unknown_operator(parse_term_raw("a /\\ b")))
+  assert_true(parse_err_unknown_operator(parse_term_raw("a \\/ b")))
   assert_true(parse_err_eof(parse_term_raw("(P")))
   assert_true(parse_err_eof(parse_term_raw("")))
 }

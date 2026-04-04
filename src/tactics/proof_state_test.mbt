@@ -37,6 +37,16 @@ test "proof state intro + exact closes implication goal" {
 }
 
 ///|
+test "proof state exact supports named theorem imp_refl" {
+  let (st, prelude, p, _, _) = setup_prop_env()
+  let imp_pp = expect_ok_ps(prop_mk_imp(st, prelude, p, p))
+  let ps0 = ps_init(mk_goal([], imp_pp))
+  let ps1 = expect_ok_ps(ps_apply(st, prelude, ps0, step_exact("imp_refl")))
+  assert_eq(ps_goal_count(ps1), 0)
+  assert_true(ps_qed(ps1) is Ok(_))
+}
+
+///|
 test "proof state split and left/right transform goals" {
   let (st, prelude, p, q, r) = setup_prop_env()
   let and_pq = expect_ok_ps(prop_mk_and(st, prelude, p, q))
@@ -104,6 +114,65 @@ test "proof state and_elim_l closes when P Q are kernel constants" {
 }
 
 ///|
+test "proof state and_elim_r closes when P Q are kernel constants" {
+  let prelude = default_prop_prelude()
+  let s0 = empty_kernel_state()
+  let s1 = expect_ok_ps(ks_add_const(s0, "P", bool_ty()))
+  let st = expect_ok_ps(ks_add_const(s1, "Q", bool_ty()))
+  let st2 = expect_ok_ps(install_prop_prelude(st))
+  let p = expect_ok_ps(ks_mk_const(st2, "P"))
+  let q = expect_ok_ps(ks_mk_const(st2, "Q"))
+  let and_pq = expect_ok_ps(prop_mk_and(st2, prelude, p, q))
+  let imp_and_pq_q = expect_ok_ps(prop_mk_imp(st2, prelude, and_pq, q))
+  let ps0 = ps_init(mk_goal([], imp_and_pq_q))
+  let ps1 = expect_ok_ps(ps_apply(st2, prelude, ps0, step_intro("h")))
+  let ps2 = expect_ok_ps(ps_apply(st2, prelude, ps1, step_apply("and_elim_r")))
+  let ps3 = expect_ok_ps(ps_apply(st2, prelude, ps2, step_exact("h")))
+  let ps4 = expect_ok_ps(ps_apply_script(st2, prelude, ps3, []))
+  assert_true(ps_qed(ps4) is Ok(_))
+}
+
+///|
+test "proof state apply supports theorem-backed or intro names" {
+  let prelude = default_prop_prelude()
+  let s0 = empty_kernel_state()
+  let s1 = expect_ok_ps(ks_add_const(s0, "P", bool_ty()))
+  let st = expect_ok_ps(ks_add_const(s1, "Q", bool_ty()))
+  let st2 = expect_ok_ps(install_prop_prelude(st))
+  let p = expect_ok_ps(ks_mk_const(st2, "P"))
+  let q = expect_ok_ps(ks_mk_const(st2, "Q"))
+  let or_pq = expect_ok_ps(prop_mk_or(st2, prelude, p, q))
+  let imp_p_or = expect_ok_ps(prop_mk_imp(st2, prelude, p, or_pq))
+  let ps0 = ps_init(mk_goal([], imp_p_or))
+  let ps1 = expect_ok_ps(ps_apply(st2, prelude, ps0, step_intro("h")))
+  let ps2 = expect_ok_ps(ps_apply(st2, prelude, ps1, step_apply("or_intro_l")))
+  let g_apply = expect_some_goal(ps_current_goal(ps2))
+  assert_true(term_alpha_eq(goal_concl(g_apply), p))
+  let ps3 = expect_ok_ps(ps_apply(st2, prelude, ps2, step_exact("h")))
+  assert_true(ps_qed(ps3) is Ok(_))
+}
+
+///|
+test "proof state apply supports theorem-backed or_intro_r" {
+  let prelude = default_prop_prelude()
+  let s0 = empty_kernel_state()
+  let s1 = expect_ok_ps(ks_add_const(s0, "P", bool_ty()))
+  let st = expect_ok_ps(ks_add_const(s1, "Q", bool_ty()))
+  let st2 = expect_ok_ps(install_prop_prelude(st))
+  let p = expect_ok_ps(ks_mk_const(st2, "P"))
+  let q = expect_ok_ps(ks_mk_const(st2, "Q"))
+  let or_pq = expect_ok_ps(prop_mk_or(st2, prelude, p, q))
+  let imp_q_or = expect_ok_ps(prop_mk_imp(st2, prelude, q, or_pq))
+  let ps0 = ps_init(mk_goal([], imp_q_or))
+  let ps1 = expect_ok_ps(ps_apply(st2, prelude, ps0, step_intro("h")))
+  let ps2 = expect_ok_ps(ps_apply(st2, prelude, ps1, step_apply("or_intro_r")))
+  let g_apply = expect_some_goal(ps_current_goal(ps2))
+  assert_true(term_alpha_eq(goal_concl(g_apply), q))
+  let ps3 = expect_ok_ps(ps_apply(st2, prelude, ps2, step_exact("h")))
+  assert_true(ps_qed(ps3) is Ok(_))
+}
+
+///|
 fn setup_or_intro_const_ps() -> (KernelState, PropPrelude, ProofState) {
   let prelude = default_prop_prelude()
   let s0 = empty_kernel_state()
@@ -148,6 +217,12 @@ test "proof state reports unresolved goals and malformed steps" {
     ps_apply(st, prelude, ps2, step_apply("and_elim_l"))
     is Err(ApplyMismatch(_)),
   )
+
+  let imp_pp = expect_ok_ps(prop_mk_imp(st, prelude, p, p))
+  let ps3 = ps_init(mk_goal([], imp_pp))
+  assert_true(
+    ps_apply(st, prelude, ps3, step_apply("imp_refl")) is Err(ApplyMismatch(_)),
+  )
 }
 
 ///|
@@ -160,4 +235,111 @@ test "proof state assumption produces checked theorem matching goal" {
   let th = expect_ok_ps(ps_qed(ps1))
   let c = expect_ok_ps(thm_concl(th))
   assert_true(term_alpha_eq(c, p))
+}
+
+///|
+test "proof state local names still win over named theorem references" {
+  let (st, prelude, p, _, _) = setup_prop_env()
+  let imp_pp = expect_ok_ps(prop_mk_imp(st, prelude, p, p))
+  let goal = mk_goal([], imp_pp)
+  let ps0 = ps_init(goal)
+  let ps1 = expect_ok_ps(ps_apply(st, prelude, ps0, step_intro("imp_refl")))
+  let g1 = expect_some_goal(ps_current_goal(ps1))
+  assert_true(term_alpha_eq(goal_concl(g1), p))
+  let ps2 = expect_ok_ps(ps_apply(st, prelude, ps1, step_exact("imp_refl")))
+  assert_true(ps_qed(ps2) is Ok(_))
+}
+
+///|
+test "proof state apply prefers local implication over theorem name collision" {
+  let (st, prelude, p, q, _) = setup_prop_env()
+  let imp_qp = expect_ok_ps(prop_mk_imp(st, prelude, q, p))
+  let imp_imp_qp_p = expect_ok_ps(prop_mk_imp(st, prelude, imp_qp, p))
+  let ps0 = ps_init(mk_goal([], imp_imp_qp_p))
+  let ps1 = expect_ok_ps(ps_apply(st, prelude, ps0, step_intro("and_elim_l")))
+  let ps2 = expect_ok_ps(ps_apply(st, prelude, ps1, step_apply("and_elim_l")))
+  let g2 = expect_some_goal(ps_current_goal(ps2))
+  assert_true(term_alpha_eq(goal_concl(g2), q))
+}
+
+///|
+test "proof state exact rejects context-derived theorem names" {
+  let (st, prelude, p, q, _) = setup_prop_env()
+  let and_pq = expect_ok_ps(prop_mk_and(st, prelude, p, q))
+  let goal = mk_goal([and_pq], p)
+  let ps0 = ps_init(goal)
+  let ps1 = expect_ok_ps(ps_apply(st, prelude, ps0, step_exact("and_elim_l")))
+  let th = expect_ok_ps(ps_qed(ps1))
+  let c = expect_ok_ps(thm_concl(th))
+  assert_true(term_alpha_eq(c, p))
+}
+
+///|
+test "proof state exact supports truth and ex_falso theorem names" {
+  let prelude = default_prop_prelude()
+  let st0 = empty_kernel_state()
+  let st1 = expect_ok_ps(ks_add_const(st0, "Q", bool_ty()))
+  let st2 = expect_ok_ps(install_prop_prelude(st1))
+  let q = expect_ok_ps(ks_mk_const(st2, "Q"))
+  let t_term = expect_ok_ps(ks_mk_const(st2, prelude.truth_name))
+  let f_term = expect_ok_ps(ks_mk_const(st2, prelude.false_name))
+
+  let ps_truth = ps_init(mk_goal([], t_term))
+  let ps_truth_done = expect_ok_ps(
+    ps_apply(st2, prelude, ps_truth, step_exact("truth")),
+  )
+  assert_true(ps_qed(ps_truth_done) is Ok(_))
+
+  let ps_false = ps_init(mk_goal([f_term], q))
+  let ps_false_done = expect_ok_ps(
+    ps_apply(st2, prelude, ps_false, step_exact("ex_falso")),
+  )
+  let th_false = expect_ok_ps(ps_qed(ps_false_done))
+  let c_false = expect_ok_ps(thm_concl(th_false))
+  assert_true(term_alpha_eq(c_false, q))
+}
+
+///|
+test "proof state exact supports context-derived not_elim" {
+  let (st, prelude, p, _, _) = setup_prop_env()
+  let false_term = expect_ok_ps(ks_mk_const(st, prelude.false_name))
+  let not_p = expect_ok_ps(prop_mk_not(st, prelude, p))
+  let goal = mk_goal([not_p, p], false_term)
+  let ps0 = ps_init(goal)
+  let ps1 = expect_ok_ps(ps_apply(st, prelude, ps0, step_exact("not_elim")))
+  let th = expect_ok_ps(ps_qed(ps1))
+  let c = expect_ok_ps(thm_concl(th))
+  assert_true(term_alpha_eq(c, false_term))
+}
+
+///|
+test "proof state apply rejects direct-close theorem names" {
+  let prelude = default_prop_prelude()
+  let st0 = empty_kernel_state()
+  let st1 = expect_ok_ps(ks_add_const(st0, "Q", bool_ty()))
+  let st2 = expect_ok_ps(install_prop_prelude(st1))
+  let q = expect_ok_ps(ks_mk_const(st2, "Q"))
+  let t_term = expect_ok_ps(ks_mk_const(st2, prelude.truth_name))
+  let f_term = expect_ok_ps(ks_mk_const(st2, prelude.false_name))
+
+  let ps_truth = ps_init(mk_goal([], t_term))
+  assert_true(
+    ps_apply(st2, prelude, ps_truth, step_apply("truth"))
+    is Err(ApplyMismatch(_)),
+  )
+
+  let ps_false = ps_init(mk_goal([f_term], q))
+  assert_true(
+    ps_apply(st2, prelude, ps_false, step_apply("ex_falso"))
+    is Err(ApplyMismatch(_)),
+  )
+
+  let (st3, prelude3, p, _, _) = setup_prop_env()
+  let false_term = expect_ok_ps(ks_mk_const(st3, prelude3.false_name))
+  let not_p = expect_ok_ps(prop_mk_not(st3, prelude3, p))
+  let ps_not = ps_init(mk_goal([not_p, p], false_term))
+  assert_true(
+    ps_apply(st3, prelude3, ps_not, step_apply("not_elim"))
+    is Err(ApplyMismatch(_)),
+  )
 }

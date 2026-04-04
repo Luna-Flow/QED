@@ -66,6 +66,79 @@ test "prove_theorem_script remains stable across later shadowing" {
 }
 
 ///|
+test "prove_theorem_script supports exact imp_refl by theorem name" {
+  let st0 = expect_ok_prover(ks_add_const(empty_kernel_state(), "P", bool_ty()))
+  let script = "theorem t1 : ⊢ P -> P := by exact imp_refl"
+  let (_st, th) = expect_ok_prover(
+    prove_theorem_script(st0, script, default_prover_options()),
+  )
+  let p = expect_ok_prover(
+    ks_mk_const(expect_ok_prover(install_prop_prelude(st0)), "P"),
+  )
+  let prelude = default_prop_prelude()
+  let target = expect_ok_prover(prop_mk_imp(st0, prelude, p, p))
+  let concl = expect_ok_prover(thm_concl(th))
+  assert_true(term_logical_eq(concl, target))
+}
+
+///|
+test "prove_theorem_script supports theorem-backed apply names" {
+  let st0 = expect_ok_prover(ks_add_const(empty_kernel_state(), "P", bool_ty()))
+  let st1 = expect_ok_prover(ks_add_const(st0, "Q", bool_ty()))
+
+  let script1 = "theorem t2 : ⊢ P ∧ Q -> P := by intro h; apply and_elim_l; exact h"
+  let script2 = "theorem t3 : ⊢ P -> P ∨ Q := by intro h; apply or_intro_l; exact h"
+
+  assert_true(
+    prove_theorem_script(st1, script1, default_prover_options()) is Ok(_),
+  )
+  assert_true(
+    prove_theorem_script(st1, script2, default_prover_options()) is Ok(_),
+  )
+}
+
+///|
+test "prove_theorem_script supports exact context-derived and truth names" {
+  let st0 = expect_ok_prover(ks_add_const(empty_kernel_state(), "P", bool_ty()))
+  let st1 = expect_ok_prover(ks_add_const(st0, "Q", bool_ty()))
+
+  let script1 = "theorem t4 : P ∧ Q ⊢ P := by exact and_elim_l"
+  let script2 = "theorem t5 : ⊢ T := by exact truth"
+  let script3 = "theorem t6 : F ⊢ Q := by exact ex_falso"
+
+  assert_true(
+    prove_theorem_script(st1, script1, default_prover_options()) is Ok(_),
+  )
+  assert_true(
+    prove_theorem_script(st1, script2, default_prover_options()) is Ok(_),
+  )
+  assert_true(
+    prove_theorem_script(st1, script3, default_prover_options()) is Ok(_),
+  )
+}
+
+///|
+test "prove_theorem_script rejects apply on direct-close theorem names" {
+  let st0 = expect_ok_prover(ks_add_const(empty_kernel_state(), "Q", bool_ty()))
+  assert_true(
+    prove_theorem_script(
+      st0,
+      "theorem t : ⊢ T := by apply truth",
+      default_prover_options(),
+    )
+    is Err(Tactic(ApplyMismatch(_))),
+  )
+  assert_true(
+    prove_theorem_script(
+      st0,
+      "theorem t : F ⊢ Q := by apply ex_falso",
+      default_prover_options(),
+    )
+    is Err(Tactic(ApplyMismatch(_))),
+  )
+}
+
+///|
 test "prove_theorem_script does not treat ordinary imp application as trusted implication" {
   let bool = bool_ty()
   let bin = fun_ty(bool, fun_ty(bool, bool))

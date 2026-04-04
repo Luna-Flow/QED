@@ -71,9 +71,8 @@ pub struct PendingGoal {
 }
 
 pub enum PendingRefine {
-  ImpBackward(@kernel.Term)
-  AndElimLeft(@kernel.Term)
-  AndElimRight(@kernel.Term)
+  ImpBackwardTerm(@kernel.Term)
+  ImpBackwardTheorem(@kernel.Thm)
 }
 
 pub struct ProofState {

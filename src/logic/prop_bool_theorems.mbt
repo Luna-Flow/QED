@@ -558,6 +558,320 @@ pub fn logic_prop_or_intro_l_thm(
 }
 
 ///|
+fn bool_term_compat(state : KernelState, lhs : Term, rhs : Term) -> Bool {
+  if term_logical_eq(lhs, rhs) || term_alpha_eq(lhs, rhs) {
+    return true
+  }
+  let lhs_nf = match logic_beta_nf_bool_term_deep(state, lhs) {
+    Ok(v) => v
+    Err(_) => lhs
+  }
+  let rhs_nf = match logic_beta_nf_bool_term_deep(state, rhs) {
+    Ok(v) => v
+    Err(_) => rhs
+  }
+  term_logical_eq(lhs_nf, rhs_nf) || term_alpha_eq(lhs_nf, rhs_nf)
+}
+
+///|
+fn prelude_false_term(state : KernelState, prelude : PropPrelude) -> Term? {
+  match ks_mk_const(state, prelude.false_name) {
+    Ok(v) => Some(v)
+    Err(_) => None
+  }
+}
+
+///|
+fn find_matching_term(
+  state : KernelState,
+  pool : Array[Term],
+  target : Term,
+) -> Term? {
+  for item in pool {
+    if bool_term_compat(state, item, target) {
+      return Some(item)
+    }
+  }
+  None
+}
+
+///|
+fn find_not_elim_pair(
+  state : KernelState,
+  prelude : PropPrelude,
+  pool : Array[Term],
+) -> (Term, Term)? {
+  for not_term in pool {
+    match prop_dest_not(state, prelude, not_term) {
+      Some(inner) =>
+        match find_matching_term(state, pool, inner) {
+          Some(pos_term) => return Some((not_term, pos_term))
+          None => ()
+        }
+      None => ()
+    }
+  }
+  None
+}
+
+///|
+fn find_named_and_owner(
+  state : KernelState,
+  prelude : PropPrelude,
+  pool : Array[Term],
+  want_left : Bool,
+  goal_concl : Term,
+) -> Term? {
+  for owner in pool {
+    match prop_dest_and(state, prelude, owner) {
+      Some((lhs, rhs)) =>
+        if want_left {
+          if bool_term_compat(state, lhs, goal_concl) {
+            return Some(owner)
+          }
+        } else if bool_term_compat(state, rhs, goal_concl) {
+          return Some(owner)
+        }
+      _ => ()
+    }
+  }
+  None
+}
+
+///|
+pub fn logic_prop_named_theorem(
+  state : KernelState,
+  prelude : PropPrelude,
+  name : String,
+  goal_concl : Term,
+) -> Thm? {
+  if name == "imp_refl" {
+    match prop_dest_imp(state, prelude, goal_concl) {
+      Some((lhs, rhs)) =>
+        if bool_term_compat(state, lhs, rhs) {
+          match logic_prop_imp_refl(state, prelude, lhs) {
+            Ok(th) => Some(th)
+            Err(_) => None
+          }
+        } else {
+          None
+        }
+      None => None
+    }
+  } else if name == "truth" {
+    match prelude_false_term(state, prelude) {
+      Some(_f) =>
+        match ks_mk_const(state, prelude.truth_name) {
+          Ok(t_term) =>
+            if bool_term_compat(state, goal_concl, t_term) {
+              match logic_prop_truth_const_thm(state, prelude) {
+                Ok(th) => Some(th)
+                Err(_) => None
+              }
+            } else {
+              None
+            }
+          Err(_) => None
+        }
+      None => None
+    }
+  } else {
+    None
+  }
+}
+
+///|
+pub fn logic_prop_context_theorem(
+  state : KernelState,
+  prelude : PropPrelude,
+  name : String,
+  pool : Array[Term],
+  goal_concl : Term,
+) -> (Thm, Term)? {
+  if name == "and_elim_l" || name == "and_elim_r" {
+    let want_left = name == "and_elim_l"
+    match find_named_and_owner(state, prelude, pool, want_left, goal_concl) {
+      Some(owner) => {
+        let th_owner = match logic_assume(state, owner) {
+          Ok(v) => v
+          Err(_) => return None
+        }
+        let th_body = if want_left {
+          match logic_prop_and_elim_l_thm(state, prelude, th_owner) {
+            Ok(v) => v
+            Err(_) => return None
+          }
+        } else {
+          match logic_prop_and_elim_r_thm(state, prelude, th_owner) {
+            Ok(v) => v
+            Err(_) => return None
+          }
+        }
+        Some((th_body, owner))
+      }
+      None => None
+    }
+  } else if name == "not_elim" {
+    match prelude_false_term(state, prelude) {
+      Some(false_term) =>
+        if !bool_term_compat(state, goal_concl, false_term) {
+          None
+        } else {
+          match find_not_elim_pair(state, prelude, pool) {
+            Some((not_term, pos_term)) => {
+              let th_not = match logic_assume(state, not_term) {
+                Ok(v) => v
+                Err(_) => return None
+              }
+              let th_pos = match logic_assume(state, pos_term) {
+                Ok(v) => v
+                Err(_) => return None
+              }
+              match logic_prop_not_elim(state, prelude, th_not, th_pos) {
+                Ok(th) => {
+                  let th_nf = match logic_normalize_prop_beta(state, th) {
+                    Ok(v) => v
+                    Err(_) => th
+                  }
+                  let direct = match thm_concl(th_nf) {
+                    Ok(concl) =>
+                      if bool_term_compat(state, concl, false_term) {
+                        th_nf
+                      } else {
+                        let def_f = match
+                          logic_bool_false_def_thm(state, prelude) {
+                          Ok(v) => v
+                          Err(_) => return None
+                        }
+                        let def_sym = match logic_eq_sym(state, def_f) {
+                          Ok(v) => v
+                          Err(_) => return None
+                        }
+                        match logic_eq_mp_bool(state, def_sym, th_nf) {
+                          Ok(v) => v
+                          Err(_) => return None
+                        }
+                      }
+                    Err(_) => return None
+                  }
+                  Some((direct, false_term))
+                }
+                Err(_) => None
+              }
+            }
+            None => None
+          }
+        }
+      None => None
+    }
+  } else if name == "ex_falso" {
+    match prelude_false_term(state, prelude) {
+      Some(false_term) =>
+        match find_matching_term(state, pool, false_term) {
+          Some(found_false) => {
+            let th_false = match logic_assume(state, found_false) {
+              Ok(v) => v
+              Err(_) => return None
+            }
+            match
+              logic_prop_ex_falso_thm(state, prelude, th_false, goal_concl) {
+              Ok(th) => {
+                let th_nf = match logic_normalize_prop_beta(state, th) {
+                  Ok(v) => v
+                  Err(_) => th
+                }
+                Some((th_nf, found_false))
+              }
+              Err(_) => None
+            }
+          }
+          None => None
+        }
+      None => None
+    }
+  } else {
+    None
+  }
+}
+
+///|
+pub fn logic_prop_context_apply_theorem(
+  state : KernelState,
+  prelude : PropPrelude,
+  name : String,
+  pool : Array[Term],
+  goal_concl : Term,
+) -> (Thm, Term)? {
+  if name == "and_elim_l" || name == "and_elim_r" {
+    let want_left = name == "and_elim_l"
+    match find_named_and_owner(state, prelude, pool, want_left, goal_concl) {
+      Some(owner) => {
+        let th_owner = match logic_assume(state, owner) {
+          Ok(v) => v
+          Err(_) => return None
+        }
+        let th_body = if want_left {
+          match logic_prop_and_elim_l_thm(state, prelude, th_owner) {
+            Ok(v) => v
+            Err(_) => return None
+          }
+        } else {
+          match logic_prop_and_elim_r_thm(state, prelude, th_owner) {
+            Ok(v) => v
+            Err(_) => return None
+          }
+        }
+        match logic_prop_imp_intro_thm(state, prelude, owner, th_body) {
+          Ok(th) => Some((th, owner))
+          Err(_) => None
+        }
+      }
+      None => None
+    }
+  } else if name == "or_intro_l" {
+    match prop_dest_or(state, prelude, goal_concl) {
+      Some((lhs, rhs)) => {
+        let th_lhs = match logic_assume(state, lhs) {
+          Ok(v) => v
+          Err(_) => return None
+        }
+        let th_body = match
+          logic_prop_or_intro_l_thm(state, prelude, th_lhs, rhs) {
+          Ok(v) => v
+          Err(_) => return None
+        }
+        match logic_prop_imp_intro_thm(state, prelude, lhs, th_body) {
+          Ok(th) => Some((th, lhs))
+          Err(_) => None
+        }
+      }
+      None => None
+    }
+  } else if name == "or_intro_r" {
+    match prop_dest_or(state, prelude, goal_concl) {
+      Some((lhs, rhs)) => {
+        let th_rhs = match logic_assume(state, rhs) {
+          Ok(v) => v
+          Err(_) => return None
+        }
+        let th_body = match
+          logic_prop_or_intro_r_thm(state, prelude, lhs, th_rhs) {
+          Ok(v) => v
+          Err(_) => return None
+        }
+        match logic_prop_imp_intro_thm(state, prelude, rhs, th_body) {
+          Ok(th) => Some((th, rhs))
+          Err(_) => None
+        }
+      }
+      None => None
+    }
+  } else {
+    None
+  }
+}
+
+///|
 pub fn logic_prop_or_intro_r_thm(
   state : KernelState,
   prelude : PropPrelude,

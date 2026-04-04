@@ -128,6 +128,35 @@ pub fn logic_prop_replay_imp_elim_backward(
 }
 
 ///|
+pub fn logic_prop_replay_imp_elim_backward_thm(
+  state : KernelState,
+  prelude : PropPrelude,
+  hyps : Array[Term],
+  imp_th : Thm,
+  th_antecedent : Thm,
+) -> Result[Thm, LogicError] {
+  let imp_concl = match thm_concl(imp_th) {
+    Ok(v) => v
+    Err(e) => return Err(e)
+  }
+  let (antecedent, _consequent) = match
+    prop_dest_imp(state, prelude, imp_concl) {
+    Some(v) => v
+    None => return Err(replay_logic_err())
+  }
+  let th_imp = match logic_prop_ensure_sequent(state, hyps, imp_concl, imp_th) {
+    Ok(v) => v
+    Err(e) => return Err(e)
+  }
+  let th_sub = match
+    logic_prop_ensure_sequent(state, hyps, antecedent, th_antecedent) {
+    Ok(v) => v
+    Err(e) => return Err(e)
+  }
+  logic_prop_imp_elim_thm(state, prelude, th_imp, th_sub)
+}
+
+///|
 pub fn logic_prop_replay_and_elim_l(
   state : KernelState,
   prelude : PropPrelude,

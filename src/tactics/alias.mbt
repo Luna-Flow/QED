@@ -14,10 +14,12 @@ using @kernel {
 ///|
 using @logic {
   type PropPrelude,
-  prop_prelude_has_rule,
+  type PropRefResolution,
   prop_dest_imp,
   prop_dest_and,
   prop_dest_or,
+  logic_prop_context_apply_theorem,
+  logic_prop_resolve_ref,
 }
 
 ///|
@@ -26,8 +28,7 @@ using @logic {
   logic_prop_ensure_sequent,
   logic_prop_discharge_imp_prefix,
   logic_prop_replay_imp_elim_backward,
-  logic_prop_replay_and_elim_l,
-  logic_prop_replay_and_elim_r,
+  logic_prop_replay_imp_elim_backward_thm,
   logic_prop_merge_conjunction,
   logic_prop_or_wrap_left,
   logic_prop_or_wrap_right,

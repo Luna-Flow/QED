@@ -55,3 +55,12 @@ using @kernel {
   ks_conservative_replay_ok,
   ind_ty,
 }
+
+///|
+using @logic {
+  type PropRefResolution,
+  logic_prop_named_theorem,
+  logic_prop_context_theorem,
+  logic_prop_context_apply_theorem,
+  logic_prop_resolve_ref,
+}
