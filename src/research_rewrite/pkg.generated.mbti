@@ -1,0 +1,122 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Luna-Flow/QED/research_rewrite"
+
+import {
+  "Luna-Flow/QED/kernel",
+  "Luna-Flow/QED/logic",
+}
+
+// Values
+pub fn research_beta_normalization() -> RewriteWitness
+
+pub fn research_canonical_unfold_and() -> RewriteWitness
+
+pub fn research_canonical_unfold_imp() -> RewriteWitness
+
+pub fn research_canonical_unfold_not() -> RewriteWitness
+
+pub fn research_canonical_unfold_or() -> RewriteWitness
+
+pub fn research_explicit_theorem(@kernel.Thm) -> RewriteWitness
+
+pub fn research_left_to_right() -> RewriteDirection
+
+pub fn research_local_equality(String) -> RewriteWitness
+
+pub fn research_replay_obligation(@kernel.Term, @kernel.Term, Array[ReplaySegment]) -> ReplayObligation
+
+pub fn research_replay_segment(RewriteRequest, @kernel.Term, @kernel.Term, Array[ReplayStepKind]) -> ReplaySegment
+
+pub fn research_rewrite_request(RewriteWitness, RewriteDirection, Array[RewriteSiteStep]) -> RewriteRequest
+
+pub fn research_rewrite_term_concl(@kernel.KernelState, @logic.PropPrelude, Array[(String, @kernel.Term)], @kernel.Term, RewriteRequest) -> RewriteResult
+
+pub fn research_right_to_left() -> RewriteDirection
+
+pub fn research_simplify_config(Int, Bool, Bool, Array[RewriteRequest]) -> SimplifyConfig
+
+pub fn research_simplify_term_concl(@kernel.KernelState, @logic.PropPrelude, Array[(String, @kernel.Term)], @kernel.Term, SimplifyConfig) -> RewriteResult
+
+pub fn research_site_abs_body() -> RewriteSiteStep
+
+pub fn research_site_comb_arg() -> RewriteSiteStep
+
+pub fn research_site_comb_fun() -> RewriteSiteStep
+
+pub fn research_step_name(ReplayStepKind) -> String
+
+pub fn research_validate_replay_obligation(@kernel.KernelState, @logic.PropPrelude, Array[(String, @kernel.Term)], ReplayObligation) -> Result[Unit, @kernel.LogicError]
+
+// Errors
+
+// Types and methods
+pub enum ConnectorKind {
+  Not
+  Imp
+  And
+  Or
+}
+
+pub struct ReplayObligation {
+  before_concl : @kernel.Term
+  after_concl : @kernel.Term
+  segments : Array[ReplaySegment]
+}
+
+pub struct ReplaySegment {
+  request : RewriteRequest
+  before_concl : @kernel.Term
+  after_concl : @kernel.Term
+  steps : Array[ReplayStepKind]
+}
+
+pub enum ReplayStepKind {
+  ResolveWitness
+  Symmetry
+  Congruence
+  Unfold
+  BetaNormalize
+  EqMpBool
+}
+
+pub enum RewriteDirection {
+  LeftToRight
+  RightToLeft
+}
+
+pub struct RewriteRequest {
+  witness : RewriteWitness
+  direction : RewriteDirection
+  site : Array[RewriteSiteStep]
+}
+
+pub enum RewriteResult {
+  Rewritten(@kernel.Term, ReplayObligation)
+  NoChange
+  HonestFailure(String)
+}
+
+pub enum RewriteSiteStep {
+  CombFun
+  CombArg
+  AbsBody
+}
+
+pub enum RewriteWitness {
+  LocalEquality(String)
+  ExplicitTheorem(@kernel.Thm)
+  CanonicalUnfold(ConnectorKind)
+  BetaNormalization
+}
+
+pub struct SimplifyConfig {
+  step_limit : Int
+  allow_unfold : Bool
+  allow_beta : Bool
+  rewrite_requests : Array[RewriteRequest]
+}
+
+// Type aliases
+
+// Traits
+
