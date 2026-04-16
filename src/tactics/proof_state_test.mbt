@@ -187,6 +187,61 @@ test "proof state apply supports theorem-backed or_intro_r" {
 }
 
 ///|
+test "proof state apply imp_intro mirrors implication introduction" {
+  let (st, prelude, p, q, _) = setup_prop_env()
+  let imp_qp = expect_ok_ps(prop_mk_imp(st, prelude, q, p))
+  let target = expect_ok_ps(prop_mk_imp(st, prelude, p, imp_qp))
+  let ps0 = ps_init(mk_goal([], target))
+  let ps1 = expect_ok_ps(ps_apply(st, prelude, ps0, step_apply("imp_intro")))
+  let g1 = expect_some_goal(ps_current_goal(ps1))
+  assert_true(term_alpha_eq(goal_concl(g1), imp_qp))
+  let ps2 = expect_ok_ps(ps_apply(st, prelude, ps1, step_intro("hq")))
+  let ps3 = expect_ok_ps(ps_apply(st, prelude, ps2, step_exact("_h")))
+  let th = expect_ok_ps(ps_qed(ps3))
+  let concl = expect_ok_ps(thm_concl(th))
+  assert_true(term_logical_eq(concl, target) || term_alpha_eq(concl, target))
+}
+
+///|
+test "proof state apply imp_elim uses context implication eliminator" {
+  let (st, prelude, p, q, _) = setup_prop_env()
+  let imp_qp = expect_ok_ps(prop_mk_imp(st, prelude, q, p))
+  let target = expect_ok_ps(prop_mk_imp(st, prelude, imp_qp, imp_qp))
+  let ps0 = ps_init(mk_goal([], target))
+  let ps1 = expect_ok_ps(ps_apply(st, prelude, ps0, step_intro("himp")))
+  let ps2 = expect_ok_ps(ps_apply(st, prelude, ps1, step_intro("hq")))
+  let ps3 = expect_ok_ps(ps_apply(st, prelude, ps2, step_apply("imp_elim")))
+  let g3 = expect_some_goal(ps_current_goal(ps3))
+  assert_true(term_alpha_eq(goal_concl(g3), q))
+  let ps4 = expect_ok_ps(ps_apply(st, prelude, ps3, step_exact("hq")))
+  let th = expect_ok_ps(ps_qed(ps4))
+  let concl = expect_ok_ps(thm_concl(th))
+  assert_true(term_logical_eq(concl, target) || term_alpha_eq(concl, target))
+}
+
+///|
+test "proof state apply and_intro splits conjunction goals" {
+  let (st, prelude, p, q, _) = setup_prop_env()
+  let and_pq = expect_ok_ps(prop_mk_and(st, prelude, p, q))
+  let imp_q_and = expect_ok_ps(prop_mk_imp(st, prelude, q, and_pq))
+  let target = expect_ok_ps(prop_mk_imp(st, prelude, p, imp_q_and))
+  let ps0 = ps_init(mk_goal([], target))
+  let ps1 = expect_ok_ps(ps_apply(st, prelude, ps0, step_intro("hp")))
+  let ps2 = expect_ok_ps(ps_apply(st, prelude, ps1, step_intro("hq")))
+  let ps3 = expect_ok_ps(ps_apply(st, prelude, ps2, step_apply("and_intro")))
+  assert_eq(ps_goal_count(ps3), 2)
+  let g3 = expect_some_goal(ps_current_goal(ps3))
+  assert_true(term_alpha_eq(goal_concl(g3), p))
+  let ps4 = expect_ok_ps(ps_apply(st, prelude, ps3, step_exact("hp")))
+  let g4 = expect_some_goal(ps_current_goal(ps4))
+  assert_true(term_alpha_eq(goal_concl(g4), q))
+  let ps5 = expect_ok_ps(ps_apply(st, prelude, ps4, step_exact("hq")))
+  let th = expect_ok_ps(ps_qed(ps5))
+  let concl = expect_ok_ps(thm_concl(th))
+  assert_true(term_logical_eq(concl, target) || term_alpha_eq(concl, target))
+}
+
+///|
 fn setup_or_intro_const_ps() -> (KernelState, PropPrelude, ProofState) {
   let prelude = default_prop_prelude()
   let s0 = empty_kernel_state()
