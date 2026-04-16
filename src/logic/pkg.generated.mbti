@@ -200,7 +200,7 @@ pub enum PropExactTheoremResolution {
 }
 
 pub enum PropExactWitness {
-  ExactLocalHyp(String, @kernel.Term)
+  ExactLocalAlias(String)
   ExactDirectTheorem(String, @kernel.Thm)
   ExactContextTheorem(String, @kernel.Thm, Array[@kernel.Term])
 }

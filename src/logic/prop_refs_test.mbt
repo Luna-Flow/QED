@@ -91,12 +91,20 @@ test "exact witness resolver prefers local hypothesis over theorem names" {
   let locals : Array[(String, Term)] = [("imp_refl", p)]
   match
     logic_prop_resolve_exact_witness(st, prelude, locals, [p], p, "imp_refl") {
-    Some(ExactWitnessApplicable(ExactLocalHyp(name, t))) => {
+    Some(ExactWitnessApplicable(ExactLocalAlias(name))) =>
       assert_eq(name, "imp_refl")
-      assert_true(term_alpha_eq(t, p))
-    }
     _ => panic()
   }
+}
+
+///|
+test "exact witness resolver only accepts local aliases backed by current hypotheses" {
+  let (st, prelude, p, _, _) = setup_prop_ref_env()
+  let locals : Array[(String, Term)] = [("hp", p)]
+  assert_true(
+    logic_prop_resolve_exact_witness(st, prelude, locals, [], p, "hp")
+    is Some(ExactWitnessKnownButUnavailable),
+  )
 }
 
 ///|

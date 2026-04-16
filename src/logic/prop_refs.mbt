@@ -19,7 +19,7 @@ pub enum PropExactTheoremResolution {
 
 ///|
 pub enum PropExactWitness {
-  ExactLocalHyp(String, Term)
+  ExactLocalAlias(String)
   ExactDirectTheorem(String, Thm)
   ExactContextTheorem(String, Thm, Array[Term])
 }
@@ -44,16 +44,15 @@ fn resolve_local_fact(locals : Array[(String, Term)], name : String) -> Term? {
 }
 
 ///|
-fn exact_local_term_matches(
+fn exact_local_alias_matches(
   hyps : Array[Term],
   concl : Term,
   term : Term,
 ) -> Bool {
-  let hyp_bridge = hyps.any(fn(h) {
+  hyps.any(fn(h) {
     (term_logical_eq(h, concl) || term_alpha_eq(h, concl)) &&
     (term_logical_eq(term, h) || term_alpha_eq(term, h))
   })
-  term_logical_eq(term, concl) || term_alpha_eq(term, concl) || hyp_bridge
 }
 
 ///|
@@ -127,8 +126,8 @@ pub fn logic_prop_resolve_exact_witness(
 ) -> PropExactWitnessResolution? {
   match resolve_local_fact(locals, name) {
     Some(term) =>
-      if exact_local_term_matches(hyps, goal_concl, term) {
-        return Some(ExactWitnessApplicable(ExactLocalHyp(name, term)))
+      if exact_local_alias_matches(hyps, goal_concl, term) {
+        return Some(ExactWitnessApplicable(ExactLocalAlias(name)))
       } else {
         return Some(ExactWitnessKnownButUnavailable)
       }

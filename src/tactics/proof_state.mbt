@@ -282,7 +282,6 @@ fn exact_from_local_witness(
   g : PendingGoal,
   rest : Array[PendingGoal],
   _name : String,
-  _term : Term,
 ) -> Result[ProofState, TacticExecError] {
   let base = match logic_prop_close_hypothesis(state, g.hyps, g.concl) {
     Ok(v) => v
@@ -321,8 +320,8 @@ fn exact_from_witness(
   witness : PropExactWitness,
 ) -> Result[ProofState, TacticExecError] {
   match witness {
-    ExactLocalHyp(name, term) =>
-      exact_from_local_witness(state, prelude, ps, g, rest, name, term)
+    ExactLocalAlias(name) =>
+      exact_from_local_witness(state, prelude, ps, g, rest, name)
     ExactDirectTheorem(_, theorem) =>
       exact_from_theorem(state, prelude, ps, g, rest, theorem)
     ExactContextTheorem(_, theorem, _) =>
