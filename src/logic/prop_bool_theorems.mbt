@@ -177,7 +177,14 @@ fn theorem_ex_falso(
     Ok(v) => v
     Err(e) => return Err(e)
   }
-  logic_eq_mp_bool(state, th_sym, th_t)
+  let th_target = match logic_eq_mp_bool(state, th_sym, th_t) {
+    Ok(v) => v
+    Err(e) => return Err(e)
+  }
+  match logic_normalize_prop_beta(state, th_target) {
+    Ok(v) => Ok(v)
+    Err(_) => Ok(th_target)
+  }
 }
 
 ///|

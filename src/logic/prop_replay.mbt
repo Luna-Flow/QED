@@ -224,23 +224,84 @@ pub fn logic_prop_merge_conjunction(
 }
 
 ///|
+fn replay_or_target_matches(
+  state : KernelState,
+  prelude : PropPrelude,
+  actual : Term,
+  expected : Term,
+) -> Bool {
+  if prop_logical_or_same(state, prelude, actual, expected) {
+    true
+  } else {
+    let actual_nf = match logic_beta_nf_bool_term_deep(state, actual) {
+      Ok(v) => v
+      Err(_) => actual
+    }
+    let expected_nf = match logic_beta_nf_bool_term_deep(state, expected) {
+      Ok(v) => v
+      Err(_) => expected
+    }
+    if prop_logical_or_same(state, prelude, actual_nf, expected_nf) {
+      true
+    } else {
+      match
+        (
+          prop_dest_or(state, prelude, actual_nf),
+          prop_dest_or(state, prelude, expected_nf),
+        ) {
+        (Some((actual_l, actual_r)), Some((expected_l, expected_r))) =>
+          bool_term_compat(state, actual_l, expected_l) &&
+          bool_term_compat(state, actual_r, expected_r)
+        _ => false
+      }
+    }
+  }
+}
+
+///|
 pub fn logic_prop_or_wrap_left(
   state : KernelState,
   prelude : PropPrelude,
-  _full_or : Term,
+  full_or : Term,
   right_branch : Term,
   th_left_branch : Thm,
 ) -> Result[Thm, LogicError] {
-  logic_prop_or_intro_l_thm(state, prelude, th_left_branch, right_branch)
+  let thm = match
+    logic_prop_or_intro_l_thm(state, prelude, th_left_branch, right_branch) {
+    Ok(v) => v
+    Err(e) => return Err(e)
+  }
+  let c = match thm_concl(thm) {
+    Ok(v) => v
+    Err(e) => return Err(e)
+  }
+  if !replay_or_target_matches(state, prelude, c, full_or) {
+    Err(replay_logic_err())
+  } else {
+    Ok(thm)
+  }
 }
 
 ///|
 pub fn logic_prop_or_wrap_right(
   state : KernelState,
   prelude : PropPrelude,
-  _full_or : Term,
+  full_or : Term,
   left_branch : Term,
   th_right_branch : Thm,
 ) -> Result[Thm, LogicError] {
-  logic_prop_or_intro_r_thm(state, prelude, left_branch, th_right_branch)
+  let thm = match
+    logic_prop_or_intro_r_thm(state, prelude, left_branch, th_right_branch) {
+    Ok(v) => v
+    Err(e) => return Err(e)
+  }
+  let c = match thm_concl(thm) {
+    Ok(v) => v
+    Err(e) => return Err(e)
+  }
+  if !replay_or_target_matches(state, prelude, c, full_or) {
+    Err(replay_logic_err())
+  } else {
+    Ok(thm)
+  }
 }

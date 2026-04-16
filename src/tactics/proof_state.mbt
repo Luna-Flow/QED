@@ -340,80 +340,11 @@ fn named_apply_mismatch() -> TacticExecError {
 }
 
 ///|
-fn root_concl_compat_or_tail(
-  state : KernelState,
-  prelude : PropPrelude,
-  b1 : Term,
-  b2 : Term,
-) -> Bool {
-  if term_logical_eq(b1, b2) || term_alpha_eq(b1, b2) {
-    true
-  } else {
-    let n1 = match logic_beta_nf_bool_term_deep(state, b1) {
-      Ok(v) => v
-      Err(_) => b1
-    }
-    let n2 = match logic_beta_nf_bool_term_deep(state, b2) {
-      Ok(v) => v
-      Err(_) => b2
-    }
-    if term_logical_eq(n1, n2) || term_alpha_eq(n1, n2) {
-      true
-    } else {
-      match
-        (prop_dest_or(state, prelude, n1), prop_dest_or(state, prelude, n2)) {
-        (Some((l1, r1)), Some((l2, r2))) =>
-          root_concl_heads_match(state, l1, l2) &&
-          root_concl_heads_match(state, r1, r2)
-        _ => false
-      }
-    }
-  }
-}
-
-///|
-fn root_concl_heads_match(state : KernelState, t1 : Term, t2 : Term) -> Bool {
-  if term_logical_eq(t1, t2) || term_alpha_eq(t1, t2) {
-    true
-  } else {
-    let u1 = match logic_beta_nf_bool_term_deep(state, t1) {
-      Ok(v) => v
-      Err(_) => t1
-    }
-    let u2 = match logic_beta_nf_bool_term_deep(state, t2) {
-      Ok(v) => v
-      Err(_) => t2
-    }
-    term_logical_eq(u1, u2) || term_alpha_eq(u1, u2)
-  }
-}
-
-///|
-fn root_concl_compat(
-  state : KernelState,
-  prelude : PropPrelude,
-  cc : Term,
-  rc : Term,
-) -> Bool {
-  if term_logical_eq(cc, rc) || term_alpha_eq(cc, rc) {
-    true
-  } else {
-    match
-      (prop_dest_imp(state, prelude, cc), prop_dest_imp(state, prelude, rc)) {
-      (Some((a1, b1)), Some((a2, b2))) =>
-        root_concl_heads_match(state, a1, a2) &&
-        root_concl_compat_or_tail(state, prelude, b1, b2)
-      _ => false
-    }
-  }
-}
-
-///|
 fn validate_root_theorem(
   state : KernelState,
   th : Thm,
   root : Goal,
-  prelude : PropPrelude,
+  _prelude : PropPrelude,
 ) -> Result[Unit, TacticExecError] {
   let rhy = goal_hyps(root)
   let rc = goal_concl(root)
@@ -469,9 +400,7 @@ fn validate_root_theorem(
       )
     }
   }
-  if !(root_concl_compat(state, prelude, cc_nf, rc_nf) ||
-    term_logical_eq(cc_nf, rc_nf) ||
-    term_alpha_eq(cc_nf, rc_nf)) {
+  if !(term_logical_eq(cc_nf, rc_nf) || term_alpha_eq(cc_nf, rc_nf)) {
     return Err(
       ProofSynthesisUnavailable(
         "final theorem conclusion does not match root goal",
