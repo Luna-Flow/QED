@@ -24,6 +24,8 @@ pub fn parse_env_local_at(ParseEnv, Int) -> (String, @kernel.HolType)?
 
 pub fn parse_env_local_count(ParseEnv) -> Int
 
+pub fn parse_env_push_local(ParseEnv, String, @kernel.HolType) -> ParseEnv
+
 pub fn parse_goal(@kernel.KernelState, String) -> Result[@tactics.Goal, ParseBridgeError]
 
 pub fn parse_goal_raw(String) -> Result[SynGoal, ParseError]
@@ -92,6 +94,13 @@ pub struct SourceSpan {
   end_offset : Int
 }
 
+pub struct SynBinder {
+  name : String
+  ty : @kernel.HolType
+  span : SourceSpan
+  src : String
+}
+
 pub struct SynGoal {
   hyps : Array[SynTerm]
   concl : SynTerm
@@ -126,6 +135,7 @@ pub enum SynTerm {
 
 pub struct SynTheoremScript {
   name : String
+  binders : Array[SynBinder]
   goal : SynGoal
   goal_src : String
   goal_span : SourceSpan

@@ -271,7 +271,11 @@ pub fn prove_theorem_script_detailed(
         Some(e.offset),
       )
   }
-  let goal = match lower_syn_goal_with_env(st1, empty_parse_env(), syn.goal) {
+  let mut goal_env = empty_parse_env()
+  for binder in syn.binders {
+    goal_env = parse_env_push_local(goal_env, binder.name, binder.ty)
+  }
+  let goal = match lower_syn_goal_with_env(st1, goal_env, syn.goal) {
     Ok(v) => v
     Err(e) =>
       match e {

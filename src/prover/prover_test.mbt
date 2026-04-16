@@ -67,6 +67,41 @@ test "prove_theorem_script runs linear scripts with auto prelude install" {
 }
 
 ///|
+test "prove_theorem_script accepts theorem header binders" {
+  let script = "theorem t (P : bool) : ⊢ P -> P := by intro h; exact h"
+  let (_st, th) = expect_ok_prover(
+    prove_theorem_script(empty_kernel_state(), script, default_prover_options()),
+  )
+  let st_pre = expect_ok_prover(install_prop_prelude(empty_kernel_state()))
+  let prelude = default_prop_prelude()
+  let p = mk_var("P", bool_ty())
+  let target = expect_ok_prover(prop_mk_imp(st_pre, prelude, p, p))
+  let concl = expect_ok_prover(thm_concl(th))
+  assert_true(term_logical_eq(concl, target))
+}
+
+///|
+test "prove_theorem_script keeps theorem header binders above same-named constants" {
+  let st0 = expect_ok_prover(ks_add_const(empty_kernel_state(), "P", bool_ty()))
+  let script = "theorem t (P : bool) : ⊢ P -> P := by exact imp_refl"
+  let (st_out, th) = expect_ok_prover(
+    prove_theorem_script(st0, script, default_prover_options()),
+  )
+  let prelude = default_prop_prelude()
+  let local_p = mk_var("P", bool_ty())
+  let local_target = expect_ok_prover(
+    prop_mk_imp(st_out, prelude, local_p, local_p),
+  )
+  let global_p = expect_ok_prover(ks_mk_const(st_out, "P"))
+  let global_target = expect_ok_prover(
+    prop_mk_imp(st_out, prelude, global_p, global_p),
+  )
+  let concl = expect_ok_prover(thm_concl(th))
+  assert_true(term_logical_eq(concl, local_target))
+  assert_false(term_logical_eq(concl, global_target))
+}
+
+///|
 test "prove_theorem_script_detailed preserves theorem name on success" {
   let st0 = expect_ok_prover(ks_add_const(empty_kernel_state(), "P", bool_ty()))
   let result = prove_theorem_script_detailed(

@@ -204,6 +204,16 @@ test "parse_term_raw succeeds on base term forms" {
       Infix("->", Infix("∨", Prefix("¬", Name("P")), Name("Q")), Name("R"))
     ),
   )
+  assert_true(
+    parse_term_raw("Q = P -> P = Q")
+    is Ok(
+      Infix(
+        "->",
+        Infix("=", Name("Q"), Name("P")),
+        Infix("=", Name("P"), Name("Q"))
+      )
+    ),
+  )
 }
 
 ///|
@@ -527,6 +537,30 @@ test "def lowering binds parameter at debruijn index 0" {
 }
 
 ///|
+test "parse theorem script raw supports theorem header binders" {
+  let src = "theorem t1 (P : bool) (Q : A -> bool) : ⊢ P -> P := by intro h; exact h"
+  match parse_theorem_script_raw(src) {
+    Ok(s) => {
+      assert_eq(s.name, "t1")
+      assert_eq(s.binders.length(), 2)
+      assert_eq(s.binders[0].name, "P")
+      assert_true(ty_eq(s.binders[0].ty, bool_ty()))
+      assert_eq(s.binders[0].src, "(P : bool)")
+      assert_eq(s.binders[1].name, "Q")
+      assert_true(ty_eq(s.binders[1].ty, fun_ty(mk_tyvar("A"), bool_ty())))
+      assert_eq(s.binders[1].src, "(Q : A -> bool)")
+      assert_true(
+        s.binders[0].span.start_offset < s.binders[1].span.start_offset,
+      )
+      assert_true(s.binders[1].span.end_offset <= s.goal_span.start_offset)
+      assert_eq(s.goal_src, "⊢ P -> P")
+      assert_eq(s.body.steps.length(), 2)
+    }
+    Err(_) => panic()
+  }
+}
+
+///|
 test "parse theorem script raw supports linear by-steps" {
   let src = "theorem t1 : ⊢ P -> P := by intro h; exact h"
   match parse_theorem_script_raw(src) {
@@ -571,6 +605,23 @@ test "parse theorem script raw normalizes turnstile escapes and keeps raw offset
         },
       )
       assert_eq(e.offset, 33)
+    }
+    Ok(_) => panic()
+  }
+}
+
+///|
+test "parse theorem script raw rejects malformed theorem binders" {
+  match
+    parse_theorem_script_raw("theorem t (P Q : bool) : ⊢ P := by exact truth") {
+    Err(e) => {
+      assert_true(
+        match e.code {
+          UnexpectedToken => true
+          _ => false
+        },
+      )
+      assert_eq(e.offset, 13)
     }
     Ok(_) => panic()
   }

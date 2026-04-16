@@ -13,6 +13,14 @@ pub struct SynGoal {
 }
 
 ///|
+pub struct SynBinder {
+  name : String
+  ty : HolType
+  span : SourceSpan
+  src : String
+}
+
+///|
 pub struct SourceSpan {
   start_offset : Int
   end_offset : Int
@@ -56,6 +64,7 @@ pub struct SynScriptBody {
 ///|
 pub struct SynTheoremScript {
   name : String
+  binders : Array[SynBinder]
   goal : SynGoal
   goal_src : String
   goal_span : SourceSpan
@@ -145,6 +154,17 @@ pub fn empty_parse_env() -> ParseEnv {
 ///|
 pub fn parse_env_local_count(env : ParseEnv) -> Int {
   env.locals.length()
+}
+
+///|
+pub fn parse_env_push_local(
+  env : ParseEnv,
+  name : String,
+  ty : HolType,
+) -> ParseEnv {
+  let locals = env.locals.copy()
+  locals.push((name, ty))
+  ParseEnv::{ locals, }
 }
 
 ///|
@@ -766,9 +786,30 @@ fn parse_type(
 }
 
 ///|
+fn parse_type_tokens(tokens : Array[Token]) -> Result[HolType, ParseError] {
+  match parse_type(tokens, 0) {
+    Ok((ty, idx)) =>
+      match token_at(tokens, idx).kind {
+        TkEnd => Ok(ty)
+        _ =>
+          Err(
+            mk_parse_error(
+              UnexpectedToken,
+              token_at(tokens, idx).offset,
+              "unexpected trailing token `" +
+              token_label(token_at(tokens, idx).kind) +
+              "` in type",
+            ),
+          )
+      }
+    Err(e) => Err(e)
+  }
+}
+
+///|
 fn op_fixity(op : String) -> (Int, Assoc)? {
   if op == "=" {
-    Some((10, NonAssoc))
+    Some((40, NonAssoc))
   } else if op == "->" {
     Some((15, RightAssoc))
   } else if op == "∨" {
@@ -1418,6 +1459,112 @@ fn parse_script_step_segment(
 }
 
 ///|
+fn parse_theorem_binder_segment(
+  input : NormalizedInput,
+  raw_src : String,
+  tokens : Array[Token],
+  start : Int,
+  end : Int,
+) -> Result[(SynBinder, Int), ParseError] {
+  match token_at(tokens, start).kind {
+    TkLParen => ()
+    _ =>
+      return Err(
+        mk_parse_error(
+          UnexpectedToken,
+          token_at(tokens, start).offset,
+          "expected `(` to start theorem binder",
+        ),
+      )
+  }
+  let name_idx = next_non_newline_token_index(tokens, start + 1)
+  let name = match token_at(tokens, name_idx).kind {
+    TkName(n) => n
+    _ =>
+      return Err(
+        mk_parse_error(
+          UnexpectedToken,
+          token_at(tokens, name_idx).offset,
+          "expected theorem binder name",
+        ),
+      )
+  }
+  let colon_idx = next_non_newline_token_index(tokens, name_idx + 1)
+  match token_at(tokens, colon_idx).kind {
+    TkColon => ()
+    _ =>
+      return Err(
+        mk_parse_error(
+          UnexpectedToken,
+          token_at(tokens, colon_idx).offset,
+          "expected `:` in theorem binder",
+        ),
+      )
+  }
+  let type_start = next_non_newline_token_index(tokens, colon_idx + 1)
+  if type_start >= end || token_at(tokens, type_start).kind is TkRParen {
+    return Err(
+      mk_parse_error(
+        UnexpectedToken,
+        token_at(tokens, colon_idx).offset,
+        "empty theorem binder type",
+      ),
+    )
+  }
+  let mut depth = 0
+  let mut close_idx : Int? = None
+  let mut i = type_start
+  while i < end {
+    match tokens[i].kind {
+      TkLParen => depth = depth + 1
+      TkRParen =>
+        if depth == 0 {
+          close_idx = Some(i)
+          break
+        } else {
+          depth = depth - 1
+        }
+      _ => ()
+    }
+    i = i + 1
+  }
+  let k = match close_idx {
+    Some(v) => v
+    None =>
+      return Err(
+        mk_parse_error(
+          UnexpectedEof,
+          token_at(tokens, end - 1).offset,
+          "missing `)` in theorem binder",
+        ),
+      )
+  }
+  let ty = match
+    parse_type_tokens(
+      slice_tokens_without_newlines_with_end(tokens, type_start, k),
+    ) {
+    Ok(v) => v
+    Err(e) => return Err(e)
+  }
+  let span = map_source_span(
+    input,
+    tokens[start].offset,
+    token_normalized_end(tokens[k]),
+  )
+  Ok(
+    (
+      SynBinder::{
+        name,
+        ty,
+        span,
+        src: raw_source_slice(raw_src, span.start_offset, span.end_offset),
+      },
+      k + 1,
+    ),
+  )
+}
+
+///|
 pub fn parse_theorem_script_raw(
   src : String,
 ) -> Result[SynTheoremScript, ParseError] {
@@ -1463,18 +1610,48 @@ pub fn parse_theorem_script_raw(
         ),
       )
   }
-  let colon_idx = next_non_newline_token_index(tokens, name_idx + 1)
-  match token_at(tokens, colon_idx).kind {
-    TkColon => ()
-    _ =>
+  let binders : Array[SynBinder] = []
+  let mut colon_idx : Int? = None
+  let mut header_idx = next_non_newline_token_index(tokens, name_idx + 1)
+  while header_idx < end_idx {
+    match token_at(tokens, header_idx).kind {
+      TkColon => {
+        colon_idx = Some(header_idx)
+        break
+      }
+      TkLParen =>
+        match
+          parse_theorem_binder_segment(input, src, tokens, header_idx, end_idx) {
+          Ok((binder, next_idx)) => {
+            binders.push(binder)
+            header_idx = next_non_newline_token_index(tokens, next_idx)
+          }
+          Err(e) => return Err(map_parse_error_offset(input, e))
+        }
+      _ =>
+        return Err(
+          map_parse_error_offset(
+            input,
+            mk_parse_error(
+              UnexpectedToken,
+              token_at(tokens, header_idx).offset,
+              if binders.length() == 0 {
+                "expected `:` after theorem name"
+              } else {
+                "expected theorem binder or `:` after theorem name"
+              },
+            ),
+          ),
+        )
+    }
+  }
+  let colon_idx = match colon_idx {
+    Some(v) => v
+    None =>
       return Err(
         map_parse_error_offset(
           input,
-          mk_parse_error(
-            UnexpectedToken,
-            token_at(tokens, colon_idx).offset,
-            "expected `:` after theorem name",
-          ),
+          mk_parse_error(UnexpectedEof, 0, "missing `:` in theorem header"),
         ),
       )
   }
@@ -1653,6 +1830,7 @@ pub fn parse_theorem_script_raw(
 
   Ok(SynTheoremScript::{
     name,
+    binders,
     goal,
     goal_src,
     goal_span,
@@ -2120,9 +2298,7 @@ pub fn parse_let(
         ),
       )
   }
-  let locals = env.locals.copy()
-  locals.push((name, ty))
-  Ok(ParseEnv::{ locals, })
+  Ok(parse_env_push_local(env, name, ty))
 }
 
 ///|

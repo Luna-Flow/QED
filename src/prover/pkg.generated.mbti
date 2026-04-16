@@ -8,7 +8,31 @@ import {
 }
 
 // Values
+pub fn capability_label(PositiveTacticCapability) -> String
+
+pub fn catalog_label(PositiveCatalogClass) -> String
+
 pub fn default_prover_options() -> ProverOptions
+
+pub fn mapping_case_negative() -> MappingCaseKind
+
+pub fn mapping_case_positive() -> MappingCaseKind
+
+pub fn mapping_doc_visibility_internal_only() -> MappingDocVisibility
+
+pub fn mapping_doc_visibility_public_example() -> MappingDocVisibility
+
+pub fn mapping_doc_visibility_public_failure_example() -> MappingDocVisibility
+
+pub fn mapping_matrix_entries() -> Array[MappingMatrixEntry]
+
+pub fn negative_corpus_cases() -> Array[NegativeCorpusCase]
+
+pub fn negative_error_shape_label(NegativeErrorShape) -> String
+
+pub fn negative_failure_class_label(NegativeFailureClass) -> String
+
+pub fn positive_corpus_cases() -> Array[PositiveCorpusCase]
 
 pub fn prove_theorem_script(@kernel.KernelState, String, ProverOptions) -> Result[(@kernel.KernelState, @kernel.Thm), ProverError]
 
@@ -18,9 +42,91 @@ pub fn prove_theorem_script_with_diagnostics(@kernel.KernelState, String, Prover
 
 pub fn prover_options(Bool) -> ProverOptions
 
+pub fn script_layout_label(ScriptLayout) -> String
+
 // Errors
 
 // Types and methods
+pub enum MappingCaseKind {
+  PositiveCase
+  NegativeCase
+}
+
+pub enum MappingDocVisibility {
+  PublicExample
+  PublicFailureExample
+  InternalOnly
+}
+
+pub struct MappingMatrixEntry {
+  case_id : String
+  kind : MappingCaseKind
+  script : String
+  catalog_or_failure_label : String
+  capability_or_error_label : String
+  doc_anchor : String
+  doc_visibility : MappingDocVisibility
+}
+
+pub struct NegativeCorpusCase {
+  case_id : String
+  bool_consts : Array[String]
+  unary_bool_consts : Array[String]
+  binary_bool_consts : Array[String]
+  script : String
+  layout : ScriptLayout
+  failure_class : NegativeFailureClass
+  expected_error : NegativeErrorShape
+}
+
+pub enum NegativeErrorShape {
+  ErrorTacticUnknownName
+  ErrorTacticApplyMismatch
+  ErrorTacticGoalShapeMismatch
+  ErrorTacticUnsolvedGoals
+  ErrorLogicNotBoolTerm
+}
+
+pub enum NegativeFailureClass {
+  FailureUnknownName
+  FailureWrongModeTheoremUsage
+  FailureGoalShapeMismatch
+  FailureNonBoolConnector
+  FailureUnsupportedHonestFailure
+  FailureShadowingOrScopeDrift
+}
+
+pub enum PositiveCatalogClass {
+  LocalFact
+  DirectClose
+  ImplicationBacked
+  ContextDerived
+  StructuralOnly
+}
+
+pub struct PositiveCorpusCase {
+  case_id : String
+  const_names : Array[String]
+  expected_goal : String
+  script : String
+  layout : ScriptLayout
+  catalog_class : PositiveCatalogClass
+  capability : PositiveTacticCapability
+}
+
+pub enum PositiveTacticCapability {
+  IntroExact
+  Assumption
+  ExactNamedDirectClose
+  ExactContextDerived
+  ApplyLocalImp
+  ApplyNamedImp
+  Split
+  Left
+  Right
+  Mixed
+}
+
 pub enum ProverDiagnosticKind {
   Parse
   Bridge
@@ -70,6 +176,11 @@ pub struct ProverSuccess {
   state : @kernel.KernelState
   theorem_name : String
   thm : @kernel.Thm
+}
+
+pub enum ScriptLayout {
+  InlineSequential
+  BlockSequential
 }
 
 // Type aliases

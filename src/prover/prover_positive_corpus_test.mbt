@@ -1,68 +1,8 @@
 ///|
-enum PositiveCatalogClass {
-  LocalFact
-  DirectClose
-  ImplicationBacked
-  ContextDerived
-  StructuralOnly
-}
-
-///|
-enum PositiveTacticCapability {
-  IntroExact
-  Assumption
-  ExactNamedDirectClose
-  ExactContextDerived
-  ApplyLocalImp
-  ApplyNamedImp
-  Split
-  Left
-  Right
-  Mixed
-}
-
-///|
-struct PositiveCorpusCase {
-  case_id : String
-  const_names : Array[String]
-  expected_goal : String
-  script : String
-  catalog_class : PositiveCatalogClass
-  capability : PositiveTacticCapability
-}
-
-///|
 fn[T, E] expect_ok_positive(res : Result[T, E]) -> T {
   match res {
     Ok(v) => v
     Err(_) => panic()
-  }
-}
-
-///|
-fn catalog_label(cls : PositiveCatalogClass) -> String {
-  match cls {
-    LocalFact => "local_fact"
-    DirectClose => "direct_close"
-    ImplicationBacked => "implication_backed"
-    ContextDerived => "context_derived"
-    StructuralOnly => "structural_only"
-  }
-}
-
-///|
-fn capability_label(cap : PositiveTacticCapability) -> String {
-  match cap {
-    IntroExact => "intro_exact"
-    Assumption => "assumption"
-    ExactNamedDirectClose => "exact_named_direct_close"
-    ExactContextDerived => "exact_context_derived"
-    ApplyLocalImp => "apply_local_imp"
-    ApplyNamedImp => "apply_named_imp"
-    Split => "split"
-    Left => "left"
-    Right => "right"
-    Mixed => "mixed"
   }
 }
 
@@ -178,156 +118,6 @@ fn build_bool_state(const_names : Array[String]) -> KernelState {
 }
 
 ///|
-fn corpus_cases() -> Array[PositiveCorpusCase] {
-  [
-    PositiveCorpusCase::{
-      case_id: "pos_intro_exact_identity",
-      const_names: ["P"],
-      expected_goal: "⊢ P -> P",
-      script: "theorem pos_intro_exact_identity : ⊢ P -> P := by intro h; exact h",
-      catalog_class: LocalFact,
-      capability: IntroExact,
-    },
-    PositiveCorpusCase::{
-      case_id: "pos_assumption_hypothesis",
-      const_names: ["P"],
-      expected_goal: "P ⊢ P",
-      script: "theorem pos_assumption_hypothesis : P ⊢ P := by assumption",
-      catalog_class: StructuralOnly,
-      capability: Assumption,
-    },
-    PositiveCorpusCase::{
-      case_id: "pos_apply_local_implication",
-      const_names: ["P", "Q"],
-      expected_goal: "⊢ (Q -> P) -> Q -> P",
-      script: "theorem pos_apply_local_implication : ⊢ (Q -> P) -> Q -> P := by intro himp; intro hq; apply himp; exact hq",
-      catalog_class: LocalFact,
-      capability: ApplyLocalImp,
-    },
-    PositiveCorpusCase::{
-      case_id: "pos_local_shadow_exact_named_theorem",
-      const_names: ["P"],
-      expected_goal: "⊢ P -> P",
-      script: "theorem pos_local_shadow_exact_named_theorem : ⊢ P -> P := by intro imp_refl; exact imp_refl",
-      catalog_class: LocalFact,
-      capability: Mixed,
-    },
-    PositiveCorpusCase::{
-      case_id: "pos_local_shadow_apply_named_theorem",
-      const_names: ["P", "Q"],
-      expected_goal: "⊢ (Q -> P) -> Q -> P",
-      script: "theorem pos_local_shadow_apply_named_theorem : ⊢ (Q -> P) -> Q -> P := by intro and_elim_l; intro hq; apply and_elim_l; exact hq",
-      catalog_class: LocalFact,
-      capability: Mixed,
-    },
-    PositiveCorpusCase::{
-      case_id: "pos_exact_imp_refl",
-      const_names: ["P"],
-      expected_goal: "⊢ P -> P",
-      script: "theorem pos_exact_imp_refl : ⊢ P -> P := by exact imp_refl",
-      catalog_class: DirectClose,
-      capability: ExactNamedDirectClose,
-    },
-    PositiveCorpusCase::{
-      case_id: "pos_exact_truth",
-      const_names: [],
-      expected_goal: "⊢ T",
-      script: "theorem pos_exact_truth : ⊢ T := by exact truth",
-      catalog_class: DirectClose,
-      capability: ExactNamedDirectClose,
-    },
-    PositiveCorpusCase::{
-      case_id: "pos_exact_and_elim_l",
-      const_names: ["P", "Q"],
-      expected_goal: "P ∧ Q ⊢ P",
-      script: "theorem pos_exact_and_elim_l : P ∧ Q ⊢ P := by exact and_elim_l",
-      catalog_class: ContextDerived,
-      capability: ExactContextDerived,
-    },
-    PositiveCorpusCase::{
-      case_id: "pos_exact_and_elim_r",
-      const_names: ["P", "Q"],
-      expected_goal: "P ∧ Q ⊢ Q",
-      script: "theorem pos_exact_and_elim_r : P ∧ Q ⊢ Q := by exact and_elim_r",
-      catalog_class: ContextDerived,
-      capability: ExactContextDerived,
-    },
-    PositiveCorpusCase::{
-      case_id: "pos_exact_not_elim",
-      const_names: ["P"],
-      expected_goal: "¬ P, P ⊢ F",
-      script: "theorem pos_exact_not_elim : ¬ P, P ⊢ F := by exact not_elim",
-      catalog_class: ContextDerived,
-      capability: ExactContextDerived,
-    },
-    PositiveCorpusCase::{
-      case_id: "pos_exact_ex_falso",
-      const_names: ["Q"],
-      expected_goal: "F ⊢ Q",
-      script: "theorem pos_exact_ex_falso : F ⊢ Q := by exact ex_falso",
-      catalog_class: ContextDerived,
-      capability: ExactContextDerived,
-    },
-    PositiveCorpusCase::{
-      case_id: "pos_apply_and_elim_l",
-      const_names: ["P", "Q"],
-      expected_goal: "⊢ P ∧ Q -> P",
-      script: "theorem pos_apply_and_elim_l : ⊢ P ∧ Q -> P := by intro h; apply and_elim_l; exact h",
-      catalog_class: ImplicationBacked,
-      capability: ApplyNamedImp,
-    },
-    PositiveCorpusCase::{
-      case_id: "pos_apply_and_elim_r",
-      const_names: ["P", "Q"],
-      expected_goal: "⊢ P ∧ Q -> Q",
-      script: "theorem pos_apply_and_elim_r : ⊢ P ∧ Q -> Q := by intro h; apply and_elim_r; exact h",
-      catalog_class: ImplicationBacked,
-      capability: ApplyNamedImp,
-    },
-    PositiveCorpusCase::{
-      case_id: "pos_apply_or_intro_l",
-      const_names: ["P", "Q"],
-      expected_goal: "⊢ P -> P ∨ Q",
-      script: "theorem pos_apply_or_intro_l : ⊢ P -> P ∨ Q := by intro h; apply or_intro_l; exact h",
-      catalog_class: ImplicationBacked,
-      capability: ApplyNamedImp,
-    },
-    PositiveCorpusCase::{
-      case_id: "pos_apply_or_intro_r",
-      const_names: ["P", "Q"],
-      expected_goal: "⊢ Q -> P ∨ Q",
-      script: "theorem pos_apply_or_intro_r : ⊢ Q -> P ∨ Q := by intro h; apply or_intro_r; exact h",
-      catalog_class: ImplicationBacked,
-      capability: ApplyNamedImp,
-    },
-    PositiveCorpusCase::{
-      case_id: "pos_split_conjunction",
-      const_names: ["P", "Q"],
-      expected_goal: "P, Q ⊢ P ∧ Q",
-      script: "theorem pos_split_conjunction : P, Q ⊢ P ∧ Q := by split; assumption; assumption",
-      catalog_class: StructuralOnly,
-      capability: Split,
-    },
-    PositiveCorpusCase::{
-      case_id: "pos_left_disjunction",
-      const_names: ["P", "Q"],
-      expected_goal: "P ⊢ P ∨ Q",
-      script: "theorem pos_left_disjunction : P ⊢ P ∨ Q := by left; assumption",
-      catalog_class: StructuralOnly,
-      capability: Left,
-    },
-    PositiveCorpusCase::{
-      case_id: "pos_right_disjunction",
-      const_names: ["P", "Q"],
-      expected_goal: "Q ⊢ P ∨ Q",
-      script: "theorem pos_right_disjunction : Q ⊢ P ∨ Q := by right; assumption",
-      catalog_class: StructuralOnly,
-      capability: Right,
-    },
-  ]
-}
-
-///|
 enum PositiveCaseCheckResult {
   Pass
   ProofFailed
@@ -407,8 +197,21 @@ fn cases_cover_capability(
 }
 
 ///|
+fn cases_cover_layout(
+  cases : Array[PositiveCorpusCase],
+  label : String,
+) -> Bool {
+  cases.any(fn(case) { script_layout_label(case.layout) == label })
+}
+
+///|
+fn cases_cover_id(cases : Array[PositiveCorpusCase], case_id : String) -> Bool {
+  cases.any(fn(case) { case.case_id == case_id })
+}
+
+///|
 test "prove_theorem_script canonical positive corpus remains green" {
-  let cases = corpus_cases()
+  let cases = positive_corpus_cases()
   for case in cases {
     let result = run_positive_corpus_case(case)
     assert_true(
@@ -424,7 +227,7 @@ test "prove_theorem_script canonical positive corpus remains green" {
 
 ///|
 test "prove_theorem_script canonical positive corpus covers current classes" {
-  let cases = corpus_cases()
+  let cases = positive_corpus_cases()
   assert_true(case_ids_are_unique(cases))
   assert_true(cases_cover_catalog(cases, "local_fact"))
   assert_true(cases_cover_catalog(cases, "direct_close"))
@@ -441,4 +244,14 @@ test "prove_theorem_script canonical positive corpus covers current classes" {
   assert_true(cases_cover_capability(cases, "left"))
   assert_true(cases_cover_capability(cases, "right"))
   assert_true(cases_cover_capability(cases, "mixed"))
+  assert_true(cases_cover_layout(cases, "inline_sequential"))
+  assert_true(cases_cover_layout(cases, "block_sequential"))
+  assert_true(cases_cover_id(cases, "pos_exact_and_intro"))
+  assert_true(cases_cover_id(cases, "pos_exact_imp_elim"))
+  assert_true(cases_cover_id(cases, "pos_exact_eq_refl"))
+  assert_true(cases_cover_id(cases, "pos_exact_eq_sym"))
+  assert_true(cases_cover_id(cases, "pos_exact_eq_mp"))
+  assert_true(cases_cover_id(cases, "pos_apply_eq_sym"))
+  assert_true(cases_cover_id(cases, "pos_block_exact_truth"))
+  assert_true(cases_cover_id(cases, "pos_block_apply_or_intro_l"))
 }
