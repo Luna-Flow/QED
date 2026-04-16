@@ -1,194 +1,251 @@
 # Current Workspace Audit
 
-_Date: 2026-04-04_
+Status: point-in-time audit
+Audience: maintainers, contributors
+Authority: stage audit; subordinate to `doc/qed_formal_spec.pdf`, current code/tests, and implementation docs
+Scope: risks, gaps, and follow-up items that still remain material on the audited baseline
+Last reviewed: 2026-04-16
 
-This report audits the **current dirty workspace** against the repository's stated source-of-truth order:
+_Date: 2026-04-05_
 
-1. `doc/qed_formal_spec.pdf` Part I
-2. Part II conformance obligations
-3. current implementation docs (`README.md`, `doc/manual.md`, `doc/conformance.md`)
-4. current code reality
+This report audits the current workspace against the repository's source-of-truth
+order:
+
+1. `doc/qed_formal_spec.pdf` / `doc/qed_formal_spec.typ`
+2. current code and regression tests
+3. implementation-facing docs (`doc/manual.md`, `doc/conformance.md`)
+4. top-level summary docs (`README.md`, `application.typ`)
 
 Validation baseline used during this audit:
 
-- `moon test` -> pass (`187/187`)
+- `moon test` -> pass (`270/270`)
 - `formal_verification/lake build` -> pass
 
-These green gates show the workspace is internally runnable, but they do **not** by themselves establish Part I fidelity.
+These green gates show the workspace is internally consistent on the current
+baseline. They do not by themselves mean that every planned product capability
+is already shipped.
+
+## Resolved Since The Previous Audit
+
+The following previously reported risks are no longer current findings:
+
+- type-language admissibility is now enforced at trusted theorem / sentence
+  boundaries;
+- connector recognition is now definition-theorem-backed rather than raw
+  head-name acceptance;
+- non-`bool` surface connectors now fail closed with structured errors rather
+  than crashing on user-reachable paths.
+- theorem-name inventory、`exact` / `apply` mode boundary，以及 canonical
+  positive / negative script corpus 现在都已显式化并有回归覆盖。
+- file-first `cmd` surface now exists, is covered by regression tests, and uses
+  structured tactic-failure context instead of raw string-only reporting.
+- the current M4 slice is now integrated on the shipped path:
+  theorem-header binders, sequential block-body theorem-script parsing, raw
+  binder/goal/step spans, and structured frontend diagnostics all have
+  regression coverage.
+
+This audit therefore focuses only on the issues and gaps that still remain
+material today.
 
 ## Findings
 
-### [P1] Type-language admissibility is not enforced at the theorem and sentence boundaries
-
-**Why this violates the spec**
-
-Part I's type grammar restricts object-language types to constructors in the current type signature (`tau ::= alpha | k(...)`, with `k in Sigma_t`; see `doc/qed_formal_spec.typ:300-336`). In the current MoonBit code, arbitrary `TyApp("ghost", ...)` terms can flow into kernel terms, theorem objects, and `SentenceInLanguage` checks without any state-level admissibility gate.
-
-**Evidence**
-
-- `type_of` is purely structural and accepts any `TyApp`, with no signature check: `src/kernel/terms.mbt:113-137`
-- `ks_add_const` admits constants without calling `ks_type_is_admissible`: `src/kernel/sig.mbt:442-489`
-- theorem admissibility never calls `ks_type_is_admissible` or an equivalent whole-term type-language check: `src/kernel/thm.mbt:706-732`
-- `term_const_instances_ok` only checks constant schema/const-id shape and ignores variable/binder types and tycon membership: `src/kernel/sig.mbt:846-863`
-- `ks_thm_is_sentence_in_language` delegates to `term_const_instances_ok`, so it also ignores ghost type constructors: `src/kernel/sig.mbt:978-1003`
-
-**Minimal repro**
-
-Static construction is enough:
-
-```moonbit
-let ghost = mk_tyapp("ghost", [])
-let idg = mk_abs(mk_var("x", ghost), mk_var("x", ghost))
-let th = refl_checked(empty_kernel_state(), idg)
-```
-
-`idg` is closed, `idg = idg` is boolean, and there are no ordinary constants to reject. Under the current checks, this shape is eligible to pass `thm_is_admissible` and can also satisfy `ks_thm_is_sentence_in_language`, even though `ghost` is not in the current type language.
-
-**Impact**
-
-- Part I `Sigma_t` discipline is not actually enforced by the exported kernel boundary.
-- `SentenceInLanguage` / `ConservativeReplayOK` can produce false positives over out-of-language formulas.
-- definition/specification/theorem audits are weaker than the docs claim.
-
-**Suggested fix**
-
-- Require `ks_type_is_admissible` at every trusted admission boundary that accepts externally supplied types or terms.
-- Add a whole-term / whole-theorem admissibility check that walks all embedded types, including binders and variables.
-- Make `ks_thm_is_sentence_in_language` check type-language membership, not just constant-schema membership.
-
-### [P1] Connector head-name collisions can make the prover accept a theorem whose conclusion is not the parsed goal
-
-**Why this violates the contract**
-
-The docs say surface connectors are basis-backed logical encodings and are not supposed to become an extra logic authority in `tactics` or `prover` (`doc/manual.md:132-142`). In the current code, connector destructors first recognize `imp/and/or/not` **by constant head name**, and prelude installation silently accepts an existing same-typed constant under those names. That creates a path where tactic execution and final root-goal compatibility can treat an arbitrary user constant as a logical connective.
-
-**Evidence**
-
-- prelude installation treats a same-typed existing constant as success instead of requiring the trusted definition theorem: `src/logic/prop_prelude.mbt:107-170`
-- connector destructors prefer head-name matching before semantic unfolding:
-  - `prop_dest_imp`: `src/logic/prop_prelude.mbt:282-295`
-  - `prop_dest_and`: `src/logic/prop_prelude.mbt:298-327`
-  - `prop_dest_or`: `src/logic/prop_prelude.mbt:330-343`
-  - `prop_dest_not`: `src/logic/prop_prelude.mbt:346-360`
-- implication introduction synthesizes the **basis-backed** target via `prop_mk_imp`, not the original head-named term: `src/logic/prop_bool_theorems.mbt:431-489`
-- final theorem/root-goal compatibility also uses `prop_dest_imp` recursively, so it can accept a head-name match even when the actual terms differ: `src/tactics/proof_state.mbt:283-359`
-- current tests only cover happy-path roundtrips by head symbol and do not cover collision cases: `src/logic/prop_prelude_test.mbt:10-80`
-
-**Minimal repro**
-
-The risky shape is:
-
-```moonbit
-let st0 = ks_add_const(empty_kernel_state(), "imp", fun_ty(bool_ty(), fun_ty(bool_ty(), bool_ty())))
-let st1 = install_prop_prelude(st0)
--- goal written with ordinary application syntax, not surface `->`
--- theorem bad : imp P P := by intro h; exact h
-```
-
-Operationally, `intro`/root matching can read `imp P P` as a logical implication because `prop_dest_imp` accepts the head name. The replay path, however, synthesizes the basis encoding produced by `prop_mk_imp`. That is a root-goal mismatch hidden by name-based compatibility.
-
-**Impact**
-
-- `prove_theorem_script` can return a trusted theorem that does not actually match the user's parsed goal term under collision scenarios.
-- this is a correctness issue in the theorem-producing frontend, even if Part I primitive rules remain unchanged.
-
-**Suggested fix**
-
-- reserve or strongly protect prelude connector names once their logical role is in use
-- make `install_prop_prelude` require the trusted definition theorem, not just same-type name occupancy
-- make `prop_dest_*` prefer semantic unfolding / definition-theorem-backed recognition over raw head-name matching
-- make `root_matches_thm` compare the actual target term after controlled unfolding, not connector-by-name compatibility
-
-### [P2] Surface connector builders can panic on user-reachable non-bool inputs instead of failing closed
-
-**Why this violates the contract**
-
-The current docs repeatedly promise fail-closed behavior at the parser/elab/tactic/prover boundary. The connector builders currently use `panic()` as an internal assertion, but the parser calls them directly on user input.
-
-**Evidence**
-
-- `expect_prop_term` panics on any `mk_eq` failure: `src/logic/prop_prelude.mbt:40-44`
-- `prop_and_term`, `prop_imp_term`, `prop_false_term` and derived builders rely on that panic path: `src/logic/prop_prelude.mbt:61-104`
-- parser lowering for `¬`, `->`, `∧`, `∨` calls `prop_mk_*` directly from user syntax: `src/parser/parser.mbt:1356-1467`
-
-**Minimal repro**
-
-With local non-bool variables, a source term like:
-
-```moonbit
-let env = ParseEnv::{ locals: [("x", mk_tyvar("A")), ("y", mk_tyvar("A"))] }
-parse_term_with_env(empty_kernel_state(), env, "x -> y")
-```
-
-should produce an honest `Logic(TypeMismatch)`-style error. Today the builder path can panic before the parser returns a structured bridge error.
-
-**Impact**
-
-- parser/prover fail-closed guarantees are weaker than documented
-- malformed but ordinary user input can become a crash instead of a typed rejection
-
-**Suggested fix**
-
-- make `prop_mk_not/imp/and/or` validate bool operands explicitly and return `Result`
-- remove `panic()` from user-reachable proposition builder paths
-- add negative parser tests for non-bool connectors
-
-### [P3] The Lean line is a paper/conformance model, not a direct machine-checked proof of the current MoonBit program
+### [P1] Final theorem validation in `ProofState` is still more permissive than the next-cycle contract
 
 **Why this matters**
 
-This is not a kernel bug by itself, but it is important for honest status reporting. `lake build` currently proves the paper model and abstract conformance obligations. It does **not** mechanically bind the current MoonBit source tree to the Lean `Realization`.
+The current path still returns kernel-produced theorems, so this is not an
+immediate kernel soundness break. But the final acceptance check in
+`ProofState` is still broader than “strict normalized sequent equality”, which
+is the tighter contract needed before richer frontend blocks are introduced.
 
 **Evidence**
 
-- `formal_verification/QEDFV/Engineering/Conformance.lean` defines an abstract `Realization` record and proves properties about realizations satisfying the obligations: `formal_verification/QEDFV/Engineering/Conformance.lean:1-220`
-- `formal_verification/QEDFV/Engineering/RuleMapping.lean` maps rule names to Lean declarations, not to concrete MoonBit symbols: `formal_verification/QEDFV/Engineering/RuleMapping.lean:1-18`
-- `formal_verification/QEDFV/Spec/Traceability.lean` proves coverage over declared spec items, again inside the Lean model: `formal_verification/QEDFV/Spec/Traceability.lean:1-23`
+- the final theorem validation path still accepts a shape-aware compatibility
+  relation rather than only normalized hypothesis/conclusion equality;
+- this permissive acceptance currently sits in the tactic/prover boundary, which
+  is exactly where future frontend expansion would magnify ambiguity.
 
 **Impact**
 
-- `lake build` should be read as “paper-first spec/conformance pack is closed”, not “the running MoonBit implementation is mechanically proved equivalent to Lean”
-- README/docs should stay precise on this point to avoid overstating assurance
+- theorem reconstruction remains harder to reason about than necessary;
+- future `M4b` frontend work would otherwise build on a softer acceptance rule
+  than the one we want to freeze.
 
-**Suggested fix**
+**Required follow-up**
 
-- keep the current paper-first FV line
-- tighten wording wherever `lake build` could be misread as direct implementation verification
-- if stronger assurance is desired later, introduce an explicit MoonBit-to-Lean trace or extraction/bisimulation story as a new milestone
+- replace the current wide-match contract with strict normalized sequent
+  matching;
+- add regressions that explicitly reject the old wide-match acceptance.
 
-## Dead Code / Noise Disposition
+**Opened task(s)**
 
-### Confirm deletion
+- `C5`
+- `D5`
+- `H5`
 
-- `src/cmd/main.mbt` `run_cli_phase0`
-  - reason: old demo path only; current roadmap already says it should be replaced by real file-based commands
-- package-wide `*_phase0_ready()` probes
-  - reason: current usage is test-only scaffolding and no longer carries product meaning
+### [P2] Disjunction-wrap replay lacks the explicit postcondition check already enforced for conjunction merge
 
-### Move to experimental or test helper status
+**Why this matters**
 
-- `src/tactics/engine.mbt` (`solve_by_assume`, `solve_by_refl`, `solve_by_trans`, `solve_by_hyp`)
-  - reason: these helpers are still useful as smoke utilities, but they are not the current theorem-script product path and currently blur the boundary between old demo scaffolding and live prover behavior
+The conjunction replay path already validates that the returned theorem
+reconstructs the exact target conjunction. The disjunction wrap helpers do not
+currently make the same postcondition explicit, which leaves an avoidable
+asymmetry in the replay contract.
 
-### Keep, but document explicitly
+**Evidence**
 
-- `parse_let`
-- `parse_def_function`
+- conjunction merge has a target-goal equality check;
+- disjunction wrap currently relies on the builder path itself rather than a
+  symmetric “returned theorem must equal the target goal” check.
 
-These parser APIs are public and tested, so they should currently be treated as live surface area. However, they are absent from the current main product docs and are not wired into the theorem-script driver. If they remain public, they should be documented as parser-side utility/experimental facilities with an explicit status label.
+**Impact**
 
-## Missing Negative Tests
+- replay helper contracts are not yet uniform;
+- this asymmetry should be closed before structured branch blocks rely on the
+  same replay helpers more heavily.
 
-The current test suite is strong on happy paths and many kernel invariants, but the following high-risk regressions should be added explicitly:
+**Required follow-up**
 
-1. unknown type constructor enters a closed theorem / `SentenceInLanguage` / `ConservativeReplayOK`
-2. same-typed connector-name collision (`imp/and/or/not`) against the theorem-script path
-3. non-bool connector parse returns a structured error instead of panicking
-4. old demo helpers and main theorem-script path cannot disagree on what counts as a solved goal
+- add explicit full-goal postcondition checks for disjunction wrapping;
+- add positive/negative regression coverage for the new contract.
+
+**Opened task(s)**
+
+- `B6`
+- `D5`
+- `H5`
+
+### [P3] The local `exact` witness contract should be frozen before richer block-local surfaces exist
+
+**Why this matters**
+
+The current shipped path only creates locals via implication introduction, so
+the present behavior is stable enough. However, before richer block structure is
+added, the project should explicitly freeze that local `exact` witnesses are
+only aliases of active hypotheses, not a generic future local-object channel.
+
+**Evidence**
+
+- the current shipped subset keeps locals tightly aligned with active
+  hypotheses;
+- future frontend work is the first place where that alignment could otherwise
+  become implicit rather than contractual.
+
+**Impact**
+
+- without an explicit contract, future local block artifacts could accidentally
+  look like direct witnesses even though they should not carry proof authority.
+
+**Required follow-up**
+
+- tighten the local `exact` witness rule to active hypothesis aliases only;
+- cover the boundary in tactic/prover regression before `M4b` lands.
+
+**Opened task(s)**
+
+- `C5`
+- `D5`
+- `H5`
+
+### [P4] Theorem-script body is still limited to the current sequential `by` forms
+
+**Why this matters**
+
+The current parser and prover surface is honest and tested, and theorem-header
+binders are now shipped. The next real frontend milestone is still unshipped:
+structured branch blocks for the existing `split` / `left` / `right` tactics.
+
+**Evidence**
+
+- `parse_theorem_script_raw` currently accepts only sequential `by` bodies:
+  single-line `theorem ... := by step; step; ...` or a newline-separated block
+  body with the same step semantics;
+- no shipped syntax exists yet for structured branch blocks;
+- parser-side public utilities such as `parse_let` / `parse_def_function` remain
+  outside the main theorem-script product path.
+
+**Impact**
+
+- natural proof authoring remains limited;
+- diagnostics are already better, but the user-facing proof surface is still the
+  smaller sequential slice.
+
+**Required follow-up**
+
+- keep all new syntax on the same checked lowering boundary;
+- add only the minimum `M4b` surface first: structured blocks for existing
+  branch tactics, not a general proof-language expansion.
+
+**Opened task(s)**
+
+- `F5`
+- `F6`
+- `F7`
+- `C6`
+- `D6`
+- `E5`
+- `E6`
+- `H6`
+
+### [P5] The Lean line remains a paper/conformance pack, not a direct proof of the MoonBit implementation
+
+**Why this matters**
+
+This is not a bug in the MoonBit kernel, but it is an important status boundary
+for honest communication. `lake build` proves the paper model and abstract
+conformance obligations. It does not mechanically bind the current MoonBit
+source tree to the Lean `Realization`.
+
+**Evidence**
+
+- `formal_verification/QEDFV/Engineering/Conformance.lean` reasons about abstract
+  realizations and obligations;
+- the traceability and rule-mapping files are paper/conformance artifacts, not a
+  generated link to MoonBit symbols;
+- repository docs already treat the Lean line as paper-first rather than direct
+  implementation verification.
+
+**Impact**
+
+- public assurance language must stay precise;
+- `lake build` should be read as “spec/conformance pack is closed”, not “the
+  MoonBit program is machine-checked equivalent to Lean”.
+
+**Required follow-up**
+
+- keep docs precise on this boundary;
+- only add a stronger claim later if a concrete MoonBit-to-Lean binding story is
+  introduced as a new milestone.
+
+**Opened task(s)**
+
+- `A5`
+- `A6`
+
+## Testing Gaps That Still Matter
+
+The current suite is strong, but the following gaps remain important for the
+next stages:
+
+1. strict final-theorem matching regressions replacing the old wide-match
+   behavior;
+2. explicit disjunction-wrap postcondition regressions, matching the existing
+   conjunction-merge discipline;
+3. structured branch-block parser/prover/cmd regressions, including nested
+   diagnostic paths;
+4. any future CLI feature must continue to reuse the current positive / negative
+   corpus instead of forking a second script matrix.
 
 ## Overall Assessment
 
-- **Kernel Part I fidelity is not yet fully closed** because type-language admissibility is under-enforced at trusted theorem/language boundaries.
-- **Frontend theorem production is not fully self-consistent** under connector-name collision scenarios.
-- **Most remaining issues are fixable without enlarging the TCB**: they are primarily missing guards, over-permissive connector recognition, and stale demo scaffolding.
-- **The Lean line is valuable and green**, but it should continue to be described as a paper/conformance pack unless and until a direct implementation binding is added.
+- The kernel and the current theorem-producing propositional subset remain in a
+  materially stronger state than the previous audit snapshot described.
+- This review did not uncover a direct checked-kernel soundness break in the
+  current shipped path.
+- The most important next work is now:
+  1. theorem-reconstruction hardening at the tactic/replay boundary;
+  2. `M4b` structured branch blocks on top of that hardened baseline.
+- The rewrite/simplify line remains research only.
+- The Lean line remains green and valuable, but it should continue to be
+  described as a paper/conformance pack unless a stronger implementation binding
+  is explicitly added later.

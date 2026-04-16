@@ -1,5 +1,11 @@
 # QED Conformance
 
+Status: active
+Audience: contributors, reviewers
+Authority: engineering conformance guide; subordinate to `doc/qed_formal_spec.pdf` and current code/tests
+Scope: code/test mapping, implementation alignment, contributor obligations, and documentation example rules
+Last reviewed: 2026-04-16
+
 本文档记录当前 MoonBit 工程线怎样对齐 `doc/qed_formal_spec.pdf`，以及外围工程怎样才算符合现在的核心。
 
 它不是新的规范层；它的作用是把“论文要求”“当前代码”“当前测试”“外围工程义务”放到同一张表上。
@@ -10,8 +16,10 @@ QED 当前的权威关系如下：
 
 - `doc/qed_formal_spec.pdf` 是唯一规范性来源。
 - `doc/qed_formal_spec.typ` 是规范源文件。
+- 当前代码与测试决定当前真实 shipped state。
+- `doc/governance.md` 规定文档层级与引用规则。
 - `doc/manual.md` 描述当前仓库中的实现合同。
-- 本文档描述工程符合性、代码/测试映射和外围工程 checklist。
+- 本文档描述工程符合性、代码/测试映射和贡献者 checklist。
 
 Part II conformance 相关的 Lean 锚点主要在：
 
@@ -30,26 +38,38 @@ Part II conformance 相关的 Lean 锚点主要在：
 - opaque theorem object + checked primitive rules
 - scoped signature stack 与 definition history discipline
 - `DefOK` / `TypeDefOK` / `SpecOK` gate
-- theorem admissibility around const identity、schema instance 和 definitional coherence
+- theorem admissibility around const identity、schema instance、definitional coherence 和 type-language admissibility
 - resolved elaboration boundary with frozen constant identity
 - parser normalize + raw-offset contract
 - surface connector 的 basis-backed lowering contract
+- canonical definition-theorem-backed connector recognition
 - audit certificates 与 executable conservative replay hook
 - logic 层的 definition theorem / unfold / replay helper
+- supported propositional theorem scripting paths that replay to kernel `Thm`
 
 ### Implemented But Intentionally Partial
 
-以下部分已经存在，但覆盖范围仍有限（M1：已支持战术子集可回放为内核 `Thm`，其余路径 fail-closed）：
+以下部分已经存在，但覆盖范围仍有限：
 
 - `tactics` 的 `Goal` / `ProofState` / step execution 与 `ps_qed` 成功路径
-- `prover` 的 linear theorem-script driver
+- `prover` 的 sequential theorem-script driver
+- theorem-name based replay 目前只覆盖小规模稳定命题目录
+- parser 当前支持 theorem-header binder + 顺序 `by` body：
+  theorem 头部可带零个或多个 `(name : type)` binder；
+  body 可写成单行 `theorem ... := by step; step; ...`，
+  或块状 `theorem ... := by` 后按换行分隔的 step 列表，并保留
+  raw binder/goal/step span
+- parser-side `parse_let` / `parse_def_function` 仍是 utility / experimental surface
 
-这些层尚不是“任意用户证明都能产出可信 theorem”的完整前端。
+这些层不是“任意用户证明都能产出可信 theorem”的完整前端。
 
 ### Not Implemented
 
 当前没有实现，应明确视为缺失能力的部分包括：
 
+- richer proof blocks
+- binder-oriented quantifier surface
+- promoted rewrite/simplify tactic / command surface
 - dictionary passing
 - typeclass frontend
 - instance environment / instance search
@@ -57,8 +77,7 @@ Part II conformance 相关的 Lean 锚点主要在：
 - metavariables / holes
 - local type inference
 - higher-order unification
-- richer proof blocks
-- 任意脚本 / 任意战术组合下的完备 theorem reconstruction（当前仅为已测试子集）
+- 任意脚本 / 任意战术组合下的完备 theorem reconstruction
 
 ## Code And Test Mapping
 
@@ -70,13 +89,42 @@ Part II conformance 相关的 Lean 锚点主要在：
 | Resolved elaboration boundary | `src/elab/resolved.mbt` | `src/elab/elab_test.mbt` |
 | Parser bridge + normalize/raw-offset contract | `src/parser/parser.mbt` | `src/parser/parser_test.mbt` |
 | Surface connector basis expansion | `src/logic/prop_prelude.mbt`, `src/logic/prop_foundation.mbt`, `src/logic/prop_tools.mbt` | `src/logic/prop_prelude_test.mbt`, `src/logic/prop_tools_test.mbt`, `src/parser/parser_test.mbt` |
-| Operational proof scripting + M1 replay | `src/tactics/proof_state.mbt`, `src/logic/prop_replay.mbt`, `src/prover/prover.mbt` | `src/tactics/proof_state_test.mbt`, `src/tactics/tactics_test.mbt`, `src/prover/prover_test.mbt`, `src/logic/prop_replay_test.mbt` |
+| Proposition theorem replay/catalog seeds | `src/logic/prop_bool_theorems.mbt`, `src/logic/prop_refs.mbt`, `src/logic/prop_replay.mbt` | `src/logic/prop_bool_theorems_test.mbt`, `src/logic/prop_refs_test.mbt`, `src/logic/prop_replay_test.mbt` |
+| Operational proof scripting + M1 subset replay | `src/tactics/proof_state.mbt`, `src/prover/prover.mbt` | `src/tactics/proof_state_test.mbt`, `src/tactics/tactics_test.mbt`, `src/prover/prover_test.mbt`, `src/prover/prover_positive_corpus_test.mbt`, `src/prover/prover_negative_corpus_test.mbt` |
+| File-first `cmd` integration surface | `src/cmd/cmd.mbt` | `src/cmd/cmd_wbtest.mbt` |
 | Formal Part I / Part II conformance pack | `formal_verification/QEDFV/Audit/PartI.lean`, `formal_verification/QEDFV/Engineering/Conformance.lean` | `lake build` |
 
 值得特别注意的回归点：
 
 - `src/kernel/kernel_audit_test.mbt` 已覆盖 def-head monotonicity、typedef witness validity、const-id drift、typed beta/trans guard、conservative replay 等高风险场景。
-- `src/prover/prover_test.mbt` 对 M1 已覆盖的正例断言 `prove_theorem_script` 返回 `Ok` 且结论可用 `thm_concl` 核对；不支持的路径仍须诚实失败。
+- `src/parser/parser_test.mbt` 已覆盖 normalize/raw-offset contract 与非 `bool` connector 的 fail-closed rejection。
+- `src/parser/parser_test.mbt` 当前也覆盖 theorem-header binder 的解析与
+  raw-span 回归。
+- `src/prover/prover_test.mbt` 当前覆盖了 M1 已支持子集的 `Ok((KernelState, Thm))` 正例，以及若干 direct-close / implication-backed theorem-name path。
+- `src/prover/prover_positive_corpus_test.mbt` / `src/prover/prover_negative_corpus_test.mbt`
+  当前承载 shipped subset 的 canonical script corpus，用于固定 capability
+  覆盖与 honest failure 口径。
+- `src/prover/prover_mapping_matrix_test.mbt` 当前把 canonical case id、能力标签
+  与 `doc/manual.md` 的公开示例锚点绑定在同一份回归约束里。
+- `src/cmd/cmd_wbtest.mbt` 当前覆盖 success rendering、parse/io/usage failure、
+  tactic failure context rendering，以及 file-first argv workflow。
+
+### Documentation Example Source Contract
+
+为避免文档把规划能力写成已交付能力，当前文档示例必须遵守以下来源约束：
+
+- `README.md` 只发布当前 shipped subset 的摘要，不单独发明新示例语义。
+- `doc/manual.md` 中的 runnable theorem-script examples 必须来自现有回归测试覆盖。
+- theorem-producing 正例脚本当前以
+  `src/prover/prover_test.mbt` 与 `src/prover/prover_positive_corpus_test.mbt`
+  为主锚点。
+- shipped subset 的负例 / honest failure 示例当前以
+  `src/prover/prover_negative_corpus_test.mbt` 为主锚点。
+- 公开文档中的 case-id 到示例锚点映射当前以
+  `src/prover/prover_mapping_matrix_test.mbt` 为主锚点。
+- tactic-level 例子、local-over-name 冲突与 wrong-mode honest failure 当前以
+  `src/tactics/proof_state_test.mbt` 为主锚点。
+- 若文档要新增、修改或删除公开示例，应同步新增、修改或删除对应回归测试。
 
 ## Part II Conformance Obligations
 
@@ -94,28 +142,29 @@ Lean 中当前已经把外围工程的 Part II obligations 明确写成了工程
 
 ### Contributor Checklist
 
-- `logic` 只能做 checked wrapper、definition/unfold helper 和 replay helper；不能绕过 kernel invent 新规则。
+- `logic` 只能做 checked wrapper、definition/unfold helper、replay helper 和非权威 theorem reference 组织；不能绕过 kernel invent 新规则。
 - `parser` 必须保持 `local > const`、normalize + raw-offset contract，并与 `logic` 共用同一套 connector contract。
 - `elab` 必须冻结 resolved identity；后续 typing 遇到 const-id 或 schema drift 时必须 fail-closed。
-- `tactics` 在通过 `logic` 回放构造出与相继式一致的 `Thm` 时，方可由 `ps_qed` 交出定理；否则须 fail-closed。
-- `prover` 仅在回放成功时返回 `Ok` 与 `Thm`；否则必须继续返回诚实错误（含 `ProofSynthesisUnavailable`）。
+- `tactics` 只能在通过 `logic` 回放构造出与相继式一致的 `Thm` 时，由 `ps_qed` 交出定理；否则必须 fail-closed。
+- `prover` 仅在回放成功时返回 `Ok` 与 `Thm`；否则继续返回诚实错误。
+- `cmd` 只能是新的非权威集成层，不得成为第二证明内核。
 - extension certificate 只能是 audit artifact；不能被当成 theorem acceptance 的替代物。
 
 这组 checklist 的目标，是把可执行前端逐步压成论文里所说的 faithful realization，而不是在外围工程里新增第二套逻辑系统。
 
 ## Peripheral Alignment
 
-当前工作区中正在形成的主线，应当理解为一次有意识的工程收口：
+当前工作区的工程主线是一次有意识的收口：
 
-- parser 正在从“依赖 state 中存在同名 prelude 常量”切向“直接 basis expansion，再走 resolve/lowering contract”。
-- logic 正在从“注册符号名”切向“定义常量 + definition theorem + unfold/replay helper”。
-- prover 测试已经接受“即使不自动安装 prelude，也仍然 fail-closed 到 proof synthesis unavailable”，说明系统正在把 connector 语义与 theorem synthesis 责任拆开。
+- parser 已从“依赖 state 中存在同名 prelude 常量”转为“basis-backed builder + resolve/lowering contract”。
+- logic 已从“注册表面符号名”推进到“定义常量 + definition theorem + unfold/replay helper + 小型 theorem catalog + shared theorem inventory”。
+- tactics/prover 已从纯 operational prototype 前进到“支持子集可 replay 到 kernel `Thm`，并由 canonical corpus 固定支持矩阵与 honest failure”。
 
-如果外围工程要继续符合现在的核心，下一步仍应扩展：
+若外围工程要继续符合现在的核心，下一步仍应集中在：
 
-- connector replay builders 与战术覆盖
-- `ProofState` 的证据字段与 QED 校验（向更大脚本面推进）
-- 更多 `prove_theorem_script` end-to-end 回归
+- 在共享 theorem inventory 与 canonical corpus 之上继续扩展 replay builders；
+- 让 `cmd` 继续复用 `prover` 的 structured failure contract，而不是自行解释错误字符串；
+- 在当前 file-first workflow 之上继续扩大前端表达力。
 
 这些任务应当复用现有工具：
 
@@ -125,6 +174,7 @@ Lean 中当前已经把外围工程的 Part II obligations 明确写成了工程
 - `logic_beta_normalize_eq`
 - `logic_eq_mp_bool`
 - `logic_eq_sym`
+- `logic_prop_replay_*`
 
 不应该另起一套仅在 tactic/prover 中成立、但无法 replay 到 kernel path 的临时证明语义。
 
@@ -132,17 +182,18 @@ Lean 中当前已经把外围工程的 Part II obligations 明确写成了工程
 
 当前仍然存在的主要缺口有：
 
-- MoonBit 前端尚无可覆盖任意用户证明的 end-to-end faithful realization witness。
-- `ProofState` 的证据与战术覆盖仍在 M1 子集阶段。
-- `ps_qed` / `prove_theorem_script` 对未支持输入仍不重建 `Thm`。
-- dictionary passing / typeclass runtime 仍未落地。
-- 当前仓库尚无稳定 `cmd` 用户接口；后续命令行层需要作为新的非权威外围集成重新引入。
+- theorem catalog 仍然偏小，尚不足以支撑更自然的大量脚本；但当前 shipped subset
+  的 inventory、mode 边界与 corpus 已经固定；
+- theorem-script body 仍局限于平坦顺序 `by` 块；theorem header binder 虽已支持，
+  但 richer proof block 仍未实现；
+- parser-side utility surface 与主产品面之间的口径仍需继续收口；
+- Lean 线当前是 paper/conformance pack，而不是 MoonBit 源码的直接机械化证明。
 
-所以更准确的状态判断是：
+因此更准确的状态判断是：
 
 - Part I 核心与 Part II 的主要符合性口径已经落地；
-- 外围工程正在向 faithful realization 收束；
-- 但 theorem-producing frontend 还没有完成。
+- 支持子集上的 theorem-producing frontend 已经存在；
+- 但更完整的 faithful realization 仍在继续收口。
 
 ## Verification Gate
 
@@ -150,19 +201,28 @@ Lean 中当前已经把外围工程的 Part II obligations 明确写成了工程
 
 ```bash
 moon build
-moon test src/kernel
 moon test
 cd formal_verification
 lake build
 ```
 
-2026-04-04 本地核对结果：
+准备合并或封板时，还应执行：
+
+```bash
+moon info
+moon fmt
+moon test
+cd formal_verification
+lake build
+```
+
+2026-04-05 本地核对结果：
 
 - `moon test` 通过
 - `lake build` 通过
 
-当涉及 trust boundary、scope、gate、connector contract 或 proof scripting 语义时，应同时检查：
+当涉及 trust boundary、scope、gate、connector contract、proof scripting 或文档口径时，应同时检查：
 
-- `doc/manual.md`
 - `doc/qed_formal_spec.pdf`
+- `doc/manual.md`
 - 本文档
