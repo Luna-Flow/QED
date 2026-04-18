@@ -15,6 +15,14 @@ fn expect_some_goal(goal : Goal?) -> Goal {
 }
 
 ///|
+fn expect_some_focus(goal : ProofGoalView?) -> ProofGoalView {
+  match goal {
+    Some(g) => g
+    None => panic()
+  }
+}
+
+///|
 fn setup_prop_env() -> (KernelState, PropPrelude, Term, Term, Term) {
   let prelude = default_prop_prelude()
   let st = expect_ok_ps(install_prop_prelude(empty_kernel_state()))
@@ -34,6 +42,26 @@ test "proof state intro + exact closes implication goal" {
   let ps3 = expect_ok_ps(ps_apply_script(st, prelude, ps2, []))
   assert_eq(ps_goal_count(ps3), 0)
   assert_true(ps_qed(ps3) is Ok(_))
+}
+
+///|
+test "proof state snapshot after intro exposes root current goal and locals" {
+  let (st, prelude, p, q, _) = setup_prop_env()
+  let imp_qp = expect_ok_ps(prop_mk_imp(st, prelude, q, p))
+  let ps0 = ps_init(mk_goal([], imp_qp))
+  let ps1 = expect_ok_ps(ps_apply(st, prelude, ps0, step_intro("hq")))
+  let snapshot = ps_snapshot(ps1)
+  let root = proof_state_snapshot_root_goal(snapshot)
+  let current = expect_some_focus(proof_state_snapshot_current(snapshot))
+  let current_goal = proof_goal_view_goal(current)
+  let locals = proof_goal_view_locals(current)
+  assert_true(term_alpha_eq(goal_concl(root), imp_qp))
+  assert_eq(proof_state_snapshot_pending_goal_count(snapshot), 1)
+  assert_true(term_alpha_eq(goal_concl(current_goal), p))
+  assert_eq(locals.length(), 1)
+  assert_eq(local_hyp_name(locals[0]), "hq")
+  assert_true(term_alpha_eq(local_hyp_term(locals[0]), q))
+  assert_true(term_alpha_eq(goal_concl(ps_root_goal(ps1)), imp_qp))
 }
 
 ///|
@@ -68,6 +96,58 @@ test "proof state split and left/right transform goals" {
   let ps5 = expect_ok_ps(ps_apply(st, prelude, ps4, step_right()))
   let g_right = expect_some_goal(ps_current_goal(ps5))
   assert_true(term_alpha_eq(goal_concl(g_right), q))
+}
+
+///|
+test "proof state snapshot exposes pending goals after split" {
+  let (st, prelude, p, q, _) = setup_prop_env()
+  let and_pq = expect_ok_ps(prop_mk_and(st, prelude, p, q))
+  let ps0 = ps_init(mk_goal([], and_pq))
+  let ps1 = expect_ok_ps(ps_apply(st, prelude, ps0, step_split()))
+  let snapshot = ps_snapshot(ps1)
+  let current = expect_some_focus(ps_current_focus(ps1))
+  let branch2 = expect_some_focus(ps_pending_focus_at(ps1, 1))
+  assert_eq(proof_state_snapshot_pending_goal_count(snapshot), 2)
+  assert_true(term_alpha_eq(goal_concl(proof_goal_view_goal(current)), p))
+  assert_true(term_alpha_eq(goal_concl(proof_goal_view_goal(branch2)), q))
+  assert_eq(proof_goal_view_locals(current).length(), 0)
+  assert_eq(proof_goal_view_locals(branch2).length(), 0)
+}
+
+///|
+test "proof state snapshot tracks current goal for left and right" {
+  let (st, prelude, p, q, r) = setup_prop_env()
+  let or_pq = expect_ok_ps(prop_mk_or(st, prelude, p, q))
+  let left_ps = expect_ok_ps(
+    ps_apply(st, prelude, ps_init(mk_goal([], or_pq)), step_left()),
+  )
+  let left_current = expect_some_focus(ps_current_focus(left_ps))
+  assert_true(
+    term_alpha_eq(
+      goal_concl(proof_goal_view_goal(left_current)),
+      goal_concl(expect_some_goal(ps_current_goal(left_ps))),
+    ),
+  )
+
+  let or_rq = expect_ok_ps(prop_mk_or(st, prelude, r, q))
+  let right_ps = expect_ok_ps(
+    ps_apply(st, prelude, ps_init(mk_goal([], or_rq)), step_right()),
+  )
+  let right_current = expect_some_focus(ps_current_focus(right_ps))
+  assert_true(
+    term_alpha_eq(
+      goal_concl(proof_goal_view_goal(right_current)),
+      goal_concl(expect_some_goal(ps_current_goal(right_ps))),
+    ),
+  )
+}
+
+///|
+test "proof state pending focus is fail closed on out of bounds access" {
+  let (_, _, p, _, _) = setup_prop_env()
+  let ps = ps_init(mk_goal([], p))
+  assert_true(ps_pending_focus_at(ps, -1) is None)
+  assert_true(ps_pending_focus_at(ps, 1) is None)
 }
 
 ///|

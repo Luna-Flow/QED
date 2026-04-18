@@ -1,7 +1,9 @@
 ///|
+/// Production alias entry for the file-first CLI surface.
+/// Keep cmd thin: it should compose prover-facing diagnostics, not learn new
+/// kernel or parser authority.
 using @kernel {
   type LogicError,
-  type SigError,
   type Term,
   empty_kernel_state,
   term_to_string,
@@ -9,22 +11,17 @@ using @kernel {
 }
 
 ///|
-using @elab {type ElabError}
-
-///|
-using @parser {type ParseBridgeError, type ParseError, parse_theorem_script_raw}
-
-///|
 using @prover {
-  type ProverError,
+  type ProverDiagnosticKind,
   type ProverFailure,
   type ProverLocalHyp,
+  type ProverUnfinished,
   prove_theorem_script_detailed,
   prover_options,
 }
 
 ///|
-using @tactics {type Goal, type TacticExecError, goal_concl, goal_hyps}
+using @tactics {type Goal, goal_concl, goal_hyps}
 
 ///|
 using @fs {read_file_to_string}

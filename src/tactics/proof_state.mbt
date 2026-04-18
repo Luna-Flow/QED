@@ -56,7 +56,17 @@ pub enum TacticExecError {
 }
 
 ///|
-pub struct LocalHyp {
+pub fn tactic_goal_shape_mismatch(msg : String) -> TacticExecError {
+  GoalShapeMismatch(msg)
+}
+
+///|
+pub fn tactic_no_goals() -> TacticExecError {
+  NoGoals
+}
+
+///|
+struct LocalHyp {
   name : String
   term : Term
 }
@@ -69,6 +79,48 @@ pub fn local_hyp_name(hyp : LocalHyp) -> String {
 ///|
 pub fn local_hyp_term(hyp : LocalHyp) -> Term {
   hyp.term
+}
+
+///|
+struct ProofGoalView {
+  goal : Goal
+  locals : Array[LocalHyp]
+}
+
+///|
+pub fn proof_goal_view_goal(view : ProofGoalView) -> Goal {
+  view.goal
+}
+
+///|
+pub fn proof_goal_view_locals(view : ProofGoalView) -> Array[LocalHyp] {
+  view.locals.copy()
+}
+
+///|
+struct ProofStateSnapshot {
+  root_goal : Goal
+  pending_goal_count : Int
+  current : ProofGoalView?
+}
+
+///|
+pub fn proof_state_snapshot_root_goal(snapshot : ProofStateSnapshot) -> Goal {
+  snapshot.root_goal
+}
+
+///|
+pub fn proof_state_snapshot_pending_goal_count(
+  snapshot : ProofStateSnapshot,
+) -> Int {
+  snapshot.pending_goal_count
+}
+
+///|
+pub fn proof_state_snapshot_current(
+  snapshot : ProofStateSnapshot,
+) -> ProofGoalView? {
+  snapshot.current
 }
 
 ///|
@@ -92,7 +144,7 @@ pub enum OrContext {
 }
 
 ///|
-pub struct PendingGoal {
+priv struct PendingGoal {
   hyps : Array[Term]
   concl : Term
   locals : Array[LocalHyp]
@@ -103,22 +155,12 @@ pub struct PendingGoal {
 }
 
 ///|
-pub fn pending_goal_hyps(goal : PendingGoal) -> Array[Term] {
-  goal.hyps.copy()
+fn goal_view_of_pending(goal : PendingGoal) -> ProofGoalView {
+  ProofGoalView::{ goal: mk_goal(goal.hyps, goal.concl), locals: goal.locals }
 }
 
 ///|
-pub fn pending_goal_concl(goal : PendingGoal) -> Term {
-  goal.concl
-}
-
-///|
-pub fn pending_goal_locals(goal : PendingGoal) -> Array[LocalHyp] {
-  goal.locals.copy()
-}
-
-///|
-pub struct ProofState {
+struct ProofState {
   root_goal : Goal
   pending : Array[PendingGoal]
   final_thm : Thm?
@@ -159,7 +201,7 @@ pub fn ps_goal_count(ps : ProofState) -> Int {
 }
 
 ///|
-pub fn ps_current_pending_goal(ps : ProofState) -> PendingGoal? {
+fn ps_current_pending_goal(ps : ProofState) -> PendingGoal? {
   if ps.pending.length() == 0 {
     None
   } else {
@@ -168,20 +210,57 @@ pub fn ps_current_pending_goal(ps : ProofState) -> PendingGoal? {
 }
 
 ///|
-pub fn ps_current_local_hyps(ps : ProofState) -> Array[LocalHyp] {
+pub fn ps_root_goal(ps : ProofState) -> Goal {
+  ps.root_goal
+}
+
+///|
+pub fn ps_current_focus(ps : ProofState) -> ProofGoalView? {
   match ps_current_pending_goal(ps) {
-    Some(goal) => goal.locals.copy()
+    Some(goal) => Some(goal_view_of_pending(goal))
+    None => None
+  }
+}
+
+///|
+pub fn ps_pending_focus_at(ps : ProofState, idx : Int) -> ProofGoalView? {
+  if idx < 0 || idx >= ps.pending.length() {
+    None
+  } else {
+    Some(goal_view_of_pending(ps.pending[idx]))
+  }
+}
+
+///|
+pub fn ps_snapshot(ps : ProofState) -> ProofStateSnapshot {
+  ProofStateSnapshot::{
+    root_goal: ps.root_goal,
+    pending_goal_count: ps.pending.length(),
+    current: ps_current_focus(ps),
+  }
+}
+
+///|
+pub fn ps_current_local_hyps(ps : ProofState) -> Array[LocalHyp] {
+  match ps_current_focus(ps) {
+    Some(goal) => proof_goal_view_locals(goal)
     None => []
   }
 }
 
 ///|
 pub fn ps_current_goal(ps : ProofState) -> Goal? {
-  if ps.pending.length() == 0 {
-    None
-  } else {
-    let g = ps.pending[0]
-    Some(mk_goal(g.hyps, g.concl))
+  match ps_current_focus(ps) {
+    Some(goal) => Some(proof_goal_view_goal(goal))
+    None => None
+  }
+}
+
+///|
+pub fn ps_pending_goal_at(ps : ProofState, idx : Int) -> Goal? {
+  match ps_pending_focus_at(ps, idx) {
+    Some(goal) => Some(proof_goal_view_goal(goal))
+    None => None
   }
 }
 

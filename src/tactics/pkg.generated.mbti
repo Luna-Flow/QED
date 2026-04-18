@@ -19,27 +19,39 @@ pub fn local_hyp_term(LocalHyp) -> @kernel.Term
 
 pub fn mk_goal(Array[@kernel.Term], @kernel.Term) -> Goal
 
-pub fn pending_goal_concl(PendingGoal) -> @kernel.Term
+pub fn proof_goal_view_goal(ProofGoalView) -> Goal
 
-pub fn pending_goal_hyps(PendingGoal) -> Array[@kernel.Term]
+pub fn proof_goal_view_locals(ProofGoalView) -> Array[LocalHyp]
 
-pub fn pending_goal_locals(PendingGoal) -> Array[LocalHyp]
+pub fn proof_state_snapshot_current(ProofStateSnapshot) -> ProofGoalView?
+
+pub fn proof_state_snapshot_pending_goal_count(ProofStateSnapshot) -> Int
+
+pub fn proof_state_snapshot_root_goal(ProofStateSnapshot) -> Goal
 
 pub fn ps_apply(@kernel.KernelState, @logic.PropPrelude, ProofState, TacticStep) -> Result[ProofState, TacticExecError]
 
 pub fn ps_apply_script(@kernel.KernelState, @logic.PropPrelude, ProofState, Array[TacticStep]) -> Result[ProofState, TacticExecError]
 
+pub fn ps_current_focus(ProofState) -> ProofGoalView?
+
 pub fn ps_current_goal(ProofState) -> Goal?
 
 pub fn ps_current_local_hyps(ProofState) -> Array[LocalHyp]
-
-pub fn ps_current_pending_goal(ProofState) -> PendingGoal?
 
 pub fn ps_goal_count(ProofState) -> Int
 
 pub fn ps_init(Goal) -> ProofState
 
+pub fn ps_pending_focus_at(ProofState, Int) -> ProofGoalView?
+
+pub fn ps_pending_goal_at(ProofState, Int) -> Goal?
+
 pub fn ps_qed(ProofState) -> Result[@kernel.Thm, TacticExecError]
+
+pub fn ps_root_goal(ProofState) -> Goal
+
+pub fn ps_snapshot(ProofState) -> ProofStateSnapshot
 
 pub fn step_apply(String) -> TacticStep
 
@@ -55,6 +67,10 @@ pub fn step_right() -> TacticStep
 
 pub fn step_split() -> TacticStep
 
+pub fn tactic_goal_shape_mismatch(String) -> TacticExecError
+
+pub fn tactic_no_goals() -> TacticExecError
+
 // Errors
 
 // Types and methods
@@ -63,10 +79,7 @@ pub struct Goal {
   concl : @kernel.Term
 }
 
-pub struct LocalHyp {
-  name : String
-  term : @kernel.Term
-}
+type LocalHyp
 
 pub enum OrContext {
   OrNone
@@ -74,26 +87,16 @@ pub enum OrContext {
   OrPendingRight(@kernel.Term, @kernel.Term)
 }
 
-pub struct PendingGoal {
-  hyps : Array[@kernel.Term]
-  concl : @kernel.Term
-  locals : Array[LocalHyp]
-  imp_prefix : Array[@kernel.Term]
-  refine_chain : Array[PendingRefine]
-  split_role : SplitRole
-  or_ctx : OrContext
-}
-
 pub enum PendingRefine {
   ImpBackwardTerm(@kernel.Term)
   ImpBackwardTheorem(@kernel.Thm)
 }
 
-pub struct ProofState {
-  root_goal : Goal
-  pending : Array[PendingGoal]
-  final_thm : @kernel.Thm?
-}
+type ProofGoalView
+
+type ProofState
+
+type ProofStateSnapshot
 
 pub enum SplitRole {
   SplitNone

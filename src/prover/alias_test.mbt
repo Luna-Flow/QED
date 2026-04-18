@@ -1,11 +1,10 @@
 ///|
-/// Blackbox test package: full `using` union (main `alias.mbt` is not in scope here).
+/// Blackbox test alias mirror for prover.
+/// Reproduce the production entry first, then append test-only imports.
 using @kernel {
   type KernelState,
   type Thm,
   type Term,
-  type SigError,
-  type LogicError,
   bool_ty,
   fun_ty,
   empty_kernel_state,
@@ -20,60 +19,31 @@ using @kernel {
 }
 
 ///|
-using @parser {
-  type ParseError,
-  type ParseBridgeError,
-  type SynTacticStep,
-  empty_parse_env,
-  parse_goal,
-  parse_theorem_script_raw,
-  lower_syn_goal_with_env,
-}
+using @parser {parsed_goal_concl, parsed_goal_hyps, parse_goal, source_span}
 
 ///|
-using @tactics {
-  type Goal,
-  type TacticStep,
-  type TacticExecError,
-  goal_hyps,
-  goal_concl,
-  ps_init,
-  ps_apply_script,
-  ps_qed,
-  step_intro,
-  step_exact,
-  step_apply,
-  step_assumption,
-  step_split,
-  step_left,
-  step_right,
-}
+using @tactics {type Goal, goal_hyps, goal_concl, mk_goal}
 
 ///|
 using @logic {
-  type PropPrelude,
   install_prop_prelude,
   default_prop_prelude,
   logic_beta_nf_bool_term_deep,
-  prop_dest_imp,
-  prop_dest_or,
   prop_mk_imp,
   prop_mk_and,
 }
 
 ///|
 using @prover {
-  type ScriptLayout,
   type PositiveCorpusCase,
   type NegativeCorpusCase,
   type MappingCaseKind,
   type MappingDocVisibility,
   type MappingMatrixEntry,
-  type ProverDiagnosticKind,
   type ProverFailure,
   type ProverRunResult,
   type ProverSuccess,
-  script_layout_label,
+  type ProverUnfinished,
   positive_corpus_cases,
   negative_corpus_cases,
   mapping_matrix_entries,
@@ -87,4 +57,6 @@ using @prover {
   negative_error_shape_label,
   prove_theorem_script_detailed,
   prove_theorem_script_with_diagnostics,
+  prover_local_hyp,
+  prover_unfinished,
 }

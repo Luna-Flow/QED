@@ -192,6 +192,15 @@ test "prover mapping matrix anchors current manual public examples" {
     has_mapping_entry(
       entries,
       mapping_case_positive(),
+      "pos_branch_left_disjunction",
+      "manual:runnable_examples",
+      mapping_doc_visibility_public_example(),
+    ),
+  )
+  assert_true(
+    has_mapping_entry(
+      entries,
+      mapping_case_positive(),
       "pos_exact_truth",
       "manual:runnable_examples",
       mapping_doc_visibility_public_example(),
@@ -247,6 +256,15 @@ test "prover mapping matrix anchors current manual public examples" {
       entries,
       mapping_case_positive(),
       "pos_split_conjunction",
+      "manual:support_matrix",
+      mapping_doc_visibility_public_example(),
+    ),
+  )
+  assert_true(
+    has_mapping_entry(
+      entries,
+      mapping_case_positive(),
+      "pos_branch_split_conjunction",
       "manual:support_matrix",
       mapping_doc_visibility_public_example(),
     ),

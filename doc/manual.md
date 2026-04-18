@@ -4,7 +4,7 @@ Status: active
 Audience: contributors, implementers
 Authority: implementation contract; subordinate to `doc/qed_formal_spec.pdf` and current code/tests
 Scope: current shipped behavior, trust boundary, support matrix, and stable examples
-Last reviewed: 2026-04-16
+Last reviewed: 2026-04-18
 
 本文档是 QED 当前实现合同。
 
@@ -38,11 +38,12 @@ QED 采用 kernel-first 架构。唯一 theorem-construction boundary 是 `src/k
   replay helper 和非权威 theorem reference 组织层，不得引入新的 primitive
   rule authority。
 - `elab` 负责 one-shot resolution、resolved/core typing 和 lowering，不负责定义新逻辑。
-- `parser` 负责文本语法、normalize、桥接和局部环境管理，不得偷偷改变 connector
-  语义或 scope 规则。
+- `parser` 负责文本语法、normalize、parser-owned lowering result 与局部环境管理，
+  不得偷偷改变 connector 语义或 scope 规则，也不得直接拥有 tactics execution object。
 - `tactics` 负责 goal-state transformation 和 replay orchestration，不拥有 theorem authority。
 - `prover` 只是 parser + tactics + kernel 的编排入口；支持子集上可返回可信 `Thm`，
-  不支持路径必须继续 fail-closed。
+  不支持路径必须继续 fail-closed；它可以显式把 parser lowering result bridge 到
+  `tactics.Goal`，但不反向把 tactics 对象推回 parser。
 - 当前仓库不再保留旧 phase0/demo `cmd` 路径；当前 `src/cmd` 是 file-first 的
   非权威入口，仍不得成为第二证明内核。
 
@@ -127,11 +128,13 @@ QED 采用 kernel-first 架构。唯一 theorem-construction boundary 是 `src/k
 
 ### Parser
 
-当前 parser 是“文本语法 -> AST -> resolved elaboration -> kernel term/goal”的统一入口。
+当前 parser 是“文本语法 -> AST -> resolved elaboration -> parser-owned lowered object”的统一入口。
 
 稳定合同包括：
 
 - 名称解析顺序始终是 `local > const`。
+- `parse_goal` / `lower_syn_goal_with_env` 当前返回 parser-owned `ParsedGoal`；
+  tactics 执行对象只在上层 bridge 时构造。
 - 输入会先经过 `normalize_parser_input`：
   - `\not` / `\and` / `\or` / `\imp` 会归一化为规范形式；
   - `|-` 会归一化为 `⊢`；
@@ -149,19 +152,23 @@ QED 采用 kernel-first 架构。唯一 theorem-construction boundary 是 `src/k
   - theorem header 上零个或多个 `(name : type)` binder
   - 单行 `theorem <name> : <goal> := by <step>; <step>; ...`
   - 块状 `theorem <name> : <goal> := by` 后按换行分隔的顺序 step 列表
+  - `hole` / `hole <name>` unfinished-proof step
 - theorem-script AST 当前会为 theorem header binder、theorem goal 与每个 step
   保留 raw-source span；这些位置仍对用户原始输入负责，不会静默改写到
   normalize 后坐标。
 - theorem header binder 当前只建立 goal lowering 用的 local parse env；
   它不是 quantifier surface，不会给 tactic/prover 新增 theorem authority。
+- `forall (x : A), body` / `∀ (x : A), body` 当前已进入 raw syntax；
+  但还没有进入 shipped theorem-producing lowering path。
 
 当前 parser 还公开了：
 
 - `parse_let`
 - `parse_def_function`
 
-它们当前是 parser-side utility / experimental surface，已测试但尚未接入主 theorem-script
- 产品路径；文档和计划必须诚实地按这个级别描述它们。
+它们当前是已支持的 parser-side utility surface：有测试覆盖、可单独调用，
+负责局部环境扩展与闭包式函数定义解析；但它们不是 theorem-script 主语法，
+也不会扩展 theorem-construction authority。
 
 ### Surface Connectors
 
@@ -301,7 +308,10 @@ QED 采用 kernel-first 架构。唯一 theorem-construction boundary 是 `src/k
 - `prover` 负责解析 script、建立 goal、执行 step；
 - `prove_theorem_script_detailed` / `prove_theorem_script_with_diagnostics`
   当前会在诚实失败时保留 theorem 名、step index、当前 goal、local hypotheses、
-  以及 goal/step 的 raw-source location；这些诊断对象是工程辅助信息，不是新的 proof object；
+  branch path，以及 goal/step 的 raw-source location；这些诊断对象是工程辅助信息，不是新的 proof object；
+- theorem script 中若出现 `hole`，当前返回结构化 unfinished-proof 结果，
+  保留 theorem 名、step index、当前 goal、local hypotheses、branch path、
+  hole name 与源码位置；unfinished-proof 结果不是 theorem；
 - `ps_qed` 仅在 replay 成功且与根目标相继式一致时返回最终 `Thm`；
 - `ps_qed` 当前按 strict normalized sequent matching 验证最终 theorem：
   先统一做 proposition beta normalization，再检查假设集合与结论的 alpha-invariant
@@ -315,27 +325,32 @@ QED 采用 kernel-first 架构。唯一 theorem-construction boundary 是 `src/k
 - checked kernel + scoped signature + gate discipline
 - resolved elaboration boundary
 - parser normalize/raw-offset/theorem-script raw parsing, including sequential
-  block bodies、theorem-header binders，以及 raw binder/goal/step spans
+  block bodies、structured branch blocks、theorem-header binders、hole step，
+  以及 raw binder/goal/step spans
+- parser-side utility APIs `parse_let` / `parse_def_function`
 - proposition prelude definition theorems + unfold helpers
 - supported propositional tactic replay to kernel `Thm`
+- unfinished-proof reporting for theorem scripts containing holes
 - file-first `cmd` workflow for single theorem-script files
 
 ### Explicitly not shipped
 
 - richer theorem blocks
 - quantifier-oriented frontend
+- quantifier lowering on the shipped theorem-producing path
 - promoted rewrite/simplify tactic or command surface
-- holes / metavariables
+- kernel metavariables / hole completion authority
 - dictionary passing / typeclass frontend
 - arbitrary theorem-environment references
 - arbitrary script completeness
 
 ### Active next line
 
-- theorem-reconstruction hardening baseline is now the required gate before
-  frontend expansion;
-- `M4b`: structured branch blocks for `split` / `left` / `right` beyond the
-  current sequential forms
+- theorem-name inventory、corpus、mapping matrix 与 docs 继续保持同步；
+- 下一阶段主目标改为用户证明体验：优先补齐 script、goal、hole、unfinished
+  proof reporting 与量词前端；
+- richer proof blocks、holes 与 quantifier surface 的扩面，仍必须沿着当前
+  checked replay boundary 推进
 
 ### Stable theorem-name surface
 
@@ -384,8 +399,10 @@ QED 采用 kernel-first 架构。唯一 theorem-construction boundary 是 `src/k
 | `pos_exact_and_elim_l` | `public_example` / `manual:support_matrix` | `exact and_elim_l` | `context_derived` / `exact_context_derived` | 依赖上下文 conjunction owner |
 | `pos_apply_and_elim_l` | `public_example` / `manual:runnable_examples` | `apply and_elim_l` | `implication_backed` / `apply_named_imp` | implication-backed context replay |
 | `pos_apply_or_intro_l` | `public_example` / `manual:support_matrix` | `apply or_intro_l` | `implication_backed` / `apply_named_imp` | implication-backed goal-shape replay |
-| `pos_split_conjunction` | `public_example` / `manual:support_matrix` | `split` | `structural_only` / `split` | 结构性 goal orchestration |
-| `pos_left_disjunction` | `public_example` / `manual:runnable_examples` | `left` | `structural_only` / `left` | 析取目标分支选择 |
+| `pos_split_conjunction` | `public_example` / `manual:support_matrix` | `split` | `structural_only` / `split` | 顺序结构性 goal orchestration |
+| `pos_branch_split_conjunction` | `public_example` / `manual:support_matrix` | `split { ... } { ... }` | `structural_only` / `split` | 结构化 conjunction 分支块 |
+| `pos_left_disjunction` | `public_example` / `manual:runnable_examples` | `left` | `structural_only` / `left` | 顺序析取目标分支选择 |
+| `pos_branch_left_disjunction` | `public_example` / `manual:runnable_examples` | `left { ... }` | `structural_only` / `left` | 结构化析取分支块 |
 | `pos_exact_truth` | `public_example` / `manual:runnable_examples` | `exact truth` | `direct_close` / `exact_named_direct_close` | `T` 目标直接闭合 |
 | `pos_exact_ex_falso` | `public_example` / `manual:runnable_examples` | `exact ex_falso` | `context_derived` / `exact_context_derived` | 假设 `F` 时诚实闭合任意 bool 目标 |
 | `neg_exact_or_intro_wrong_mode` | `public_failure_example` / `manual:failure_matrix` | `exact or_intro_l` | apply-only theorem misuse in exact mode | `GoalShapeMismatch` |
@@ -402,8 +419,9 @@ QED 采用 kernel-first 架构。唯一 theorem-construction boundary 是 `src/k
 theorem t1 : ⊢ P -> P := by intro h; exact h
 theorem t2 : ⊢ P ∧ Q -> P := by intro h; apply and_elim_l; exact h
 theorem t3 : ⊢ P -> P ∨ Q := by intro h; left; exact h
-theorem t4 : ⊢ T := by exact truth
-theorem t5 : F ⊢ Q := by exact ex_falso
+theorem t4 : P ⊢ P ∨ Q := by left { assumption }
+theorem t5 : ⊢ T := by exact truth
+theorem t6 : F ⊢ Q := by exact ex_falso
 ```
 
 这些例子当前由 `src/prover/prover_test.mbt`、`src/prover/prover_positive_corpus_test.mbt`
@@ -417,8 +435,9 @@ theorem t5 : F ⊢ Q := by exact ex_falso
 | `t1` | `pos_intro_exact_identity` | local fact / `intro_exact` |
 | `t2` | `pos_apply_and_elim_l` | implication-backed / `apply_named_imp` |
 | `t3` | `pos_left_disjunction` | structural-only / `left` |
-| `t4` | `pos_exact_truth` | direct-close / `exact_named_direct_close` |
-| `t5` | `pos_exact_ex_falso` | context-derived / `exact_context_derived` |
+| `t4` | `pos_branch_left_disjunction` | structural-only / `left` structured branch |
+| `t5` | `pos_exact_truth` | direct-close / `exact_named_direct_close` |
+| `t6` | `pos_exact_ex_falso` | context-derived / `exact_context_derived` |
 
 `src/prover/prover_mapping_matrix_test.mbt` 是当前 corpus case、能力标签与文档锚点之间的
 单一测试锚点；若文档要新增、修改或删除公开示例，应先更新对应 canonical case，再同步
@@ -438,8 +457,10 @@ moon run src/cmd <file>
 - 成功输出 `ok <theorem_name>: <conclusion_summary>`；
 - 失败输出保留 `error[kind]`、文件路径、theorem name，并在 tactic failure 上额外给出：
   - `step`
+  - `branch`
   - `goal`
   - `locals`
+- 若脚本包含 `hole`，当前输出 `unfinished ...`，并给出 hole / goal / locals 摘要
 
 当前可回归的最小例子是：
 
@@ -452,8 +473,11 @@ theorem truth_file : ⊢ T := by exact truth
 当前外围工程仍应沿着以下方向继续收口：
 
 - 保持 theorem inventory、mode-aware resolver 与 corpus/matrix 的单一来源；
-- 先完成 theorem-reconstruction hardening 的 corpus/integration 收口，再推进
-  `M4b` structured branch blocks；
+- 保持当前最小 structured branch block 继续沿同一 checked replay boundary 扩展；
+- 让 hole / unfinished proof 在前端成为正式对象，但不把它们变成 kernel
+  metavariable authority；
+- 把 theorem-header binder 推进到 proposition + quantifier 的正式用户语法，而不只是
+  工程 lowering slice；
 - 在不扩大信任边界的前提下，扩展 theorem-script 表达力与更自然的前端诊断；
 - 继续让 file-first workflow 复用同一套 corpus / mapping matrix，而不是分叉出第二套语义；
 - 让整个可执行前端越来越接近 Part II 所要求的 faithful realization，而不是在

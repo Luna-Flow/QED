@@ -4,9 +4,9 @@ Status: point-in-time audit
 Audience: maintainers, contributors
 Authority: stage audit; subordinate to `doc/qed_formal_spec.pdf`, current code/tests, and implementation docs
 Scope: risks, gaps, and follow-up items that still remain material on the audited baseline
-Last reviewed: 2026-04-16
+Last reviewed: 2026-04-18
 
-_Date: 2026-04-05_
+_Date: 2026-04-18_
 
 This report audits the current workspace against the repository's source-of-truth
 order:
@@ -52,51 +52,15 @@ The following previously reported risks are no longer current findings:
 - canonical prover corpus and mapping-matrix coverage are now aligned with the
   hardened replay/final-theorem contracts, so `H5` no longer depends on a
   stale wider corpus contract.
+- minimal `M4b` is now shipped on the main theorem-script path:
+  structured branch blocks for `split` / `left` / `right` are parsed, replayed,
+  covered by parser/prover/cmd regressions, and diagnosed with stable branch
+  paths.
 
 This audit therefore focuses only on the issues and gaps that still remain
 material today.
 
 ## Findings
-
-### [P1] Theorem-script body is still limited to the current sequential `by` forms
-
-**Why this matters**
-
-The current parser and prover surface is honest and tested, and theorem-header
-binders are now shipped. The next real frontend milestone is still unshipped:
-structured branch blocks for the existing `split` / `left` / `right` tactics.
-
-**Evidence**
-
-- `parse_theorem_script_raw` currently accepts only sequential `by` bodies:
-  single-line `theorem ... := by step; step; ...` or a newline-separated block
-  body with the same step semantics;
-- no shipped syntax exists yet for structured branch blocks;
-- parser-side public utilities such as `parse_let` / `parse_def_function` remain
-  outside the main theorem-script product path.
-
-**Impact**
-
-- natural proof authoring remains limited;
-- diagnostics are already better, but the user-facing proof surface is still the
-  smaller sequential slice.
-
-**Required follow-up**
-
-- keep all new syntax on the same checked lowering boundary;
-- add only the minimum `M4b` surface first: structured blocks for existing
-  branch tactics, not a general proof-language expansion.
-
-**Opened task(s)**
-
-- `F5`
-- `F6`
-- `F7`
-- `C6`
-- `D6`
-- `E5`
-- `E6`
-- `H6`
 
 ### [P2] The Lean line remains a paper/conformance pack, not a direct proof of the MoonBit implementation
 
@@ -137,9 +101,10 @@ source tree to the Lean `Realization`.
 The current suite is strong, but the following gaps remain important for the
 next stages:
 
-1. structured branch-block parser/prover/cmd regressions, including nested
-   diagnostic paths;
-2. any future CLI feature must continue to reuse the current positive / negative
+1. richer proof-block expansion beyond the current minimal branch-block slice;
+2. hole / unfinished-proof structured reporting as a first-class shipped surface;
+3. quantifier-facing frontend and its trust-relevant lowering contract;
+4. any future CLI feature must continue to reuse the current positive / negative
    corpus instead of forking a second script matrix.
 
 ## Overall Assessment
@@ -149,8 +114,11 @@ next stages:
 - This review did not uncover a direct checked-kernel soundness break in the
   current shipped path.
 - The most important next work is now:
-  1. `H5` integration of the hardened baseline;
-  2. `M4b` structured branch blocks on top of that hardened baseline.
+  1. keep the new structured branch-block surface on the same checked lowering /
+     replay boundary;
+  2. move the roadmap toward user-facing proof experience: script, goal, hole,
+     unfinished-proof reporting, and quantifier frontend;
+  3. continue corpus + docs + conformance maintenance as the frontend expands.
 - The rewrite/simplify line remains research only.
 - The Lean line remains green and valuable, but it should continue to be
   described as a paper/conformance pack unless a stronger implementation binding

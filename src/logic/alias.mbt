@@ -1,5 +1,7 @@
 ///|
-/// Package-local `using` alias file for kernel symbols (logic sources + tests).
+/// Production alias entry for logic sources.
+/// Logic is the checked kernel-helper facade; avoid turning this file into a
+/// raw re-export dump for every kernel symbol.
 using @kernel {
   type ConstId,
   type KernelState,

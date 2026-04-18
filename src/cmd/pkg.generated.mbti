@@ -3,6 +3,7 @@ package "Luna-Flow/QED/cmd"
 
 import {
   "Luna-Flow/QED/kernel",
+  "Luna-Flow/QED/prover",
 }
 
 // Values
@@ -18,6 +19,10 @@ pub fn cmd_run_argv(Array[String], CmdOptions) -> CmdRunResult
 
 pub fn cmd_run_script(String, String, CmdOptions) -> CmdRunResult
 
+pub fn cmd_unfinished(String, String, Int?, Array[Int], String, Array[CmdLocalHypSummary], String?, String) -> CmdRunResult
+
+pub fn cmd_unfinished_from_prover(String, @prover.ProverUnfinished) -> CmdRunResult
+
 pub fn default_cmd_options() -> CmdOptions
 
 // Errors
@@ -28,6 +33,7 @@ pub struct CmdFailure {
   theorem_name : String?
   kind : CmdFailureKind
   step_index : Int?
+  branch_path : Array[Int]
   current_goal_summary : String?
   local_hyps : Array[CmdLocalHypSummary]
   detail : String
@@ -55,6 +61,7 @@ pub struct CmdOptions {
 pub enum CmdRunResult {
   Success(CmdSuccess)
   Failure(CmdFailure)
+  Unfinished(CmdUnfinished)
 }
 
 pub struct CmdSuccess {
@@ -62,6 +69,17 @@ pub struct CmdSuccess {
   theorem_name : String
   conclusion : @kernel.Term
   conclusion_summary : String
+}
+
+pub struct CmdUnfinished {
+  path : String
+  theorem_name : String
+  step_index : Int?
+  branch_path : Array[Int]
+  current_goal_summary : String
+  local_hyps : Array[CmdLocalHypSummary]
+  hole_name : String?
+  detail : String
 }
 
 // Type aliases

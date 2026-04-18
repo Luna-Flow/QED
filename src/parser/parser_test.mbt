@@ -164,6 +164,22 @@ test "parse offsets remain aligned to raw input after normalization" {
 test "parse_term_raw succeeds on base term forms" {
   assert_true(parse_term_raw("P") is Ok(Name("P")))
   assert_true(parse_term_raw("f x") is Ok(App(Name("f"), Name("x"))))
+  match parse_term_raw("forall (x : A), P x") {
+    Ok(Forall(name, ty, body)) => {
+      assert_eq(name, "x")
+      assert_true(ty_eq(ty, mk_tyvar("A")))
+      assert_true(body is App(Name("P"), Name("x")))
+    }
+    _ => panic()
+  }
+  match parse_term_raw("∀ (x : A), P x") {
+    Ok(Forall(name, ty, body)) => {
+      assert_eq(name, "x")
+      assert_true(ty_eq(ty, mk_tyvar("A")))
+      assert_true(body is App(Name("P"), Name("x")))
+    }
+    _ => panic()
+  }
   assert_true(
     parse_term_raw("(f x) = y")
     is Ok(Infix("=", App(Name("f"), Name("x")), Name("y"))),
@@ -223,8 +239,27 @@ test "parse_term_raw reports nonassoc chain and malformed input" {
   assert_true(parse_err_unknown_operator(parse_term_raw("\\foo P")))
   assert_true(parse_err_unknown_operator(parse_term_raw("a /\\ b")))
   assert_true(parse_err_unknown_operator(parse_term_raw("a \\/ b")))
+  assert_true(parse_term_raw("forall x : A, P x") is Err(_))
+  assert_true(parse_term_raw("forall (x : A) P x") is Err(_))
   assert_true(parse_err_eof(parse_term_raw("(P")))
   assert_true(parse_err_eof(parse_term_raw("")))
+}
+
+///|
+test "parse quantifier raw offsets remain aligned to source input" {
+  match parse_term_raw("  forall   (x : A)   P x") {
+    Err(e) => {
+      assert_true(
+        match e.code {
+          UnexpectedToken => true
+          _ => false
+        },
+      )
+      assert_eq(e.detail, "expected `,` after `forall` binder")
+      assert_eq(e.offset, 21)
+    }
+    Ok(_) => panic()
+  }
 }
 
 ///|
@@ -344,27 +379,28 @@ test "bridge reports structured logic error for non-bool connectors" {
 }
 
 ///|
-test "parse_goal bridge works with proof_state assumption tactic" {
+test "parse_goal bridge resolves hypotheses and conclusion" {
   let bool = bool_ty()
   let st0 = empty_kernel_state()
   let st1 = expect_ok_parser(ks_add_const(st0, "P", bool))
   let st2 = expect_ok_parser(ks_add_const(st1, "Q", bool))
-  let prelude = default_prop_prelude()
+  let p = expect_ok_parser(parse_term(st2, "P"))
+  let q = expect_ok_parser(parse_term(st2, "Q"))
 
   let goal_ok = expect_ok_parser(parse_goal(st2, "P |- P"))
-  let ps_ok = ps_init(goal_ok)
-  assert_true(ps_apply(st2, prelude, ps_ok, step_assumption()) is Ok(_))
+  assert_eq(parsed_goal_hyps(goal_ok).length(), 1)
+  assert_true(term_alpha_eq(parsed_goal_hyps(goal_ok)[0], p))
+  assert_true(term_alpha_eq(parsed_goal_concl(goal_ok), p))
 
   let goal_ok_unicode = expect_ok_parser(parse_goal(st2, "P ⊢ P"))
-  let ps_ok_unicode = ps_init(goal_ok_unicode)
-  assert_true(ps_apply(st2, prelude, ps_ok_unicode, step_assumption()) is Ok(_))
+  assert_eq(parsed_goal_hyps(goal_ok_unicode).length(), 1)
+  assert_true(term_alpha_eq(parsed_goal_hyps(goal_ok_unicode)[0], p))
+  assert_true(term_alpha_eq(parsed_goal_concl(goal_ok_unicode), p))
 
   let goal_bad = expect_ok_parser(parse_goal(st2, "Q |- P"))
-  let ps_bad = ps_init(goal_bad)
-  assert_true(
-    ps_apply(st2, prelude, ps_bad, step_assumption())
-    is Err(GoalShapeMismatch(_)),
-  )
+  assert_eq(parsed_goal_hyps(goal_bad).length(), 1)
+  assert_true(term_alpha_eq(parsed_goal_hyps(goal_bad)[0], q))
+  assert_true(term_alpha_eq(parsed_goal_concl(goal_bad), p))
 }
 
 ///|
@@ -429,10 +465,10 @@ test "parse_goal_with_env can consume local propositions" {
   let env1 = expect_ok_parser(parse_let(env0, "let p : bool"))
   let st = empty_kernel_state()
   let goal = expect_ok_parser(parse_goal_with_env(st, env1, "p ⊢ p"))
-  assert_true(
-    ps_apply(st, default_prop_prelude(), ps_init(goal), step_assumption())
-    is Ok(_),
-  )
+  let term = expect_ok_parser(parse_term_with_env(st, env1, "p"))
+  assert_eq(parsed_goal_hyps(goal).length(), 1)
+  assert_true(term_alpha_eq(parsed_goal_hyps(goal)[0], term))
+  assert_true(term_alpha_eq(parsed_goal_concl(goal), term))
 }
 
 ///|
@@ -584,6 +620,31 @@ test "parse theorem script raw supports linear by-steps" {
 }
 
 ///|
+test "parse theorem script raw supports hole steps" {
+  match parse_theorem_script_raw("theorem t1 : ⊢ P := by hole") {
+    Ok(s) => {
+      assert_eq(s.body.steps.length(), 1)
+      assert_true(expect_script_step(s.body.steps[0]) is Hole(None))
+      assert_eq(s.body.steps[0].src, "hole")
+      assert_eq(s.body.steps[0].span.start_offset, 23)
+      assert_eq(s.body.steps[0].span.end_offset, 27)
+    }
+    Err(_) => panic()
+  }
+
+  match parse_theorem_script_raw("theorem t1 : ⊢ P := by hole h1") {
+    Ok(s) => {
+      assert_eq(s.body.steps.length(), 1)
+      assert_true(expect_script_step(s.body.steps[0]) is Hole(Some("h1")))
+      assert_eq(s.body.steps[0].src, "hole h1")
+      assert_eq(s.body.steps[0].span.start_offset, 23)
+      assert_eq(s.body.steps[0].span.end_offset, 30)
+    }
+    Err(_) => panic()
+  }
+}
+
+///|
 test "parse theorem script raw normalizes turnstile escapes and keeps raw offsets" {
   let src = "theorem t1 :  |-  P \\imp P := by intro h; exact h"
   match parse_theorem_script_raw(src) {
@@ -647,6 +708,179 @@ test "parse theorem script raw supports block bodies and mixed separators" {
 }
 
 ///|
+test "parse theorem script raw supports structured branch blocks" {
+  let src = "theorem t1 : P, Q ⊢ P ∧ Q := by split { assumption } { assumption }"
+  match parse_theorem_script_raw(src) {
+    Ok(s) => {
+      assert_eq(s.body.steps.length(), 1)
+      assert_true(expect_script_step(s.body.steps[0]) is Split)
+      assert_eq(s.body.steps[0].src, "split")
+      assert_eq(s.body.steps[0].branches.length(), 2)
+      assert_eq(s.body.steps[0].branches[0].body.steps.length(), 1)
+      assert_true(
+        expect_script_step(s.body.steps[0].branches[0].body.steps[0])
+        is Assumption,
+      )
+      assert_eq(s.body.steps[0].branches[0].src, "{ assumption }")
+      assert_eq(s.body.steps[0].branches[1].body.steps.length(), 1)
+      assert_true(
+        expect_script_step(s.body.steps[0].branches[1].body.steps[0])
+        is Assumption,
+      )
+      assert_true(
+        s.body.steps[0].span.end_offset <=
+        s.body.steps[0].branches[0].span.start_offset,
+      )
+      assert_true(
+        s.body.steps[0].branches[0].span.end_offset <=
+        s.body.steps[0].branches[1].span.start_offset,
+      )
+    }
+    Err(_) => panic()
+  }
+}
+
+///|
+test "parse theorem script raw supports quantifier goals mixed with binders and branch blocks" {
+  let src = "theorem t1 (P : A -> bool) : ⊢ forall (x : A), P x ∧ P x := by split { hole } { hole h1 }"
+  match parse_theorem_script_raw(src) {
+    Ok(s) => {
+      assert_eq(s.binders.length(), 1)
+      assert_eq(s.body.steps.length(), 1)
+      assert_true(expect_script_step(s.body.steps[0]) is Split)
+      assert_eq(s.body.steps[0].branches.length(), 2)
+      match s.goal.concl {
+        Forall(name, ty, body) => {
+          assert_eq(name, "x")
+          assert_true(ty_eq(ty, mk_tyvar("A")))
+          assert_true(
+            body
+            is Infix(
+              "∧",
+              App(Name("P"), Name("x")),
+              App(Name("P"), Name("x"))
+            ),
+          )
+        }
+        _ => panic()
+      }
+      assert_true(
+        expect_script_step(s.body.steps[0].branches[0].body.steps[0])
+        is Hole(None),
+      )
+      assert_true(
+        expect_script_step(s.body.steps[0].branches[1].body.steps[0])
+        is Hole(Some("h1")),
+      )
+    }
+    Err(_) => panic()
+  }
+}
+
+///|
+test "parse theorem script raw supports nested structured branch blocks" {
+  let src = "theorem t1 : P, Q ⊢ P ∧ (P ∨ Q) := by split { assumption } { left { assumption } }"
+  match parse_theorem_script_raw(src) {
+    Ok(s) => {
+      let split_step = s.body.steps[0]
+      assert_eq(split_step.branches.length(), 2)
+      let left_step = split_step.branches[1].body.steps[0]
+      assert_true(expect_script_step(left_step) is Left)
+      assert_eq(left_step.src, "left")
+      assert_eq(left_step.branches.length(), 1)
+      assert_eq(left_step.branches[0].src, "{ assumption }")
+      assert_true(
+        expect_script_step(left_step.branches[0].body.steps[0]) is Assumption,
+      )
+    }
+    Err(_) => panic()
+  }
+}
+
+///|
+test "parse theorem script raw keeps raw spans for structured branch blocks" {
+  let src = "theorem t1 :  |-  P \\imp P := by left { exact h }"
+  match parse_theorem_script_raw(src) {
+    Ok(s) => {
+      let step = s.body.steps[0]
+      assert_eq(step.src, "left")
+      assert_eq(step.span.start_offset, 33)
+      assert_eq(step.span.end_offset, 37)
+      assert_eq(step.branches.length(), 1)
+      assert_eq(step.branches[0].src, "{ exact h }")
+      assert_eq(step.branches[0].span.start_offset, 38)
+      assert_eq(step.branches[0].span.end_offset, 49)
+    }
+    Err(_) => panic()
+  }
+}
+
+///|
+test "parse theorem script raw captures explicit branch blocks" {
+  let src = "theorem t1 : P, Q ⊢ P ∧ Q := by split { assumption } { assumption }"
+  match parse_theorem_script_raw(src) {
+    Ok(s) => {
+      assert_eq(s.body.steps.length(), 1)
+      let step = s.body.steps[0]
+      assert_true(expect_script_step(step) is Split)
+      assert_eq(step.branches.length(), 2)
+      assert_eq(step.branches[0].body.steps.length(), 1)
+      assert_eq(step.branches[1].body.steps.length(), 1)
+      assert_true(
+        expect_script_step(step.branches[0].body.steps[0]) is Assumption,
+      )
+      assert_true(
+        expect_script_step(step.branches[1].body.steps[0]) is Assumption,
+      )
+      assert_eq(step.branches[0].src, "{ assumption }")
+      assert_eq(step.branches[1].src, "{ assumption }")
+      assert_true(
+        step.branches[0].span.start_offset < step.branches[1].span.start_offset,
+      )
+    }
+    Err(_) => panic()
+  }
+}
+
+///|
+test "parse theorem script raw rejects incorrect branch block arity" {
+  match
+    parse_theorem_script_raw(
+      "theorem t : ⊢ P := by exact truth { exact truth }",
+    ) {
+    Err(e) => {
+      assert_true(
+        match e.code {
+          UnexpectedToken => true
+          _ => false
+        },
+      )
+      assert_eq(
+        e.detail,
+        "tactic step does not accept structured branch blocks",
+      )
+    }
+    Ok(_) => panic()
+  }
+
+  match
+    parse_theorem_script_raw(
+      "theorem t : P, Q ⊢ P ∧ Q := by split { assumption }",
+    ) {
+    Err(e) => {
+      assert_true(
+        match e.code {
+          UnexpectedToken => true
+          _ => false
+        },
+      )
+      assert_eq(e.detail, "incorrect number of branch blocks for tactic step")
+    }
+    Ok(_) => panic()
+  }
+}
+
+///|
 test "parse theorem script raw keeps raw offsets for block body errors" {
   let src = "theorem t1 : ⊢ P -> P := by\n\nexact h"
   match parse_theorem_script_raw(src) {
@@ -664,6 +898,56 @@ test "parse theorem script raw keeps raw offsets for block body errors" {
 }
 
 ///|
+test "parse theorem script raw rejects malformed structured branch blocks" {
+  match parse_theorem_script_raw("theorem t : ⊢ P := by { exact h }") {
+    Err(e) => {
+      assert_true(
+        match e.code {
+          UnexpectedToken => true
+          _ => false
+        },
+      )
+      assert_eq(e.offset, 22)
+      assert_eq(
+        e.detail,
+        "branch block must follow `split`, `left`, or `right`",
+      )
+    }
+    Ok(_) => panic()
+  }
+
+  match parse_theorem_script_raw("theorem t : ⊢ P := by left { exact h") {
+    Err(e) => {
+      assert_true(
+        match e.code {
+          UnexpectedEof => true
+          _ => false
+        },
+      )
+      assert_eq(e.detail, "missing `}` to close branch block")
+      assert_eq(e.offset, 27)
+    }
+    Ok(_) => panic()
+  }
+
+  match
+    parse_theorem_script_raw(
+      "theorem t : ⊢ P ∧ Q := by split { assumption } { left { assumption } assumption }",
+    ) {
+    Err(e) => {
+      assert_true(
+        match e.code {
+          UnexpectedToken => true
+          _ => false
+        },
+      )
+      assert_eq(e.detail, "expected tactic separator")
+    }
+    Ok(_) => panic()
+  }
+}
+
+///|
 test "parse theorem script raw rejects malformed bodies" {
   assert_true(parse_theorem_script_raw("theorem t : ⊢ P := by") is Err(_))
   assert_true(
@@ -675,5 +959,21 @@ test "parse theorem script raw rejects malformed bodies" {
   assert_true(
     parse_theorem_script_raw("theorem t : ⊢ P := by intro h\n; exact h")
     is Err(_),
+  )
+  assert_true(
+    parse_theorem_script_raw(
+      "theorem t : P, Q ⊢ P ∧ Q := by split { assumption }",
+    )
+    is Err(_),
+  )
+  assert_true(
+    parse_theorem_script_raw("theorem t : P ⊢ P := by intro h { exact h }")
+    is Err(_),
+  )
+  assert_true(
+    parse_theorem_script_raw("theorem t : ⊢ P := by left }") is Err(_),
+  )
+  assert_true(
+    parse_theorem_script_raw("theorem t : ⊢ P := by hole h1 h2") is Err(_),
   )
 }

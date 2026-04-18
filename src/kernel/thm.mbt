@@ -207,7 +207,7 @@ fn refl(term : Term) -> Result[Thm, LogicError] {
 }
 
 ///|
-fn assume(prop : Term) -> Result[Thm, LogicError] {
+fn assume_raw(prop : Term) -> Result[Thm, LogicError] {
   match lower_term(prop) {
     Ok(p) =>
       match expect_bool(p) {
@@ -786,7 +786,7 @@ pub fn assume_checked(
   state : KernelState,
   prop : Term,
 ) -> Result[Thm, LogicError] {
-  match assume(prop) {
+  match assume_raw(prop) {
     Ok(th) =>
       match thm_stamp_const_ids(state, th) {
         Ok(stamped) =>

@@ -4,6 +4,7 @@
 pub enum ScriptLayout {
   InlineSequential
   BlockSequential
+  BranchStructured
 }
 
 ///|
@@ -11,6 +12,7 @@ pub fn script_layout_label(layout : ScriptLayout) -> String {
   match layout {
     InlineSequential => "inline_sequential"
     BlockSequential => "block_sequential"
+    BranchStructured => "branch_structured"
   }
 }
 
@@ -311,6 +313,24 @@ pub fn positive_corpus_cases() -> Array[PositiveCorpusCase] {
       layout: BlockSequential,
       catalog_class: ImplicationBacked,
       capability: ApplyNamedImp,
+    },
+    PositiveCorpusCase::{
+      case_id: "pos_branch_split_conjunction",
+      const_names: ["P", "Q"],
+      expected_goal: "P, Q ⊢ P ∧ Q",
+      script: "theorem pos_branch_split_conjunction : P, Q ⊢ P ∧ Q := by split { assumption } { assumption }",
+      layout: BranchStructured,
+      catalog_class: StructuralOnly,
+      capability: Split,
+    },
+    PositiveCorpusCase::{
+      case_id: "pos_branch_left_disjunction",
+      const_names: ["P", "Q"],
+      expected_goal: "P ⊢ P ∨ Q",
+      script: "theorem pos_branch_left_disjunction : P ⊢ P ∨ Q := by left { assumption }",
+      layout: BranchStructured,
+      catalog_class: StructuralOnly,
+      capability: Left,
     },
   ]
 }
@@ -810,6 +830,24 @@ pub fn mapping_matrix_entries() -> Array[MappingMatrixEntry] {
       capability_or_error_label: "apply_named_imp",
       doc_anchor: "internal_only",
       doc_visibility: InternalOnly,
+    },
+    MappingMatrixEntry::{
+      case_id: "pos_branch_split_conjunction",
+      kind: PositiveCase,
+      script: "theorem pos_branch_split_conjunction : P, Q ⊢ P ∧ Q := by split { assumption } { assumption }",
+      catalog_or_failure_label: "structural_only",
+      capability_or_error_label: "split",
+      doc_anchor: "manual:support_matrix",
+      doc_visibility: PublicExample,
+    },
+    MappingMatrixEntry::{
+      case_id: "pos_branch_left_disjunction",
+      kind: PositiveCase,
+      script: "theorem pos_branch_left_disjunction : P ⊢ P ∨ Q := by left { assumption }",
+      catalog_or_failure_label: "structural_only",
+      capability_or_error_label: "left",
+      doc_anchor: "manual:runnable_examples",
+      doc_visibility: PublicExample,
     },
     MappingMatrixEntry::{
       case_id: "neg_unknown_exact_name",

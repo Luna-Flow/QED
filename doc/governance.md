@@ -38,6 +38,8 @@ QED 当前采用以下文档层级：
 
 其他文档只能补充，不得平行复制“当前状态”。
 
+代码组织与 alias 入口治理由 `doc/code_governance.md` 统一定义；它不高于当前代码与实现文档，只负责固定工程边界和维护义务。
+
 ## Metadata Contract
 
 除顶层 `README.md` 与规范正文外，面向维护的文档头部都应包含：
@@ -95,6 +97,8 @@ QED 当前采用以下文档层级：
   当前实现合同。
 - `doc/conformance.md`
   代码/测试映射与工程符合性。
+- `doc/code_governance.md`
+  包分层、alias 入口与代码维护义务。
 - `doc/current_workspace_audit.md`
   当前工作区阶段性审计。
 - `doc/TRICK.md`
@@ -111,6 +115,6 @@ QED 当前采用以下文档层级：
 1. 代码与测试
 2. `doc/manual.md`
 3. `doc/conformance.md`
-4. `doc/current_workspace_audit.md`
-5. `README.md`
+4. `README.md`
+5. `doc/current_workspace_audit.md`
 6. 相关 `research/` 文档

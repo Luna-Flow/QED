@@ -57,6 +57,7 @@ test "cmd state-free positive corpus subset stays aligned with prover corpus" {
         )
       }
       Failure(_) => panic()
+      Unfinished(_) => panic()
     }
   }
 }
@@ -84,6 +85,7 @@ test "cmd state-free negative corpus subset preserves expected failure kinds" {
         assert_true(err.current_goal_summary is Some(_))
       }
       Success(_) => panic()
+      Unfinished(_) => panic()
     }
   }
 }

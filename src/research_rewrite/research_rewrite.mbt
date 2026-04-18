@@ -41,7 +41,6 @@ pub enum ReplayStepKind {
   Congruence
   Unfold
   BetaNormalize
-  EqMpBool
 }
 
 ///|
@@ -180,7 +179,6 @@ pub fn research_step_name(step : ReplayStepKind) -> String {
     Congruence => "Congruence"
     Unfold => "Unfold"
     BetaNormalize => "BetaNormalize"
-    EqMpBool => "EqMpBool"
   }
 }
 
@@ -229,7 +227,6 @@ fn replay_step_eq(lhs : ReplayStepKind, rhs : ReplayStepKind) -> Bool {
     (Congruence, Congruence) => true
     (Unfold, Unfold) => true
     (BetaNormalize, BetaNormalize) => true
-    (EqMpBool, EqMpBool) => true
     _ => false
   }
 }

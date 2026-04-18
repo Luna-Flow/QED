@@ -3,6 +3,7 @@ fn expect_cmd_success(result : CmdRunResult) -> CmdSuccess {
   match result {
     Success(ok) => ok
     Failure(_) => panic()
+    Unfinished(_) => panic()
   }
 }
 
@@ -11,12 +12,57 @@ fn expect_cmd_failure(result : CmdRunResult) -> CmdFailure {
   match result {
     Success(_) => panic()
     Failure(err) => err
+    Unfinished(_) => panic()
+  }
+}
+
+///|
+fn expect_cmd_unfinished(result : CmdRunResult) -> CmdUnfinished {
+  match result {
+    Success(_) => panic()
+    Failure(_) => panic()
+    Unfinished(unfinished) => unfinished
   }
 }
 
 ///|
 fn tmp_test_path(name : String) -> String {
   "/tmp/qed_cmd_" + name + ".qed"
+}
+
+///|
+fn cmd_unfinished_fixture() -> @prover.ProverUnfinished {
+  let failure = match
+    @prover.prove_theorem_script_detailed(
+      @kernel.empty_kernel_state(),
+      "theorem bad : ⊢ T -> T := by intro h; apply truth",
+      @prover.default_prover_options(),
+    ) {
+    @prover.Failed(err) => err
+    _ => panic()
+  }
+  let goal = match failure.current_goal {
+    Some(v) => v
+    None => panic()
+  }
+  match
+    @prover.prover_unfinished(
+      "cmd_hole",
+      Some("T ⊢ T"),
+      None,
+      Some(4),
+      [1, 2],
+      None,
+      None,
+      goal,
+      failure.local_hyps,
+      Some("h1"),
+      "proof is unfinished",
+      None,
+    ) {
+    @prover.Unfinished(unfinished) => unfinished
+    _ => panic()
+  }
 }
 
 ///|
@@ -106,6 +152,77 @@ test "cmd run script renders explicit empty local summary when no locals exist" 
   let rendered = cmd_render_result(result)
   assert_true(rendered.contains("\nstep: 1"))
   assert_true(rendered.contains("\nlocals: <none>"))
+}
+
+///|
+test "cmd run script renders branch path for nested branch failures" {
+  let result = cmd_run_script(
+    "branch_fail.qed",
+    "theorem bad : ⊢ T ∧ (F ∨ T) := by split { exact truth } { right { apply truth } }",
+    default_cmd_options(),
+  )
+  let err = expect_cmd_failure(result)
+  assert_eq(err.step_index, Some(4))
+  assert_eq(err.branch_path, [2, 1])
+  let rendered = cmd_render_result(result)
+  assert_true(rendered.contains("\nbranch: 2.1"))
+  assert_true(rendered.contains("\nstep: 4"))
+}
+
+///|
+test "cmd unfinished helper renders stable unfinished contract" {
+  let result = cmd_unfinished_from_prover(
+    "unfinished.qed",
+    cmd_unfinished_fixture(),
+  )
+  let unfinished = expect_cmd_unfinished(result)
+  assert_eq(unfinished.path, "unfinished.qed")
+  assert_eq(unfinished.theorem_name, "cmd_hole")
+  assert_eq(unfinished.step_index, Some(4))
+  assert_eq(unfinished.branch_path, [1, 2])
+  assert_true(unfinished.current_goal_summary.contains("|-"))
+  assert_eq(unfinished.local_hyps.length(), 1)
+  assert_eq(unfinished.local_hyps[0].name, "h")
+  assert_eq(unfinished.hole_name, Some("h1"))
+  assert_eq(unfinished.detail, "proof is unfinished")
+  let rendered = cmd_render_result(result)
+  assert_true(
+    rendered.contains(
+      "unfinished unfinished.qed (cmd_hole): proof is unfinished",
+    ),
+  )
+  assert_true(rendered.contains("\ntheorem: cmd_hole"))
+  assert_true(rendered.contains("\nstep: 4"))
+  assert_true(rendered.contains("\nbranch: 1.2"))
+  assert_true(rendered.contains("\ngoal: ["))
+  assert_true(rendered.contains("\nlocals: h:"))
+  assert_true(rendered.contains("\nhole: h1"))
+  assert_true(rendered.contains("\nmessage: proof is unfinished"))
+  assert_false(rendered.contains("error["))
+  assert_eq(cmd_exit_code(result), 1)
+}
+
+///|
+test "cmd unfinished rendering keeps empty markers stable" {
+  let result = cmd_unfinished(
+    "unfinished_root.qed",
+    "cmd_hole",
+    None,
+    [],
+    "[] |- Const(T)",
+    [],
+    None,
+    "todo",
+  )
+  let unfinished = expect_cmd_unfinished(result)
+  assert_eq(unfinished.theorem_name, "cmd_hole")
+  let rendered = cmd_render_result(result)
+  assert_true(rendered.contains("\ntheorem: cmd_hole"))
+  assert_true(rendered.contains("\nstep: <none>"))
+  assert_true(rendered.contains("\nbranch: <root>"))
+  assert_true(rendered.contains("\nlocals: <none>"))
+  assert_true(rendered.contains("\nhole: <none>"))
+  assert_true(rendered.contains("\nmessage: todo"))
 }
 
 ///|

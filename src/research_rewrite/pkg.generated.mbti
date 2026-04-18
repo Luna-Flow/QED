@@ -76,7 +76,6 @@ pub enum ReplayStepKind {
   Congruence
   Unfold
   BetaNormalize
-  EqMpBool
 }
 
 pub enum RewriteDirection {

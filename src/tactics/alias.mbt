@@ -1,5 +1,6 @@
 ///|
-/// Package-local `using` alias file for non-test sources (`proof_state`, `goal`).
+/// Production alias entry for tactics sources (`proof_state`, `goal`).
+/// Keep only execution-facing symbols here; do not export test-only helpers.
 using @kernel {
   type KernelState,
   type Thm,

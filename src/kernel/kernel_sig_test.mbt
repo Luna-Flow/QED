@@ -878,7 +878,7 @@ test "kernel state rejects ghost type constructors at trusted admission boundari
 
   let bool = bool_ty()
   let w = mk_var("w_bool_guard", bool)
-  let bool_pred = mk_abs(w, expect_ok_any_sig_test(mk_eq(w, w)))
+  let _bool_pred = mk_abs(w, expect_ok_any_sig_test(mk_eq(w, w)))
   let bool_witness = expect_ok_any_sig_test(
     refl_checked(st0, closed_eq_witness_term(bool)),
   )

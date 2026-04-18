@@ -4,13 +4,12 @@ package "Luna-Flow/QED/parser"
 import {
   "Luna-Flow/QED/elab",
   "Luna-Flow/QED/kernel",
-  "Luna-Flow/QED/tactics",
 }
 
 // Values
 pub fn empty_parse_env() -> ParseEnv
 
-pub fn lower_syn_goal_with_env(@kernel.KernelState, ParseEnv, SynGoal) -> Result[@tactics.Goal, ParseBridgeError]
+pub fn lower_syn_goal_with_env(@kernel.KernelState, ParseEnv, SynGoal) -> Result[ParsedGoal, ParseBridgeError]
 
 pub fn lower_syn_term_with_env(@kernel.KernelState, ParseEnv, SynTerm) -> Result[@kernel.Term, ParseBridgeError]
 
@@ -26,11 +25,11 @@ pub fn parse_env_local_count(ParseEnv) -> Int
 
 pub fn parse_env_push_local(ParseEnv, String, @kernel.HolType) -> ParseEnv
 
-pub fn parse_goal(@kernel.KernelState, String) -> Result[@tactics.Goal, ParseBridgeError]
+pub fn parse_goal(@kernel.KernelState, String) -> Result[ParsedGoal, ParseBridgeError]
 
 pub fn parse_goal_raw(String) -> Result[SynGoal, ParseError]
 
-pub fn parse_goal_with_env(@kernel.KernelState, ParseEnv, String) -> Result[@tactics.Goal, ParseBridgeError]
+pub fn parse_goal_with_env(@kernel.KernelState, ParseEnv, String) -> Result[ParsedGoal, ParseBridgeError]
 
 pub fn parse_let(ParseEnv, String) -> Result[ParseEnv, ParseBridgeError]
 
@@ -47,6 +46,12 @@ pub fn parse_term_raw(String) -> Result[SynTerm, ParseError]
 pub fn parse_term_with_env(@kernel.KernelState, ParseEnv, String) -> Result[@kernel.Term, ParseBridgeError]
 
 pub fn parse_theorem_script_raw(String) -> Result[SynTheoremScript, ParseError]
+
+pub fn parsed_goal_concl(ParsedGoal) -> @kernel.Term
+
+pub fn parsed_goal_hyps(ParsedGoal) -> Array[@kernel.Term]
+
+pub fn source_span(Int, Int) -> SourceSpan
 
 // Errors
 
@@ -84,6 +89,11 @@ pub enum ParseErrorCode {
   EmptyHypothesis
 }
 
+pub struct ParsedGoal {
+  hyps : Array[@kernel.Term]
+  concl : @kernel.Term
+}
+
 pub struct ResolvedGoal {
   hyps : Array[@elab.RTerm]
   concl : @elab.RTerm
@@ -110,10 +120,17 @@ pub struct SynScriptBody {
   steps : Array[SynScriptStep]
 }
 
+pub struct SynScriptBranch {
+  body : SynScriptBody
+  span : SourceSpan
+  src : String
+}
+
 pub struct SynScriptStep {
   step : SynTacticStep
   span : SourceSpan
   src : String
+  branches : Array[SynScriptBranch]
 }
 
 pub enum SynTacticStep {
@@ -124,6 +141,7 @@ pub enum SynTacticStep {
   Split
   Left
   Right
+  Hole(String?)
 }
 
 pub enum SynTerm {
@@ -131,6 +149,7 @@ pub enum SynTerm {
   Prefix(String, SynTerm)
   App(SynTerm, SynTerm)
   Infix(String, SynTerm, SynTerm)
+  Forall(String, @kernel.HolType, SynTerm)
 }
 
 pub struct SynTheoremScript {

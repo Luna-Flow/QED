@@ -115,10 +115,10 @@ fn run_positive_corpus_case(
     Ok(v) => v
     Err(_) => return ProofFailed
   }
-  if !hyps_match(st_out, goal_hyps(expected_goal), actual_hyps) {
+  if !hyps_match(st_out, parsed_goal_hyps(expected_goal), actual_hyps) {
     return HypothesisDrift
   }
-  if !concls_match(st_out, goal_concl(expected_goal), actual_concl) {
+  if !concls_match(st_out, parsed_goal_concl(expected_goal), actual_concl) {
     return ConclusionDrift
   }
   Pass
@@ -202,6 +202,7 @@ test "prove_theorem_script canonical positive corpus covers current classes" {
   assert_true(cases_cover_capability(cases, "mixed"))
   assert_true(cases_cover_layout(cases, "inline_sequential"))
   assert_true(cases_cover_layout(cases, "block_sequential"))
+  assert_true(cases_cover_layout(cases, "branch_structured"))
   assert_true(cases_cover_id(cases, "pos_exact_and_intro"))
   assert_true(cases_cover_id(cases, "pos_exact_imp_elim"))
   assert_true(cases_cover_id(cases, "pos_exact_eq_refl"))
@@ -210,4 +211,6 @@ test "prove_theorem_script canonical positive corpus covers current classes" {
   assert_true(cases_cover_id(cases, "pos_apply_eq_sym"))
   assert_true(cases_cover_id(cases, "pos_block_exact_truth"))
   assert_true(cases_cover_id(cases, "pos_block_apply_or_intro_l"))
+  assert_true(cases_cover_id(cases, "pos_branch_split_conjunction"))
+  assert_true(cases_cover_id(cases, "pos_branch_left_disjunction"))
 }

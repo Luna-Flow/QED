@@ -4,6 +4,7 @@ pub enum SynTerm {
   Prefix(String, SynTerm)
   App(SynTerm, SynTerm)
   Infix(String, SynTerm, SynTerm)
+  Forall(String, HolType, SynTerm)
 }
 
 ///|
@@ -47,11 +48,20 @@ pub enum SynTacticStep {
   Split
   Left
   Right
+  Hole(String?)
 }
 
 ///|
 pub struct SynScriptStep {
   step : SynTacticStep
+  span : SourceSpan
+  src : String
+  branches : Array[SynScriptBranch]
+}
+
+///|
+pub struct SynScriptBranch {
+  body : SynScriptBody
   span : SourceSpan
   src : String
 }
@@ -104,6 +114,22 @@ pub struct ResolvedGoal {
 }
 
 ///|
+pub struct ParsedGoal {
+  hyps : Array[Term]
+  concl : Term
+}
+
+///|
+pub fn parsed_goal_hyps(goal : ParsedGoal) -> Array[Term] {
+  goal.hyps.copy()
+}
+
+///|
+pub fn parsed_goal_concl(goal : ParsedGoal) -> Term {
+  goal.concl
+}
+
+///|
 priv enum TokKind {
   TkName(String)
   TkLParen
@@ -121,6 +147,7 @@ priv enum TokKind {
   TkOr
   TkNot
   TkEq
+  TkForall
   TkEnd
 }
 
@@ -215,7 +242,7 @@ fn push_normalized_char(
 }
 
 ///|
-fn source_span(start_offset : Int, end_offset : Int) -> SourceSpan {
+pub fn source_span(start_offset : Int, end_offset : Int) -> SourceSpan {
   let start = if start_offset < 0 { 0 } else { start_offset }
   let end = if end_offset < start { start } else { end_offset }
   SourceSpan::{ start_offset: start, end_offset: end }
@@ -230,18 +257,24 @@ fn raw_source_slice(
   let start = if start_offset < 0 { 0 } else { start_offset }
   let end = if end_offset < start { start } else { end_offset }
   let chars : Array[Char] = []
-  loop (src.view(), 0) {
-    ([], _) => String::from_iter(chars.iter())
-    ([c, .. rest], off) =>
-      if off >= end {
-        String::from_iter(chars.iter())
-      } else if off >= start {
-        chars.push(c)
-        continue (rest, off + 1)
-      } else {
-        continue (rest, off + 1)
-      }
+  let mut view = src.view()
+  let mut off = 0
+  while true {
+    match view {
+      [] => return String::from_iter(chars.iter())
+      [c, .. rest] =>
+        if off >= end {
+          return String::from_iter(chars.iter())
+        } else {
+          if off >= start {
+            chars.push(c)
+          }
+          view = rest
+          off = off + 1
+        }
+    }
   }
+  ""
 }
 
 ///|
@@ -250,96 +283,112 @@ fn normalize_theorem_script_input(
 ) -> Result[NormalizedInput, ParseError] {
   let out_chars : Array[Char] = []
   let raw_offsets : Array[Int] = []
-  loop (src.view(), 0, false, 0) {
-    ([], off, _, _) =>
-      Ok(NormalizedInput::{
-        text: String::from_iter(out_chars.iter()),
-        raw_offsets,
-        raw_length: off,
-      })
-    ([c, .. rest], off, pending_space, space_off) =>
-      if c.is_ascii_whitespace() {
-        if c == '\n' || c == '\r' {
-          let (rest2, off2) = if c == '\r' {
-            match rest {
-              ['\n', .. rest3] => (rest3, off + 2)
-              _ => (rest, off + 1)
+  let mut view = src.view()
+  let mut off = 0
+  let mut pending_space = false
+  let mut space_off = 0
+  while true {
+    match view {
+      [] =>
+        return Ok(NormalizedInput::{
+          text: String::from_iter(out_chars.iter()),
+          raw_offsets,
+          raw_length: off,
+        })
+      [c, .. rest] =>
+        if c.is_ascii_whitespace() {
+          if c == '\n' || c == '\r' {
+            let (rest2, off2) = if c == '\r' {
+              match rest {
+                ['\n', .. rest3] => (rest3, off + 2)
+                _ => (rest, off + 1)
+              }
+            } else {
+              (rest, off + 1)
             }
+            if out_chars.length() != 0 {
+              push_normalized_char(out_chars, raw_offsets, '\n', off)
+            }
+            view = rest2
+            off = off2
+            pending_space = false
+            space_off = 0
+          } else if out_chars.length() == 0 ||
+            out_chars[out_chars.length() - 1] == '\n' {
+            view = rest
+            off = off + 1
+            pending_space = false
+            space_off = 0
           } else {
-            (rest, off + 1)
+            if !pending_space {
+              space_off = off
+            }
+            view = rest
+            off = off + 1
+            pending_space = true
           }
-          if out_chars.length() == 0 {
-            continue (rest2, off2, false, 0)
-          } else {
-            push_normalized_char(out_chars, raw_offsets, '\n', off)
-            continue (rest2, off2, false, 0)
-          }
-        } else if out_chars.length() == 0 {
-          continue (rest, off + 1, false, 0)
-        } else if out_chars[out_chars.length() - 1] == '\n' {
-          continue (rest, off + 1, false, 0)
-        } else if pending_space {
-          continue (rest, off + 1, true, space_off)
         } else {
-          continue (rest, off + 1, true, off)
-        }
-      } else {
-        if pending_space && out_chars.length() > 0 {
-          push_normalized_char(out_chars, raw_offsets, ' ', space_off)
-        }
-        if c == '\\' {
-          match rest {
-            [r, ..] if is_name_start(r) => {
-              let (esc_name, rest2, n) = read_name(rest)
-              if esc_name == "and" {
-                push_normalized_char(out_chars, raw_offsets, '∧', off)
-                continue (rest2, off + n + 1, false, 0)
-              } else if esc_name == "or" {
-                push_normalized_char(out_chars, raw_offsets, '∨', off)
-                continue (rest2, off + n + 1, false, 0)
-              } else if esc_name == "not" {
-                push_normalized_char(out_chars, raw_offsets, '¬', off)
-                continue (rest2, off + n + 1, false, 0)
-              } else if esc_name == "imp" {
-                push_normalized_char(out_chars, raw_offsets, '-', off)
-                push_normalized_char(out_chars, raw_offsets, '>', off)
-                continue (rest2, off + n + 1, false, 0)
-              } else {
-                Err(
+          if pending_space && out_chars.length() > 0 {
+            push_normalized_char(out_chars, raw_offsets, ' ', space_off)
+          }
+          pending_space = false
+          space_off = 0
+          if c == '\\' {
+            match rest {
+              [r, ..] if is_name_start(r) => {
+                let (esc_name, rest2, n) = read_name(rest)
+                if esc_name == "and" {
+                  push_normalized_char(out_chars, raw_offsets, '∧', off)
+                } else if esc_name == "or" {
+                  push_normalized_char(out_chars, raw_offsets, '∨', off)
+                } else if esc_name == "not" {
+                  push_normalized_char(out_chars, raw_offsets, '¬', off)
+                } else if esc_name == "imp" {
+                  push_normalized_char(out_chars, raw_offsets, '-', off)
+                  push_normalized_char(out_chars, raw_offsets, '>', off)
+                } else {
+                  return Err(
+                    mk_parse_error(
+                      UnknownOperator,
+                      off,
+                      "unknown escaped operator `\\" + esc_name + "`",
+                    ),
+                  )
+                }
+                view = rest2
+                off = off + n + 1
+              }
+              _ =>
+                return Err(
                   mk_parse_error(
                     UnknownOperator,
                     off,
-                    "unknown escaped operator `\\" + esc_name + "`",
+                    "unknown operator near `\\`",
                   ),
                 )
+            }
+          } else if c == '|' {
+            match rest {
+              ['-', .. rest2] => {
+                push_normalized_char(out_chars, raw_offsets, '⊢', off)
+                view = rest2
+                off = off + 2
+              }
+              _ => {
+                push_normalized_char(out_chars, raw_offsets, c, off)
+                view = rest
+                off = off + 1
               }
             }
-            _ =>
-              Err(
-                mk_parse_error(
-                  UnknownOperator,
-                  off,
-                  "unknown operator near `\\`",
-                ),
-              )
+          } else {
+            push_normalized_char(out_chars, raw_offsets, c, off)
+            view = rest
+            off = off + 1
           }
-        } else if c == '|' {
-          match rest {
-            ['-', .. rest2] => {
-              push_normalized_char(out_chars, raw_offsets, '⊢', off)
-              continue (rest2, off + 2, false, 0)
-            }
-            _ => {
-              push_normalized_char(out_chars, raw_offsets, c, off)
-              continue (rest, off + 1, false, 0)
-            }
-          }
-        } else {
-          push_normalized_char(out_chars, raw_offsets, c, off)
-          continue (rest, off + 1, false, 0)
         }
-      }
+    }
   }
+  Err(mk_parse_error(UnexpectedEof, 0, "unreachable"))
 }
 
 ///|
@@ -348,79 +397,90 @@ pub fn normalize_parser_input(
 ) -> Result[NormalizedInput, ParseError] {
   let out_chars : Array[Char] = []
   let raw_offsets : Array[Int] = []
-  loop (src.view(), 0, false, 0) {
-    ([], off, _, _) =>
-      Ok(NormalizedInput::{
-        text: String::from_iter(out_chars.iter()),
-        raw_offsets,
-        raw_length: off,
-      })
-    ([c, .. rest], off, pending_space, space_off) =>
-      if c.is_ascii_whitespace() {
-        if out_chars.length() == 0 {
-          continue (rest, off + 1, false, 0)
-        } else if pending_space {
-          continue (rest, off + 1, true, space_off)
+  let mut view = src.view()
+  let mut off = 0
+  let mut pending_space = false
+  let mut space_off = 0
+  while true {
+    match view {
+      [] =>
+        return Ok(NormalizedInput::{
+          text: String::from_iter(out_chars.iter()),
+          raw_offsets,
+          raw_length: off,
+        })
+      [c, .. rest] =>
+        if c.is_ascii_whitespace() {
+          if out_chars.length() != 0 {
+            if !pending_space {
+              space_off = off
+            }
+            pending_space = true
+          }
+          view = rest
+          off = off + 1
         } else {
-          continue (rest, off + 1, true, off)
-        }
-      } else {
-        if pending_space && out_chars.length() > 0 {
-          push_normalized_char(out_chars, raw_offsets, ' ', space_off)
-        }
-        if c == '\\' {
-          match rest {
-            [r, ..] if is_name_start(r) => {
-              let (esc_name, rest2, n) = read_name(rest)
-              if esc_name == "and" {
-                push_normalized_char(out_chars, raw_offsets, '∧', off)
-                continue (rest2, off + n + 1, false, 0)
-              } else if esc_name == "or" {
-                push_normalized_char(out_chars, raw_offsets, '∨', off)
-                continue (rest2, off + n + 1, false, 0)
-              } else if esc_name == "not" {
-                push_normalized_char(out_chars, raw_offsets, '¬', off)
-                continue (rest2, off + n + 1, false, 0)
-              } else if esc_name == "imp" {
-                push_normalized_char(out_chars, raw_offsets, '-', off)
-                push_normalized_char(out_chars, raw_offsets, '>', off)
-                continue (rest2, off + n + 1, false, 0)
-              } else {
-                Err(
+          if pending_space && out_chars.length() > 0 {
+            push_normalized_char(out_chars, raw_offsets, ' ', space_off)
+          }
+          pending_space = false
+          space_off = 0
+          if c == '\\' {
+            match rest {
+              [r, ..] if is_name_start(r) => {
+                let (esc_name, rest2, n) = read_name(rest)
+                if esc_name == "and" {
+                  push_normalized_char(out_chars, raw_offsets, '∧', off)
+                } else if esc_name == "or" {
+                  push_normalized_char(out_chars, raw_offsets, '∨', off)
+                } else if esc_name == "not" {
+                  push_normalized_char(out_chars, raw_offsets, '¬', off)
+                } else if esc_name == "imp" {
+                  push_normalized_char(out_chars, raw_offsets, '-', off)
+                  push_normalized_char(out_chars, raw_offsets, '>', off)
+                } else {
+                  return Err(
+                    mk_parse_error(
+                      UnknownOperator,
+                      off,
+                      "unknown escaped operator `\\" + esc_name + "`",
+                    ),
+                  )
+                }
+                view = rest2
+                off = off + n + 1
+              }
+              _ =>
+                return Err(
                   mk_parse_error(
                     UnknownOperator,
                     off,
-                    "unknown escaped operator `\\" + esc_name + "`",
+                    "unknown operator near `\\`",
                   ),
                 )
+            }
+          } else if c == '|' {
+            match rest {
+              ['-', .. rest2] => {
+                push_normalized_char(out_chars, raw_offsets, '⊢', off)
+                view = rest2
+                off = off + 2
+              }
+              _ => {
+                push_normalized_char(out_chars, raw_offsets, c, off)
+                view = rest
+                off = off + 1
               }
             }
-            _ =>
-              Err(
-                mk_parse_error(
-                  UnknownOperator,
-                  off,
-                  "unknown operator near `\\`",
-                ),
-              )
+          } else {
+            push_normalized_char(out_chars, raw_offsets, c, off)
+            view = rest
+            off = off + 1
           }
-        } else if c == '|' {
-          match rest {
-            ['-', .. rest2] => {
-              push_normalized_char(out_chars, raw_offsets, '⊢', off)
-              continue (rest2, off + 2, false, 0)
-            }
-            _ => {
-              push_normalized_char(out_chars, raw_offsets, c, off)
-              continue (rest, off + 1, false, 0)
-            }
-          }
-        } else {
-          push_normalized_char(out_chars, raw_offsets, c, off)
-          continue (rest, off + 1, false, 0)
         }
-      }
+    }
   }
+  Err(mk_parse_error(UnexpectedEof, 0, "unreachable"))
 }
 
 ///|
@@ -454,6 +514,7 @@ fn token_label(kind : TokKind) -> String {
     TkOr => "∨"
     TkNot => "¬"
     TkEq => "="
+    TkForall => "∀"
     TkEnd => "<eof>"
   }
 }
@@ -477,6 +538,7 @@ fn token_normalized_width(kind : TokKind) -> Int {
     TkOr => 1
     TkNot => 1
     TkEq => 1
+    TkForall => 1
     TkEnd => 0
   }
 }
@@ -530,13 +592,19 @@ fn is_operator_like(c : Char) -> Bool {
 ///|
 fn read_name(view : StringView) -> (String, StringView, Int) {
   let chars : Array[Char] = []
-  loop (view, 0) {
-    ([c, .. rest], n) if is_name_continue(c) => {
-      chars.push(c)
-      continue (rest, n + 1)
+  let mut rest = view
+  let mut n = 0
+  while true {
+    match rest {
+      [c, .. rest2] if is_name_continue(c) => {
+        chars.push(c)
+        rest = rest2
+        n = n + 1
+      }
+      _ => return (String::from_iter(chars.iter()), rest, n)
     }
-    (rest, n) => (String::from_iter(chars.iter()), rest, n)
   }
+  ("", view, 0)
 }
 
 ///|
@@ -545,136 +613,173 @@ fn lex_tokens_layout(
   keep_newlines : Bool,
 ) -> Result[Array[Token], ParseError] {
   let out : Array[Token] = []
-  loop (src.view(), 0) {
-    ([], off) => {
-      out.push(Token::{ kind: TkEnd, offset: off })
-      Ok(out)
-    }
-    ([c, .. rest], off) =>
-      if keep_newlines && c == '\n' {
-        out.push(Token::{ kind: TkNewline, offset: off })
-        continue (rest, off + 1)
-      } else if c.is_ascii_whitespace() {
-        continue (rest, off + 1)
-      } else if c == '(' {
-        out.push(Token::{ kind: TkLParen, offset: off })
-        continue (rest, off + 1)
-      } else if c == ')' {
-        out.push(Token::{ kind: TkRParen, offset: off })
-        continue (rest, off + 1)
-      } else if c == '{' {
-        out.push(Token::{ kind: TkLBrace, offset: off })
-        continue (rest, off + 1)
-      } else if c == '}' {
-        out.push(Token::{ kind: TkRBrace, offset: off })
-        continue (rest, off + 1)
-      } else if c == '∧' {
-        out.push(Token::{ kind: TkAnd, offset: off })
-        continue (rest, off + 1)
-      } else if c == '∨' {
-        out.push(Token::{ kind: TkOr, offset: off })
-        continue (rest, off + 1)
-      } else if c == ',' {
-        out.push(Token::{ kind: TkComma, offset: off })
-        continue (rest, off + 1)
-      } else if c == ';' {
-        out.push(Token::{ kind: TkSemi, offset: off })
-        continue (rest, off + 1)
-      } else if c == ':' {
-        match rest {
-          ['=', .. rest2] => {
-            out.push(Token::{ kind: TkAssign, offset: off })
-            continue (rest2, off + 2)
+  let mut view = src.view()
+  let mut off = 0
+  while true {
+    match view {
+      [] => {
+        out.push(Token::{ kind: TkEnd, offset: off })
+        return Ok(out)
+      }
+      [c, .. rest] =>
+        if keep_newlines && c == '\n' {
+          out.push(Token::{ kind: TkNewline, offset: off })
+          view = rest
+          off = off + 1
+        } else if c.is_ascii_whitespace() {
+          view = rest
+          off = off + 1
+        } else if c == '(' {
+          out.push(Token::{ kind: TkLParen, offset: off })
+          view = rest
+          off = off + 1
+        } else if c == ')' {
+          out.push(Token::{ kind: TkRParen, offset: off })
+          view = rest
+          off = off + 1
+        } else if c == '{' {
+          out.push(Token::{ kind: TkLBrace, offset: off })
+          view = rest
+          off = off + 1
+        } else if c == '}' {
+          out.push(Token::{ kind: TkRBrace, offset: off })
+          view = rest
+          off = off + 1
+        } else if c == '∧' {
+          out.push(Token::{ kind: TkAnd, offset: off })
+          view = rest
+          off = off + 1
+        } else if c == '∨' {
+          out.push(Token::{ kind: TkOr, offset: off })
+          view = rest
+          off = off + 1
+        } else if c == ',' {
+          out.push(Token::{ kind: TkComma, offset: off })
+          view = rest
+          off = off + 1
+        } else if c == ';' {
+          out.push(Token::{ kind: TkSemi, offset: off })
+          view = rest
+          off = off + 1
+        } else if c == ':' {
+          match rest {
+            ['=', .. rest2] => {
+              out.push(Token::{ kind: TkAssign, offset: off })
+              view = rest2
+              off = off + 2
+            }
+            _ => {
+              out.push(Token::{ kind: TkColon, offset: off })
+              view = rest
+              off = off + 1
+            }
           }
-          _ => {
-            out.push(Token::{ kind: TkColon, offset: off })
-            continue (rest, off + 1)
-          }
-        }
-      } else if c == '=' {
-        out.push(Token::{ kind: TkEq, offset: off })
-        continue (rest, off + 1)
-      } else if c == '-' {
-        match rest {
-          ['>', .. rest2] => {
-            out.push(Token::{ kind: TkArrow, offset: off })
-            continue (rest2, off + 2)
-          }
-          _ =>
-            Err(
-              mk_parse_error(UnknownOperator, off, "unknown operator near `-`"),
-            )
-        }
-      } else if c == '|' {
-        match rest {
-          ['-', .. rest2] => {
-            out.push(Token::{ kind: TkTurnstile, offset: off })
-            continue (rest2, off + 2)
-          }
-          _ =>
-            Err(
-              mk_parse_error(UnknownOperator, off, "unknown operator near `|`"),
-            )
-        }
-      } else if c == '⊢' {
-        out.push(Token::{ kind: TkTurnstile, offset: off })
-        continue (rest, off + 1)
-      } else if c == '¬' {
-        out.push(Token::{ kind: TkNot, offset: off })
-        continue (rest, off + 1)
-      } else if c == '\\' {
-        match rest {
-          [r, ..] if is_name_start(r) => {
-            let (esc_name, rest2, n) = read_name(rest)
-            if esc_name == "and" {
-              out.push(Token::{ kind: TkAnd, offset: off })
-              continue (rest2, off + n + 1)
-            } else if esc_name == "or" {
-              out.push(Token::{ kind: TkOr, offset: off })
-              continue (rest2, off + n + 1)
-            } else if esc_name == "not" {
-              out.push(Token::{ kind: TkNot, offset: off })
-              continue (rest2, off + n + 1)
-            } else if esc_name == "imp" {
+        } else if c == '=' {
+          out.push(Token::{ kind: TkEq, offset: off })
+          view = rest
+          off = off + 1
+        } else if c == '-' {
+          match rest {
+            ['>', .. rest2] => {
               out.push(Token::{ kind: TkArrow, offset: off })
-              continue (rest2, off + n + 1)
-            } else {
-              Err(
+              view = rest2
+              off = off + 2
+            }
+            _ =>
+              return Err(
                 mk_parse_error(
                   UnknownOperator,
                   off,
-                  "unknown escaped operator `\\" + esc_name + "`",
+                  "unknown operator near `-`",
                 ),
               )
-            }
           }
-          _ =>
-            Err(
-              mk_parse_error(UnknownOperator, off, "unknown operator near `\\`"),
-            )
+        } else if c == '|' {
+          match rest {
+            ['-', .. rest2] => {
+              out.push(Token::{ kind: TkTurnstile, offset: off })
+              view = rest2
+              off = off + 2
+            }
+            _ =>
+              return Err(
+                mk_parse_error(
+                  UnknownOperator,
+                  off,
+                  "unknown operator near `|`",
+                ),
+              )
+          }
+        } else if c == '⊢' {
+          out.push(Token::{ kind: TkTurnstile, offset: off })
+          view = rest
+          off = off + 1
+        } else if c == '¬' {
+          out.push(Token::{ kind: TkNot, offset: off })
+          view = rest
+          off = off + 1
+        } else if c == '∀' {
+          out.push(Token::{ kind: TkForall, offset: off })
+          view = rest
+          off = off + 1
+        } else if c == '\\' {
+          match rest {
+            [r, ..] if is_name_start(r) => {
+              let (esc_name, rest2, n) = read_name(rest)
+              if esc_name == "and" {
+                out.push(Token::{ kind: TkAnd, offset: off })
+              } else if esc_name == "or" {
+                out.push(Token::{ kind: TkOr, offset: off })
+              } else if esc_name == "not" {
+                out.push(Token::{ kind: TkNot, offset: off })
+              } else if esc_name == "imp" {
+                out.push(Token::{ kind: TkArrow, offset: off })
+              } else {
+                return Err(
+                  mk_parse_error(
+                    UnknownOperator,
+                    off,
+                    "unknown escaped operator `\\" + esc_name + "`",
+                  ),
+                )
+              }
+              view = rest2
+              off = off + n + 1
+            }
+            _ =>
+              return Err(
+                mk_parse_error(
+                  UnknownOperator,
+                  off,
+                  "unknown operator near `\\`",
+                ),
+              )
+          }
+        } else if is_name_start(c) {
+          let (name, rest2, n) = read_name([c, ..rest])
+          out.push(Token::{ kind: TkName(name), offset: off })
+          view = rest2
+          off = off + n
+        } else if is_operator_like(c) {
+          return Err(
+            mk_parse_error(
+              UnknownOperator,
+              off,
+              "unknown operator near `" + c.to_string() + "`",
+            ),
+          )
+        } else {
+          return Err(
+            mk_parse_error(
+              UnexpectedToken,
+              off,
+              "unexpected character `" + c.to_string() + "`",
+            ),
+          )
         }
-      } else if is_name_start(c) {
-        let (name, rest2, n) = read_name([c, ..rest])
-        out.push(Token::{ kind: TkName(name), offset: off })
-        continue (rest2, off + n)
-      } else if is_operator_like(c) {
-        Err(
-          mk_parse_error(
-            UnknownOperator,
-            off,
-            "unknown operator near `" + c.to_string() + "`",
-          ),
-        )
-      } else {
-        Err(
-          mk_parse_error(
-            UnexpectedToken,
-            off,
-            "unexpected character `" + c.to_string() + "`",
-          ),
-        )
-      }
+    }
   }
+  Ok(out)
 }
 
 ///|
@@ -1029,6 +1134,103 @@ fn parse_prefix(
 ) -> Result[(SynTerm, Int), ParseError] {
   let tok = token_at(tokens, idx)
   match tok.kind {
+    TkForall | TkName("forall") => {
+      let binder_start = idx + 1
+      match token_at(tokens, binder_start).kind {
+        TkLParen => ()
+        _ =>
+          return Err(
+            mk_parse_error(
+              UnexpectedToken,
+              token_at(tokens, binder_start).offset,
+              "expected `(name : type)` after `forall`",
+            ),
+          )
+      }
+      let name_idx = binder_start + 1
+      let name = match token_at(tokens, name_idx).kind {
+        TkName(n) => n
+        _ =>
+          return Err(
+            mk_parse_error(
+              UnexpectedToken,
+              token_at(tokens, name_idx).offset,
+              "expected binder name after `forall (`",
+            ),
+          )
+      }
+      let colon_idx = name_idx + 1
+      match token_at(tokens, colon_idx).kind {
+        TkColon => ()
+        _ =>
+          return Err(
+            mk_parse_error(
+              UnexpectedToken,
+              token_at(tokens, colon_idx).offset,
+              "expected `:` in `forall` binder",
+            ),
+          )
+      }
+      let mut depth = 0
+      let mut close_idx : Int? = None
+      let mut i = colon_idx + 1
+      while i < tokens.length() {
+        match token_at(tokens, i).kind {
+          TkLParen => depth = depth + 1
+          TkRParen =>
+            if depth == 0 {
+              close_idx = Some(i)
+              break
+            } else {
+              depth = depth - 1
+            }
+          TkEnd =>
+            return Err(
+              mk_parse_error(
+                UnexpectedEof,
+                token_at(tokens, i).offset,
+                "missing `)` in `forall` binder",
+              ),
+            )
+          _ => ()
+        }
+        i = i + 1
+      }
+      let close_idx = match close_idx {
+        Some(v) => v
+        None =>
+          return Err(
+            mk_parse_error(
+              UnexpectedEof,
+              token_at(tokens, colon_idx).offset,
+              "missing `)` in `forall` binder",
+            ),
+          )
+      }
+      let ty = match
+        parse_type_tokens(
+          slice_tokens_with_end(tokens, colon_idx + 1, close_idx),
+        ) {
+        Ok(v) => v
+        Err(e) => return Err(e)
+      }
+      let comma_idx = close_idx + 1
+      match token_at(tokens, comma_idx).kind {
+        TkComma => ()
+        _ =>
+          return Err(
+            mk_parse_error(
+              UnexpectedToken,
+              token_at(tokens, comma_idx).offset,
+              "expected `,` after `forall` binder",
+            ),
+          )
+      }
+      match parse_infix(tokens, comma_idx + 1) {
+        Ok((body, j)) => Ok((Forall(name, ty, body), j))
+        Err(e) => Err(e)
+      }
+    }
     TkNot =>
       match parse_prefix(tokens, idx + 1) {
         Ok((inner, j)) => Ok((Prefix("¬", inner), j))
@@ -1349,6 +1551,7 @@ fn parse_script_step_tokens(
       TkName("split") => Ok(Split)
       TkName("left") => Ok(Left)
       TkName("right") => Ok(Right)
+      TkName("hole") => Ok(Hole(None))
       _ =>
         Err(
           mk_parse_error(
@@ -1363,6 +1566,7 @@ fn parse_script_step_tokens(
       (TkName("intro"), TkName(n)) => Ok(Intro(n))
       (TkName("exact"), TkName(n)) => Ok(Exact(n))
       (TkName("apply"), TkName(n)) => Ok(Apply(n))
+      (TkName("hole"), TkName(n)) => Ok(Hole(Some(n)))
       _ =>
         Err(
           mk_parse_error(
@@ -1455,7 +1659,284 @@ fn parse_script_step_segment(
     step,
     span,
     src: raw_source_slice(raw_src, span.start_offset, span.end_offset),
+    branches: [],
   })
+}
+
+///|
+fn expected_branch_count(step : SynTacticStep) -> Int {
+  match step {
+    Split => 2
+    Left => 1
+    Right => 1
+    _ => 0
+  }
+}
+
+///|
+fn find_matching_brace(
+  tokens : Array[Token],
+  start : Int,
+  end : Int,
+) -> Result[Int, ParseError] {
+  let open = token_at(tokens, start)
+  match open.kind {
+    TkLBrace => ()
+    _ =>
+      return Err(
+        mk_parse_error(
+          UnexpectedToken,
+          open.offset,
+          "expected `{` to start branch block",
+        ),
+      )
+  }
+  let mut depth = 0
+  let mut i = start + 1
+  while i < end {
+    match tokens[i].kind {
+      TkLBrace => depth = depth + 1
+      TkRBrace => if depth == 0 { return Ok(i) } else { depth = depth - 1 }
+      _ => ()
+    }
+    i = i + 1
+  }
+  Err(
+    mk_parse_error(
+      UnexpectedEof,
+      open.offset,
+      "missing `}` to close branch block",
+    ),
+  )
+}
+
+///|
+fn parse_script_body_range(
+  input : NormalizedInput,
+  raw_src : String,
+  tokens : Array[Token],
+  start : Int,
+  end : Int,
+) -> Result[SynScriptBody, ParseError] {
+  let steps : Array[SynScriptStep] = []
+  let mut seg_start = start
+  if seg_start < end && token_at(tokens, seg_start).kind is TkNewline {
+    seg_start = seg_start + 1
+  }
+  if seg_start >= end {
+    return Err(
+      mk_parse_error(
+        UnexpectedEof,
+        if start < tokens.length() {
+          token_at(tokens, start).offset
+        } else {
+          0
+        },
+        "empty theorem script body",
+      ),
+    )
+  }
+  if token_at(tokens, seg_start).kind is TkNewline {
+    return Err(
+      mk_parse_error(
+        UnexpectedToken,
+        token_at(tokens, seg_start).offset,
+        "empty tactic step",
+      ),
+    )
+  }
+  while seg_start < end {
+    let mut step_end = seg_start
+    while step_end < end {
+      match tokens[step_end].kind {
+        TkSemi | TkNewline | TkLBrace | TkRBrace => break
+        _ => step_end = step_end + 1
+      }
+    }
+    if seg_start == step_end {
+      let detail = match token_at(tokens, seg_start).kind {
+        TkLBrace => "branch block must follow `split`, `left`, or `right`"
+        TkRBrace => "unexpected `}`"
+        _ => "empty tactic step"
+      }
+      return Err(
+        mk_parse_error(
+          UnexpectedToken,
+          token_at(tokens, seg_start).offset,
+          detail,
+        ),
+      )
+    }
+    let mut step = match
+      parse_script_step_segment(input, raw_src, tokens, seg_start, step_end) {
+      Ok(v) => v
+      Err(e) => return Err(e)
+    }
+    let expected_branches = expected_branch_count(step.step)
+    let branches : Array[SynScriptBranch] = []
+    let mut cursor = step_end
+    while branches.length() < expected_branches {
+      let branch_start = next_non_newline_token_index(tokens, cursor)
+      if branch_start >= end {
+        break
+      }
+      match tokens[branch_start].kind {
+        TkLBrace => {
+          let close_idx = match find_matching_brace(tokens, branch_start, end) {
+            Ok(v) => v
+            Err(e) => return Err(e)
+          }
+          let body = match
+            parse_script_body_range(
+              input,
+              raw_src,
+              tokens,
+              branch_start + 1,
+              close_idx,
+            ) {
+            Ok(v) => v
+            Err(e) => return Err(e)
+          }
+          let span = map_source_span(
+            input,
+            tokens[branch_start].offset,
+            token_normalized_end(tokens[close_idx]),
+          )
+          branches.push(SynScriptBranch::{
+            body,
+            span,
+            src: raw_source_slice(raw_src, span.start_offset, span.end_offset),
+          })
+          cursor = close_idx + 1
+        }
+        _ => break
+      }
+    }
+    if expected_branches == 0 &&
+      cursor < end &&
+      token_at(tokens, cursor).kind is TkLBrace {
+      return Err(
+        mk_parse_error(
+          UnexpectedToken,
+          token_at(tokens, cursor).offset,
+          "tactic step does not accept structured branch blocks",
+        ),
+      )
+    }
+    if branches.length() != expected_branches &&
+      cursor < end &&
+      !(token_at(tokens, cursor).kind is TkSemi) &&
+      !(token_at(tokens, cursor).kind is TkNewline) {
+      if token_at(tokens, cursor).kind is TkRBrace {
+        ()
+      } else {
+        return Err(
+          mk_parse_error(
+            UnexpectedToken,
+            token_at(tokens, cursor).offset,
+            "expected tactic separator or branch block",
+          ),
+        )
+      }
+    }
+    if branches.length() != 0 && branches.length() != expected_branches {
+      return Err(
+        mk_parse_error(
+          UnexpectedToken,
+          tokens[seg_start].offset,
+          "incorrect number of branch blocks for tactic step",
+        ),
+      )
+    }
+    step = SynScriptStep::{
+      step: step.step,
+      span: step.span,
+      src: step.src,
+      branches,
+    }
+    steps.push(step)
+    if cursor >= end {
+      break
+    }
+    match token_at(tokens, cursor).kind {
+      TkSemi => {
+        let next_idx = cursor + 1
+        let mut seg_after = next_idx
+        if seg_after < end && token_at(tokens, seg_after).kind is TkNewline {
+          seg_after = seg_after + 1
+        }
+        if seg_after >= end {
+          return Err(
+            mk_parse_error(
+              UnexpectedEof,
+              tokens[cursor].offset,
+              "empty theorem script body",
+            ),
+          )
+        }
+        if token_at(tokens, seg_after).kind is TkNewline ||
+          token_at(tokens, seg_after).kind is TkSemi {
+          return Err(
+            mk_parse_error(
+              UnexpectedToken,
+              token_at(tokens, seg_after).offset,
+              "empty tactic step",
+            ),
+          )
+        }
+        seg_start = seg_after
+      }
+      TkNewline => {
+        if body_remainder_is_only_newlines(tokens, cursor, end) {
+          break
+        }
+        seg_start = cursor + 1
+        if seg_start >= end {
+          break
+        }
+        if token_at(tokens, seg_start).kind is TkNewline {
+          return Err(
+            mk_parse_error(
+              UnexpectedToken,
+              token_at(tokens, seg_start).offset,
+              "empty tactic step",
+            ),
+          )
+        }
+        if token_at(tokens, seg_start).kind is TkSemi ||
+          token_at(tokens, seg_start).kind is TkRBrace {
+          return Err(
+            mk_parse_error(
+              UnexpectedToken,
+              token_at(tokens, seg_start).offset,
+              "empty tactic step",
+            ),
+          )
+        }
+      }
+      TkRBrace =>
+        return Err(
+          mk_parse_error(
+            UnexpectedToken,
+            tokens[cursor].offset,
+            "expected tactic separator before `}`",
+          ),
+        )
+      _ =>
+        return Err(
+          mk_parse_error(
+            UnexpectedToken,
+            tokens[cursor].offset,
+            "expected tactic separator",
+          ),
+        )
+    }
+  }
+  if steps.length() == 0 {
+    Err(mk_parse_error(UnexpectedEof, 0, "empty theorem script body"))
+  } else {
+    Ok(SynScriptBody::{ steps, })
+  }
 }
 
 ///|
@@ -1739,103 +2220,13 @@ pub fn parse_theorem_script_raw(
     Err(e) => return Err(map_parse_error_offset(input, e))
   }
 
-  let steps : Array[SynScriptStep] = []
-  let mut seg_start = by_idx + 1
-  if token_at(tokens, seg_start).kind is TkNewline {
-    seg_start = seg_start + 1
-  }
-  if seg_start >= end_idx {
-    return Err(
-      map_parse_error_offset(
-        input,
-        mk_parse_error(
-          UnexpectedEof,
-          token_at(tokens, by_idx).offset,
-          "empty theorem script body",
-        ),
-      ),
-    )
-  }
-  let mut j = seg_start
-  while j < end_idx {
-    match tokens[j].kind {
-      TkSemi | TkNewline => {
-        if seg_start == j {
-          if tokens[j].kind is TkNewline &&
-            body_remainder_is_only_newlines(tokens, j, end_idx) &&
-            steps.length() > 0 {
-            break
-          }
-          return Err(
-            map_parse_error_offset(
-              input,
-              mk_parse_error(
-                UnexpectedToken,
-                tokens[j].offset,
-                "empty tactic step",
-              ),
-            ),
-          )
-        }
-        match parse_script_step_segment(input, src, tokens, seg_start, j) {
-          Ok(step) => steps.push(step)
-          Err(e) => return Err(map_parse_error_offset(input, e))
-        }
-        match tokens[j].kind {
-          TkSemi => {
-            seg_start = j + 1
-            if token_at(tokens, seg_start).kind is TkNewline {
-              seg_start = seg_start + 1
-            }
-            if seg_start >= end_idx {
-              return Err(
-                map_parse_error_offset(
-                  input,
-                  mk_parse_error(
-                    UnexpectedEof,
-                    tokens[j].offset,
-                    "empty theorem script body",
-                  ),
-                ),
-              )
-            }
-          }
-          TkNewline => seg_start = j + 1
-          _ => panic()
-        }
-        j = seg_start - 1
-      }
-      _ => ()
-    }
-    j = j + 1
-  }
-  if seg_start < end_idx {
-    match parse_script_step_segment(input, src, tokens, seg_start, end_idx) {
-      Ok(step) => steps.push(step)
-      Err(e) => return Err(map_parse_error_offset(input, e))
-    }
-  }
-  if steps.length() == 0 {
-    return Err(
-      map_parse_error_offset(
-        input,
-        mk_parse_error(
-          UnexpectedEof,
-          token_at(tokens, by_idx).offset,
-          "empty theorem script body",
-        ),
-      ),
-    )
+  let body = match
+    parse_script_body_range(input, src, tokens, by_idx + 1, end_idx) {
+    Ok(v) => v
+    Err(e) => return Err(map_parse_error_offset(input, e))
   }
 
-  Ok(SynTheoremScript::{
-    name,
-    binders,
-    goal,
-    goal_src,
-    goal_span,
-    body: SynScriptBody::{ steps, },
-  })
+  Ok(SynTheoremScript::{ name, binders, goal, goal_src, goal_span, body })
 }
 
 ///|
@@ -1944,6 +2335,16 @@ fn lower_syn_term_basis(
         Err(e) => Err(Logic(e))
       }
     }
+    Forall(_, _, _) =>
+      Err(
+        Parse(
+          mk_parse_error(
+            UnexpectedToken,
+            0,
+            "quantifier frontend is not yet lowered to kernel terms",
+          ),
+        ),
+      )
     Infix(op, lhs, rhs) =>
       if op == "=" {
         let l = match lower_syn_term_basis(state, env, lhs) {
@@ -2053,6 +2454,16 @@ fn resolve_syn_term(
         (Err(e), _) => Err(e)
         (_, Err(e)) => Err(e)
       }
+    Forall(_, _, _) =>
+      Err(
+        Parse(
+          mk_parse_error(
+            UnexpectedToken,
+            0,
+            "quantifier frontend is not yet resolved on the shipped path",
+          ),
+        ),
+      )
     Infix(op, lhs, rhs) =>
       if op == "=" {
         match
@@ -2172,7 +2583,7 @@ pub fn parse_goal_with_env(
   state : KernelState,
   env : ParseEnv,
   src : String,
-) -> Result[Goal, ParseBridgeError] {
+) -> Result[ParsedGoal, ParseBridgeError] {
   match parse_resolved_goal_with_env(state, env, src) {
     Ok(goal) => lower_resolved_goal_with_env(goal)
     Err(e) => Err(e)
@@ -2184,7 +2595,7 @@ pub fn lower_syn_goal_with_env(
   state : KernelState,
   env : ParseEnv,
   syn_goal : SynGoal,
-) -> Result[Goal, ParseBridgeError] {
+) -> Result[ParsedGoal, ParseBridgeError] {
   match lower_syn_resolved_goal_with_env(state, env, syn_goal) {
     Ok(goal) => lower_resolved_goal_with_env(goal)
     Err(e) => Err(e)
@@ -2194,7 +2605,7 @@ pub fn lower_syn_goal_with_env(
 ///|
 fn lower_resolved_goal_with_env(
   goal : ResolvedGoal,
-) -> Result[Goal, ParseBridgeError] {
+) -> Result[ParsedGoal, ParseBridgeError] {
   let hyps : Array[Term] = []
   for h in goal.hyps {
     match elab_lower_to_term(h) {
@@ -2203,7 +2614,7 @@ fn lower_resolved_goal_with_env(
     }
   }
   match elab_lower_to_term(goal.concl) {
-    Ok(concl) => Ok(mk_goal(hyps, concl))
+    Ok(concl) => Ok(ParsedGoal::{ hyps, concl })
     Err(e) => Err(map_elab_error(e))
   }
 }
@@ -2212,7 +2623,7 @@ fn lower_resolved_goal_with_env(
 pub fn parse_goal(
   state : KernelState,
   src : String,
-) -> Result[Goal, ParseBridgeError] {
+) -> Result[ParsedGoal, ParseBridgeError] {
   parse_goal_with_env(state, empty_parse_env(), src)
 }
 

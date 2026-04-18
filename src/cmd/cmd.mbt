@@ -34,8 +34,21 @@ pub struct CmdFailure {
   theorem_name : String?
   kind : CmdFailureKind
   step_index : Int?
+  branch_path : Array[Int]
   current_goal_summary : String?
   local_hyps : Array[CmdLocalHypSummary]
+  detail : String
+}
+
+///|
+pub struct CmdUnfinished {
+  path : String
+  theorem_name : String
+  step_index : Int?
+  branch_path : Array[Int]
+  current_goal_summary : String
+  local_hyps : Array[CmdLocalHypSummary]
+  hole_name : String?
   detail : String
 }
 
@@ -43,6 +56,7 @@ pub struct CmdFailure {
 pub enum CmdRunResult {
   Success(CmdSuccess)
   Failure(CmdFailure)
+  Unfinished(CmdUnfinished)
 }
 
 ///|
@@ -61,6 +75,7 @@ fn cmd_failure(
   theorem_name : String?,
   kind : CmdFailureKind,
   step_index : Int?,
+  branch_path : Array[Int],
   current_goal_summary : String?,
   local_hyps : Array[CmdLocalHypSummary],
   detail : String,
@@ -70,8 +85,32 @@ fn cmd_failure(
     theorem_name,
     kind,
     step_index,
+    branch_path,
     current_goal_summary,
     local_hyps,
+    detail,
+  })
+}
+
+///|
+pub fn cmd_unfinished(
+  path : String,
+  theorem_name : String,
+  step_index : Int?,
+  branch_path : Array[Int],
+  current_goal_summary : String,
+  local_hyps : Array[CmdLocalHypSummary],
+  hole_name : String?,
+  detail : String,
+) -> CmdRunResult {
+  Unfinished(CmdUnfinished::{
+    path,
+    theorem_name,
+    step_index,
+    branch_path,
+    current_goal_summary,
+    local_hyps,
+    hole_name,
     detail,
   })
 }
@@ -93,88 +132,13 @@ fn render_logic_error(err : LogicError) -> String {
 }
 
 ///|
-fn render_sig_error(err : SigError) -> String {
-  match err {
-    DuplicateConstName => "DuplicateConstName"
-    ConstTypeConflict => "ConstTypeConflict"
-    InvalidConstInstance => "InvalidConstInstance"
-    UnknownConst => "UnknownConst"
-    ScopeUnderflow => "ScopeUnderflow"
-    InvalidConstRhs => "InvalidConstRhs"
-    ReservedSymbol => "ReservedSymbol"
-    DefinitionAlreadyExists => "DefinitionAlreadyExists"
-    DefinitionNotClosed => "DefinitionNotClosed"
-    DefinitionIsCyclic => "DefinitionIsCyclic"
-    GhostTypeVariable => "GhostTypeVariable"
-    InvalidTypeWitness => "InvalidTypeWitness"
-    InvalidTypePredicate => "InvalidTypePredicate"
-    InvalidTypeRepName => "InvalidTypeRepName"
-    InvalidTypeAbsName => "InvalidTypeAbsName"
-    InvalidTypeParams => "InvalidTypeParams"
-    InvalidTypeArity => "InvalidTypeArity"
-    TypeWitnessArityMismatch => "TypeWitnessArityMismatch"
-    TypeWitnessPredicateMismatch => "TypeWitnessPredicateMismatch"
-    TypeConstructorAlreadyExists => "TypeConstructorAlreadyExists"
-    TypeRepresentationAlreadyExists => "TypeRepresentationAlreadyExists"
-    TypeAbstractionAlreadyExists => "TypeAbstractionAlreadyExists"
-    InvalidInfinityAnchor => "InvalidInfinityAnchor"
-    MissingInfinityAnchor => "MissingInfinityAnchor"
-    InvalidTypeDefinitionProduct => "InvalidTypeDefinitionProduct"
-    MissingTypeDefinitionContract => "MissingTypeDefinitionContract"
-    InvalidSpecificationWitness => "InvalidSpecificationWitness"
-    InvalidSpecificationPredicate => "InvalidSpecificationPredicate"
-    SpecificationTypeVarLeak => "SpecificationTypeVarLeak"
-    TypeMismatch => "TypeMismatch"
-  }
-}
-
-///|
-fn render_elab_error(err : ElabError) -> String {
-  match err {
-    UnknownName(name) => "UnknownName(" + name + ")"
-    UnknownConst(name) => "UnknownConst(" + name + ")"
-    InvalidConstInstance(name) => "InvalidConstInstance(" + name + ")"
-    ScopeResolutionMismatch => "ScopeResolutionMismatch"
-    CoreTypingFailure => "CoreTypingFailure"
-  }
-}
-
-///|
-fn render_tactic_error(err : TacticExecError) -> String {
-  match err {
-    UnknownName(name) => "UnknownName(" + name + ")"
-    GoalShapeMismatch(msg) => "GoalShapeMismatch(" + msg + ")"
-    ApplyMismatch(msg) => "ApplyMismatch(" + msg + ")"
-    NoGoals => "NoGoals"
-    UnsolvedGoals => "UnsolvedGoals"
-    ProofSynthesisUnavailable(msg) => "ProofSynthesisUnavailable(" + msg + ")"
-    Logic(e) => "Logic(" + render_logic_error(e) + ")"
-  }
-}
-
-///|
-fn render_parse_error(err : ParseError) -> String {
-  "offset " + err.offset.to_string() + ": " + err.detail
-}
-
-///|
-fn render_bridge_error(err : ParseBridgeError) -> String {
-  match err {
-    Parse(e) => "Parse(" + render_parse_error(e) + ")"
-    Sig(e) => "Sig(" + render_sig_error(e) + ")"
-    Logic(e) => "Logic(" + render_logic_error(e) + ")"
-    Elab(e) => "Elab(" + render_elab_error(e) + ")"
-  }
-}
-
-///|
-fn prover_error_failure(err : ProverError) -> (CmdFailureKind, String) {
-  match err {
-    Parse(e) => (Parse, render_parse_error(e))
-    Bridge(e) => (Bridge, render_bridge_error(e))
-    Tactic(e) => (Tactic, render_tactic_error(e))
-    Sig(e) => (Sig, render_sig_error(e))
-    Logic(e) => (Logic, render_logic_error(e))
+fn cmd_failure_kind_of(kind : ProverDiagnosticKind) -> CmdFailureKind {
+  match kind {
+    Parse => Parse
+    Bridge => Bridge
+    Tactic => Tactic
+    Sig => Sig
+    Logic => Logic
   }
 }
 
@@ -214,8 +178,18 @@ fn cli_path_label(path : String, theorem_name : String?) -> String {
 ///|
 fn cmd_failure_has_context(err : CmdFailure) -> Bool {
   err.step_index is Some(_) ||
+  err.branch_path.length() != 0 ||
   err.current_goal_summary is Some(_) ||
   err.local_hyps.length() != 0
+}
+
+///|
+fn render_branch_path(branch_path : Array[Int]) -> String {
+  if branch_path.length() == 0 {
+    "<root>"
+  } else {
+    branch_path.map(fn(idx) { idx.to_string() }).join(".")
+  }
 }
 
 ///|
@@ -236,6 +210,7 @@ pub fn cmd_exit_code(result : CmdRunResult) -> Int {
   match result {
     Success(_) => 0
     Failure(_) => 1
+    Unfinished(_) => 1
   }
 }
 
@@ -258,6 +233,9 @@ pub fn cmd_render_result(result : CmdRunResult) -> String {
           Some(idx) => lines.push("step: " + idx.to_string())
           None => ()
         }
+        if err.branch_path.length() != 0 {
+          lines.push("branch: " + render_branch_path(err.branch_path))
+        }
         match err.current_goal_summary {
           Some(goal_summary) => lines.push("goal: " + goal_summary)
           None => ()
@@ -265,6 +243,29 @@ pub fn cmd_render_result(result : CmdRunResult) -> String {
         lines.push("locals: " + render_local_hyp_summary(err.local_hyps))
         lines.join("\n")
       }
+    }
+    Unfinished(st) => {
+      let lines : Array[String] = [
+        "unfinished " +
+        cli_path_label(st.path, Some(st.theorem_name)) +
+        ": " +
+        st.detail,
+        "theorem: " + st.theorem_name,
+      ]
+      let step_summary = match st.step_index {
+        Some(idx) => idx.to_string()
+        None => "<none>"
+      }
+      lines.push("step: " + step_summary)
+      lines.push("branch: " + render_branch_path(st.branch_path))
+      lines.push("goal: " + st.current_goal_summary)
+      lines.push("locals: " + render_local_hyp_summary(st.local_hyps))
+      match st.hole_name {
+        Some(name) => lines.push("hole: " + name)
+        None => lines.push("hole: <none>")
+      }
+      lines.push("message: " + st.detail)
+      lines.join("\n")
     }
   }
 }
@@ -274,7 +275,6 @@ fn cmd_failure_from_prover(
   path : String,
   failure : ProverFailure,
 ) -> CmdRunResult {
-  let (kind, detail) = prover_error_failure(failure.error)
   let current_goal_summary = match failure.current_goal {
     Some(goal) => Some(render_goal_summary(goal))
     None => None
@@ -283,11 +283,30 @@ fn cmd_failure_from_prover(
   cmd_failure(
     path,
     failure.theorem_name,
-    kind,
+    cmd_failure_kind_of(failure.kind),
     failure.step_index,
+    failure.branch_path,
     current_goal_summary,
     local_hyps,
-    detail,
+    failure.detail,
+  )
+}
+
+///|
+pub fn cmd_unfinished_from_prover(
+  path : String,
+  unfinished : ProverUnfinished,
+) -> CmdRunResult {
+  let local_hyps = unfinished.local_hyps.map(summarize_local_hyp)
+  cmd_unfinished(
+    path,
+    unfinished.theorem_name,
+    unfinished.step_index,
+    unfinished.branch_path,
+    render_goal_summary(unfinished.current_goal),
+    local_hyps,
+    unfinished.hole_name,
+    unfinished.detail,
   )
 }
 
@@ -297,38 +316,35 @@ pub fn cmd_run_script(
   src : String,
   opts : CmdOptions,
 ) -> CmdRunResult {
-  match parse_theorem_script_raw(src) {
-    Err(e) =>
-      cmd_failure(path, None, Parse, None, None, [], render_parse_error(e))
-    Ok(script) =>
-      match
-        prove_theorem_script_detailed(
-          empty_kernel_state(),
-          src,
-          prover_options(opts.auto_install_prelude),
-        ) {
-        Proved(ok) =>
-          match thm_concl(ok.thm) {
-            Err(e) =>
-              cmd_failure(
-                path,
-                Some(script.name),
-                Logic,
-                None,
-                None,
-                [],
-                render_logic_error(e),
-              )
-            Ok(concl) =>
-              Success(CmdSuccess::{
-                path,
-                theorem_name: ok.theorem_name,
-                conclusion: concl,
-                conclusion_summary: term_to_string(concl),
-              })
-          }
-        Failed(failure) => cmd_failure_from_prover(path, failure)
+  match
+    prove_theorem_script_detailed(
+      empty_kernel_state(),
+      src,
+      prover_options(opts.auto_install_prelude),
+    ) {
+    Proved(ok) =>
+      match thm_concl(ok.thm) {
+        Err(e) =>
+          cmd_failure(
+            path,
+            Some(ok.theorem_name),
+            Logic,
+            None,
+            [],
+            None,
+            [],
+            render_logic_error(e),
+          )
+        Ok(concl) =>
+          Success(CmdSuccess::{
+            path,
+            theorem_name: ok.theorem_name,
+            conclusion: concl,
+            conclusion_summary: term_to_string(concl),
+          })
       }
+    Failed(failure) => cmd_failure_from_prover(path, failure)
+    Unfinished(unfinished) => cmd_unfinished_from_prover(path, unfinished)
   }
 }
 
@@ -341,6 +357,7 @@ pub fn cmd_run_argv(args : Array[String], opts : CmdOptions) -> CmdRunResult {
       None,
       Usage,
       None,
+      [],
       None,
       [],
       usage_string(argv0),
@@ -349,7 +366,7 @@ pub fn cmd_run_argv(args : Array[String], opts : CmdOptions) -> CmdRunResult {
   let path = args[1]
   let mut src = ""
   try read_file_to_string(path) catch {
-    IOError(msg) => return cmd_failure(path, None, Io, None, None, [], msg)
+    IOError(msg) => return cmd_failure(path, None, Io, None, [], None, [], msg)
   } noraise {
     content => src = content
   }

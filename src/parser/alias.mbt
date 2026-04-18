@@ -1,4 +1,7 @@
 ///|
+/// Production alias entry for parser sources.
+/// Keep parser-owned syntax/resolution/lowering symbols here; do not import
+/// tactics execution objects into this package-level source entry.
 using @kernel {
   type HolType,
   type KernelState,
@@ -41,9 +44,6 @@ using @elab {
   elab_resolve_eq,
   elab_resolve_name,
 }
-
-///|
-using @tactics {type Goal, mk_goal}
 
 ///|
 using @logic {

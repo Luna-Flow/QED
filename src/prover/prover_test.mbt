@@ -13,6 +13,7 @@ fn expect_proved(result : ProverRunResult) -> ProverSuccess {
   match result {
     Proved(ok) => ok
     Failed(_) => panic()
+    Unfinished(_) => panic()
   }
 }
 
@@ -21,6 +22,16 @@ fn expect_failed(result : ProverRunResult) -> ProverFailure {
   match result {
     Proved(_) => panic()
     Failed(err) => err
+    Unfinished(_) => panic()
+  }
+}
+
+///|
+fn expect_unfinished(result : ProverRunResult) -> ProverUnfinished {
+  match result {
+    Proved(_) => panic()
+    Failed(_) => panic()
+    Unfinished(unfinished) => unfinished
   }
 }
 
@@ -32,6 +43,100 @@ fn expect_diag_failed(
     Err(err) => err
     Ok(_) => panic()
   }
+}
+
+///|
+fn unfinished_fixture_goal() -> Goal {
+  let st = expect_ok_prover(install_prop_prelude(empty_kernel_state()))
+  let parsed = match parse_goal(st, "T ⊢ T") {
+    Ok(v) => v
+    Err(_) => panic()
+  }
+  mk_goal(parsed_goal_hyps(parsed), parsed_goal_concl(parsed))
+}
+
+///|
+test "prover_unfinished helper preserves stable payload fields" {
+  let goal = unfinished_fixture_goal()
+  let goal_span = source_span(11, 16)
+  let step_span = source_span(27, 31)
+  let result = prover_unfinished(
+    "holey",
+    Some("T ⊢ T"),
+    Some(goal_span),
+    Some(3),
+    [2, 1],
+    Some(step_span),
+    Some("_"),
+    goal,
+    [prover_local_hyp("h", goal_hyps(goal)[0])],
+    Some("h1"),
+    "proof contains an unfinished hole",
+    Some(27),
+  )
+  let unfinished = expect_unfinished(result)
+  assert_eq(unfinished.theorem_name, "holey")
+  assert_eq(unfinished.goal_src, Some("T ⊢ T"))
+  match unfinished.goal_span {
+    Some(span) => {
+      assert_eq(span.start_offset, goal_span.start_offset)
+      assert_eq(span.end_offset, goal_span.end_offset)
+    }
+    None => panic()
+  }
+  assert_eq(unfinished.step_index, Some(3))
+  assert_eq(unfinished.branch_path, [2, 1])
+  match unfinished.step_span {
+    Some(span) => {
+      assert_eq(span.start_offset, step_span.start_offset)
+      assert_eq(span.end_offset, step_span.end_offset)
+    }
+    None => panic()
+  }
+  assert_eq(unfinished.step_src, Some("_"))
+  assert_eq(goal_hyps(unfinished.current_goal).length(), 1)
+  assert_true(
+    term_alpha_eq(goal_concl(unfinished.current_goal), goal_hyps(goal)[0]),
+  )
+  assert_eq(unfinished.local_hyps.length(), 1)
+  assert_eq(unfinished.local_hyps[0].name, "h")
+  assert_true(term_alpha_eq(unfinished.local_hyps[0].term, goal_hyps(goal)[0]))
+  assert_eq(unfinished.hole_name, Some("h1"))
+  assert_eq(unfinished.detail, "proof contains an unfinished hole")
+  assert_eq(unfinished.raw_offset, Some(27))
+}
+
+///|
+test "prover_unfinished helper keeps optional fields nullable" {
+  let goal = unfinished_fixture_goal()
+  let unfinished = expect_unfinished(
+    prover_unfinished(
+      "holey",
+      None,
+      None,
+      None,
+      [],
+      None,
+      None,
+      goal,
+      [],
+      None,
+      "todo",
+      None,
+    ),
+  )
+  assert_eq(unfinished.theorem_name, "holey")
+  assert_true(unfinished.goal_src is None)
+  assert_true(unfinished.goal_span is None)
+  assert_true(unfinished.step_index is None)
+  assert_eq(unfinished.branch_path, [])
+  assert_true(unfinished.step_span is None)
+  assert_true(unfinished.step_src is None)
+  assert_eq(goal_hyps(unfinished.current_goal).length(), 1)
+  assert_eq(unfinished.local_hyps.length(), 0)
+  assert_true(unfinished.hole_name is None)
+  assert_eq(unfinished.detail, "todo")
+  assert_true(unfinished.raw_offset is None)
 }
 
 ///|
@@ -265,6 +370,81 @@ test "prove_theorem_script_with_diagnostics returns structured qedside failures"
 }
 
 ///|
+test "prove_theorem_script accepts explicit structured branch blocks" {
+  let st0 = expect_ok_prover(ks_add_const(empty_kernel_state(), "P", bool_ty()))
+  let st1 = expect_ok_prover(ks_add_const(st0, "Q", bool_ty()))
+
+  let split_script = "theorem t_split : P, Q ⊢ P ∧ Q := by split { assumption } { assumption }"
+  let left_script = "theorem t_left : P ⊢ P ∨ Q := by left { assumption }"
+  let right_script = "theorem t_right : Q ⊢ P ∨ Q := by right { assumption }"
+
+  assert_true(
+    prove_theorem_script(st1, split_script, default_prover_options()) is Ok(_),
+  )
+  assert_true(
+    prove_theorem_script(st1, left_script, default_prover_options()) is Ok(_),
+  )
+  assert_true(
+    prove_theorem_script(st1, right_script, default_prover_options()) is Ok(_),
+  )
+}
+
+///|
+test "prove_theorem_script_detailed reports failing split branch path and step" {
+  let st0 = expect_ok_prover(ks_add_const(empty_kernel_state(), "P", bool_ty()))
+  let st1 = expect_ok_prover(ks_add_const(st0, "Q", bool_ty()))
+  let err = expect_failed(
+    prove_theorem_script_detailed(
+      st1,
+      "theorem bad : P, Q ⊢ P ∧ Q := by split { assumption } { exact truth }",
+      default_prover_options(),
+    ),
+  )
+  assert_eq(err.theorem_name, Some("bad"))
+  assert_eq(err.step_index, Some(3))
+  assert_eq(err.branch_path, [2])
+  assert_true(err.step_src == Some("exact truth"))
+  assert_true(err.detail.contains("GoalShapeMismatch"))
+  match err.current_goal {
+    Some(goal) => assert_eq(goal_hyps(goal).length(), 2)
+    None => panic()
+  }
+}
+
+///|
+test "prove_theorem_script_detailed rejects unordered split branch bodies honestly" {
+  let st0 = expect_ok_prover(ks_add_const(empty_kernel_state(), "P", bool_ty()))
+  let st1 = expect_ok_prover(ks_add_const(st0, "Q", bool_ty()))
+  let err = expect_failed(
+    prove_theorem_script_detailed(
+      st1,
+      "theorem bad : ⊢ P -> Q -> P ∧ Q := by intro hp; intro hq; split { exact hq } { exact hp }",
+      default_prover_options(),
+    ),
+  )
+  assert_eq(err.step_index, Some(4))
+  assert_eq(err.branch_path, [1])
+  assert_true(err.detail.contains("GoalShapeMismatch"))
+}
+
+///|
+test "prove_theorem_script_detailed reports invalid disjunction branch body steps" {
+  let st0 = expect_ok_prover(ks_add_const(empty_kernel_state(), "P", bool_ty()))
+  let st1 = expect_ok_prover(ks_add_const(st0, "Q", bool_ty()))
+  let err = expect_failed(
+    prove_theorem_script_detailed(
+      st1,
+      "theorem bad : P ⊢ P ∨ Q := by left { intro h }",
+      default_prover_options(),
+    ),
+  )
+  assert_eq(err.step_index, Some(2))
+  assert_eq(err.branch_path, [1])
+  assert_true(err.detail.contains("GoalShapeMismatch"))
+  assert_true(err.step_src == Some("intro h"))
+}
+
+///|
 test "prove_theorem_script accepts block bodies with mixed separators" {
   let st0 = expect_ok_prover(ks_add_const(empty_kernel_state(), "P", bool_ty()))
   let st1 = expect_ok_prover(ks_add_const(st0, "Q", bool_ty()))
@@ -272,6 +452,41 @@ test "prove_theorem_script accepts block bodies with mixed separators" {
   assert_true(
     prove_theorem_script(st1, script, default_prover_options()) is Ok(_),
   )
+}
+
+///|
+test "prove_theorem_script supports structured split left right and nested branch blocks" {
+  let st = empty_kernel_state()
+  let split_script = "theorem t_split : ⊢ T ∧ T := by split { exact truth } { exact truth }"
+  let left_script = "theorem t_left : ⊢ T ∨ F := by left { exact truth }"
+  let right_script = "theorem t_right : ⊢ F ∨ T := by right { exact truth }"
+  assert_true(
+    prove_theorem_script(st, split_script, default_prover_options()) is Ok(_),
+  )
+  assert_true(
+    prove_theorem_script(st, left_script, default_prover_options()) is Ok(_),
+  )
+  assert_true(
+    prove_theorem_script(st, right_script, default_prover_options()) is Ok(_),
+  )
+}
+
+///|
+test "prove_theorem_script_detailed records branch path for nested branch failures" {
+  let script = "theorem bad : P, Q ⊢ P ∧ (P ∨ Q) := by split { assumption } { right { apply truth } }"
+  let st0 = expect_ok_prover(ks_add_const(empty_kernel_state(), "P", bool_ty()))
+  let st1 = expect_ok_prover(ks_add_const(st0, "Q", bool_ty()))
+  let err = expect_failed(
+    prove_theorem_script_detailed(st1, script, default_prover_options()),
+  )
+  assert_eq(err.step_index, Some(4))
+  assert_eq(err.branch_path, [2, 1])
+  assert_eq(err.step_src, Some("apply truth"))
+  match err.step_span {
+    Some(span) => assert_eq(err.raw_offset, Some(span.start_offset))
+    None => panic()
+  }
+  assert_true(err.detail.contains("ApplyMismatch"))
 }
 
 ///|

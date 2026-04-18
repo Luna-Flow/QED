@@ -4,7 +4,7 @@ Status: active
 Audience: contributors, reviewers
 Authority: engineering conformance guide; subordinate to `doc/qed_formal_spec.pdf` and current code/tests
 Scope: code/test mapping, implementation alignment, contributor obligations, and documentation example rules
-Last reviewed: 2026-04-16
+Last reviewed: 2026-04-18
 
 本文档记录当前 MoonBit 工程线怎样对齐 `doc/qed_formal_spec.pdf`，以及外围工程怎样才算符合现在的核心。
 
@@ -41,6 +41,7 @@ Part II conformance 相关的 Lean 锚点主要在：
 - theorem admissibility around const identity、schema instance、definitional coherence 和 type-language admissibility
 - resolved elaboration boundary with frozen constant identity
 - parser normalize + raw-offset contract
+- parser-owned goal lowering boundary without direct tactics dependency
 - surface connector 的 basis-backed lowering contract
 - canonical definition-theorem-backed connector recognition
 - audit certificates 与 executable conservative replay hook
@@ -52,14 +53,17 @@ Part II conformance 相关的 Lean 锚点主要在：
 以下部分已经存在，但覆盖范围仍有限：
 
 - `tactics` 的 `Goal` / `ProofState` / step execution 与 `ps_qed` 成功路径
-- `prover` 的 sequential theorem-script driver
+- `prover` 的 theorem-script driver
 - theorem-name based replay 目前只覆盖小规模稳定命题目录
-- parser 当前支持 theorem-header binder + 顺序 `by` body：
+- parser 当前支持 theorem-header binder、顺序 `by` body 与最小结构化分支块：
   theorem 头部可带零个或多个 `(name : type)` binder；
   body 可写成单行 `theorem ... := by step; step; ...`，
-  或块状 `theorem ... := by` 后按换行分隔的 step 列表，并保留
+  或块状 `theorem ... := by` 后按换行分隔的 step 列表；
+  `split` / `left` / `right` 当前还可带最小 branch block 语法，并保留
   raw binder/goal/step span
-- parser-side `parse_let` / `parse_def_function` 仍是 utility / experimental surface
+- theorem-script 当前还支持 `hole` / `hole <name>` unfinished-proof step；
+  quantifier raw syntax 已存在，但尚未进入 shipped theorem-producing lowering path
+- parser-side `parse_let` / `parse_def_function` 已 formalize 为 non-script utility surface
 
 这些层不是“任意用户证明都能产出可信 theorem”的完整前端。
 
@@ -88,6 +92,7 @@ Part II conformance 相关的 Lean 锚点主要在：
 | Primitive rules + admissibility | `src/kernel/thm.mbt` | `src/kernel/kernel_thm_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`, `src/kernel/kernel_audit_test.mbt` |
 | Resolved elaboration boundary | `src/elab/resolved.mbt` | `src/elab/elab_test.mbt` |
 | Parser bridge + normalize/raw-offset contract | `src/parser/parser.mbt` | `src/parser/parser_test.mbt` |
+| Parser-to-tactics explicit goal bridge | `src/parser/parser.mbt`, `src/prover/prover.mbt` | `src/parser/parser_test.mbt`, `src/prover/prover_positive_corpus_test.mbt` |
 | Surface connector basis expansion | `src/logic/prop_prelude.mbt`, `src/logic/prop_foundation.mbt`, `src/logic/prop_tools.mbt` | `src/logic/prop_prelude_test.mbt`, `src/logic/prop_tools_test.mbt`, `src/parser/parser_test.mbt` |
 | Proposition theorem replay/catalog seeds | `src/logic/prop_bool_theorems.mbt`, `src/logic/prop_refs.mbt`, `src/logic/prop_replay.mbt` | `src/logic/prop_bool_theorems_test.mbt`, `src/logic/prop_refs_test.mbt`, `src/logic/prop_replay_test.mbt` |
 | Operational proof scripting + M1 subset replay | `src/tactics/proof_state.mbt`, `src/prover/prover.mbt` | `src/tactics/proof_state_test.mbt`, `src/tactics/tactics_test.mbt`, `src/prover/prover_test.mbt`, `src/prover/prover_positive_corpus_test.mbt`, `src/prover/prover_negative_corpus_test.mbt` |
@@ -98,16 +103,21 @@ Part II conformance 相关的 Lean 锚点主要在：
 
 - `src/kernel/kernel_audit_test.mbt` 已覆盖 def-head monotonicity、typedef witness validity、const-id drift、typed beta/trans guard、conservative replay 等高风险场景。
 - `src/parser/parser_test.mbt` 已覆盖 normalize/raw-offset contract 与非 `bool` connector 的 fail-closed rejection。
-- `src/parser/parser_test.mbt` 当前也覆盖 theorem-header binder 的解析与
-  raw-span 回归。
+- `src/parser/parser_test.mbt` 当前也覆盖 theorem-header binder、structured
+  branch block 解析，以及 raw-span 回归。
+- `src/parser/parser_test.mbt` 与 `src/prover/prover_positive_corpus_test.mbt`
+  当前共同固定 parser-owned goal lowering 与上层显式 bridge 到 `tactics.Goal` 的合同。
 - `src/prover/prover_test.mbt` 当前覆盖了 M1 已支持子集的 `Ok((KernelState, Thm))` 正例，以及若干 direct-close / implication-backed theorem-name path。
 - `src/prover/prover_positive_corpus_test.mbt` / `src/prover/prover_negative_corpus_test.mbt`
   当前承载 shipped subset 的 canonical script corpus，用于固定 capability
   覆盖与 honest failure 口径。
+- `src/prover/prover_test.mbt` 与 `src/cmd/cmd_wbtest.mbt` 当前也覆盖了
+  unfinished-proof / hole reporting 的结构化合同。
 - `src/prover/prover_mapping_matrix_test.mbt` 当前把 canonical case id、能力标签
   与 `doc/manual.md` 的公开示例锚点绑定在同一份回归约束里。
 - `src/cmd/cmd_wbtest.mbt` 当前覆盖 success rendering、parse/io/usage failure、
-  tactic failure context rendering，以及 file-first argv workflow。
+  tactic failure context rendering、branch-path rendering，以及 file-first argv
+  workflow。
 
 ### Documentation Example Source Contract
 
@@ -165,8 +175,11 @@ Lean 中当前已经把外围工程的 Part II obligations 明确写成了工程
 若外围工程要继续符合现在的核心，下一步仍应集中在：
 
 - 在共享 theorem inventory 与 canonical corpus 之上继续扩展 replay builders；
-- 先把 hardening 变更写回 canonical corpus / mapping matrix，再进入 `M4b`
-  结构化分支块实现；
+- 继续把新 shipped capability 写回 canonical corpus / mapping matrix /
+  manual anchors，避免文档口径落后于实现；
+- 把 goal / hole / unfinished-proof diagnostics 做成正式前端合同，但继续明确它们
+  不是 proof object；
+- 若引入量词前端或更丰富的 proof block，保持 parser/lowering/replay 的边界显式化；
 - 让 `cmd` 继续复用 `prover` 的 structured failure contract，而不是自行解释错误字符串；
 - 在当前 file-first workflow 之上继续扩大前端表达力。
 
@@ -189,9 +202,12 @@ Lean 中当前已经把外围工程的 Part II obligations 明确写成了工程
 - theorem catalog 仍然偏小，尚不足以支撑更自然的大量脚本；但当前 shipped subset
   的 inventory、mode 边界与 corpus 已经固定；
 - canonical corpus 还需要补齐 hardening regression，才能完成 `H5` 集成门；
-- theorem-script body 仍局限于平坦顺序 `by` 块；theorem header binder 虽已支持，
-  但 richer proof block 仍未实现；
-- parser-side utility surface 与主产品面之间的口径仍需继续收口；
+- theorem-script body 已支持最小 `M4b` 结构化分支块；但 richer proof block
+  仍未实现；
+- holes / unfinished proof 当前已进入 shipped theorem-script surface；但 hole
+  completion / metavariable authority 仍未实现；
+- binder/quantifier-oriented frontend 当前仍未 shipped；
+- parser-side utility surface 已收口为 non-script API；后续只需保持文档 / 测试同步；
 - Lean 线当前是 paper/conformance pack，而不是 MoonBit 源码的直接机械化证明。
 
 因此更准确的状态判断是：
