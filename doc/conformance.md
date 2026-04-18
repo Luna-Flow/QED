@@ -146,6 +146,8 @@ Lean 中当前已经把外围工程的 Part II obligations 明确写成了工程
 - `parser` 必须保持 `local > const`、normalize + raw-offset contract，并与 `logic` 共用同一套 connector contract。
 - `elab` 必须冻结 resolved identity；后续 typing 遇到 const-id 或 schema drift 时必须 fail-closed。
 - `tactics` 只能在通过 `logic` 回放构造出与相继式一致的 `Thm` 时，由 `ps_qed` 交出定理；否则必须 fail-closed。
+- `ps_qed` 的最终验收当前必须按 strict normalized sequent equality 执行；不得保留仅按
+  shape-aware compatibility 放行的旧边界。
 - `prover` 仅在回放成功时返回 `Ok` 与 `Thm`；否则继续返回诚实错误。
 - `cmd` 只能是新的非权威集成层，不得成为第二证明内核。
 - extension certificate 只能是 audit artifact；不能被当成 theorem acceptance 的替代物。
@@ -163,6 +165,8 @@ Lean 中当前已经把外围工程的 Part II obligations 明确写成了工程
 若外围工程要继续符合现在的核心，下一步仍应集中在：
 
 - 在共享 theorem inventory 与 canonical corpus 之上继续扩展 replay builders；
+- 先把 hardening 变更写回 canonical corpus / mapping matrix，再进入 `M4b`
+  结构化分支块实现；
 - 让 `cmd` 继续复用 `prover` 的 structured failure contract，而不是自行解释错误字符串；
 - 在当前 file-first workflow 之上继续扩大前端表达力。
 
@@ -184,6 +188,7 @@ Lean 中当前已经把外围工程的 Part II obligations 明确写成了工程
 
 - theorem catalog 仍然偏小，尚不足以支撑更自然的大量脚本；但当前 shipped subset
   的 inventory、mode 边界与 corpus 已经固定；
+- canonical corpus 还需要补齐 hardening regression，才能完成 `H5` 集成门；
 - theorem-script body 仍局限于平坦顺序 `by` 块；theorem header binder 虽已支持，
   但 richer proof block 仍未实现；
 - parser-side utility surface 与主产品面之间的口径仍需继续收口；

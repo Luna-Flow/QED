@@ -290,6 +290,8 @@ QED 采用 kernel-first 架构。唯一 theorem-construction boundary 是 `src/k
 - 这些名字都必须 replay 到现有 kernel-checked `Thm`；它们不是新的 proof authority。
 - `exact` 不会隐式退化成 `apply`；需要先构造新子目标、再靠 backward replay
   补完的名字，不属于 `exact`。
+- local `exact h` 当前只接受 active hypothesis alias；一旦名字命中 local，
+  就不会再回退到同名 theorem entry。
 - `apply` 只接受 implication theorem；对 `truth` / `not_elim` / `ex_falso` 这类 direct-close
   theorem name 必须诚实失败。
 
@@ -301,6 +303,9 @@ QED 采用 kernel-first 架构。唯一 theorem-construction boundary 是 `src/k
   当前会在诚实失败时保留 theorem 名、step index、当前 goal、local hypotheses、
   以及 goal/step 的 raw-source location；这些诊断对象是工程辅助信息，不是新的 proof object；
 - `ps_qed` 仅在 replay 成功且与根目标相继式一致时返回最终 `Thm`；
+- `ps_qed` 当前按 strict normalized sequent matching 验证最终 theorem：
+  先统一做 proposition beta normalization，再检查假设集合与结论的 alpha-invariant
+  一致性；旧的宽 shape match 已不再接受。
 - 不支持的路径继续返回 `ProofSynthesisUnavailable`、`Logic` 或 tactic error 等诚实失败。
 
 ## Current Support Matrix
@@ -327,7 +332,10 @@ QED 采用 kernel-first 架构。唯一 theorem-construction boundary 是 `src/k
 
 ### Active next line
 
-- `M4`: richer theorem blocks beyond the current sequential forms
+- theorem-reconstruction hardening baseline is now the required gate before
+  frontend expansion;
+- `M4b`: structured branch blocks for `split` / `left` / `right` beyond the
+  current sequential forms
 
 ### Stable theorem-name surface
 
@@ -340,7 +348,8 @@ QED 采用 kernel-first 架构。唯一 theorem-construction boundary 是 `src/k
 
 - `exact` 只消费 exact capability；不会隐式退化成 `apply`。这既包括
   direct-close entry，也包括 context-derived exact entry；local `exact h`
-  也必须把 `h` 解释成当前 sequent 的直接 witness，而不是 shape-based 猜测。
+  也必须把 `h` 解释成当前 sequent 的直接 witness，并且 `h` 必须仍然是 active
+  hypothesis alias，而不是 shape-based 猜测或其它 local artifact。
 - `apply` 只消费 implication-backed capability；不会把 direct-close theorem
   name 当成 implication 接受。
 - wrong-mode theorem usage 继续诚实失败；`exact or_intro_l` 当前返回
@@ -443,6 +452,8 @@ theorem truth_file : ⊢ T := by exact truth
 当前外围工程仍应沿着以下方向继续收口：
 
 - 保持 theorem inventory、mode-aware resolver 与 corpus/matrix 的单一来源；
+- 先完成 theorem-reconstruction hardening 的 corpus/integration 收口，再推进
+  `M4b` structured branch blocks；
 - 在不扩大信任边界的前提下，扩展 theorem-script 表达力与更自然的前端诊断；
 - 继续让 file-first workflow 复用同一套 corpus / mapping matrix，而不是分叉出第二套语义；
 - 让整个可执行前端越来越接近 Part II 所要求的 faithful realization，而不是在
