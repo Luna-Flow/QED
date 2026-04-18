@@ -55,3 +55,13 @@ test "wb validate_root_theorem rejects trusted or alias tails" {
     is Err(ProofSynthesisUnavailable(_)),
   )
 }
+
+///|
+test "wb validate_root_theorem normalizes hypothesis sets before strict matching" {
+  let prelude = default_prop_prelude()
+  let st = expect_ok_proof_state_wb(install_prop_prelude(empty_kernel_state()))
+  let p = expect_ok_proof_state_wb(ks_mk_const(st, prelude.truth_name))
+  let th0 = expect_ok_proof_state_wb(logic_prop_truth_const_thm(st, prelude))
+  let th1 = expect_ok_proof_state_wb(logic_add_assum(st, p, th0))
+  assert_true(validate_root_theorem(st, th1, mk_goal([p], p), prelude) is Ok(_))
+}

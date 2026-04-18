@@ -20,67 +20,23 @@ fn normalized_term(state : KernelState, term : Term) -> Term {
 }
 
 ///|
-fn concl_heads_match(state : KernelState, lhs : Term, rhs : Term) -> Bool {
+fn normalized_terms_match(state : KernelState, lhs : Term, rhs : Term) -> Bool {
   let lhs_nf = normalized_term(state, lhs)
   let rhs_nf = normalized_term(state, rhs)
   terms_match(lhs_nf, rhs_nf)
 }
 
 ///|
-fn concl_compat_or_tail(
-  state : KernelState,
-  prelude : PropPrelude,
-  lhs : Term,
-  rhs : Term,
-) -> Bool {
-  if terms_match(lhs, rhs) {
-    true
-  } else {
-    let lhs_nf = normalized_term(state, lhs)
-    let rhs_nf = normalized_term(state, rhs)
-    if terms_match(lhs_nf, rhs_nf) {
-      true
-    } else {
-      match
-        (
-          prop_dest_or(state, prelude, lhs_nf),
-          prop_dest_or(state, prelude, rhs_nf),
-        ) {
-        (Some((ll, lr)), Some((rl, rr))) =>
-          concl_heads_match(state, ll, rl) && concl_heads_match(state, lr, rr)
-        _ => false
-      }
-    }
-  }
-}
-
-///|
 fn concls_match(state : KernelState, expected : Term, actual : Term) -> Bool {
-  let prelude = default_prop_prelude()
-  if terms_match(expected, actual) {
-    true
-  } else {
-    let expected_nf = normalized_term(state, expected)
-    let actual_nf = normalized_term(state, actual)
-    if terms_match(expected_nf, actual_nf) {
-      true
-    } else {
-      match
-        (
-          prop_dest_imp(state, prelude, expected_nf),
-          prop_dest_imp(state, prelude, actual_nf),
-        ) {
-        (Some((ea, eb)), Some((aa, ab))) =>
-          concl_heads_match(state, ea, aa) &&
-          concl_compat_or_tail(state, prelude, eb, ab)
-        _ => false
-      }
-    }
-  }
+  normalized_terms_match(state, expected, actual)
 }
 
 ///|
-fn hyps_match(expected : Array[Term], actual : Array[Term]) -> Bool {
+fn hyps_match(
+  state : KernelState,
+  expected : Array[Term],
+  actual : Array[Term],
+) -> Bool {
   if expected.length() != actual.length() {
     return false
   }
@@ -94,7 +50,7 @@ fn hyps_match(expected : Array[Term], actual : Array[Term]) -> Bool {
     let mut j = 0
     let mut matched = false
     while j < actual.length() {
-      if !used[j] && terms_match(h, actual[j]) {
+      if !used[j] && normalized_terms_match(state, h, actual[j]) {
         used[j] = true
         matched = true
         break
@@ -159,7 +115,7 @@ fn run_positive_corpus_case(
     Ok(v) => v
     Err(_) => return ProofFailed
   }
-  if !hyps_match(goal_hyps(expected_goal), actual_hyps) {
+  if !hyps_match(st_out, goal_hyps(expected_goal), actual_hyps) {
     return HypothesisDrift
   }
   if !concls_match(st_out, goal_concl(expected_goal), actual_concl) {

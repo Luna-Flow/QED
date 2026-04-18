@@ -503,6 +503,16 @@ pub fn negative_corpus_cases() -> Array[NegativeCorpusCase] {
       expected_error: ErrorTacticApplyMismatch,
     },
     NegativeCorpusCase::{
+      case_id: "neg_local_shadow_truth_is_not_direct_witness",
+      bool_consts: ["P"],
+      unary_bool_consts: [],
+      binary_bool_consts: [],
+      script: "theorem neg_local_shadow_truth_is_not_direct_witness : ⊢ P -> T := by intro truth; exact truth",
+      layout: InlineSequential,
+      failure_class: FailureShadowingOrScopeDrift,
+      expected_error: ErrorTacticGoalShapeMismatch,
+    },
+    NegativeCorpusCase::{
       case_id: "neg_block_apply_truth_wrong_mode",
       bool_consts: [],
       unary_bool_consts: [],
@@ -917,6 +927,15 @@ pub fn mapping_matrix_entries() -> Array[MappingMatrixEntry] {
       capability_or_error_label: "tactic_apply_mismatch",
       doc_anchor: "manual:failure_matrix",
       doc_visibility: PublicFailureExample,
+    },
+    MappingMatrixEntry::{
+      case_id: "neg_local_shadow_truth_is_not_direct_witness",
+      kind: NegativeCase,
+      script: "theorem neg_local_shadow_truth_is_not_direct_witness : ⊢ P -> T := by intro truth; exact truth",
+      catalog_or_failure_label: "shadowing_or_scope_drift",
+      capability_or_error_label: "tactic_goal_shape_mismatch",
+      doc_anchor: "internal_only",
+      doc_visibility: InternalOnly,
     },
     MappingMatrixEntry::{
       case_id: "neg_block_apply_truth_wrong_mode",

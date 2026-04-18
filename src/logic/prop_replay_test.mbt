@@ -107,3 +107,20 @@ test "prop replay or_wrap validates full disjunction target" {
   assert_true(logic_prop_or_wrap_right(st2, prelude, or_qp, p, th_q) is Err(_))
   assert_true(logic_prop_or_wrap_right(st2, prelude, or_pq, p, th_q) is Ok(_))
 }
+
+///|
+test "prop replay or_wrap rejects beta-compatible but non-equal target tails" {
+  let prelude = default_prop_prelude()
+  let s0 = empty_kernel_state()
+  let s1 = expect_ok_replay(ks_add_const(s0, "P", bool_ty()))
+  let st = expect_ok_replay(ks_add_const(s1, "Q", bool_ty()))
+  let st2 = expect_ok_replay(install_prop_prelude(st))
+  let p = expect_ok_replay(ks_mk_const(st2, "P"))
+  let q = expect_ok_replay(ks_mk_const(st2, "Q"))
+  let t_term = expect_ok_replay(ks_mk_const(st2, prelude.truth_name))
+  let or_good = expect_ok_replay(prop_mk_or(st2, prelude, p, q))
+  let or_bad = expect_ok_replay(prop_mk_or(st2, prelude, p, t_term))
+  let th_p = expect_ok_replay(logic_prop_assume(st2, p))
+  assert_true(logic_prop_or_wrap_left(st2, prelude, or_bad, q, th_p) is Err(_))
+  assert_true(logic_prop_or_wrap_left(st2, prelude, or_good, q, th_p) is Ok(_))
+}

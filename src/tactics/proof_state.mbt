@@ -281,8 +281,32 @@ fn exact_from_local_witness(
   ps : ProofState,
   g : PendingGoal,
   rest : Array[PendingGoal],
-  _name : String,
+  name : String,
 ) -> Result[ProofState, TacticExecError] {
+  let local_term = match find_local(g.locals, name) {
+    Some(v) => v
+    None =>
+      return Err(
+        GoalShapeMismatch(
+          "exact local witness is no longer an active hypothesis alias",
+        ),
+      )
+  }
+  if !(term_logical_eq(local_term, g.concl) ||
+    term_alpha_eq(local_term, g.concl)) {
+    return Err(
+      GoalShapeMismatch(
+        "exact local witness does not directly close current goal",
+      ),
+    )
+  }
+  if !hyps_have_alpha(g.hyps, local_term) {
+    return Err(
+      GoalShapeMismatch(
+        "exact local witness is no longer an active hypothesis alias",
+      ),
+    )
+  }
   let base = match logic_prop_close_hypothesis(state, g.hyps, g.concl) {
     Ok(v) => v
     Err(e) => return Err(Logic(e))
@@ -346,28 +370,28 @@ fn validate_root_theorem(
   root : Goal,
   _prelude : PropPrelude,
 ) -> Result[Unit, TacticExecError] {
-  let rhy = goal_hyps(root)
-  let rc = goal_concl(root)
-  let hs = match thm_hyps(th) {
-    Ok(v) => v
-    Err(e) => return Err(Logic(e))
-  }
   let th_norm = match logic_normalize_prop_beta(state, th) {
     Ok(v) => v
     Err(_) => th
+  }
+  let rhy = goal_hyps(root)
+  let rc = goal_concl(root)
+  let hs = match thm_hyps(th_norm) {
+    Ok(v) => v
+    Err(e) => return Err(Logic(e))
   }
   let cc = match thm_concl(th_norm) {
     Ok(v) => v
     Err(e) => return Err(Logic(e))
   }
-  let rc_nf = match logic_beta_nf_bool_term_deep(state, rc) {
-    Ok(v) => v
-    Err(_) => rc
+  let nf_term = fn(term : Term) {
+    match logic_beta_nf_bool_term_deep(state, term) {
+      Ok(v) => v
+      Err(_) => term
+    }
   }
-  let cc_nf = match logic_beta_nf_bool_term_deep(state, cc) {
-    Ok(v) => v
-    Err(_) => cc
-  }
+  let rc_nf = nf_term(rc)
+  let cc_nf = nf_term(cc)
   if rhy.length() != hs.length() {
     return Err(
       ProofSynthesisUnavailable(
@@ -382,10 +406,13 @@ fn validate_root_theorem(
     ui = ui + 1
   }
   for h in rhy {
+    let h_nf = nf_term(h)
     let mut j = 0
     let mut matched = false
     while j < hs.length() {
-      if !used[j] && term_logical_eq(h, hs[j]) {
+      let hs_nf = nf_term(hs[j])
+      if !used[j] &&
+        (term_logical_eq(h_nf, hs_nf) || term_alpha_eq(h_nf, hs_nf)) {
         used[j] = true
         matched = true
         break

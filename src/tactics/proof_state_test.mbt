@@ -532,3 +532,15 @@ test "proof state exact local hypothesis must directly witness current goal" {
     ps_apply(st, prelude, ps1, step_exact("hp")) is Err(GoalShapeMismatch(_)),
   )
 }
+
+///|
+test "proof state exact does not fall through past shadowing local witness names" {
+  let (st, prelude, p, _, _) = setup_prop_env()
+  let t_term = expect_ok_ps(ks_mk_const(st, prelude.truth_name))
+  let target = expect_ok_ps(prop_mk_imp(st, prelude, p, t_term))
+  let ps0 = ps_init(mk_goal([], target))
+  let ps1 = expect_ok_ps(ps_apply(st, prelude, ps0, step_intro("truth")))
+  assert_true(
+    ps_apply(st, prelude, ps1, step_exact("truth")) is Err(GoalShapeMismatch(_)),
+  )
+}

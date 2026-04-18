@@ -124,5 +124,8 @@ test "prove_theorem_script canonical negative corpus covers planned failure clas
   assert_true(corpus_covers_layout(cases, "inline_sequential"))
   assert_true(corpus_covers_layout(cases, "block_sequential"))
   assert_true(corpus_covers_case_id(cases, "neg_apply_eq_refl_wrong_mode"))
+  assert_true(
+    corpus_covers_case_id(cases, "neg_local_shadow_truth_is_not_direct_witness"),
+  )
   assert_true(corpus_covers_case_id(cases, "neg_block_apply_truth_wrong_mode"))
 }
