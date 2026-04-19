@@ -1,0 +1,1 @@
+theorem truth_file : ⊢ T := by exact truth

@@ -67,14 +67,16 @@ moon build
 moon test
 ```
 
-最简单的 file-first 用法是把一个 theorem script 写入文件，然后交给 `src/cmd`：
+最简单的 file-first 用法是直接运行仓库里的示例文件，例如：
+
+```bash
+moon run src/cmd examples/truth_file.qed
+```
+
+对应脚本见 `examples/truth_file.qed`：
 
 ```text
 theorem truth_file : ⊢ T := by exact truth
-```
-
-```bash
-moon run src/cmd truth_file.qed
 ```
 
 成功时当前输出形如：
@@ -98,6 +100,11 @@ theorem demo_and (x : bool) : ⊢ x -> x ∧ x := by
   intro h
   split { exact h } { exact h }
 ```
+
+仓库当前还提供两个最小对照示例：
+
+- `examples/bad_branch.qed`：刻意失败的脚本，演示结构化 `error[...]` 输出。
+- `examples/unfinished_branch.qed`：刻意留 `hole` 的脚本，演示 `unfinished ...` 输出。
 
 这类 binder 形式 `(x : bool)` 是当前已 shipped 的量词面入口；而原始 `forall` /
 `∀` theorem goal 还没有进入 theorem-producing path。更多面向初学者的解释和示例见

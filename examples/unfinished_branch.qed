@@ -1,0 +1,3 @@
+theorem unfinished_branch (x : bool) : ⊢ x -> x ∨ (x ∨ x) := by
+  intro h
+  right { right { hole h1 } }

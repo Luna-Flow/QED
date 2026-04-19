@@ -1,0 +1,3 @@
+theorem bad_branch (x : bool) : ⊢ x -> x ∨ x := by
+  intro h
+  left { exact truth }
