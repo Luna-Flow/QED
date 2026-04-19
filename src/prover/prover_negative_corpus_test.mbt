@@ -39,15 +39,35 @@ fn negative_case_ids_are_unique(cases : Array[NegativeCorpusCase]) -> Bool {
 
 ///|
 fn negative_result_matches(
-  res : Result[(KernelState, Thm), ProverError],
+  res : Result[(KernelState, Thm), ProverScriptError],
   expected : NegativeErrorShape,
 ) -> Bool {
   match expected {
-    ErrorTacticUnknownName => res is Err(Tactic(UnknownName(_)))
-    ErrorTacticApplyMismatch => res is Err(Tactic(ApplyMismatch(_)))
-    ErrorTacticGoalShapeMismatch => res is Err(Tactic(GoalShapeMismatch(_)))
-    ErrorTacticUnsolvedGoals => res is Err(Tactic(UnsolvedGoals))
-    ErrorLogicNotBoolTerm => res is Err(Logic(NotBoolTerm))
+    ErrorTacticUnknownName =>
+      match res {
+        Err(Failure(failure)) => failure.error is Tactic(UnknownName(_))
+        _ => false
+      }
+    ErrorTacticApplyMismatch =>
+      match res {
+        Err(Failure(failure)) => failure.error is Tactic(ApplyMismatch(_))
+        _ => false
+      }
+    ErrorTacticGoalShapeMismatch =>
+      match res {
+        Err(Failure(failure)) => failure.error is Tactic(GoalShapeMismatch(_))
+        _ => false
+      }
+    ErrorTacticUnsolvedGoals =>
+      match res {
+        Err(Failure(failure)) => failure.error is Tactic(UnsolvedGoals)
+        _ => false
+      }
+    ErrorLogicNotBoolTerm =>
+      match res {
+        Err(Failure(failure)) => failure.error is Logic(NotBoolTerm)
+        _ => false
+      }
   }
 }
 

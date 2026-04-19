@@ -54,6 +54,8 @@ pub enum SynTacticStep {
 ///|
 pub struct SynScriptStep {
   step : SynTacticStep
+  step_index : Int
+  branch_path : Array[Int]
   span : SourceSpan
   src : String
   branches : Array[SynScriptBranch]
@@ -61,6 +63,7 @@ pub struct SynScriptStep {
 
 ///|
 pub struct SynScriptBranch {
+  branch_path : Array[Int]
   body : SynScriptBody
   span : SourceSpan
   src : String
@@ -1539,6 +1542,13 @@ fn tokens_to_src(tokens : Array[Token], start : Int, end : Int) -> String {
 }
 
 ///|
+fn child_branch_path(branch_path : Array[Int], branch_idx : Int) -> Array[Int] {
+  let out = branch_path.copy()
+  out.push(branch_idx)
+  out
+}
+
+///|
 fn parse_script_step_tokens(
   seg : Array[Token],
 ) -> Result[SynTacticStep, ParseError] {
@@ -1639,6 +1649,8 @@ fn parse_script_step_segment(
   tokens : Array[Token],
   start : Int,
   end : Int,
+  step_index : Int,
+  branch_path : Array[Int],
 ) -> Result[SynScriptStep, ParseError] {
   let seg : Array[Token] = []
   let mut i = start
@@ -1657,6 +1669,8 @@ fn parse_script_step_segment(
   )
   Ok(SynScriptStep::{
     step,
+    step_index,
+    branch_path: branch_path.copy(),
     span,
     src: raw_source_slice(raw_src, span.start_offset, span.end_offset),
     branches: [],
@@ -1711,15 +1725,18 @@ fn find_matching_brace(
 }
 
 ///|
-fn parse_script_body_range(
+fn parse_script_body_range_with_path(
   input : NormalizedInput,
   raw_src : String,
   tokens : Array[Token],
   start : Int,
   end : Int,
-) -> Result[SynScriptBody, ParseError] {
+  branch_path : Array[Int],
+  next_step_index : Int,
+) -> Result[(SynScriptBody, Int), ParseError] {
   let steps : Array[SynScriptStep] = []
   let mut seg_start = start
+  let mut step_index = next_step_index
   if seg_start < end && token_at(tokens, seg_start).kind is TkNewline {
     seg_start = seg_start + 1
   }
@@ -1767,8 +1784,11 @@ fn parse_script_body_range(
         ),
       )
     }
+    step_index = step_index + 1
     let mut step = match
-      parse_script_step_segment(input, raw_src, tokens, seg_start, step_end) {
+      parse_script_step_segment(
+        input, raw_src, tokens, seg_start, step_end, step_index, branch_path,
+      ) {
       Ok(v) => v
       Err(e) => return Err(e)
     }
@@ -1786,13 +1806,17 @@ fn parse_script_body_range(
             Ok(v) => v
             Err(e) => return Err(e)
           }
-          let body = match
-            parse_script_body_range(
+          let branch_idx = branches.length() + 1
+          let child_path = child_branch_path(branch_path, branch_idx)
+          let (body, next_index) = match
+            parse_script_body_range_with_path(
               input,
               raw_src,
               tokens,
               branch_start + 1,
               close_idx,
+              child_path,
+              step_index,
             ) {
             Ok(v) => v
             Err(e) => return Err(e)
@@ -1803,10 +1827,12 @@ fn parse_script_body_range(
             token_normalized_end(tokens[close_idx]),
           )
           branches.push(SynScriptBranch::{
+            branch_path: child_path.copy(),
             body,
             span,
             src: raw_source_slice(raw_src, span.start_offset, span.end_offset),
           })
+          step_index = next_index
           cursor = close_idx + 1
         }
         _ => break
@@ -1850,6 +1876,8 @@ fn parse_script_body_range(
     }
     step = SynScriptStep::{
       step: step.step,
+      step_index: step.step_index,
+      branch_path: step.branch_path,
       span: step.span,
       src: step.src,
       branches,
@@ -1935,7 +1963,22 @@ fn parse_script_body_range(
   if steps.length() == 0 {
     Err(mk_parse_error(UnexpectedEof, 0, "empty theorem script body"))
   } else {
-    Ok(SynScriptBody::{ steps, })
+    Ok((SynScriptBody::{ steps, }, step_index))
+  }
+}
+
+///|
+fn parse_script_body_range(
+  input : NormalizedInput,
+  raw_src : String,
+  tokens : Array[Token],
+  start : Int,
+  end : Int,
+) -> Result[SynScriptBody, ParseError] {
+  match
+    parse_script_body_range_with_path(input, raw_src, tokens, start, end, [], 0) {
+    Ok((body, _)) => Ok(body)
+    Err(e) => Err(e)
   }
 }
 

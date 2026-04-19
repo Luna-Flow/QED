@@ -18,11 +18,15 @@ pub fn mapping_case_negative() -> MappingCaseKind
 
 pub fn mapping_case_positive() -> MappingCaseKind
 
+pub fn mapping_case_unfinished() -> MappingCaseKind
+
 pub fn mapping_doc_visibility_internal_only() -> MappingDocVisibility
 
 pub fn mapping_doc_visibility_public_example() -> MappingDocVisibility
 
 pub fn mapping_doc_visibility_public_failure_example() -> MappingDocVisibility
+
+pub fn mapping_doc_visibility_public_unfinished_example() -> MappingDocVisibility
 
 pub fn mapping_matrix_entries() -> Array[MappingMatrixEntry]
 
@@ -34,11 +38,11 @@ pub fn negative_failure_class_label(NegativeFailureClass) -> String
 
 pub fn positive_corpus_cases() -> Array[PositiveCorpusCase]
 
-pub fn prove_theorem_script(@kernel.KernelState, String, ProverOptions) -> Result[(@kernel.KernelState, @kernel.Thm), ProverError]
+pub fn prove_theorem_script(@kernel.KernelState, String, ProverOptions) -> Result[(@kernel.KernelState, @kernel.Thm), ProverScriptError]
 
 pub fn prove_theorem_script_detailed(@kernel.KernelState, String, ProverOptions) -> ProverRunResult
 
-pub fn prove_theorem_script_with_diagnostics(@kernel.KernelState, String, ProverOptions) -> Result[(@kernel.KernelState, @kernel.Thm), ProverFailure]
+pub fn prove_theorem_script_with_diagnostics(@kernel.KernelState, String, ProverOptions) -> Result[(@kernel.KernelState, @kernel.Thm), ProverScriptError]
 
 pub fn prover_local_hyp(String, @kernel.Term) -> ProverLocalHyp
 
@@ -48,12 +52,15 @@ pub fn prover_unfinished(String, String?, @parser.SourceSpan?, Int?, Array[Int],
 
 pub fn script_layout_label(ScriptLayout) -> String
 
+pub fn unfinished_corpus_cases() -> Array[UnfinishedCorpusCase]
+
 // Errors
 
 // Types and methods
 pub enum MappingCaseKind {
   PositiveCase
   NegativeCase
+  UnfinishedCase
 }
 
 pub enum MappingDocVisibility {
@@ -178,6 +185,11 @@ pub enum ProverRunResult {
   Unfinished(ProverUnfinished)
 }
 
+pub enum ProverScriptError {
+  Failure(ProverFailure)
+  Unfinished(ProverUnfinished)
+}
+
 pub struct ProverSuccess {
   state : @kernel.KernelState
   theorem_name : String
@@ -203,6 +215,18 @@ pub enum ScriptLayout {
   InlineSequential
   BlockSequential
   BranchStructured
+}
+
+pub struct UnfinishedCorpusCase {
+  case_id : String
+  const_names : Array[String]
+  expected_goal : String
+  script : String
+  layout : ScriptLayout
+  expected_step_index : Int
+  expected_branch_path : Array[Int]
+  expected_hole_name : String?
+  expected_detail : String
 }
 
 // Type aliases

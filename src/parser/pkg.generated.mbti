@@ -121,6 +121,7 @@ pub struct SynScriptBody {
 }
 
 pub struct SynScriptBranch {
+  branch_path : Array[Int]
   body : SynScriptBody
   span : SourceSpan
   src : String
@@ -128,6 +129,8 @@ pub struct SynScriptBranch {
 
 pub struct SynScriptStep {
   step : SynTacticStep
+  step_index : Int
+  branch_path : Array[Int]
   span : SourceSpan
   src : String
   branches : Array[SynScriptBranch]

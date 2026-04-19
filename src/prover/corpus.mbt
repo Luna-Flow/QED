@@ -336,6 +336,36 @@ pub fn positive_corpus_cases() -> Array[PositiveCorpusCase] {
 }
 
 ///|
+pub struct UnfinishedCorpusCase {
+  case_id : String
+  const_names : Array[String]
+  expected_goal : String
+  script : String
+  layout : ScriptLayout
+  expected_step_index : Int
+  expected_branch_path : Array[Int]
+  expected_hole_name : String?
+  expected_detail : String
+}
+
+///|
+pub fn unfinished_corpus_cases() -> Array[UnfinishedCorpusCase] {
+  [
+    UnfinishedCorpusCase::{
+      case_id: "unf_hole_intro",
+      const_names: [],
+      expected_goal: "T ⊢ T",
+      script: "theorem unf_hole_intro : ⊢ T -> T := by intro h; hole h1",
+      layout: InlineSequential,
+      expected_step_index: 2,
+      expected_branch_path: [],
+      expected_hole_name: Some("h1"),
+      expected_detail: "proof contains an unfinished hole",
+    },
+  ]
+}
+
+///|
 pub enum NegativeFailureClass {
   FailureUnknownName
   FailureWrongModeTheoremUsage
@@ -549,6 +579,7 @@ pub fn negative_corpus_cases() -> Array[NegativeCorpusCase] {
 pub enum MappingCaseKind {
   PositiveCase
   NegativeCase
+  UnfinishedCase
 }
 
 ///|
@@ -559,6 +590,11 @@ pub fn mapping_case_positive() -> MappingCaseKind {
 ///|
 pub fn mapping_case_negative() -> MappingCaseKind {
   NegativeCase
+}
+
+///|
+pub fn mapping_case_unfinished() -> MappingCaseKind {
+  UnfinishedCase
 }
 
 ///|
@@ -581,6 +617,11 @@ pub fn mapping_doc_visibility_public_failure_example() -> MappingDocVisibility {
 ///|
 pub fn mapping_doc_visibility_internal_only() -> MappingDocVisibility {
   InternalOnly
+}
+
+///|
+pub fn mapping_doc_visibility_public_unfinished_example() -> MappingDocVisibility {
+  PublicExample
 }
 
 ///|
@@ -847,6 +888,15 @@ pub fn mapping_matrix_entries() -> Array[MappingMatrixEntry] {
       catalog_or_failure_label: "structural_only",
       capability_or_error_label: "left",
       doc_anchor: "manual:runnable_examples",
+      doc_visibility: PublicExample,
+    },
+    MappingMatrixEntry::{
+      case_id: "unf_hole_intro",
+      kind: UnfinishedCase,
+      script: "theorem unf_hole_intro : ⊢ T -> T := by intro h; hole h1",
+      catalog_or_failure_label: "unfinished_proof",
+      capability_or_error_label: "hole",
+      doc_anchor: "manual:unfinished_examples",
       doc_visibility: PublicExample,
     },
     MappingMatrixEntry::{

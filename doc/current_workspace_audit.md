@@ -102,10 +102,10 @@ The current suite is strong, but the following gaps remain important for the
 next stages:
 
 1. richer proof-block expansion beyond the current minimal branch-block slice;
-2. hole / unfinished-proof structured reporting as a first-class shipped surface;
+2. richer hole / unfinished-proof reporting beyond the canonical unfinished case;
 3. quantifier-facing frontend and its trust-relevant lowering contract;
 4. any future CLI feature must continue to reuse the current positive / negative
-   corpus instead of forking a second script matrix.
+  corpus instead of forking a second script matrix.
 
 ## Overall Assessment
 
@@ -116,8 +116,8 @@ next stages:
 - The most important next work is now:
   1. keep the new structured branch-block surface on the same checked lowering /
      replay boundary;
-  2. move the roadmap toward user-facing proof experience: script, goal, hole,
-     unfinished-proof reporting, and quantifier frontend;
+  2. move the roadmap toward richer user-facing proof experience: script, goal,
+     proof blocks, and quantifier frontend;
   3. continue corpus + docs + conformance maintenance as the frontend expands.
 - The rewrite/simplify line remains research only.
 - The Lean line remains green and valuable, but it should continue to be

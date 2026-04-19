@@ -32,10 +32,21 @@ fn find_negative_case_by_id(case_id : String) -> NegativeCorpusCase? {
 }
 
 ///|
+fn find_unfinished_case_by_id(case_id : String) -> UnfinishedCorpusCase? {
+  for case in unfinished_corpus_cases() {
+    if case.case_id == case_id {
+      return Some(case)
+    }
+  }
+  None
+}
+
+///|
 fn mapping_kind_matches(lhs : MappingCaseKind, rhs : MappingCaseKind) -> Bool {
   match (lhs, rhs) {
     (PositiveCase, PositiveCase) => true
     (NegativeCase, NegativeCase) => true
+    (UnfinishedCase, UnfinishedCase) => true
     _ => false
   }
 }
@@ -45,6 +56,7 @@ fn mapping_kind_label(kind : MappingCaseKind) -> String {
   match kind {
     PositiveCase => "positive"
     NegativeCase => "negative"
+    UnfinishedCase => "unfinished"
   }
 }
 
@@ -109,6 +121,12 @@ test "prover mapping matrix stays aligned with canonical corpora" {
       1,
     )
   }
+  for case in unfinished_corpus_cases() {
+    assert_eq(
+      matrix_entry_count(entries, mapping_case_unfinished(), case.case_id),
+      1,
+    )
+  }
 
   for entry in entries {
     match entry.kind {
@@ -149,6 +167,21 @@ test "prover mapping matrix stays aligned with canonical corpora" {
               !mapping_visibility_matches(
                 entry.doc_visibility,
                 mapping_doc_visibility_public_example(),
+              ),
+            )
+          }
+          None => panic()
+        }
+      UnfinishedCase =>
+        match find_unfinished_case_by_id(entry.case_id) {
+          Some(case) => {
+            assert_eq(entry.script, case.script)
+            assert_eq(entry.catalog_or_failure_label, "unfinished_proof")
+            assert_eq(entry.capability_or_error_label, "hole")
+            assert_true(
+              mapping_visibility_matches(
+                entry.doc_visibility,
+                mapping_doc_visibility_public_unfinished_example(),
               ),
             )
           }
@@ -195,6 +228,15 @@ test "prover mapping matrix anchors current manual public examples" {
       "pos_branch_left_disjunction",
       "manual:runnable_examples",
       mapping_doc_visibility_public_example(),
+    ),
+  )
+  assert_true(
+    has_mapping_entry(
+      entries,
+      mapping_case_unfinished(),
+      "unf_hole_intro",
+      "manual:unfinished_examples",
+      mapping_doc_visibility_public_unfinished_example(),
     ),
   )
   assert_true(

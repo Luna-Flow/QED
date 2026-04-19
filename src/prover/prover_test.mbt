@@ -37,11 +37,23 @@ fn expect_unfinished(result : ProverRunResult) -> ProverUnfinished {
 
 ///|
 fn expect_diag_failed(
-  res : Result[(KernelState, Thm), ProverFailure],
+  res : Result[(KernelState, Thm), ProverScriptError],
 ) -> ProverFailure {
   match res {
-    Err(err) => err
+    Err(Failure(err)) => err
     Ok(_) => panic()
+    Err(Unfinished(_)) => panic()
+  }
+}
+
+///|
+fn expect_diag_unfinished(
+  res : Result[(KernelState, Thm), ProverScriptError],
+) -> ProverUnfinished {
+  match res {
+    Err(Unfinished(unfinished)) => unfinished
+    Ok(_) => panic()
+    Err(Failure(_)) => panic()
   }
 }
 
@@ -137,6 +149,88 @@ test "prover_unfinished helper keeps optional fields nullable" {
   assert_true(unfinished.hole_name is None)
   assert_eq(unfinished.detail, "todo")
   assert_true(unfinished.raw_offset is None)
+}
+
+///|
+test "prove_theorem_script returns unfinished on canonical hole corpus" {
+  let case = unfinished_corpus_cases()[0]
+  let st0 = empty_kernel_state()
+  let result = prove_theorem_script_detailed(
+    st0,
+    case.script,
+    default_prover_options(),
+  )
+  let unfinished = expect_unfinished(result)
+  let st_pre = expect_ok_prover(install_prop_prelude(empty_kernel_state()))
+  let expected_goal = expect_ok_prover(parse_goal(st_pre, case.expected_goal))
+  assert_eq(unfinished.theorem_name, case.case_id)
+  assert_eq(unfinished.goal_src, Some("⊢ T -> T"))
+  assert_eq(unfinished.step_index, Some(case.expected_step_index))
+  assert_eq(unfinished.branch_path, case.expected_branch_path)
+  assert_eq(unfinished.hole_name, case.expected_hole_name)
+  assert_eq(unfinished.detail, case.expected_detail)
+  assert_eq(unfinished.local_hyps.length(), 1)
+  assert_eq(unfinished.local_hyps[0].name, "h")
+  assert_true(
+    term_alpha_eq(
+      goal_concl(unfinished.current_goal),
+      parsed_goal_concl(expected_goal),
+    ),
+  )
+  assert_true(
+    term_alpha_eq(
+      goal_hyps(unfinished.current_goal)[0],
+      parsed_goal_hyps(expected_goal)[0],
+    ),
+  )
+}
+
+///|
+test "prove_theorem_script returns unfinished for a branched hole body" {
+  let st0 = expect_ok_prover(ks_add_const(empty_kernel_state(), "P", bool_ty()))
+  let st1 = expect_ok_prover(ks_add_const(st0, "Q", bool_ty()))
+  let result = prove_theorem_script_detailed(
+    st1,
+    "theorem branch_hole : P, Q ⊢ P ∧ Q := by split { hole h1 } { assumption }",
+    default_prover_options(),
+  )
+  let unfinished = expect_unfinished(result)
+  let st_pre = expect_ok_prover(install_prop_prelude(st1))
+  let p = expect_ok_prover(ks_mk_const(st_pre, "P"))
+  let q = expect_ok_prover(ks_mk_const(st_pre, "Q"))
+  assert_eq(unfinished.theorem_name, "branch_hole")
+  assert_eq(unfinished.goal_src, Some("P , Q ⊢ P ∧ Q"))
+  assert_eq(unfinished.step_index, Some(2))
+  assert_eq(unfinished.branch_path, [1])
+  assert_eq(unfinished.hole_name, Some("h1"))
+  assert_eq(unfinished.detail, "proof contains an unfinished hole")
+  assert_eq(unfinished.local_hyps.length(), 0)
+  assert_true(term_alpha_eq(goal_concl(unfinished.current_goal), p))
+  assert_true(term_alpha_eq(goal_hyps(unfinished.current_goal)[0], p))
+  assert_true(term_alpha_eq(goal_hyps(unfinished.current_goal)[1], q))
+}
+
+///|
+test "prove_theorem_script fails closed when hole appears after goal discharge" {
+  let script = "theorem post_close_hole : ⊢ T := by exact truth; hole h1"
+  let result = prove_theorem_script_detailed(
+    empty_kernel_state(),
+    script,
+    default_prover_options(),
+  )
+  let err = expect_failed(result)
+  assert_eq(err.theorem_name, Some("post_close_hole"))
+  assert_eq(err.step_index, Some(2))
+  assert_eq(err.branch_path, [])
+  assert_eq(err.step_src, Some("hole h1"))
+  assert_true(err.current_goal is None)
+  assert_eq(err.local_hyps.length(), 0)
+  assert_true(err.error is Tactic(GoalShapeMismatch(_)))
+  assert_true(
+    err.detail.contains(
+      "hole step encountered after all goals were already discharged",
+    ),
+  )
 }
 
 ///|
@@ -370,6 +464,23 @@ test "prove_theorem_script_with_diagnostics returns structured qedside failures"
 }
 
 ///|
+test "prove_theorem_script_with_diagnostics returns unfinished proof payloads" {
+  let case = unfinished_corpus_cases()[0]
+  let unfinished = expect_diag_unfinished(
+    prove_theorem_script_with_diagnostics(
+      empty_kernel_state(),
+      case.script,
+      default_prover_options(),
+    ),
+  )
+  assert_eq(unfinished.theorem_name, case.case_id)
+  assert_eq(unfinished.step_index, Some(case.expected_step_index))
+  assert_eq(unfinished.branch_path, case.expected_branch_path)
+  assert_eq(unfinished.hole_name, case.expected_hole_name)
+  assert_eq(unfinished.detail, case.expected_detail)
+}
+
+///|
 test "prove_theorem_script accepts explicit structured branch blocks" {
   let st0 = expect_ok_prover(ks_add_const(empty_kernel_state(), "P", bool_ty()))
   let st1 = expect_ok_prover(ks_add_const(st0, "Q", bool_ty()))
@@ -598,20 +709,26 @@ test "prove_theorem_script supports witness-based exact theorem names" {
 test "prove_theorem_script rejects apply on direct-close theorem names" {
   let st0 = expect_ok_prover(ks_add_const(empty_kernel_state(), "Q", bool_ty()))
   assert_true(
-    prove_theorem_script(
-      st0,
-      "theorem t : ⊢ T := by apply truth",
-      default_prover_options(),
-    )
-    is Err(Tactic(ApplyMismatch(_))),
+    match
+      prove_theorem_script(
+        st0,
+        "theorem t : ⊢ T := by apply truth",
+        default_prover_options(),
+      ) {
+      Err(Failure(err)) => err.error is Tactic(ApplyMismatch(_))
+      _ => false
+    },
   )
   assert_true(
-    prove_theorem_script(
-      st0,
-      "theorem t : F ⊢ Q := by apply ex_falso",
-      default_prover_options(),
-    )
-    is Err(Tactic(ApplyMismatch(_))),
+    match
+      prove_theorem_script(
+        st0,
+        "theorem t : F ⊢ Q := by apply ex_falso",
+        default_prover_options(),
+      ) {
+      Err(Failure(err)) => err.error is Tactic(ApplyMismatch(_))
+      _ => false
+    },
   )
 }
 
@@ -620,20 +737,26 @@ test "prove_theorem_script rejects exact on apply-only or unavailable theorem na
   let st0 = expect_ok_prover(ks_add_const(empty_kernel_state(), "P", bool_ty()))
   let st1 = expect_ok_prover(ks_add_const(st0, "Q", bool_ty()))
   assert_true(
-    prove_theorem_script(
-      st1,
-      "theorem t : ⊢ P -> P ∨ Q := by exact or_intro_l",
-      default_prover_options(),
-    )
-    is Err(Tactic(GoalShapeMismatch(_))),
+    match
+      prove_theorem_script(
+        st1,
+        "theorem t : ⊢ P -> P ∨ Q := by exact or_intro_l",
+        default_prover_options(),
+      ) {
+      Err(Failure(err)) => err.error is Tactic(GoalShapeMismatch(_))
+      _ => false
+    },
   )
   assert_true(
-    prove_theorem_script(
-      st1,
-      "theorem t : P ⊢ P := by exact and_elim_l",
-      default_prover_options(),
-    )
-    is Err(Tactic(GoalShapeMismatch(_))),
+    match
+      prove_theorem_script(
+        st1,
+        "theorem t : P ⊢ P := by exact and_elim_l",
+        default_prover_options(),
+      ) {
+      Err(Failure(err)) => err.error is Tactic(GoalShapeMismatch(_))
+      _ => false
+    },
   )
 }
 
@@ -642,12 +765,15 @@ test "prove_theorem_script exact local hypothesis must directly witness the goal
   let st0 = expect_ok_prover(ks_add_const(empty_kernel_state(), "P", bool_ty()))
   let st1 = expect_ok_prover(ks_add_const(st0, "Q", bool_ty()))
   assert_true(
-    prove_theorem_script(
-      st1,
-      "theorem t : ⊢ P -> Q -> P := by intro hp; exact hp",
-      default_prover_options(),
-    )
-    is Err(Tactic(GoalShapeMismatch(_))),
+    match
+      prove_theorem_script(
+        st1,
+        "theorem t : ⊢ P -> Q -> P := by intro hp; exact hp",
+        default_prover_options(),
+      ) {
+      Err(Failure(err)) => err.error is Tactic(GoalShapeMismatch(_))
+      _ => false
+    },
   )
 }
 
@@ -656,20 +782,26 @@ test "prove_theorem_script rejects apply on incompatible implication-backed name
   let st0 = expect_ok_prover(ks_add_const(empty_kernel_state(), "P", bool_ty()))
   let st1 = expect_ok_prover(ks_add_const(st0, "Q", bool_ty()))
   assert_true(
-    prove_theorem_script(
-      st1,
-      "theorem t : ⊢ P := by apply and_elim_l",
-      default_prover_options(),
-    )
-    is Err(Tactic(ApplyMismatch(_))),
+    match
+      prove_theorem_script(
+        st1,
+        "theorem t : ⊢ P := by apply and_elim_l",
+        default_prover_options(),
+      ) {
+      Err(Failure(err)) => err.error is Tactic(ApplyMismatch(_))
+      _ => false
+    },
   )
   assert_true(
-    prove_theorem_script(
-      st1,
-      "theorem t : ⊢ P := by apply missing",
-      default_prover_options(),
-    )
-    is Err(Tactic(UnknownName(_))),
+    match
+      prove_theorem_script(
+        st1,
+        "theorem t : ⊢ P := by apply missing",
+        default_prover_options(),
+      ) {
+      Err(Failure(err)) => err.error is Tactic(UnknownName(_))
+      _ => false
+    },
   )
 }
 
@@ -681,7 +813,9 @@ test "prove_theorem_script does not treat ordinary imp application as trusted im
   let st1 = expect_ok_prover(ks_add_const(st0, "imp", bin))
   let script = "theorem t : ⊢ imp P P := by intro h; exact h"
   assert_true(
-    prove_theorem_script(st1, script, prover_options(false))
-    is Err(Tactic(GoalShapeMismatch(_))),
+    match prove_theorem_script(st1, script, prover_options(false)) {
+      Err(Failure(err)) => err.error is Tactic(GoalShapeMismatch(_))
+      _ => false
+    },
   )
 }

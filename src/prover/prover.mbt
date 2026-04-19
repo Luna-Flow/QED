@@ -57,6 +57,12 @@ pub struct ProverFailure {
 }
 
 ///|
+pub enum ProverScriptError {
+  Failure(ProverFailure)
+  Unfinished(ProverUnfinished)
+}
+
+///|
 pub struct ProverUnfinished {
   theorem_name : String
   detail : String
@@ -788,6 +794,56 @@ fn execute_script_body(
     step_idx = step_idx + 1
     let current_goal = ps_current_goal(before_step)
     let local_hyps = prover_local_hyps_of(before_step)
+    match script_step.step {
+      Hole(name) =>
+        match current_goal {
+          Some(goal) =>
+            return (
+              before_step,
+              step_idx,
+              Some(
+                prover_unfinished(
+                  theorem_name,
+                  Some(goal_src),
+                  Some(goal_span),
+                  Some(step_idx),
+                  branch_path,
+                  Some(script_step.span),
+                  Some(script_step.src),
+                  goal,
+                  local_hyps,
+                  name,
+                  "proof contains an unfinished hole",
+                  Some(script_step.span.start_offset),
+                ),
+              ),
+            )
+          None =>
+            return (
+              before_step,
+              step_idx,
+              Some(
+                branch_step_failure(
+                  theorem_name,
+                  goal_src,
+                  goal_span,
+                  step_idx,
+                  branch_path,
+                  script_step,
+                  current_goal,
+                  local_hyps,
+                  Tactic(
+                    tactic_goal_shape_mismatch(
+                      "hole step encountered after all goals were already discharged",
+                    ),
+                  ),
+                  Some(script_step.span.start_offset),
+                ),
+              ),
+            )
+        }
+      _ => ()
+    }
     let step = step_from_syn(script_step.step)
     out = match ps_apply(state, prelude, before_step, step) {
       Ok(v) => v
@@ -1065,11 +1121,11 @@ pub fn prove_theorem_script_with_diagnostics(
   state : KernelState,
   src : String,
   opts : ProverOptions,
-) -> Result[(KernelState, Thm), ProverFailure] {
+) -> Result[(KernelState, Thm), ProverScriptError] {
   match prove_theorem_script_detailed(state, src, opts) {
     Proved(ok) => Ok((ok.state, ok.thm))
-    Failed(err) => Err(err)
-    Unfinished(_) => panic()
+    Failed(err) => Err(Failure(err))
+    Unfinished(unfinished) => Err(Unfinished(unfinished))
   }
 }
 
@@ -1078,10 +1134,10 @@ pub fn prove_theorem_script(
   state : KernelState,
   src : String,
   opts : ProverOptions,
-) -> Result[(KernelState, Thm), ProverError] {
+) -> Result[(KernelState, Thm), ProverScriptError] {
   match prove_theorem_script_detailed(state, src, opts) {
     Proved(ok) => Ok((ok.state, ok.thm))
-    Failed(err) => Err(err.error)
-    Unfinished(_) => panic()
+    Failed(err) => Err(Failure(err))
+    Unfinished(unfinished) => Err(Unfinished(unfinished))
   }
 }

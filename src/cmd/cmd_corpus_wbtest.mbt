@@ -23,6 +23,15 @@ fn state_free_negative_cases() -> Array[@prover.NegativeCorpusCase] {
 }
 
 ///|
+fn unfinished_cases() -> Array[@prover.UnfinishedCorpusCase] {
+  let out : Array[@prover.UnfinishedCorpusCase] = []
+  for case in @prover.unfinished_corpus_cases() {
+    out.push(case)
+  }
+  out
+}
+
+///|
 fn expected_cmd_kind_label_for_negative(
   shape : @prover.NegativeErrorShape,
 ) -> String {
@@ -86,6 +95,47 @@ test "cmd state-free negative corpus subset preserves expected failure kinds" {
       }
       Success(_) => panic()
       Unfinished(_) => panic()
+    }
+  }
+}
+
+///|
+test "cmd unfinished corpus subset stays aligned with prover corpus" {
+  let cases = unfinished_cases()
+  assert_eq(cases.length(), 1)
+  for case in cases {
+    assert_true(
+      @prover.mapping_matrix_entries().any(fn(entry) {
+        entry.case_id == case.case_id
+      }),
+    )
+    let result = cmd_run_script(
+      case.case_id + ".qed",
+      case.script,
+      default_cmd_options(),
+    )
+    match result {
+      Unfinished(unfinished) => {
+        assert_eq(unfinished.path, case.case_id + ".qed")
+        assert_eq(unfinished.theorem_name, case.case_id)
+        assert_eq(unfinished.step_index, Some(case.expected_step_index))
+        assert_eq(unfinished.branch_path, case.expected_branch_path)
+        assert_eq(unfinished.hole_name, case.expected_hole_name)
+        assert_eq(unfinished.detail, case.expected_detail)
+        assert_true(unfinished.current_goal_summary.contains("|-"))
+        let rendered = cmd_render_result(result)
+        assert_true(rendered.contains("unfinished " + case.case_id + ".qed"))
+        assert_true(rendered.contains("\ntheorem: " + case.case_id))
+        assert_true(rendered.contains("\nstep: 2"))
+        assert_true(rendered.contains("\nbranch: <root>"))
+        assert_true(rendered.contains("\ngoal: "))
+        assert_true(rendered.contains("\nlocals: h:"))
+        assert_true(rendered.contains("\nhole: h1"))
+        assert_true(rendered.contains("\nmessage: " + case.expected_detail))
+        assert_eq(cmd_exit_code(result), 1)
+      }
+      Success(_) => panic()
+      Failure(_) => panic()
     }
   }
 }

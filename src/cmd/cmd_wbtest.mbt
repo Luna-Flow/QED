@@ -31,38 +31,14 @@ fn tmp_test_path(name : String) -> String {
 }
 
 ///|
-fn cmd_unfinished_fixture() -> @prover.ProverUnfinished {
-  let failure = match
-    @prover.prove_theorem_script_detailed(
-      @kernel.empty_kernel_state(),
-      "theorem bad : ⊢ T -> T := by intro h; apply truth",
-      @prover.default_prover_options(),
-    ) {
-    @prover.Failed(err) => err
-    _ => panic()
-  }
-  let goal = match failure.current_goal {
-    Some(v) => v
-    None => panic()
-  }
-  match
-    @prover.prover_unfinished(
-      "cmd_hole",
-      Some("T ⊢ T"),
-      None,
-      Some(4),
-      [1, 2],
-      None,
-      None,
-      goal,
-      failure.local_hyps,
-      Some("h1"),
-      "proof is unfinished",
-      None,
-    ) {
-    @prover.Unfinished(unfinished) => unfinished
-    _ => panic()
-  }
+test "cmd failure kind labels stay stable" {
+  assert_eq(cmd_failure_kind_to_string(Usage), "usage")
+  assert_eq(cmd_failure_kind_to_string(Io), "io")
+  assert_eq(cmd_failure_kind_to_string(Parse), "parse")
+  assert_eq(cmd_failure_kind_to_string(Bridge), "bridge")
+  assert_eq(cmd_failure_kind_to_string(Tactic), "tactic")
+  assert_eq(cmd_failure_kind_to_string(Sig), "sig")
+  assert_eq(cmd_failure_kind_to_string(Logic), "logic")
 }
 
 ///|
@@ -136,6 +112,7 @@ test "cmd run script reports stable tactic context for later-step failures" {
   assert_true(rendered.contains("\nstep: 2"))
   assert_true(rendered.contains("\ngoal: ["))
   assert_true(rendered.contains("\nlocals: h:"))
+  assert_eq(cmd_exit_code(result), 1)
 }
 
 ///|
@@ -152,6 +129,7 @@ test "cmd run script renders explicit empty local summary when no locals exist" 
   let rendered = cmd_render_result(result)
   assert_true(rendered.contains("\nstep: 1"))
   assert_true(rendered.contains("\nlocals: <none>"))
+  assert_eq(cmd_exit_code(result), 1)
 }
 
 ///|
@@ -167,13 +145,20 @@ test "cmd run script renders branch path for nested branch failures" {
   let rendered = cmd_render_result(result)
   assert_true(rendered.contains("\nbranch: 2.1"))
   assert_true(rendered.contains("\nstep: 4"))
+  assert_eq(cmd_exit_code(result), 1)
 }
 
 ///|
 test "cmd unfinished helper renders stable unfinished contract" {
-  let result = cmd_unfinished_from_prover(
+  let result = cmd_unfinished(
     "unfinished.qed",
-    cmd_unfinished_fixture(),
+    "cmd_hole",
+    Some(4),
+    [1, 2],
+    "[] |- Const(T)",
+    [CmdLocalHypSummary::{ name: "h", term_summary: "Const(T)" }],
+    Some("h1"),
+    "proof is unfinished",
   )
   let unfinished = expect_cmd_unfinished(result)
   assert_eq(unfinished.path, "unfinished.qed")
@@ -194,8 +179,8 @@ test "cmd unfinished helper renders stable unfinished contract" {
   assert_true(rendered.contains("\ntheorem: cmd_hole"))
   assert_true(rendered.contains("\nstep: 4"))
   assert_true(rendered.contains("\nbranch: 1.2"))
-  assert_true(rendered.contains("\ngoal: ["))
-  assert_true(rendered.contains("\nlocals: h:"))
+  assert_true(rendered.contains("\ngoal: [] |- Const(T)"))
+  assert_true(rendered.contains("\nlocals: h: Const(T)"))
   assert_true(rendered.contains("\nhole: h1"))
   assert_true(rendered.contains("\nmessage: proof is unfinished"))
   assert_false(rendered.contains("error["))
@@ -217,12 +202,17 @@ test "cmd unfinished rendering keeps empty markers stable" {
   let unfinished = expect_cmd_unfinished(result)
   assert_eq(unfinished.theorem_name, "cmd_hole")
   let rendered = cmd_render_result(result)
+  assert_true(
+    rendered.contains("unfinished unfinished_root.qed (cmd_hole): todo"),
+  )
   assert_true(rendered.contains("\ntheorem: cmd_hole"))
   assert_true(rendered.contains("\nstep: <none>"))
   assert_true(rendered.contains("\nbranch: <root>"))
+  assert_true(rendered.contains("\ngoal: [] |- Const(T)"))
   assert_true(rendered.contains("\nlocals: <none>"))
   assert_true(rendered.contains("\nhole: <none>"))
   assert_true(rendered.contains("\nmessage: todo"))
+  assert_eq(cmd_exit_code(result), 1)
 }
 
 ///|
@@ -232,6 +222,7 @@ test "cmd argv reports usage and io failures" {
   assert_eq(usage_err.path, "<cli>")
   assert_eq(cmd_failure_kind_to_string(usage_err.kind), "usage")
   assert_eq(usage_err.detail, "usage: qed-cmd <file>")
+  assert_eq(cmd_exit_code(usage_result), 1)
 
   let io_result = cmd_run_argv(
     ["qed-cmd", "/tmp/qed_cmd_missing_file.qed"],
@@ -240,6 +231,7 @@ test "cmd argv reports usage and io failures" {
   let io_err = expect_cmd_failure(io_result)
   assert_eq(io_err.path, "/tmp/qed_cmd_missing_file.qed")
   assert_eq(cmd_failure_kind_to_string(io_err.kind), "io")
+  assert_eq(cmd_exit_code(io_result), 1)
 }
 
 ///|

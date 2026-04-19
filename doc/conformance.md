@@ -111,10 +111,12 @@ Part II conformance 相关的 Lean 锚点主要在：
 - `src/prover/prover_positive_corpus_test.mbt` / `src/prover/prover_negative_corpus_test.mbt`
   当前承载 shipped subset 的 canonical script corpus，用于固定 capability
   覆盖与 honest failure 口径。
-- `src/prover/prover_test.mbt` 与 `src/cmd/cmd_wbtest.mbt` 当前也覆盖了
-  unfinished-proof / hole reporting 的结构化合同。
-- `src/prover/prover_mapping_matrix_test.mbt` 当前把 canonical case id、能力标签
-  与 `doc/manual.md` 的公开示例锚点绑定在同一份回归约束里。
+- `src/prover/prover_test.mbt`、`src/prover/prover_mapping_matrix_test.mbt` 与
+  `src/cmd/cmd_corpus_wbtest.mbt` 当前也覆盖了 unfinished-proof / hole reporting
+  的结构化合同与 canonical unfinished corpus 锚点。
+- `src/prover/prover_mapping_matrix_test.mbt` 当前把 positive / negative /
+  unfinished 三类 canonical case id、能力标签与 `doc/manual.md` 的公开示例
+  锚点绑定在同一份回归约束里。
 - `src/cmd/cmd_wbtest.mbt` 当前覆盖 success rendering、parse/io/usage failure、
   tactic failure context rendering、branch-path rendering，以及 file-first argv
   workflow。
@@ -130,6 +132,9 @@ Part II conformance 相关的 Lean 锚点主要在：
   为主锚点。
 - shipped subset 的负例 / honest failure 示例当前以
   `src/prover/prover_negative_corpus_test.mbt` 为主锚点。
+- canonical unfinished-proof 示例当前以
+  `src/prover/prover_test.mbt`、`src/prover/prover_mapping_matrix_test.mbt`
+  与 `src/cmd/cmd_corpus_wbtest.mbt` 为主锚点。
 - 公开文档中的 case-id 到示例锚点映射当前以
   `src/prover/prover_mapping_matrix_test.mbt` 为主锚点。
 - tactic-level 例子、local-over-name 冲突与 wrong-mode honest failure 当前以

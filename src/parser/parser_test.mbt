@@ -591,6 +591,10 @@ test "parse theorem script raw supports theorem header binders" {
       assert_true(s.binders[1].span.end_offset <= s.goal_span.start_offset)
       assert_eq(s.goal_src, "⊢ P -> P")
       assert_eq(s.body.steps.length(), 2)
+      assert_eq(s.body.steps[0].step_index, 1)
+      assert_eq(s.body.steps[0].branch_path, [])
+      assert_eq(s.body.steps[1].step_index, 2)
+      assert_eq(s.body.steps[1].branch_path, [])
     }
     Err(_) => panic()
   }
@@ -625,6 +629,8 @@ test "parse theorem script raw supports hole steps" {
     Ok(s) => {
       assert_eq(s.body.steps.length(), 1)
       assert_true(expect_script_step(s.body.steps[0]) is Hole(None))
+      assert_eq(s.body.steps[0].step_index, 1)
+      assert_eq(s.body.steps[0].branch_path, [])
       assert_eq(s.body.steps[0].src, "hole")
       assert_eq(s.body.steps[0].span.start_offset, 23)
       assert_eq(s.body.steps[0].span.end_offset, 27)
@@ -636,6 +642,8 @@ test "parse theorem script raw supports hole steps" {
     Ok(s) => {
       assert_eq(s.body.steps.length(), 1)
       assert_true(expect_script_step(s.body.steps[0]) is Hole(Some("h1")))
+      assert_eq(s.body.steps[0].step_index, 1)
+      assert_eq(s.body.steps[0].branch_path, [])
       assert_eq(s.body.steps[0].src, "hole h1")
       assert_eq(s.body.steps[0].span.start_offset, 23)
       assert_eq(s.body.steps[0].span.end_offset, 30)
@@ -696,8 +704,12 @@ test "parse theorem script raw supports block bodies and mixed separators" {
       assert_eq(s.name, "t1")
       assert_eq(s.body.steps.length(), 2)
       assert_true(expect_script_step(s.body.steps[0]) is Intro("h"))
+      assert_eq(s.body.steps[0].step_index, 1)
+      assert_eq(s.body.steps[0].branch_path, [])
       assert_eq(s.body.steps[0].src, "intro h")
       assert_true(expect_script_step(s.body.steps[1]) is Exact("h"))
+      assert_eq(s.body.steps[1].step_index, 2)
+      assert_eq(s.body.steps[1].branch_path, [])
       assert_eq(s.body.steps[1].src, "exact h")
       assert_true(
         s.body.steps[0].span.start_offset < s.body.steps[1].span.start_offset,
@@ -714,19 +726,27 @@ test "parse theorem script raw supports structured branch blocks" {
     Ok(s) => {
       assert_eq(s.body.steps.length(), 1)
       assert_true(expect_script_step(s.body.steps[0]) is Split)
+      assert_eq(s.body.steps[0].step_index, 1)
+      assert_eq(s.body.steps[0].branch_path, [])
       assert_eq(s.body.steps[0].src, "split")
       assert_eq(s.body.steps[0].branches.length(), 2)
+      assert_eq(s.body.steps[0].branches[0].branch_path, [1])
       assert_eq(s.body.steps[0].branches[0].body.steps.length(), 1)
       assert_true(
         expect_script_step(s.body.steps[0].branches[0].body.steps[0])
         is Assumption,
       )
+      assert_eq(s.body.steps[0].branches[0].body.steps[0].step_index, 2)
+      assert_eq(s.body.steps[0].branches[0].body.steps[0].branch_path, [1])
       assert_eq(s.body.steps[0].branches[0].src, "{ assumption }")
+      assert_eq(s.body.steps[0].branches[1].branch_path, [2])
       assert_eq(s.body.steps[0].branches[1].body.steps.length(), 1)
       assert_true(
         expect_script_step(s.body.steps[0].branches[1].body.steps[0])
         is Assumption,
       )
+      assert_eq(s.body.steps[0].branches[1].body.steps[0].step_index, 3)
+      assert_eq(s.body.steps[0].branches[1].body.steps[0].branch_path, [2])
       assert_true(
         s.body.steps[0].span.end_offset <=
         s.body.steps[0].branches[0].span.start_offset,
@@ -748,6 +768,8 @@ test "parse theorem script raw supports quantifier goals mixed with binders and 
       assert_eq(s.binders.length(), 1)
       assert_eq(s.body.steps.length(), 1)
       assert_true(expect_script_step(s.body.steps[0]) is Split)
+      assert_eq(s.body.steps[0].step_index, 1)
+      assert_eq(s.body.steps[0].branch_path, [])
       assert_eq(s.body.steps[0].branches.length(), 2)
       match s.goal.concl {
         Forall(name, ty, body) => {
@@ -768,10 +790,16 @@ test "parse theorem script raw supports quantifier goals mixed with binders and 
         expect_script_step(s.body.steps[0].branches[0].body.steps[0])
         is Hole(None),
       )
+      assert_eq(s.body.steps[0].branches[0].branch_path, [1])
+      assert_eq(s.body.steps[0].branches[0].body.steps[0].step_index, 2)
+      assert_eq(s.body.steps[0].branches[0].body.steps[0].branch_path, [1])
       assert_true(
         expect_script_step(s.body.steps[0].branches[1].body.steps[0])
         is Hole(Some("h1")),
       )
+      assert_eq(s.body.steps[0].branches[1].branch_path, [2])
+      assert_eq(s.body.steps[0].branches[1].body.steps[0].step_index, 3)
+      assert_eq(s.body.steps[0].branches[1].body.steps[0].branch_path, [2])
     }
     Err(_) => panic()
   }
@@ -786,12 +814,17 @@ test "parse theorem script raw supports nested structured branch blocks" {
       assert_eq(split_step.branches.length(), 2)
       let left_step = split_step.branches[1].body.steps[0]
       assert_true(expect_script_step(left_step) is Left)
+      assert_eq(left_step.step_index, 3)
+      assert_eq(left_step.branch_path, [2])
       assert_eq(left_step.src, "left")
       assert_eq(left_step.branches.length(), 1)
+      assert_eq(left_step.branches[0].branch_path, [2, 1])
       assert_eq(left_step.branches[0].src, "{ assumption }")
       assert_true(
         expect_script_step(left_step.branches[0].body.steps[0]) is Assumption,
       )
+      assert_eq(left_step.branches[0].body.steps[0].step_index, 4)
+      assert_eq(left_step.branches[0].body.steps[0].branch_path, [2, 1])
     }
     Err(_) => panic()
   }
@@ -804,9 +837,12 @@ test "parse theorem script raw keeps raw spans for structured branch blocks" {
     Ok(s) => {
       let step = s.body.steps[0]
       assert_eq(step.src, "left")
+      assert_eq(step.step_index, 1)
+      assert_eq(step.branch_path, [])
       assert_eq(step.span.start_offset, 33)
       assert_eq(step.span.end_offset, 37)
       assert_eq(step.branches.length(), 1)
+      assert_eq(step.branches[0].branch_path, [1])
       assert_eq(step.branches[0].src, "{ exact h }")
       assert_eq(step.branches[0].span.start_offset, 38)
       assert_eq(step.branches[0].span.end_offset, 49)
@@ -823,15 +859,23 @@ test "parse theorem script raw captures explicit branch blocks" {
       assert_eq(s.body.steps.length(), 1)
       let step = s.body.steps[0]
       assert_true(expect_script_step(step) is Split)
+      assert_eq(step.step_index, 1)
+      assert_eq(step.branch_path, [])
       assert_eq(step.branches.length(), 2)
       assert_eq(step.branches[0].body.steps.length(), 1)
       assert_eq(step.branches[1].body.steps.length(), 1)
+      assert_eq(step.branches[0].branch_path, [1])
+      assert_eq(step.branches[1].branch_path, [2])
       assert_true(
         expect_script_step(step.branches[0].body.steps[0]) is Assumption,
       )
       assert_true(
         expect_script_step(step.branches[1].body.steps[0]) is Assumption,
       )
+      assert_eq(step.branches[0].body.steps[0].step_index, 2)
+      assert_eq(step.branches[0].body.steps[0].branch_path, [1])
+      assert_eq(step.branches[1].body.steps[0].step_index, 3)
+      assert_eq(step.branches[1].body.steps[0].branch_path, [2])
       assert_eq(step.branches[0].src, "{ assumption }")
       assert_eq(step.branches[1].src, "{ assumption }")
       assert_true(

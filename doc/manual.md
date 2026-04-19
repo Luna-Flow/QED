@@ -375,11 +375,13 @@ QED 采用 kernel-first 架构。唯一 theorem-construction boundary 是 `src/k
 
 ### M3c Corpus / Mapping Matrix
 
-当前 shipped subset 的 canonical corpus 采用“双轨”：
+当前 shipped subset 的 canonical corpus 采用“三轨”：
 
 - 可执行语料：
   - `src/prover/prover_positive_corpus_test.mbt`
   - `src/prover/prover_negative_corpus_test.mbt`
+  - `src/prover/prover_test.mbt` / `src/cmd/cmd_corpus_wbtest.mbt` 中的
+    canonical unfinished-proof 回归
   - `src/prover/prover_mapping_matrix_test.mbt`
 - 可读映射：
   - 本节的支持矩阵与示例来源说明
@@ -442,6 +444,17 @@ theorem t6 : F ⊢ Q := by exact ex_falso
 `src/prover/prover_mapping_matrix_test.mbt` 是当前 corpus case、能力标签与文档锚点之间的
 单一测试锚点；若文档要新增、修改或删除公开示例，应先更新对应 canonical case，再同步
 更新 mapping matrix 和本文档。
+
+### Unfinished-proof Example
+
+当前 canonical unfinished-proof case 也是回归锚点，不会返回 theorem：
+
+```text
+theorem unf_hole_intro : ⊢ T -> T := by intro h; hole h1
+```
+
+这个样例当前由 `src/prover/prover_test.mbt`、`src/prover/prover_mapping_matrix_test.mbt`
+和 `src/cmd/cmd_corpus_wbtest.mbt` 共同锚定。
 
 ## File-First Workflow
 
