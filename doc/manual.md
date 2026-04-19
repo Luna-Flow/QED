@@ -1,18 +1,192 @@
 # QED Manual
 
 Status: active
-Audience: contributors, implementers
-Authority: implementation contract; subordinate to `doc/qed_formal_spec.pdf` and current code/tests
-Scope: current shipped behavior, trust boundary, support matrix, and stable examples
-Last reviewed: 2026-04-18
+Audience: users, contributors, implementers
+Authority: user guide + implementation contract; subordinate to `doc/qed_formal_spec.pdf` and current code/tests
+Scope: current shipped behavior, beginner-facing usage, trust boundary, support matrix, and stable examples
+Last reviewed: 2026-04-20
 
-本文档是 QED 当前实现合同。
+本文档既是 QED 当前的用户手册，也是实现合同。
 
 它以当前仓库工作区中的 MoonBit 与 Lean 代码为准，用来回答三件事：
 
+- 普通用户现在怎样实际写出和运行一个小证明；
 - 现在真正实现了什么；
-- 外围工程当前被允许做什么、不能做什么；
-- 下一步应该沿着什么方向继续收口，而不是偏离核心。
+- 外围工程当前被允许做什么、不能做什么。
+
+## 先给第一次接触 HOL 的读者
+
+如果你以前没有接触过 HOL、Lean、HOL Light、Isabelle 这类证明助手，可以先用下面这组直觉理解 QED 当前 shipped 的子集：
+
+- 这里的“证明”不是自然语言段落，而是一段会被内核检查的 script。
+- 当前 shipped 的目标主要是最小命题逻辑子集，加上一小部分等式与 theorem replay。
+- `⊢ goal` 表示“在空前提下证明 `goal`”。
+- `A, B ⊢ goal` 表示“在假设 `A` 和 `B` 的前提下证明 `goal`”。
+- `T` 可以先直觉地理解成“永真命题”，`F` 理解成“假命题”。
+- `A -> B` 表示“如果有 `A`，就可以推出 `B`”。
+- `A ∧ B` 表示“同时证明 `A` 和 `B`”。
+- `A ∨ B` 表示“证明 `A` 或 `B` 中的一边即可，但要明确选左边还是右边”。
+- `P = Q` 表示等式；当前 shipped 子集里也支持少量等式相关 theorem replay。
+
+当前 theorem script 可以先粗略理解成“面向目标的证明步骤”：
+
+- `intro h`：如果当前目标是 `A -> B`，就把它变成“新增一个叫 `h` 的局部假设 `A`，继续证明 `B`”。
+- `exact h`：如果 `h` 已经是当前目标的直接证据，就立刻闭合。
+- `assumption`：在当前局部假设里找与目标匹配的证据。
+- `apply th`：把某个蕴含型 theorem 或局部蕴含假设用于当前目标，产生新的子目标。
+- `split`：当目标是 `A ∧ B` 时，拆成两个子目标。
+- `left` / `right`：当目标是 `A ∨ B` 时，显式选择证明左支或右支。
+- `hole`：承认这里还没证明完，系统会返回结构化 unfinished 结果，而不是伪造成功。
+
+这份直觉足够支撑你开始读用户手册里的前几个例子；更完整的边界、规则名称和支持矩阵见后文。
+
+## 上手顺序
+
+建议按下面顺序开始：
+
+1. 先跑 `moon build` 和 `moon test`，确认工作区本身是绿的。
+2. 用 `src/cmd` 跑一个完全 state-free 的定理文件，先熟悉输入输出格式。
+3. 再尝试带 theorem-header binder 的例子，理解“局部变量如何进入证明上下文”。
+4. 最后再看支持矩阵、failure matrix 和实现合同，理解哪些能力是 shipped，哪些还没有。
+
+## 快速开始
+
+### 1. 构建
+
+```bash
+moon build
+moon test
+```
+
+### 2. 跑第一个证明文件
+
+在仓库根目录创建一个文件，例如 `truth_file.qed`：
+
+```text
+theorem truth_file : ⊢ T := by exact truth
+```
+
+然后执行：
+
+```bash
+moon run src/cmd truth_file.qed
+```
+
+当前成功输出形如：
+
+```text
+ok truth_file: T
+```
+
+这个例子适合第一步上手，因为它不依赖额外自由常量，也不要求你提前理解 binder、分支或 theorem inventory。
+
+### 3. 第二个例子：最小的“假设后原样返回”
+
+```text
+theorem id_bool (x : bool) : ⊢ x -> x := by
+  intro h
+  exact h
+```
+
+这里有两层要点：
+
+- `(x : bool)` 是 theorem header binder。它把一个局部变量 `x` 引入 theorem goal。
+- `intro h` 把目标 `x -> x` 变成“假设 `h : x`，证明 `x`”。
+- `exact h` 说明此时局部假设 `h` 就是当前目标的直接证据。
+
+这也是当前最适合没有 HOL 基础的读者理解的脚本：它只展示“目标改写”和“证据闭合”，不依赖额外 theorem name。
+
+### 4. 第三个例子：构造一个合取
+
+```text
+theorem dup_bool (x : bool) : ⊢ x -> x ∧ x := by
+  intro h
+  split { exact h } { exact h }
+```
+
+这个例子说明：
+
+- 目标 `x ∧ x` 需要分别证明左右两边；
+- `split` 会生成两个分支；
+- 每个分支里都可以继续用 `exact h` 闭合。
+
+如果你更喜欢顺序写法，当前也支持先 `split`，再按顺序完成两个子目标；但对初学者来说，`split { ... } { ... }` 的结构化分支块更直观。
+
+### 5. 第四个例子：看到 honest failure
+
+下面这个脚本是刻意写错的：
+
+```text
+theorem bad_branch (x : bool) : ⊢ x -> x ∨ x := by
+  intro h
+  left { exact truth }
+```
+
+它不会返回 theorem success，而会返回结构化失败。原因是：当前左支目标实际上是 `x`，但 `truth` 只能直接闭合 `T`。
+
+当前 canonical 输出示例见本文后面的 `manual:quantifier_failure_matrix`。
+
+### 6. 第五个例子：看到 unfinished proof
+
+```text
+theorem unfinished_branch (x : bool) : ⊢ x -> x ∨ (x ∨ x) := by
+  intro h
+  right { right { hole h1 } }
+```
+
+这里 `hole h1` 表示“我知道还差一个证明点，但现在先留空”。QED 会诚实地返回 unfinished 结果，并保留：
+
+- theorem 名；
+- step 序号；
+- branch 路径；
+- 当前 goal；
+- 当前 locals；
+- hole 名。
+
+这对于交互式前端、IDE 诊断和后续 proof authoring 很重要，但它不是 theorem。
+
+## 用户视角下的当前输入模型
+
+### theorem script 长什么样
+
+当前 shipped 的 theorem script 形状是：
+
+```text
+theorem <name> [(binder...)] : <goal> := by <steps>
+```
+
+其中：
+
+- `<name>` 是 theorem 名。
+- `[(binder...)]` 当前支持零个或多个 `(x : bool)` 这种 theorem-header binder。
+- `<goal>` 是一个 sequent，例如 `⊢ T`、`P ⊢ P`、`⊢ x -> x ∧ x`。
+- `<steps>` 可以是单行顺序写法，也可以是换行块状写法，还可以在 `split` / `left` / `right` 后接最小结构化 branch block。
+
+### 当前最需要知道的限制
+
+如果你是第一次使用 `src/cmd`，下面这几条最重要：
+
+- 直接 file-first 跑脚本时，最好先用 `T`、`F` 和 theorem-header binder `(x : bool)` 这类 state-free 例子。
+- 文档里的 `P`、`Q` 这类例子很多是为了说明支持矩阵；它们在测试里会先放进对应的 kernel state，再调用 prover。
+- theorem-header binder 已经是 shipped surface；原始 `forall (x : A), body` / `∀ (x : A), body` 目前只到 raw syntax，还不能当成 shipped theorem-producing path。
+- 当前支持的 step 只有 `intro`、`exact`、`apply`、`assumption`、`split`、`left`、`right`、`hole`。
+- 不支持的路径会 fail-closed，不会伪造 theorem success。
+
+### 命令行工作流
+
+当前 shipped `cmd` 入口是：
+
+```bash
+moon run src/cmd <file>
+```
+
+输入是单个 theorem-script 文件。输出有三类：
+
+- 成功：`ok <theorem_name>: <conclusion_summary>`
+- 失败：`error[kind] ...`，必要时带 `step`、`branch`、`goal`、`locals`
+- 未完成：`unfinished ...`，并带 `hole`、`goal`、`locals` 等上下文
+
+这意味着它已经不是“只有成功/失败两类”的黑箱 CLI，而是能把当前 proof state 相关的关键诊断暴露出来。
 
 ## Source-of-Truth Hierarchy
 
@@ -266,6 +440,7 @@ QED 采用 kernel-first 架构。唯一 theorem-construction boundary 是 `src/k
 - `split`
 - `left`
 - `right`
+- `hole`
 
 当前 `exact` / `apply` 已不再局限于 local-name-only operation。
 
@@ -423,7 +598,16 @@ QED 采用 kernel-first 架构。唯一 theorem-construction boundary 是 `src/k
 
 ### Runnable theorem-script examples
 
-下面这些脚本当前是**真实可运行**的支持子集示例；它们都已有回归测试覆盖，不是规划能力：
+下面这些脚本当前都是**真实存在于回归语料中的 theorem-script 示例**，不是规划能力。
+
+但要区分两件事：
+
+- “在测试/预置 state 中可运行”；
+- “用户直接通过 `moon run src/cmd <file>` 即可运行”。
+
+其中只有不依赖额外自由常量的 state-free 脚本，才适合作为第一次上手的 file-first 示例。对第一次使用本项目的用户，优先看本手册前面的 `truth_file`、`id_bool`、`dup_bool`。
+
+下面这组例子主要用于公开说明当前 shipped theorem-script 子集的覆盖面：
 
 ```text
 theorem t1 : ⊢ P -> P := by intro h; exact h
@@ -474,6 +658,14 @@ theorem qunf (x : bool) : ⊢ x -> x ∨ (x ∨ x) := by intro h; right { right 
 | `qbad` | `neg_quant_branch_goal_mismatch` | quantifier failure / `quantifier_goal_shape_mismatch` |
 | `qunf` | `unf_quant_nested_branch_hole` | quantifier unfinished / `quantifier_unfinished_hole` |
 
+对没有 HOL 基础的读者，可以把这些 binder 例子先理解成：
+
+- theorem 里可以先声明一个局部变量，比如 `(x : bool)`；
+- 后面的目标里就可以直接引用这个变量；
+- 这和“已经能证明真正的 `forall` 语句”还不是一回事。
+
+当前 shipped 的只是“binder 驱动的量词面前端”；raw `forall` theorem goal 仍未进入 theorem-producing path。
+
 ### Unfinished-proof Example
 
 当前 canonical unfinished-proof case 也是回归锚点，不会返回 theorem：
@@ -523,6 +715,8 @@ moon run src/cmd <file>
 ```text
 theorem truth_file : ⊢ T := by exact truth
 ```
+
+如果你只是想确认环境和命令链路正常，先跑这个最合适。
 
 对 quantifier-facing binder 脚本，当前 canonical CLI 输出示例是：
 
