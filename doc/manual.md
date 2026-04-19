@@ -147,6 +147,9 @@ theorem unfinished_branch (x : bool) : ⊢ x -> x ∨ (x ∨ x) := by
 
 ## 用户视角下的当前输入模型
 
+如果你现在主要是想查“命令行到底接受什么语法”，优先看 `doc/syntax.md`。
+本节保留的是更简短的输入模型摘要；支持矩阵、失败语义和实现合同仍以本文为准。
+
 ### theorem script 长什么样
 
 当前 shipped 的 theorem script 形状是：

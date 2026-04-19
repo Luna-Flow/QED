@@ -31,6 +31,7 @@ QED 当前采用以下文档层级：
 每类信息必须有单一主入口：
 
 - 当前实现合同：`doc/manual.md`
+- 当前用户输入语法速查：`doc/syntax.md`
 - 工程符合性与代码/测试映射：`doc/conformance.md`
 - 阶段性风险与缺口：`doc/current_workspace_audit.md`
 - 仓库摘要与快速入口：`README.md`
@@ -78,6 +79,7 @@ QED 当前采用以下文档层级：
   - 审计细节
   - 未来计划细节
 - `doc/manual.md` 描述当前实现边界、模块职责、支持矩阵和稳定示例。
+- `doc/syntax.md` 只描述当前 shipped theorem-script 输入语法与已知限制，不承担实现合同。
 - `doc/conformance.md` 描述规范对齐、代码/测试映射、贡献者检查项和文档示例约束。
 - `doc/current_workspace_audit.md` 只记录某一时间点仍然成立的风险、缺口和 follow-up，不长期重复 manual/conformance 的稳定事实。
 - `research/` 文档必须显式声明 `research-only`、`not shipped`、`non-authoritative`。
@@ -95,6 +97,8 @@ QED 当前采用以下文档层级：
   仓库摘要与导航入口。
 - `doc/manual.md`
   当前实现合同。
+- `doc/syntax.md`
+  当前 shipped theorem-script 输入语法速查。
 - `doc/conformance.md`
   代码/测试映射与工程符合性。
 - `doc/code_governance.md`
