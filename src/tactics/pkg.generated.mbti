@@ -19,6 +19,8 @@ pub fn local_hyp_term(LocalHyp) -> @kernel.Term
 
 pub fn mk_goal(Array[@kernel.Term], @kernel.Term) -> Goal
 
+pub fn proof_goal_view_branch_path(ProofGoalView) -> Array[Int]
+
 pub fn proof_goal_view_goal(ProofGoalView) -> Goal
 
 pub fn proof_goal_view_locals(ProofGoalView) -> Array[LocalHyp]
@@ -32,6 +34,8 @@ pub fn proof_state_snapshot_root_goal(ProofStateSnapshot) -> Goal
 pub fn ps_apply(@kernel.KernelState, @logic.PropPrelude, ProofState, TacticStep) -> Result[ProofState, TacticExecError]
 
 pub fn ps_apply_script(@kernel.KernelState, @logic.PropPrelude, ProofState, Array[TacticStep]) -> Result[ProofState, TacticExecError]
+
+pub fn ps_current_branch_path(ProofState) -> Array[Int]
 
 pub fn ps_current_focus(ProofState) -> ProofGoalView?
 
@@ -90,6 +94,7 @@ pub enum OrContext {
 pub enum PendingRefine {
   ImpBackwardTerm(@kernel.Term)
   ImpBackwardTheorem(@kernel.Thm)
+  AbsBackwardTerm(@kernel.Term)
 }
 
 type ProofGoalView

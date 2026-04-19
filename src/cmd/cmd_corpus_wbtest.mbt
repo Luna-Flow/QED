@@ -32,6 +32,41 @@ fn unfinished_cases() -> Array[@prover.UnfinishedCorpusCase] {
 }
 
 ///|
+fn quantifier_cases() -> Array[@prover.QuantifierCorpusCase] {
+  let out : Array[@prover.QuantifierCorpusCase] = []
+  for case in @prover.quantifier_corpus_cases() {
+    out.push(case)
+  }
+  out
+}
+
+///|
+fn render_branch_path_test(branch_path : Array[Int]) -> String {
+  if branch_path.length() == 0 {
+    "<root>"
+  } else {
+    branch_path.map(fn(idx) { idx.to_string() }).join(".")
+  }
+}
+
+///|
+fn render_local_hyps_test(local_hyps : Array[CmdLocalHypSummary]) -> String {
+  if local_hyps.length() == 0 {
+    "<none>"
+  } else {
+    local_hyps.map(fn(hyp) { hyp.name + ": " + hyp.term_summary }).join(", ")
+  }
+}
+
+///|
+fn render_hole_name_test(hole_name : String?) -> String {
+  match hole_name {
+    Some(name) => name
+    None => "<none>"
+  }
+}
+
+///|
 fn expected_cmd_kind_label_for_negative(
   shape : @prover.NegativeErrorShape,
 ) -> String {
@@ -102,7 +137,7 @@ test "cmd state-free negative corpus subset preserves expected failure kinds" {
 ///|
 test "cmd unfinished corpus subset stays aligned with prover corpus" {
   let cases = unfinished_cases()
-  assert_eq(cases.length(), 1)
+  assert_eq(cases.length(), 2)
   for case in cases {
     assert_true(
       @prover.mapping_matrix_entries().any(fn(entry) {
@@ -123,19 +158,133 @@ test "cmd unfinished corpus subset stays aligned with prover corpus" {
         assert_eq(unfinished.hole_name, case.expected_hole_name)
         assert_eq(unfinished.detail, case.expected_detail)
         assert_true(unfinished.current_goal_summary.contains("|-"))
-        let rendered = cmd_render_result(result)
-        assert_true(rendered.contains("unfinished " + case.case_id + ".qed"))
-        assert_true(rendered.contains("\ntheorem: " + case.case_id))
-        assert_true(rendered.contains("\nstep: 2"))
-        assert_true(rendered.contains("\nbranch: <root>"))
-        assert_true(rendered.contains("\ngoal: "))
-        assert_true(rendered.contains("\nlocals: h:"))
-        assert_true(rendered.contains("\nhole: h1"))
-        assert_true(rendered.contains("\nmessage: " + case.expected_detail))
+        let expected = [
+          "unfinished " +
+          case.case_id +
+          ".qed (" +
+          case.case_id +
+          "): " +
+          case.expected_detail,
+          "theorem: " + case.case_id,
+          "step: " + case.expected_step_index.to_string(),
+          "branch: " + render_branch_path_test(case.expected_branch_path),
+          "goal: " + unfinished.current_goal_summary,
+          "locals: " + render_local_hyps_test(unfinished.local_hyps),
+          "hole: " + render_hole_name_test(case.expected_hole_name),
+          "message: " + case.expected_detail,
+        ].join("\n")
+        assert_eq(cmd_render_result(result), expected)
         assert_eq(cmd_exit_code(result), 1)
       }
       Success(_) => panic()
       Failure(_) => panic()
+    }
+  }
+}
+
+///|
+test "cmd quantifier corpus subset stays aligned with prover corpus" {
+  let cases = quantifier_cases()
+  assert_eq(cases.length(), 4)
+  for case in cases {
+    assert_true(
+      @prover.mapping_matrix_entries().any(fn(entry) {
+        entry.case_id == case.case_id
+      }),
+    )
+    let result = cmd_run_script(
+      case.case_id + ".qed",
+      case.script,
+      default_cmd_options(),
+    )
+    let outcome = @prover.quantifier_surface_outcome_label(case.outcome)
+    if outcome == "success" {
+      match result {
+        Success(ok) => {
+          assert_eq(ok.path, case.case_id + ".qed")
+          assert_eq(ok.theorem_name, case.case_id)
+          assert_true(
+            cmd_render_result(result).contains("ok " + case.case_id + ":"),
+          )
+        }
+        Failure(_) => panic()
+        Unfinished(_) => panic()
+      }
+    } else if outcome == "failure" {
+      match result {
+        Failure(err) => {
+          let expected_step_index = match case.expected_step_index {
+            Some(v) => v
+            None => panic()
+          }
+          let expected_detail = match case.expected_detail {
+            Some(v) => v
+            None => panic()
+          }
+          assert_eq(err.path, case.case_id + ".qed")
+          assert_eq(err.theorem_name, Some(case.case_id))
+          assert_eq(cmd_failure_kind_to_string(err.kind), "tactic")
+          assert_eq(err.step_index, case.expected_step_index)
+          assert_eq(err.branch_path, case.expected_branch_path)
+          assert_true(err.current_goal_summary is Some(_))
+          assert_eq(err.local_hyps.length(), 1)
+          assert_true(err.detail.contains(expected_detail))
+          let rendered = cmd_render_result(result)
+          assert_true(rendered.contains("error[tactic]"))
+          assert_true(
+            rendered.contains("\nstep: " + expected_step_index.to_string()),
+          )
+          assert_true(
+            rendered.contains(
+              "\nbranch: " + render_branch_path_test(case.expected_branch_path),
+            ),
+          )
+          assert_true(rendered.contains("\ngoal: "))
+          assert_true(rendered.contains("\nlocals: "))
+          assert_true(rendered.contains("x : bool"))
+        }
+        Success(_) => panic()
+        Unfinished(_) => panic()
+      }
+    } else {
+      match result {
+        Unfinished(unfinished) => {
+          let expected_detail = match case.expected_detail {
+            Some(v) => v
+            None => panic()
+          }
+          let expected_step_index = match case.expected_step_index {
+            Some(v) => v
+            None => panic()
+          }
+          assert_eq(unfinished.path, case.case_id + ".qed")
+          assert_eq(unfinished.theorem_name, case.case_id)
+          assert_eq(unfinished.step_index, case.expected_step_index)
+          assert_eq(unfinished.branch_path, case.expected_branch_path)
+          assert_eq(unfinished.hole_name, case.expected_hole_name)
+          assert_eq(unfinished.detail, expected_detail)
+          assert_true(unfinished.current_goal_summary.contains("|-"))
+          let expected = [
+            "unfinished " +
+            case.case_id +
+            ".qed (" +
+            case.case_id +
+            "): " +
+            expected_detail,
+            "theorem: " + case.case_id,
+            "step: " + expected_step_index.to_string(),
+            "branch: " + render_branch_path_test(case.expected_branch_path),
+            "goal: " + unfinished.current_goal_summary,
+            "locals: " + render_local_hyps_test(unfinished.local_hyps),
+            "hole: " + render_hole_name_test(case.expected_hole_name),
+            "message: " + expected_detail,
+          ].join("\n")
+          assert_eq(cmd_render_result(result), expected)
+          assert_eq(cmd_exit_code(result), 1)
+        }
+        Success(_) => panic()
+        Failure(_) => panic()
+      }
     }
   }
 }

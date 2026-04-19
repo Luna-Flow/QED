@@ -44,6 +44,7 @@ using @tactics {
   mk_goal,
   ps_apply,
   ps_current_local_hyps,
+  ps_current_branch_path,
   ps_goal_count,
   ps_init,
   ps_current_goal,

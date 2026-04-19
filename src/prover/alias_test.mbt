@@ -37,6 +37,7 @@ using @logic {
 using @prover {
   type PositiveCorpusCase,
   type UnfinishedCorpusCase,
+  type QuantifierCorpusCase,
   type NegativeCorpusCase,
   type MappingCaseKind,
   type MappingDocVisibility,
@@ -48,6 +49,7 @@ using @prover {
   type ProverUnfinished,
   positive_corpus_cases,
   unfinished_corpus_cases,
+  quantifier_corpus_cases,
   negative_corpus_cases,
   mapping_matrix_entries,
   mapping_case_positive,

@@ -149,6 +149,36 @@ test "cmd run script renders branch path for nested branch failures" {
 }
 
 ///|
+test "cmd run script keeps quantifier-facing binder failure rendering stable" {
+  let result = cmd_run_script(
+    "quant_fail.qed",
+    "theorem quant_bad (x : bool) : ⊢ x -> x ∨ x := by intro h; left { exact truth }",
+    default_cmd_options(),
+  )
+  let err = expect_cmd_failure(result)
+  assert_eq(err.path, "quant_fail.qed")
+  assert_eq(err.theorem_name, Some("quant_bad"))
+  assert_eq(err.step_index, Some(3))
+  assert_eq(err.branch_path, [1])
+  assert_eq(err.current_goal_summary, Some("[Var(x : bool)] |- Var(x : bool)"))
+  assert_eq(err.local_hyps.length(), 1)
+  assert_eq(err.local_hyps[0].name, "h")
+  assert_eq(err.local_hyps[0].term_summary, "Var(x : bool)")
+  let rendered = cmd_render_result(result)
+  assert_eq(
+    rendered,
+    [
+      "error[tactic] quant_fail.qed (quant_bad): " + err.detail,
+      "step: 3",
+      "branch: 1",
+      "goal: [Var(x : bool)] |- Var(x : bool)",
+      "locals: h: Var(x : bool)",
+    ].join("\n"),
+  )
+  assert_eq(cmd_exit_code(result), 1)
+}
+
+///|
 test "cmd unfinished helper renders stable unfinished contract" {
   let result = cmd_unfinished(
     "unfinished.qed",
@@ -212,6 +242,36 @@ test "cmd unfinished rendering keeps empty markers stable" {
   assert_true(rendered.contains("\nlocals: <none>"))
   assert_true(rendered.contains("\nhole: <none>"))
   assert_true(rendered.contains("\nmessage: todo"))
+  assert_eq(cmd_exit_code(result), 1)
+}
+
+///|
+test "cmd run script keeps quantifier-facing binder unfinished rendering stable" {
+  let result = cmd_run_script(
+    "quant_unfinished.qed",
+    "theorem quant_hole (x : bool) : ⊢ x -> x ∨ (x ∨ x) := by intro h; right { right { hole h1 } }",
+    default_cmd_options(),
+  )
+  let unfinished = expect_cmd_unfinished(result)
+  assert_eq(unfinished.path, "quant_unfinished.qed")
+  assert_eq(unfinished.theorem_name, "quant_hole")
+  assert_eq(unfinished.step_index, Some(4))
+  assert_eq(unfinished.branch_path, [1, 1])
+  assert_eq(unfinished.current_goal_summary, "[Var(x : bool)] |- Var(x : bool)")
+  assert_eq(unfinished.local_hyps.length(), 1)
+  assert_eq(unfinished.local_hyps[0].name, "h")
+  assert_eq(unfinished.local_hyps[0].term_summary, "Var(x : bool)")
+  assert_eq(unfinished.hole_name, Some("h1"))
+  assert_eq(unfinished.detail, "proof contains an unfinished hole")
+  let rendered = cmd_render_result(result)
+  assert_eq(
+    rendered,
+    [
+      "unfinished quant_unfinished.qed (quant_hole): proof contains an unfinished hole",
+      "theorem: quant_hole", "step: 4", "branch: 1.1", "goal: [Var(x : bool)] |- Var(x : bool)",
+      "locals: h: Var(x : bool)", "hole: h1", "message: proof contains an unfinished hole",
+    ].join("\n"),
+  )
   assert_eq(cmd_exit_code(result), 1)
 }
 

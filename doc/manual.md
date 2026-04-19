@@ -156,8 +156,9 @@ QED 采用 kernel-first 架构。唯一 theorem-construction boundary 是 `src/k
 - theorem-script AST 当前会为 theorem header binder、theorem goal 与每个 step
   保留 raw-source span；这些位置仍对用户原始输入负责，不会静默改写到
   normalize 后坐标。
-- theorem header binder 当前只建立 goal lowering 用的 local parse env；
-  它不是 quantifier surface，不会给 tactic/prover 新增 theorem authority。
+- theorem header binder 当前是已 shipped 的 quantifier-facing surface：
+  它会把 binder 名引入 goal lowering、proof-state locals 与 cmd diagnostics；
+  但它不会给 tactic/prover 新增 theorem authority。
 - `forall (x : A), body` / `∀ (x : A), body` 当前已进入 raw syntax；
   但还没有进入 shipped theorem-producing lowering path。
 
@@ -234,8 +235,8 @@ QED 采用 kernel-first 架构。唯一 theorem-construction boundary 是 `src/k
   - `logic_prop_resolve_exact_theorem`
   - `logic_prop_resolve_apply_theorem`
 
-这些 helper 的目标是让 future proof synthesis 和 theorem catalog 扩展继续显式 replay
- kernel-checked path，而不是在前端偷偷增加语义捷径。
+这些 helper 的目标是让 proof synthesis 和 theorem catalog 的 replay 路径继续保持
+显式的 kernel-checked path，而不是在前端偷偷增加语义捷径。
 
 ## Proof Scripting Status
 
@@ -327,6 +328,8 @@ QED 采用 kernel-first 架构。唯一 theorem-construction boundary 是 `src/k
 - parser normalize/raw-offset/theorem-script raw parsing, including sequential
   block bodies、structured branch blocks、theorem-header binders、hole step，
   以及 raw binder/goal/step spans
+- theorem-header binder 驱动的 quantifier-facing script surface，以及对应的
+  prover/cmd goal、locals、branch、unfinished-proof 摘要
 - parser-side utility APIs `parse_let` / `parse_def_function`
 - proposition prelude definition theorems + unfold helpers
 - supported propositional tactic replay to kernel `Thm`
@@ -336,21 +339,20 @@ QED 采用 kernel-first 架构。唯一 theorem-construction boundary 是 `src/k
 ### Explicitly not shipped
 
 - richer theorem blocks
-- quantifier-oriented frontend
-- quantifier lowering on the shipped theorem-producing path
+- raw `forall` / `∀` theorem-goal lowering on the theorem-producing path
 - promoted rewrite/simplify tactic or command surface
 - kernel metavariables / hole completion authority
 - dictionary passing / typeclass frontend
 - arbitrary theorem-environment references
 - arbitrary script completeness
 
-### Active next line
+### Current Extension Contract
 
-- theorem-name inventory、corpus、mapping matrix 与 docs 继续保持同步；
-- 下一阶段主目标改为用户证明体验：优先补齐 script、goal、hole、unfinished
-  proof reporting 与量词前端；
-- richer proof blocks、holes 与 quantifier surface 的扩面，仍必须沿着当前
-  checked replay boundary 推进
+- theorem-name inventory、corpus、mapping matrix 与 docs 使用同一组 shipped anchors；
+- nested proof blocks 继续通过当前 checked replay boundary 组织；
+- hole / unfinished-proof 继续是 frontend contract，不是 kernel metavariable authority；
+- theorem-header binder 继续作为当前 shipped quantifier-facing 语法的一部分，并保持与 corpus / matrix 同步；
+- 新增公开示例时，必须先进入回归测试，再进入文档锚点。
 
 ### Stable theorem-name surface
 
@@ -375,13 +377,16 @@ QED 采用 kernel-first 架构。唯一 theorem-construction boundary 是 `src/k
 
 ### M3c Corpus / Mapping Matrix
 
-当前 shipped subset 的 canonical corpus 采用“三轨”：
+当前 shipped subset 的 canonical corpus 采用“四类”：
 
 - 可执行语料：
   - `src/prover/prover_positive_corpus_test.mbt`
   - `src/prover/prover_negative_corpus_test.mbt`
   - `src/prover/prover_test.mbt` / `src/cmd/cmd_corpus_wbtest.mbt` 中的
     canonical unfinished-proof 回归
+  - `src/prover/corpus.mbt` 中的 quantifier-facing binder canonical cases，
+    由 `src/cmd/cmd_corpus_wbtest.mbt` 与
+    `src/prover/prover_mapping_matrix_test.mbt` 共同锚定
   - `src/prover/prover_mapping_matrix_test.mbt`
 - 可读映射：
   - 本节的支持矩阵与示例来源说明
@@ -407,11 +412,14 @@ QED 采用 kernel-first 架构。唯一 theorem-construction boundary 是 `src/k
 | `pos_branch_left_disjunction` | `public_example` / `manual:runnable_examples` | `left { ... }` | `structural_only` / `left` | 结构化析取分支块 |
 | `pos_exact_truth` | `public_example` / `manual:runnable_examples` | `exact truth` | `direct_close` / `exact_named_direct_close` | `T` 目标直接闭合 |
 | `pos_exact_ex_falso` | `public_example` / `manual:runnable_examples` | `exact ex_falso` | `context_derived` / `exact_context_derived` | 假设 `F` 时诚实闭合任意 bool 目标 |
+| `pos_quant_seq_identity` | `public_example` / `manual:quantifier_examples` | `(x : bool)` binder + `intro` / `exact` | `quantifier_surface` / `quantifier_intro_exact` | theorem-header binder 驱动的顺序量词面 |
+| `pos_quant_branch_split` | `public_example` / `manual:quantifier_examples` | `(x : bool)` binder + `split { ... } { ... }` | `quantifier_surface` / `quantifier_split_branch` | binder + branch block 的兼容正例 |
 | `neg_exact_or_intro_wrong_mode` | `public_failure_example` / `manual:failure_matrix` | `exact or_intro_l` | apply-only theorem misuse in exact mode | `GoalShapeMismatch` |
 | `neg_apply_truth_wrong_mode` | `public_failure_example` / `manual:failure_matrix` | `apply truth` | direct-close theorem misuse | `ApplyMismatch` |
 | `neg_local_shadow_truth_is_not_implication` | `public_failure_example` / `manual:failure_matrix` | `apply truth` | local shadow failure | 仍先解析 local，再诚实失败 |
 | `neg_exact_context_missing` | `public_failure_example` / `manual:failure_matrix` | `exact and_elim_l` | context-derived missing owner | `GoalShapeMismatch` |
 | `neg_non_bool_connector_rejected` | `public_failure_example` / `manual:failure_matrix` | `f ∧ Q` | frontend boundary reject | 非 `bool` connector fail-closed |
+| `neg_quant_branch_goal_mismatch` | `public_failure_example` / `manual:quantifier_failure_matrix` | `(x : bool)` binder + `left { exact truth }` | `quantifier_surface` / `quantifier_goal_shape_mismatch` | binder locals 保留且 branch blame 稳定 |
 
 ### Runnable theorem-script examples
 
@@ -445,16 +453,47 @@ theorem t6 : F ⊢ Q := by exact ex_falso
 单一测试锚点；若文档要新增、修改或删除公开示例，应先更新对应 canonical case，再同步
 更新 mapping matrix 和本文档。
 
+### Quantifier-Facing Examples
+
+当前已 shipped 的量词面是 theorem-header binder，而不是 raw `forall` theorem goal。
+下面这些 binder 脚本当前都已有回归测试与 mapping matrix 锚定：
+
+```text
+theorem q1 (x : bool) : ⊢ x -> x := by intro h; exact h
+theorem q2 (x : bool) : ⊢ x -> x ∧ x := by intro h; split { exact h } { exact h }
+theorem qbad (x : bool) : ⊢ x -> x ∨ x := by intro h; left { exact truth }
+theorem qunf (x : bool) : ⊢ x -> x ∨ (x ∨ x) := by intro h; right { right { hole h1 } }
+```
+
+这些例子与 canonical case id 的映射是：
+
+| Example | Corpus case | Current support path |
+| --- | --- | --- |
+| `q1` | `pos_quant_seq_identity` | quantifier surface / `quantifier_intro_exact` |
+| `q2` | `pos_quant_branch_split` | quantifier surface / `quantifier_split_branch` |
+| `qbad` | `neg_quant_branch_goal_mismatch` | quantifier failure / `quantifier_goal_shape_mismatch` |
+| `qunf` | `unf_quant_nested_branch_hole` | quantifier unfinished / `quantifier_unfinished_hole` |
+
 ### Unfinished-proof Example
 
 当前 canonical unfinished-proof case 也是回归锚点，不会返回 theorem：
 
 ```text
 theorem unf_hole_intro : ⊢ T -> T := by intro h; hole h1
+theorem unf_nested_branch_hole : ⊢ T ∨ (T ∨ T) := by right { right { hole h1 } }
 ```
 
-这个样例当前由 `src/prover/prover_test.mbt`、`src/prover/prover_mapping_matrix_test.mbt`
-和 `src/cmd/cmd_corpus_wbtest.mbt` 共同锚定。
+这两个样例当前由 `src/prover/prover_test.mbt`、`src/prover/prover_mapping_matrix_test.mbt`
+和 `src/cmd/cmd_corpus_wbtest.mbt` 共同锚定；前者固定 root-level unfinished contract，
+后者固定 nested branch path 与 unfinished rendering。
+
+当前 quantifier-facing unfinished 锚点是：
+
+```text
+theorem unf_quant_nested_branch_hole (x : bool) : ⊢ x -> x ∨ (x ∨ x) := by intro h; right { right { hole h1 } }
+```
+
+它当前固定了 binder locals、nested branch path 与 CLI unfinished rendering。
 
 ## File-First Workflow
 
@@ -473,7 +512,11 @@ moon run src/cmd <file>
   - `branch`
   - `goal`
   - `locals`
-- 若脚本包含 `hole`，当前输出 `unfinished ...`，并给出 hole / goal / locals 摘要
+- 若脚本包含 `hole`，当前输出 `unfinished ...`，并给出 `step`、`branch`、`goal`、
+  `locals`、`hole`、`message` 摘要；空值标记稳定为 `<none>` / `<root>`
+- theorem-header binder 脚本沿用同一份 CLI 合同；`goal` / `locals` 摘要当前固定为
+  kernel-term string，branch/step blame 与 unfinished rendering 由
+  `src/cmd/cmd_corpus_wbtest.mbt` 中的 quantifier corpus 锚定
 
 当前可回归的最小例子是：
 
@@ -481,20 +524,37 @@ moon run src/cmd <file>
 theorem truth_file : ⊢ T := by exact truth
 ```
 
-## Current Trajectory
+对 quantifier-facing binder 脚本，当前 canonical CLI 输出示例是：
 
-当前外围工程仍应沿着以下方向继续收口：
+```text
+error[tactic] neg_quant_branch_goal_mismatch.qed (neg_quant_branch_goal_mismatch): GoalShapeMismatch(exact theorem does not directly close current goal)
+step: 3
+branch: 1
+goal: [Var(x : bool)] |- Var(x : bool)
+locals: h: Var(x : bool)
+```
 
-- 保持 theorem inventory、mode-aware resolver 与 corpus/matrix 的单一来源；
-- 保持当前最小 structured branch block 继续沿同一 checked replay boundary 扩展；
-- 让 hole / unfinished proof 在前端成为正式对象，但不把它们变成 kernel
-  metavariable authority；
-- 把 theorem-header binder 推进到 proposition + quantifier 的正式用户语法，而不只是
-  工程 lowering slice；
-- 在不扩大信任边界的前提下，扩展 theorem-script 表达力与更自然的前端诊断；
-- 继续让 file-first workflow 复用同一套 corpus / mapping matrix，而不是分叉出第二套语义；
-- 让整个可执行前端越来越接近 Part II 所要求的 faithful realization，而不是在
-  parser、tactics 或 prover 中引入 ad-hoc proof shortcut。
+```text
+unfinished unf_quant_nested_branch_hole.qed (unf_quant_nested_branch_hole): proof contains an unfinished hole
+theorem: unf_quant_nested_branch_hole
+step: 4
+branch: 1.1
+goal: [Var(x : bool)] |- Var(x : bool)
+locals: h: Var(x : bool)
+hole: h1
+message: proof contains an unfinished hole
+```
+
+## Current Extension Contract
+
+当前可执行前端只允许沿着同一套 shipped anchors 扩展：
+
+- theorem inventory、mode-aware resolver、corpus、mapping matrix 与 docs 保持单一来源；
+- structured branch block 继续复用现有 checked replay boundary；
+- hole / unfinished proof 继续保持 frontend-only contract，不进入 kernel metavariable authority；
+- theorem-header binder 继续作为当前 shipped quantifier-facing 用户语法的一部分；
+- raw `forall` theorem goal 继续保持未 shipped，不得写成已支持；
+- file-first workflow 继续复用同一套 corpus / mapping matrix，不分叉第二套语义。
 
 ## Validation Gate
 

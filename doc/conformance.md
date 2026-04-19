@@ -62,7 +62,9 @@ Part II conformance 相关的 Lean 锚点主要在：
   `split` / `left` / `right` 当前还可带最小 branch block 语法，并保留
   raw binder/goal/step span
 - theorem-script 当前还支持 `hole` / `hole <name>` unfinished-proof step；
-  quantifier raw syntax 已存在，但尚未进入 shipped theorem-producing lowering path
+  theorem-header binder 当前已构成 shipped quantifier-facing surface，能够稳定进入
+  goal lowering、proof-state locals 与 cmd diagnostics；raw `forall` / `∀`
+  theorem goal 仍未进入 shipped theorem-producing lowering path
 - parser-side `parse_let` / `parse_def_function` 已 formalize 为 non-script utility surface
 
 这些层不是“任意用户证明都能产出可信 theorem”的完整前端。
@@ -72,7 +74,7 @@ Part II conformance 相关的 Lean 锚点主要在：
 当前没有实现，应明确视为缺失能力的部分包括：
 
 - richer proof blocks
-- binder-oriented quantifier surface
+- raw `forall` / `∀` theorem-goal frontend
 - promoted rewrite/simplify tactic / command surface
 - dictionary passing
 - typeclass frontend
@@ -97,6 +99,7 @@ Part II conformance 相关的 Lean 锚点主要在：
 | Proposition theorem replay/catalog seeds | `src/logic/prop_bool_theorems.mbt`, `src/logic/prop_refs.mbt`, `src/logic/prop_replay.mbt` | `src/logic/prop_bool_theorems_test.mbt`, `src/logic/prop_refs_test.mbt`, `src/logic/prop_replay_test.mbt` |
 | Operational proof scripting + M1 subset replay | `src/tactics/proof_state.mbt`, `src/prover/prover.mbt` | `src/tactics/proof_state_test.mbt`, `src/tactics/tactics_test.mbt`, `src/prover/prover_test.mbt`, `src/prover/prover_positive_corpus_test.mbt`, `src/prover/prover_negative_corpus_test.mbt` |
 | File-first `cmd` integration surface | `src/cmd/cmd.mbt` | `src/cmd/cmd_wbtest.mbt` |
+| Quantifier-facing binder corpus + CLI contract | `src/prover/corpus.mbt`, `src/prover/prover_mapping_matrix_test.mbt`, `src/cmd/cmd_corpus_wbtest.mbt` | `src/cmd/cmd_corpus_wbtest.mbt`, `src/cmd/cmd_wbtest.mbt`, `src/prover/prover_mapping_matrix_test.mbt` |
 | Formal Part I / Part II conformance pack | `formal_verification/QEDFV/Audit/PartI.lean`, `formal_verification/QEDFV/Engineering/Conformance.lean` | `lake build` |
 
 值得特别注意的回归点：
@@ -114,9 +117,14 @@ Part II conformance 相关的 Lean 锚点主要在：
 - `src/prover/prover_test.mbt`、`src/prover/prover_mapping_matrix_test.mbt` 与
   `src/cmd/cmd_corpus_wbtest.mbt` 当前也覆盖了 unfinished-proof / hole reporting
   的结构化合同与 canonical unfinished corpus 锚点。
+- `src/prover/prover_mapping_matrix_test.mbt` 与 `src/cmd/cmd_corpus_wbtest.mbt`
+  当前也覆盖了 nested branch unfinished path 与 stable empty-marker rendering。
+- `src/cmd/cmd_corpus_wbtest.mbt` 当前也固定了 shipped quantifier-facing binder
+  scripts 的 success / failure / unfinished CLI contract，包括 goal、locals、
+  branch path 与 step blame。
 - `src/prover/prover_mapping_matrix_test.mbt` 当前把 positive / negative /
-  unfinished 三类 canonical case id、能力标签与 `doc/manual.md` 的公开示例
-  锚点绑定在同一份回归约束里。
+  unfinished 三类 canonical case id、量词 binder case id、能力标签与
+  `doc/manual.md` 的公开示例锚点绑定在同一份回归约束里。
 - `src/cmd/cmd_wbtest.mbt` 当前覆盖 success rendering、parse/io/usage failure、
   tactic failure context rendering、branch-path rendering，以及 file-first argv
   workflow。
@@ -134,7 +142,12 @@ Part II conformance 相关的 Lean 锚点主要在：
   `src/prover/prover_negative_corpus_test.mbt` 为主锚点。
 - canonical unfinished-proof 示例当前以
   `src/prover/prover_test.mbt`、`src/prover/prover_mapping_matrix_test.mbt`
-  与 `src/cmd/cmd_corpus_wbtest.mbt` 为主锚点。
+  与 `src/cmd/cmd_corpus_wbtest.mbt` 为主锚点；root-level unfinished 与 nested
+  branch unfinished 两类样例都要保持同步。
+- quantifier-facing binder 示例当前也以
+  `src/prover/corpus.mbt`、`src/prover/prover_mapping_matrix_test.mbt` 与
+  `src/cmd/cmd_corpus_wbtest.mbt` 为主锚点；公开文档只允许引用这些 canonical
+  case id。
 - 公开文档中的 case-id 到示例锚点映射当前以
   `src/prover/prover_mapping_matrix_test.mbt` 为主锚点。
 - tactic-level 例子、local-over-name 冲突与 wrong-mode honest failure 当前以
@@ -177,14 +190,15 @@ Lean 中当前已经把外围工程的 Part II obligations 明确写成了工程
 - logic 已从“注册表面符号名”推进到“定义常量 + definition theorem + unfold/replay helper + 小型 theorem catalog + shared theorem inventory”。
 - tactics/prover 已从纯 operational prototype 前进到“支持子集可 replay 到 kernel `Thm`，并由 canonical corpus 固定支持矩阵与 honest failure”。
 
-若外围工程要继续符合现在的核心，下一步仍应集中在：
+若外围工程要继续符合现在的核心，应继续保持：
 
 - 在共享 theorem inventory 与 canonical corpus 之上继续扩展 replay builders；
 - 继续把新 shipped capability 写回 canonical corpus / mapping matrix /
   manual anchors，避免文档口径落后于实现；
 - 把 goal / hole / unfinished-proof diagnostics 做成正式前端合同，但继续明确它们
   不是 proof object；
-- 若引入量词前端或更丰富的 proof block，保持 parser/lowering/replay 的边界显式化；
+- 对 theorem-header binder 这条已 shipped 的 quantifier-facing 路径，继续保持
+  parser/lowering/replay 的边界显式化；raw `forall` theorem goal 仍须保持未 shipped；
 - 让 `cmd` 继续复用 `prover` 的 structured failure contract，而不是自行解释错误字符串；
 - 在当前 file-first workflow 之上继续扩大前端表达力。
 
@@ -200,9 +214,9 @@ Lean 中当前已经把外围工程的 Part II obligations 明确写成了工程
 
 不应该另起一套仅在 tactic/prover 中成立、但无法 replay 到 kernel path 的临时证明语义。
 
-## Current Gaps
+## Remaining Non-Shipped Surfaces
 
-当前仍然存在的主要缺口有：
+当前仍然没有 shipped 的能力包括：
 
 - theorem catalog 仍然偏小，尚不足以支撑更自然的大量脚本；但当前 shipped subset
   的 inventory、mode 边界与 corpus 已经固定；
@@ -211,7 +225,8 @@ Lean 中当前已经把外围工程的 Part II obligations 明确写成了工程
   仍未实现；
 - holes / unfinished proof 当前已进入 shipped theorem-script surface；但 hole
   completion / metavariable authority 仍未实现；
-- binder/quantifier-oriented frontend 当前仍未 shipped；
+- theorem-header binder 这条 quantifier-facing surface 已 shipped；但 raw
+  `forall` / `∀` theorem-goal frontend 当前仍未 shipped；
 - parser-side utility surface 已收口为 non-script API；后续只需保持文档 / 测试同步；
 - Lean 线当前是 paper/conformance pack，而不是 MoonBit 源码的直接机械化证明。
 

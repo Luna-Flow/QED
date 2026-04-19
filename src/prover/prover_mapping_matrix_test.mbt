@@ -42,6 +42,16 @@ fn find_unfinished_case_by_id(case_id : String) -> UnfinishedCorpusCase? {
 }
 
 ///|
+fn find_quantifier_case_by_id(case_id : String) -> QuantifierCorpusCase? {
+  for case in quantifier_corpus_cases() {
+    if case.case_id == case_id {
+      return Some(case)
+    }
+  }
+  None
+}
+
+///|
 fn mapping_kind_matches(lhs : MappingCaseKind, rhs : MappingCaseKind) -> Bool {
   match (lhs, rhs) {
     (PositiveCase, PositiveCase) => true
@@ -127,6 +137,9 @@ test "prover mapping matrix stays aligned with canonical corpora" {
       1,
     )
   }
+  for case in quantifier_corpus_cases() {
+    assert_eq(matrix_entry_count(entries, case.kind, case.case_id), 1)
+  }
 
   for entry in entries {
     match entry.kind {
@@ -149,7 +162,26 @@ test "prover mapping matrix stays aligned with canonical corpora" {
               ),
             )
           }
-          None => panic()
+          None =>
+            match find_quantifier_case_by_id(entry.case_id) {
+              Some(case) => {
+                assert_true(mapping_kind_matches(entry.kind, case.kind))
+                assert_eq(entry.script, case.script)
+                assert_eq(entry.catalog_or_failure_label, "quantifier_surface")
+                assert_eq(
+                  entry.capability_or_error_label,
+                  case.capability_label,
+                )
+                assert_eq(entry.doc_anchor, case.manual_anchor)
+                assert_true(
+                  mapping_visibility_matches(
+                    entry.doc_visibility,
+                    mapping_doc_visibility_public_example(),
+                  ),
+                )
+              }
+              None => panic()
+            }
         }
       NegativeCase =>
         match find_negative_case_by_id(entry.case_id) {
@@ -170,7 +202,26 @@ test "prover mapping matrix stays aligned with canonical corpora" {
               ),
             )
           }
-          None => panic()
+          None =>
+            match find_quantifier_case_by_id(entry.case_id) {
+              Some(case) => {
+                assert_true(mapping_kind_matches(entry.kind, case.kind))
+                assert_eq(entry.script, case.script)
+                assert_eq(entry.catalog_or_failure_label, "quantifier_surface")
+                assert_eq(
+                  entry.capability_or_error_label,
+                  case.capability_label,
+                )
+                assert_eq(entry.doc_anchor, case.manual_anchor)
+                assert_true(
+                  mapping_visibility_matches(
+                    entry.doc_visibility,
+                    mapping_doc_visibility_public_failure_example(),
+                  ),
+                )
+              }
+              None => panic()
+            }
         }
       UnfinishedCase =>
         match find_unfinished_case_by_id(entry.case_id) {
@@ -185,7 +236,26 @@ test "prover mapping matrix stays aligned with canonical corpora" {
               ),
             )
           }
-          None => panic()
+          None =>
+            match find_quantifier_case_by_id(entry.case_id) {
+              Some(case) => {
+                assert_true(mapping_kind_matches(entry.kind, case.kind))
+                assert_eq(entry.script, case.script)
+                assert_eq(entry.catalog_or_failure_label, "unfinished_proof")
+                assert_eq(
+                  entry.capability_or_error_label,
+                  case.capability_label,
+                )
+                assert_eq(entry.doc_anchor, case.manual_anchor)
+                assert_true(
+                  mapping_visibility_matches(
+                    entry.doc_visibility,
+                    mapping_doc_visibility_public_unfinished_example(),
+                  ),
+                )
+              }
+              None => panic()
+            }
         }
     }
   }
@@ -242,6 +312,15 @@ test "prover mapping matrix anchors current manual public examples" {
   assert_true(
     has_mapping_entry(
       entries,
+      mapping_case_unfinished(),
+      "unf_nested_branch_hole",
+      "manual:unfinished_examples",
+      mapping_doc_visibility_public_unfinished_example(),
+    ),
+  )
+  assert_true(
+    has_mapping_entry(
+      entries,
       mapping_case_positive(),
       "pos_exact_truth",
       "manual:runnable_examples",
@@ -255,6 +334,33 @@ test "prover mapping matrix anchors current manual public examples" {
       "pos_exact_ex_falso",
       "manual:runnable_examples",
       mapping_doc_visibility_public_example(),
+    ),
+  )
+  assert_true(
+    has_mapping_entry(
+      entries,
+      mapping_case_positive(),
+      "pos_quant_seq_identity",
+      "manual:quantifier_examples",
+      mapping_doc_visibility_public_example(),
+    ),
+  )
+  assert_true(
+    has_mapping_entry(
+      entries,
+      mapping_case_positive(),
+      "pos_quant_branch_split",
+      "manual:quantifier_examples",
+      mapping_doc_visibility_public_example(),
+    ),
+  )
+  assert_true(
+    has_mapping_entry(
+      entries,
+      mapping_case_unfinished(),
+      "unf_quant_nested_branch_hole",
+      "manual:quantifier_unfinished_examples",
+      mapping_doc_visibility_public_unfinished_example(),
     ),
   )
   assert_true(
@@ -358,6 +464,15 @@ test "prover mapping matrix anchors current manual failure examples" {
       mapping_case_negative(),
       "neg_non_bool_connector_rejected",
       "manual:failure_matrix",
+      mapping_doc_visibility_public_failure_example(),
+    ),
+  )
+  assert_true(
+    has_mapping_entry(
+      entries,
+      mapping_case_negative(),
+      "neg_quant_branch_goal_mismatch",
+      "manual:quantifier_failure_matrix",
       mapping_doc_visibility_public_failure_example(),
     ),
   )

@@ -806,6 +806,44 @@ test "parse theorem script raw supports quantifier goals mixed with binders and 
 }
 
 ///|
+test "parse theorem script raw rejects malformed quantifier goals" {
+  assert_true(
+    parse_theorem_script_raw("theorem t : ⊢ forall x : A, P x := by hole")
+    is Err(_),
+  )
+  assert_true(
+    parse_theorem_script_raw("theorem t : ⊢ forall (x : A) P x := by hole")
+    is Err(_),
+  )
+}
+
+///|
+test "parse goal bridge rejects quantifier goals on the shipped path" {
+  let env0 = expect_ok_parser(parse_let(empty_parse_env(), "let x : bool"))
+  match
+    parse_goal_with_env(
+      empty_kernel_state(),
+      env0,
+      "x ⊢ forall (x : A), x = x",
+    ) {
+    Err(Parse(e)) => {
+      assert_true(
+        match e.code {
+          UnexpectedToken => true
+          _ => false
+        },
+      )
+      assert_eq(
+        e.detail,
+        "quantifier frontend is not yet resolved on the shipped path",
+      )
+    }
+    Ok(_) => panic()
+    Err(_) => panic()
+  }
+}
+
+///|
 test "parse theorem script raw supports nested structured branch blocks" {
   let src = "theorem t1 : P, Q ⊢ P ∧ (P ∨ Q) := by split { assumption } { left { assumption } }"
   match parse_theorem_script_raw(src) {

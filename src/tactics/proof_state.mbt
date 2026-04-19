@@ -85,6 +85,7 @@ pub fn local_hyp_term(hyp : LocalHyp) -> Term {
 struct ProofGoalView {
   goal : Goal
   locals : Array[LocalHyp]
+  branch_path : Array[Int]
 }
 
 ///|
@@ -95,6 +96,11 @@ pub fn proof_goal_view_goal(view : ProofGoalView) -> Goal {
 ///|
 pub fn proof_goal_view_locals(view : ProofGoalView) -> Array[LocalHyp] {
   view.locals.copy()
+}
+
+///|
+pub fn proof_goal_view_branch_path(view : ProofGoalView) -> Array[Int] {
+  view.branch_path.copy()
 }
 
 ///|
@@ -127,6 +133,7 @@ pub fn proof_state_snapshot_current(
 pub enum PendingRefine {
   ImpBackwardTerm(Term)
   ImpBackwardTheorem(Thm)
+  AbsBackwardTerm(Term)
 }
 
 ///|
@@ -148,6 +155,7 @@ priv struct PendingGoal {
   hyps : Array[Term]
   concl : Term
   locals : Array[LocalHyp]
+  branch_path : Array[Int]
   imp_prefix : Array[Term]
   refine_chain : Array[PendingRefine]
   split_role : SplitRole
@@ -156,7 +164,11 @@ priv struct PendingGoal {
 
 ///|
 fn goal_view_of_pending(goal : PendingGoal) -> ProofGoalView {
-  ProofGoalView::{ goal: mk_goal(goal.hyps, goal.concl), locals: goal.locals }
+  ProofGoalView::{
+    goal: mk_goal(goal.hyps, goal.concl),
+    locals: goal.locals,
+    branch_path: goal.branch_path,
+  }
 }
 
 ///|
@@ -172,6 +184,7 @@ fn pending_from_goal(goal : Goal) -> PendingGoal {
     hyps: goal_hyps(goal),
     concl: goal_concl(goal),
     locals: [],
+    branch_path: [],
     imp_prefix: [],
     refine_chain: [],
     split_role: SplitNone,
@@ -182,8 +195,20 @@ fn pending_from_goal(goal : Goal) -> PendingGoal {
 ///|
 fn copy_goal_shape(
   g : PendingGoal,
-) -> (Array[Term], Array[LocalHyp], Array[Term], Array[PendingRefine]) {
-  (g.hyps.copy(), g.locals.copy(), g.imp_prefix.copy(), g.refine_chain.copy())
+) -> (
+  Array[Term],
+  Array[LocalHyp],
+  Array[Int],
+  Array[Term],
+  Array[PendingRefine],
+) {
+  (
+    g.hyps.copy(),
+    g.locals.copy(),
+    g.branch_path.copy(),
+    g.imp_prefix.copy(),
+    g.refine_chain.copy(),
+  )
 }
 
 ///|
@@ -219,6 +244,14 @@ pub fn ps_current_focus(ps : ProofState) -> ProofGoalView? {
   match ps_current_pending_goal(ps) {
     Some(goal) => Some(goal_view_of_pending(goal))
     None => None
+  }
+}
+
+///|
+pub fn ps_current_branch_path(ps : ProofState) -> Array[Int] {
+  match ps_current_focus(ps) {
+    Some(goal) => proof_goal_view_branch_path(goal)
+    None => []
   }
 }
 
@@ -316,6 +349,13 @@ fn local_ref_bindings(locals : Array[LocalHyp]) -> Array[(String, Term)] {
   for item in locals {
     out.push((item.name, item.term))
   }
+  out
+}
+
+///|
+fn child_branch_path(branch_path : Array[Int], branch_idx : Int) -> Array[Int] {
+  let out = branch_path.copy()
+  out.push(branch_idx)
   out
 }
 
@@ -572,6 +612,20 @@ fn replay_goal_refines(
           Ok(v) => v
           Err(e) => return Err(Logic(e))
         }
+      AbsBackwardTerm(binder) => {
+        let truth = match @logic.logic_prop_truth_const_thm(state, prelude) {
+          Ok(v) => v
+          Err(e) => return Err(Logic(e))
+        }
+        let lifted = match @logic.logic_deduct_antisym(state, t, truth) {
+          Ok(v) => v
+          Err(e) => return Err(Logic(e))
+        }
+        match @logic.logic_abs_rule(state, binder, lifted) {
+          Ok(v) => v
+          Err(e) => return Err(Logic(e))
+        }
+      }
     }
   }
   Ok(t)
@@ -635,6 +689,7 @@ fn store_split_left_partner(
               hyps: hd.hyps,
               concl: hd.concl,
               locals: hd.locals,
+              branch_path: hd.branch_path,
               imp_prefix: hd.imp_prefix,
               refine_chain: hd.refine_chain,
               split_role: SplitRight(c2, Some(replayed)),
@@ -735,11 +790,12 @@ fn apply_refine_goal(
 ) -> ApplyAcceptance {
   let rc = g.refine_chain.copy()
   rc.push(refine)
-  let (oh, ol, oip, _orc) = copy_goal_shape(g)
+  let (oh, ol, obp, oip, _orc) = copy_goal_shape(g)
   KeepOne(PendingGoal::{
     hyps: oh,
     concl: antecedent,
     locals: ol,
+    branch_path: obp,
     imp_prefix: oip,
     refine_chain: rc,
     split_role: g.split_role,
@@ -814,6 +870,7 @@ fn apply_accept_imp_intro(
           hyps,
           concl: b,
           locals,
+          branch_path: g.branch_path.copy(),
           imp_prefix: ip,
           refine_chain: [],
           split_role: g.split_role,
@@ -826,6 +883,8 @@ fn apply_accept_imp_intro(
 }
 
 ///|
+
+///|
 fn apply_accept_and_intro(
   state : KernelState,
   prelude : PropPrelude,
@@ -834,11 +893,12 @@ fn apply_accept_and_intro(
   match prop_dest_and(state, prelude, g.concl) {
     Some((a, b)) => {
       let and_full = g.concl
-      let (oh, ol, oip, orc) = copy_goal_shape(g)
+      let (oh, ol, obp, oip, orc) = copy_goal_shape(g)
       let g1 = PendingGoal::{
         hyps: oh.copy(),
         concl: a,
         locals: ol.copy(),
+        branch_path: child_branch_path(obp, 1),
         imp_prefix: oip.copy(),
         refine_chain: orc.copy(),
         split_role: SplitLeft(and_full),
@@ -848,6 +908,7 @@ fn apply_accept_and_intro(
         hyps: oh,
         concl: b,
         locals: ol,
+        branch_path: child_branch_path(obp, 2),
         imp_prefix: oip,
         refine_chain: orc,
         split_role: SplitRight(and_full, None),
@@ -856,6 +917,81 @@ fn apply_accept_and_intro(
       Ok(KeepTwo(g1, g2))
     }
     None => Err(ApplyMismatch("and_intro requires conjunction goal"))
+  }
+}
+
+///|
+fn intro_quantified_goal(
+  state : KernelState,
+  prelude : PropPrelude,
+  g : PendingGoal,
+  name : String,
+) -> Result[PendingGoal, TacticExecError] {
+  match @kernel.dest_eq(g.concl) {
+    Ok((lhs, rhs)) =>
+      match (@kernel.dest_abs(lhs), @kernel.dest_abs(rhs)) {
+        (Some((binder, body)), Some((_, rhs_body))) => {
+          let truth_term = match
+            ks_definition_theorem(state, prelude.truth_name) {
+            Ok(th) =>
+              match thm_concl(th) {
+                Ok(concl) =>
+                  match @kernel.dest_eq(concl) {
+                    Ok((lhs, _)) => lhs
+                    Err(_) =>
+                      return Err(
+                        ProofSynthesisUnavailable(
+                          "quantified intro needs truth constant",
+                        ),
+                      )
+                  }
+                Err(_) =>
+                  return Err(
+                    ProofSynthesisUnavailable(
+                      "quantified intro needs truth constant",
+                    ),
+                  )
+              }
+            Err(_) =>
+              return Err(
+                ProofSynthesisUnavailable(
+                  "quantified intro needs truth constant",
+                ),
+              )
+          }
+          if term_logical_eq(rhs_body, truth_term) ||
+            term_alpha_eq(rhs_body, truth_term) {
+            let locals = g.locals.copy()
+            locals.push(LocalHyp::{ name, term: binder })
+            let refines = g.refine_chain.copy()
+            refines.push(AbsBackwardTerm(binder))
+            Ok(PendingGoal::{
+              hyps: g.hyps.copy(),
+              concl: body,
+              locals,
+              branch_path: g.branch_path.copy(),
+              imp_prefix: g.imp_prefix.copy(),
+              refine_chain: refines,
+              split_role: g.split_role,
+              or_ctx: g.or_ctx,
+            })
+          } else {
+            Err(
+              GoalShapeMismatch(
+                "intro requires an implication or quantified goal",
+              ),
+            )
+          }
+        }
+        _ =>
+          Err(
+            GoalShapeMismatch(
+              "intro requires an implication or quantified goal",
+            ),
+          )
+      }
+    Err(_) =>
+      Err(GoalShapeMismatch("intro requires an implication or quantified goal"))
   }
 }
 
@@ -1008,33 +1144,40 @@ pub fn ps_apply(
     Intro(name) =>
       match prop_dest_imp(state, prelude, g.concl) {
         Some((a, b)) => {
-          let hyps = g.hyps.copy()
+          let (oh, ol, obp, oip, _orc) = copy_goal_shape(g)
+          let hyps = oh
           hyps.push(a)
-          let locals = g.locals.copy()
+          let locals = ol
           locals.push(LocalHyp::{ name, term: a })
-          let ip = g.imp_prefix.copy()
+          let ip = oip
           ip.push(a)
           keep_one(PendingGoal::{
             hyps,
             concl: b,
             locals,
+            branch_path: obp,
             imp_prefix: ip,
             refine_chain: [],
             split_role: g.split_role,
             or_ctx: g.or_ctx,
           })
         }
-        None => Err(GoalShapeMismatch("intro requires an implication goal"))
+        None =>
+          match intro_quantified_goal(state, prelude, g, name) {
+            Ok(next) => keep_one(next)
+            Err(e) => Err(e)
+          }
       }
     Split =>
       match prop_dest_and(state, prelude, g.concl) {
         Some((a, b)) => {
           let and_full = g.concl
-          let (oh, ol, oip, orc) = copy_goal_shape(g)
+          let (oh, ol, obp, oip, orc) = copy_goal_shape(g)
           let g1 = PendingGoal::{
             hyps: oh.copy(),
             concl: a,
             locals: ol.copy(),
+            branch_path: child_branch_path(obp, 1),
             imp_prefix: oip.copy(),
             refine_chain: orc.copy(),
             split_role: SplitLeft(and_full),
@@ -1044,6 +1187,7 @@ pub fn ps_apply(
             hyps: oh,
             concl: b,
             locals: ol,
+            branch_path: child_branch_path(obp, 2),
             imp_prefix: oip,
             refine_chain: orc,
             split_role: SplitRight(and_full, None),
@@ -1056,11 +1200,12 @@ pub fn ps_apply(
     Left =>
       match prop_dest_or(state, prelude, g.concl) {
         Some((a, br)) => {
-          let (oh, ol, oip, orc) = copy_goal_shape(g)
+          let (oh, ol, obp, oip, orc) = copy_goal_shape(g)
           keep_one(PendingGoal::{
             hyps: oh,
             concl: a,
             locals: ol,
+            branch_path: child_branch_path(obp, 1),
             imp_prefix: oip,
             refine_chain: orc,
             split_role: g.split_role,
@@ -1072,11 +1217,12 @@ pub fn ps_apply(
     Right =>
       match prop_dest_or(state, prelude, g.concl) {
         Some((al, b)) => {
-          let (oh, ol, oip, orc) = copy_goal_shape(g)
+          let (oh, ol, obp, oip, orc) = copy_goal_shape(g)
           keep_one(PendingGoal::{
             hyps: oh,
             concl: b,
             locals: ol,
+            branch_path: child_branch_path(obp, 1),
             imp_prefix: oip,
             refine_chain: orc,
             split_role: g.split_role,

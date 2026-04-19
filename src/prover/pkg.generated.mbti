@@ -50,6 +50,10 @@ pub fn prover_options(Bool) -> ProverOptions
 
 pub fn prover_unfinished(String, String?, @parser.SourceSpan?, Int?, Array[Int], @parser.SourceSpan?, String?, @tactics.Goal, Array[ProverLocalHyp], String?, String, Int?) -> ProverRunResult
 
+pub fn quantifier_corpus_cases() -> Array[QuantifierCorpusCase]
+
+pub fn quantifier_surface_outcome_label(QuantifierSurfaceOutcome) -> String
+
 pub fn script_layout_label(ScriptLayout) -> String
 
 pub fn unfinished_corpus_cases() -> Array[UnfinishedCorpusCase]
@@ -209,6 +213,26 @@ pub struct ProverUnfinished {
   current_goal : @tactics.Goal
   local_hyps : Array[ProverLocalHyp]
   hole_name : String?
+}
+
+pub struct QuantifierCorpusCase {
+  case_id : String
+  script : String
+  layout : ScriptLayout
+  kind : MappingCaseKind
+  outcome : QuantifierSurfaceOutcome
+  capability_label : String
+  manual_anchor : String
+  expected_step_index : Int?
+  expected_branch_path : Array[Int]
+  expected_hole_name : String?
+  expected_detail : String?
+}
+
+pub enum QuantifierSurfaceOutcome {
+  QuantifierSuccess
+  QuantifierFailure
+  QuantifierUnfinished
 }
 
 pub enum ScriptLayout {

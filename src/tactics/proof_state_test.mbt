@@ -109,7 +109,9 @@ test "proof state snapshot exposes pending goals after split" {
   let branch2 = expect_some_focus(ps_pending_focus_at(ps1, 1))
   assert_eq(proof_state_snapshot_pending_goal_count(snapshot), 2)
   assert_true(term_alpha_eq(goal_concl(proof_goal_view_goal(current)), p))
+  assert_eq(proof_goal_view_branch_path(current), [1])
   assert_true(term_alpha_eq(goal_concl(proof_goal_view_goal(branch2)), q))
+  assert_eq(proof_goal_view_branch_path(branch2), [2])
   assert_eq(proof_goal_view_locals(current).length(), 0)
   assert_eq(proof_goal_view_locals(branch2).length(), 0)
 }
@@ -128,6 +130,7 @@ test "proof state snapshot tracks current goal for left and right" {
       goal_concl(expect_some_goal(ps_current_goal(left_ps))),
     ),
   )
+  assert_eq(proof_goal_view_branch_path(left_current), [1])
 
   let or_rq = expect_ok_ps(prop_mk_or(st, prelude, r, q))
   let right_ps = expect_ok_ps(
@@ -140,6 +143,21 @@ test "proof state snapshot tracks current goal for left and right" {
       goal_concl(expect_some_goal(ps_current_goal(right_ps))),
     ),
   )
+  assert_eq(proof_goal_view_branch_path(right_current), [1])
+}
+
+///|
+test "proof state branch paths extend through nested disjunction steps" {
+  let (st, prelude, p, q, r) = setup_prop_env()
+  let or_qr = expect_ok_ps(prop_mk_or(st, prelude, q, r))
+  let or_p_qr = expect_ok_ps(prop_mk_or(st, prelude, p, or_qr))
+  let ps0 = ps_init(mk_goal([], or_p_qr))
+  let ps1 = expect_ok_ps(ps_apply(st, prelude, ps0, step_right()))
+  let ps2 = expect_ok_ps(ps_apply(st, prelude, ps1, step_right()))
+  let current = expect_some_focus(ps_current_focus(ps2))
+  assert_eq(ps_current_branch_path(ps2), [1, 1])
+  assert_eq(proof_goal_view_branch_path(current), [1, 1])
+  assert_true(term_alpha_eq(goal_concl(proof_goal_view_goal(current)), r))
 }
 
 ///|

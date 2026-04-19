@@ -1105,7 +1105,7 @@ pub fn prove_theorem_script_detailed(
         Some(syn.goal_src),
         Some(syn.goal_span),
         None,
-        [],
+        ps_current_branch_path(ps),
         None,
         None,
         current_goal,

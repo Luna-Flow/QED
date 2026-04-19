@@ -8,6 +8,7 @@ using @kernel {
   type LogicError,
   term_alpha_eq,
   term_logical_eq,
+  ks_definition_theorem,
   thm_concl,
   thm_hyps,
 }

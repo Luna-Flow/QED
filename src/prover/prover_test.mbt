@@ -211,6 +211,34 @@ test "prove_theorem_script returns unfinished for a branched hole body" {
 }
 
 ///|
+test "prove_theorem_script returns unfinished for a nested branched hole body" {
+  let st0 = expect_ok_prover(ks_add_const(empty_kernel_state(), "P", bool_ty()))
+  let st1 = expect_ok_prover(ks_add_const(st0, "Q", bool_ty()))
+  let st2 = expect_ok_prover(ks_add_const(st1, "R", bool_ty()))
+  let result = prove_theorem_script_detailed(
+    st2,
+    "theorem nested_branch_hole : P, Q, R ⊢ P ∨ (Q ∨ R) := by right { right { hole h1 } }",
+    default_prover_options(),
+  )
+  let unfinished = expect_unfinished(result)
+  let st_pre = expect_ok_prover(install_prop_prelude(st2))
+  let p = expect_ok_prover(ks_mk_const(st_pre, "P"))
+  let q = expect_ok_prover(ks_mk_const(st_pre, "Q"))
+  let r = expect_ok_prover(ks_mk_const(st_pre, "R"))
+  assert_eq(unfinished.theorem_name, "nested_branch_hole")
+  assert_eq(unfinished.step_index, Some(3))
+  assert_eq(unfinished.branch_path, [1, 1])
+  assert_eq(unfinished.hole_name, Some("h1"))
+  assert_eq(unfinished.detail, "proof contains an unfinished hole")
+  assert_eq(unfinished.local_hyps.length(), 0)
+  assert_true(term_alpha_eq(goal_concl(unfinished.current_goal), r))
+  assert_eq(goal_hyps(unfinished.current_goal).length(), 3)
+  assert_true(term_alpha_eq(goal_hyps(unfinished.current_goal)[0], p))
+  assert_true(term_alpha_eq(goal_hyps(unfinished.current_goal)[1], q))
+  assert_true(term_alpha_eq(goal_hyps(unfinished.current_goal)[2], r))
+}
+
+///|
 test "prove_theorem_script fails closed when hole appears after goal discharge" {
   let script = "theorem post_close_hole : ⊢ T := by exact truth; hole h1"
   let result = prove_theorem_script_detailed(
@@ -601,6 +629,38 @@ test "prove_theorem_script_detailed records branch path for nested branch failur
 }
 
 ///|
+test "prove_theorem_script_detailed reports unsolved nested branch path at theorem close" {
+  let st0 = expect_ok_prover(ks_add_const(empty_kernel_state(), "P", bool_ty()))
+  let st1 = expect_ok_prover(ks_add_const(st0, "Q", bool_ty()))
+  let st2 = expect_ok_prover(ks_add_const(st1, "R", bool_ty()))
+  let err = expect_failed(
+    prove_theorem_script_detailed(
+      st2,
+      "theorem open_branch : ⊢ P ∨ (Q ∨ R) := by right",
+      default_prover_options(),
+    ),
+  )
+  let st_pre = expect_ok_prover(install_prop_prelude(st2))
+  let q = expect_ok_prover(ks_mk_const(st_pre, "Q"))
+  let r = expect_ok_prover(ks_mk_const(st_pre, "R"))
+  let or_qr = expect_ok_prover(
+    @logic.prop_mk_or(st2, default_prop_prelude(), q, r),
+  )
+  assert_eq(err.theorem_name, Some("open_branch"))
+  assert_eq(err.step_index, None)
+  assert_eq(err.branch_path, [1])
+  assert_true(err.detail.contains("UnsolvedGoals"))
+  match err.current_goal {
+    Some(goal) => {
+      assert_eq(goal_hyps(goal).length(), 0)
+      assert_true(term_alpha_eq(goal_concl(goal), or_qr))
+    }
+    None => panic()
+  }
+  assert_eq(err.local_hyps.length(), 0)
+}
+
+///|
 test "prove_theorem_script respects auto_install_prelude option" {
   let st0 = expect_ok_prover(ks_add_const(empty_kernel_state(), "P", bool_ty()))
   let st1 = expect_ok_prover(ks_add_const(st0, "Q", bool_ty()))
@@ -758,6 +818,58 @@ test "prove_theorem_script rejects exact on apply-only or unavailable theorem na
       _ => false
     },
   )
+}
+
+///|
+test "prove_theorem_script supports quantified intro replay" {
+  let result = prove_theorem_script(
+    empty_kernel_state(),
+    "theorem quant_intro_ok (x : bool) : ⊢ x -> x := by intro h; exact h",
+    default_prover_options(),
+  )
+  assert_true(result is Ok(_))
+}
+
+///|
+test "prove_theorem_script rejects intro on non-quantified goals" {
+  let err = expect_failed(
+    prove_theorem_script_detailed(
+      empty_kernel_state(),
+      "theorem quant_unsupported_intro : ⊢ T := by intro x",
+      default_prover_options(),
+    ),
+  )
+  assert_eq(err.theorem_name, Some("quant_unsupported_intro"))
+  assert_eq(err.step_index, Some(1))
+  assert_true(err.detail.contains("GoalShapeMismatch"))
+  assert_true(err.detail.contains("implication or quantified goal"))
+}
+
+///|
+test "prove_theorem_script_detailed rejects raw forall goals on the shipped path" {
+  let err = expect_failed(
+    prove_theorem_script_detailed(
+      empty_kernel_state(),
+      "theorem quant_bad_apply : ⊢ forall (x : A), T := by intro x; apply truth",
+      default_prover_options(),
+    ),
+  )
+  assert_eq(err.theorem_name, Some("quant_bad_apply"))
+  assert_true(
+    match err.kind {
+      Bridge => true
+      _ => false
+    },
+  )
+  assert_true(
+    err.detail.contains(
+      "quantifier frontend is not yet resolved on the shipped path",
+    ),
+  )
+  assert_true(err.step_index is None)
+  assert_true(err.branch_path.length() == 0)
+  assert_true(err.step_src is None)
+  assert_true(err.current_goal is None)
 }
 
 ///|
