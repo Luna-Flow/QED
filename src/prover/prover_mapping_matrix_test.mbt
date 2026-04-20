@@ -357,8 +357,35 @@ test "prover mapping matrix anchors current manual public examples" {
   assert_true(
     has_mapping_entry(
       entries,
+      mapping_case_positive(),
+      "pos_quant_forall_seq_identity",
+      "manual:quantifier_examples",
+      mapping_doc_visibility_public_example(),
+    ),
+  )
+  assert_true(
+    has_mapping_entry(
+      entries,
+      mapping_case_positive(),
+      "pos_quant_forall_branch_split",
+      "manual:quantifier_examples",
+      mapping_doc_visibility_public_example(),
+    ),
+  )
+  assert_true(
+    has_mapping_entry(
+      entries,
       mapping_case_unfinished(),
       "unf_quant_nested_branch_hole",
+      "manual:quantifier_unfinished_examples",
+      mapping_doc_visibility_public_unfinished_example(),
+    ),
+  )
+  assert_true(
+    has_mapping_entry(
+      entries,
+      mapping_case_unfinished(),
+      "unf_quant_forall_nested_branch_hole",
       "manual:quantifier_unfinished_examples",
       mapping_doc_visibility_public_unfinished_example(),
     ),
@@ -472,6 +499,15 @@ test "prover mapping matrix anchors current manual failure examples" {
       entries,
       mapping_case_negative(),
       "neg_quant_branch_goal_mismatch",
+      "manual:quantifier_failure_matrix",
+      mapping_doc_visibility_public_failure_example(),
+    ),
+  )
+  assert_true(
+    has_mapping_entry(
+      entries,
+      mapping_case_negative(),
+      "neg_quant_forall_branch_goal_mismatch",
       "manual:quantifier_failure_matrix",
       mapping_doc_visibility_public_failure_example(),
     ),

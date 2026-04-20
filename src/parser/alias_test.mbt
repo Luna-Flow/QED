@@ -8,6 +8,7 @@ using @kernel {
   bool_ty,
   empty_kernel_state,
   mk_tyvar,
+  mk_var,
   fun_ty,
   ks_add_const,
   type_of,
@@ -32,6 +33,9 @@ using @elab {
   rconst_id,
   rterm_const,
 }
+
+///|
+using @logic {install_prop_prelude}
 
 ///|
 using @parser {parsed_goal_concl, parsed_goal_hyps}

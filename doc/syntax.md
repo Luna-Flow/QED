@@ -29,6 +29,7 @@ theorem truth_file : ⊢ T := by exact truth
 
 - `examples/truth_file.qed`
 - `examples/demo_and.qed`
+- `examples/and_comm.qed`
 - `examples/bad_branch.qed`
 - `examples/unfinished_branch.qed`
 
@@ -77,19 +78,29 @@ theorem id_bool (x : bool) : ⊢ x -> x := by
 
 当前文档和示例里最稳妥的 file-first 用法，是先使用 `bool` binder。
 
-### 当前未 shipped 的量词目标
+### 当前支持的量词目标
 
-下面这种 raw `forall` theorem goal 还不能当成 shipped theorem-producing path：
+下面这种 raw `forall` theorem goal 现在作为 goal-only sugar 被接受：
 
 ```text
-theorem not_shipped : ⊢ forall (x : bool), x -> x := by
-  ...
+theorem quant_raw_intro_ok : ⊢ forall (x : bool), x -> x := by
+  intro h
+  exact h
+```
+
+parenthesized 写法也被接受：
+
+```text
+theorem quant_raw_intro_paren_ok : ⊢ (forall (x : bool), x -> x) := by
+  intro h
+  exact h
 ```
 
 也就是说：
 
-- theorem-header binder `(x : bool)` 是当前已 shipped 的用户语法。
-- raw `forall (x : A), body` / `∀ (x : A), body` 目前只到 raw syntax，不应当写成“当前已经支持证明”的能力。
+- theorem-header binder `(x : bool)` 与 raw `forall` / `∀` theorem goal 都属于当前已 shipped 的量词面用户语法。
+- raw `forall (x : A), body` / `∀ (x : A), body` 只在 theorem-script goal / `parse_goal` 入口上被接受，不是 term-level 语法。
+- raw `forall` 这条路径当前只是 goal sugar；它沿用同一条 lowering / replay / CLI diagnostics 合同，不引入新的 kernel quantifier authority。
 
 ## goal 形状
 
@@ -219,6 +230,14 @@ theorem demo_and (x : bool) : ⊢ x -> x ∧ x := by
   split { exact h } { exact h }
 ```
 
+更像经典命题逻辑的例子：
+
+```text
+theorem and_comm (p : bool) (q : bool) : ⊢ p ∧ q -> q ∧ p := by
+  intro h
+  split { exact and_elim_r } { exact and_elim_l }
+```
+
 ```text
 theorem bad_branch (x : bool) : ⊢ x -> x ∨ x := by
   intro h
@@ -229,7 +248,7 @@ theorem bad_branch (x : bool) : ⊢ x -> x ∨ x := by
 
 - 当前 `src/cmd` 工作流是 file-first，只接受单个 theorem-script 文件。
 - 直接 runnable 的公开例子应优先使用 `examples/` 中已有脚本。
-- theorem-header binder 已 shipped；raw `forall` theorem goal 仍未 shipped。
+- theorem-header binder 已 shipped；raw `forall` theorem goal 作为 goal-only sugar 已支持，term-level 仍不支持。
 - 不支持的路径必须 fail-closed，不会伪造 theorem success。
 - `hole` 返回 unfinished，不返回 theorem success。
 

@@ -1,0 +1,3 @@
+theorem and_comm (p : bool) (q : bool) : ⊢ p ∧ q -> q ∧ p := by
+  intro h
+  split { exact and_elim_r } { exact and_elim_l }

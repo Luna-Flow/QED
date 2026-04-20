@@ -67,6 +67,11 @@ fn render_hole_name_test(hole_name : String?) -> String {
 }
 
 ///|
+fn expected_quantifier_local_count(_case_id : String) -> Int {
+  1
+}
+
+///|
 fn expected_cmd_kind_label_for_negative(
   shape : @prover.NegativeErrorShape,
 ) -> String {
@@ -185,7 +190,7 @@ test "cmd unfinished corpus subset stays aligned with prover corpus" {
 ///|
 test "cmd quantifier corpus subset stays aligned with prover corpus" {
   let cases = quantifier_cases()
-  assert_eq(cases.length(), 4)
+  assert_eq(cases.length(), 8)
   for case in cases {
     assert_true(
       @prover.mapping_matrix_entries().any(fn(entry) {
@@ -207,7 +212,11 @@ test "cmd quantifier corpus subset stays aligned with prover corpus" {
             cmd_render_result(result).contains("ok " + case.case_id + ":"),
           )
         }
-        Failure(_) => panic()
+        Failure(_) => {
+          println("quantifier success case failed: " + case.case_id)
+          println(cmd_render_result(result))
+          panic()
+        }
         Unfinished(_) => panic()
       }
     } else if outcome == "failure" {
@@ -227,7 +236,10 @@ test "cmd quantifier corpus subset stays aligned with prover corpus" {
           assert_eq(err.step_index, case.expected_step_index)
           assert_eq(err.branch_path, case.expected_branch_path)
           assert_true(err.current_goal_summary is Some(_))
-          assert_eq(err.local_hyps.length(), 1)
+          assert_eq(
+            err.local_hyps.length(),
+            expected_quantifier_local_count(case.case_id),
+          )
           assert_true(err.detail.contains(expected_detail))
           let rendered = cmd_render_result(result)
           assert_true(rendered.contains("error[tactic]"))
@@ -242,6 +254,9 @@ test "cmd quantifier corpus subset stays aligned with prover corpus" {
           assert_true(rendered.contains("\ngoal: "))
           assert_true(rendered.contains("\nlocals: "))
           assert_true(rendered.contains("x : bool"))
+          if case.case_id.contains("_forall_") {
+            assert_true(rendered.contains("h: Var(x : bool)"))
+          }
         }
         Success(_) => panic()
         Unfinished(_) => panic()

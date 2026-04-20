@@ -21,11 +21,11 @@ using @parser {
   type SynScriptStep,
   type SynTacticStep,
   empty_parse_env,
-  parsed_goal_concl,
-  parsed_goal_hyps,
   parse_env_push_local,
   parse_theorem_script_raw,
   lower_syn_goal_with_env,
+  parsed_goal_hyps,
+  parsed_goal_concl,
 }
 
 ///|

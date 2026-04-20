@@ -1059,12 +1059,13 @@ fn resolve_infix_chain(
 fn parse_atom(
   tokens : Array[Token],
   idx : Int,
+  allow_forall : Bool,
 ) -> Result[(SynTerm, Int), ParseError] {
   let tok = token_at(tokens, idx)
   match tok.kind {
     TkName(name) => Ok((Name(name), idx + 1))
     TkLParen =>
-      match parse_infix(tokens, idx + 1) {
+      match parse_infix_with_forall(tokens, idx + 1, allow_forall) {
         Ok((inside, j)) =>
           match token_at(tokens, j).kind {
             TkRParen => Ok((inside, j + 1))
@@ -1110,13 +1111,14 @@ fn parse_atom(
 fn parse_app(
   tokens : Array[Token],
   idx : Int,
+  allow_forall : Bool,
 ) -> Result[(SynTerm, Int), ParseError] {
-  match parse_atom(tokens, idx) {
+  match parse_atom(tokens, idx, allow_forall) {
     Ok((head, j0)) => {
       let mut out = head
       let mut j = j0
       while is_atom_start(token_at(tokens, j).kind) {
-        match parse_atom(tokens, j) {
+        match parse_atom(tokens, j, allow_forall) {
           Ok((arg, j2)) => {
             out = App(out, arg)
             j = j2
@@ -1131,124 +1133,144 @@ fn parse_app(
 }
 
 ///|
-fn parse_prefix(
+fn parse_forall_binder(
   tokens : Array[Token],
   idx : Int,
+) -> Result[(String, HolType, Int), ParseError] {
+  let binder_start = idx + 1
+  match token_at(tokens, binder_start).kind {
+    TkLParen => ()
+    _ =>
+      return Err(
+        mk_parse_error(
+          UnexpectedToken,
+          token_at(tokens, binder_start).offset,
+          "expected `(name : type)` after `forall`",
+        ),
+      )
+  }
+  let name_idx = binder_start + 1
+  let name = match token_at(tokens, name_idx).kind {
+    TkName(n) => n
+    _ =>
+      return Err(
+        mk_parse_error(
+          UnexpectedToken,
+          token_at(tokens, name_idx).offset,
+          "expected binder name after `forall (`",
+        ),
+      )
+  }
+  let colon_idx = name_idx + 1
+  match token_at(tokens, colon_idx).kind {
+    TkColon => ()
+    _ =>
+      return Err(
+        mk_parse_error(
+          UnexpectedToken,
+          token_at(tokens, colon_idx).offset,
+          "expected `:` in `forall` binder",
+        ),
+      )
+  }
+  let mut depth = 0
+  let mut close_idx : Int? = None
+  let mut i = colon_idx + 1
+  while i < tokens.length() {
+    match token_at(tokens, i).kind {
+      TkLParen => depth = depth + 1
+      TkRParen =>
+        if depth == 0 {
+          close_idx = Some(i)
+          break
+        } else {
+          depth = depth - 1
+        }
+      TkEnd =>
+        return Err(
+          mk_parse_error(
+            UnexpectedEof,
+            token_at(tokens, i).offset,
+            "missing `)` in `forall` binder",
+          ),
+        )
+      _ => ()
+    }
+    i = i + 1
+  }
+  let close_idx = match close_idx {
+    Some(v) => v
+    None =>
+      return Err(
+        mk_parse_error(
+          UnexpectedEof,
+          token_at(tokens, colon_idx).offset,
+          "missing `)` in `forall` binder",
+        ),
+      )
+  }
+  let ty = match
+    parse_type_tokens(slice_tokens_with_end(tokens, colon_idx + 1, close_idx)) {
+    Ok(v) => v
+    Err(e) => return Err(e)
+  }
+  let comma_idx = close_idx + 1
+  match token_at(tokens, comma_idx).kind {
+    TkComma => ()
+    _ =>
+      return Err(
+        mk_parse_error(
+          UnexpectedToken,
+          token_at(tokens, comma_idx).offset,
+          "expected `,` after `forall` binder",
+        ),
+      )
+  }
+  Ok((name, ty, comma_idx + 1))
+}
+
+///|
+fn parse_prefix_with_forall(
+  tokens : Array[Token],
+  idx : Int,
+  allow_forall : Bool,
 ) -> Result[(SynTerm, Int), ParseError] {
   let tok = token_at(tokens, idx)
   match tok.kind {
-    TkForall | TkName("forall") => {
-      let binder_start = idx + 1
-      match token_at(tokens, binder_start).kind {
-        TkLParen => ()
-        _ =>
-          return Err(
-            mk_parse_error(
-              UnexpectedToken,
-              token_at(tokens, binder_start).offset,
-              "expected `(name : type)` after `forall`",
-            ),
-          )
-      }
-      let name_idx = binder_start + 1
-      let name = match token_at(tokens, name_idx).kind {
-        TkName(n) => n
-        _ =>
-          return Err(
-            mk_parse_error(
-              UnexpectedToken,
-              token_at(tokens, name_idx).offset,
-              "expected binder name after `forall (`",
-            ),
-          )
-      }
-      let colon_idx = name_idx + 1
-      match token_at(tokens, colon_idx).kind {
-        TkColon => ()
-        _ =>
-          return Err(
-            mk_parse_error(
-              UnexpectedToken,
-              token_at(tokens, colon_idx).offset,
-              "expected `:` in `forall` binder",
-            ),
-          )
-      }
-      let mut depth = 0
-      let mut close_idx : Int? = None
-      let mut i = colon_idx + 1
-      while i < tokens.length() {
-        match token_at(tokens, i).kind {
-          TkLParen => depth = depth + 1
-          TkRParen =>
-            if depth == 0 {
-              close_idx = Some(i)
-              break
-            } else {
-              depth = depth - 1
-            }
-          TkEnd =>
-            return Err(
-              mk_parse_error(
-                UnexpectedEof,
-                token_at(tokens, i).offset,
-                "missing `)` in `forall` binder",
-              ),
-            )
-          _ => ()
-        }
-        i = i + 1
-      }
-      let close_idx = match close_idx {
-        Some(v) => v
-        None =>
-          return Err(
-            mk_parse_error(
-              UnexpectedEof,
-              token_at(tokens, colon_idx).offset,
-              "missing `)` in `forall` binder",
-            ),
-          )
-      }
-      let ty = match
-        parse_type_tokens(
-          slice_tokens_with_end(tokens, colon_idx + 1, close_idx),
-        ) {
+    TkForall | TkName("forall") if allow_forall => {
+      let (name, ty, body_idx) = match parse_forall_binder(tokens, idx) {
         Ok(v) => v
         Err(e) => return Err(e)
       }
-      let comma_idx = close_idx + 1
-      match token_at(tokens, comma_idx).kind {
-        TkComma => ()
-        _ =>
-          return Err(
-            mk_parse_error(
-              UnexpectedToken,
-              token_at(tokens, comma_idx).offset,
-              "expected `,` after `forall` binder",
-            ),
-          )
-      }
-      match parse_infix(tokens, comma_idx + 1) {
+      match parse_infix_with_forall(tokens, body_idx, allow_forall) {
         Ok((body, j)) => Ok((Forall(name, ty, body), j))
         Err(e) => Err(e)
       }
     }
+    TkForall | TkName("forall") =>
+      Err(
+        mk_parse_error(
+          UnexpectedToken,
+          tok.offset,
+          "raw `forall` is only supported in goal syntax",
+        ),
+      )
     TkNot =>
-      match parse_prefix(tokens, idx + 1) {
+      match parse_prefix_with_forall(tokens, idx + 1, allow_forall) {
         Ok((inner, j)) => Ok((Prefix("¬", inner), j))
         Err(e) => Err(e)
       }
-    _ => parse_app(tokens, idx)
+    _ => parse_app(tokens, idx, allow_forall)
   }
 }
 
 ///|
-fn parse_infix(
+fn parse_infix_with_forall(
   tokens : Array[Token],
   idx : Int,
+  allow_forall : Bool,
 ) -> Result[(SynTerm, Int), ParseError] {
-  match parse_prefix(tokens, idx) {
+  match parse_prefix_with_forall(tokens, idx, allow_forall) {
     Ok((lhs0, j0)) => {
       let chain : Array[(String, SynTerm, Int)] = []
       let mut j = j0
@@ -1256,7 +1278,7 @@ fn parse_infix(
         let tok = token_at(tokens, j)
         match tok.kind {
           TkAnd =>
-            match parse_prefix(tokens, j + 1) {
+            match parse_prefix_with_forall(tokens, j + 1, allow_forall) {
               Ok((rhs, j2)) => {
                 chain.push(("∧", rhs, tok.offset))
                 j = j2
@@ -1264,7 +1286,7 @@ fn parse_infix(
               Err(e) => return Err(e)
             }
           TkOr =>
-            match parse_prefix(tokens, j + 1) {
+            match parse_prefix_with_forall(tokens, j + 1, allow_forall) {
               Ok((rhs, j2)) => {
                 chain.push(("∨", rhs, tok.offset))
                 j = j2
@@ -1272,7 +1294,7 @@ fn parse_infix(
               Err(e) => return Err(e)
             }
           TkArrow =>
-            match parse_prefix(tokens, j + 1) {
+            match parse_prefix_with_forall(tokens, j + 1, allow_forall) {
               Ok((rhs, j2)) => {
                 chain.push(("->", rhs, tok.offset))
                 j = j2
@@ -1280,7 +1302,7 @@ fn parse_infix(
               Err(e) => return Err(e)
             }
           TkEq =>
-            match parse_prefix(tokens, j + 1) {
+            match parse_prefix_with_forall(tokens, j + 1, allow_forall) {
               Ok((rhs, j2)) => {
                 chain.push(("=", rhs, tok.offset))
                 j = j2
@@ -1301,7 +1323,28 @@ fn parse_infix(
 
 ///|
 fn parse_term_tokens(tokens : Array[Token]) -> Result[SynTerm, ParseError] {
-  match parse_infix(tokens, 0) {
+  match parse_infix_with_forall(tokens, 0, false) {
+    Ok((term, idx)) =>
+      match token_at(tokens, idx).kind {
+        TkEnd => Ok(term)
+        _ =>
+          Err(
+            mk_parse_error(
+              UnexpectedToken,
+              token_at(tokens, idx).offset,
+              "unexpected trailing token `" +
+              token_label(token_at(tokens, idx).kind) +
+              "`",
+            ),
+          )
+      }
+    Err(e) => Err(e)
+  }
+}
+
+///|
+fn parse_goal_term_tokens(tokens : Array[Token]) -> Result[SynTerm, ParseError] {
+  match parse_infix_with_forall(tokens, 0, true) {
     Ok((term, idx)) =>
       match token_at(tokens, idx).kind {
         TkEnd => Ok(term)
@@ -1433,7 +1476,7 @@ fn parse_goal_tokens(tokens : Array[Token]) -> Result[SynGoal, ParseError] {
   }
 
   let concl_tokens = slice_tokens_with_end(tokens, k + 1, end_idx)
-  let concl = match parse_term_tokens(concl_tokens) {
+  let concl = match parse_goal_term_tokens(concl_tokens) {
     Ok(t) => t
     Err(e) => return Err(e)
   }
@@ -2384,7 +2427,7 @@ fn lower_syn_term_basis(
           mk_parse_error(
             UnexpectedToken,
             0,
-            "quantifier frontend is not yet lowered to kernel terms",
+            "raw `forall` is only supported in goal syntax",
           ),
         ),
       )
@@ -2452,6 +2495,52 @@ fn lower_syn_term_basis(
 }
 
 ///|
+fn lower_syn_goal_term_with_env(
+  state : KernelState,
+  env : ParseEnv,
+  term : SynTerm,
+) -> Result[Term, ParseBridgeError] {
+  match term {
+    Forall(name, ty, body) => {
+      let body_env = parse_env_push_local(env, name, ty)
+      lower_syn_goal_term_with_env(state, body_env, body)
+    }
+    _ => lower_syn_term_with_env(state, env, term)
+  }
+}
+
+///|
+fn lower_syn_term_shipped(
+  state : KernelState,
+  env : ParseEnv,
+  term : SynTerm,
+) -> Result[Term, ParseBridgeError] {
+  match resolve_syn_term(state, env, term) {
+    Ok(rterm) =>
+      match elab_lower_to_term(rterm) {
+        Ok(out) => Ok(out)
+        Err(e) => Err(map_elab_error(e))
+      }
+    Err(e) => Err(e)
+  }
+}
+
+///|
+fn resolve_syn_goal_term_with_env(
+  state : KernelState,
+  env : ParseEnv,
+  term : SynTerm,
+) -> Result[RTerm, ParseBridgeError] {
+  match term {
+    Forall(name, ty, body) => {
+      let body_env = parse_env_push_local(env, name, ty)
+      resolve_syn_goal_term_with_env(state, body_env, body)
+    }
+    _ => resolve_syn_term(state, env, term)
+  }
+}
+
+///|
 fn resolve_syn_term(
   state : KernelState,
   env : ParseEnv,
@@ -2503,7 +2592,7 @@ fn resolve_syn_term(
           mk_parse_error(
             UnexpectedToken,
             0,
-            "quantifier frontend is not yet resolved on the shipped path",
+            "raw `forall` is only supported in goal syntax",
           ),
         ),
       )
@@ -2555,14 +2644,7 @@ pub fn lower_syn_term_with_env(
   env : ParseEnv,
   term : SynTerm,
 ) -> Result[Term, ParseBridgeError] {
-  match resolve_syn_term(state, env, term) {
-    Ok(rterm) =>
-      match elab_lower_to_term(rterm) {
-        Ok(out) => Ok(out)
-        Err(e) => Err(map_elab_error(e))
-      }
-    Err(e) => Err(e)
-  }
+  lower_syn_term_shipped(state, env, term)
 }
 
 ///|
@@ -2615,7 +2697,7 @@ fn lower_syn_resolved_goal_with_env(
       Err(e) => return Err(e)
     }
   }
-  match resolve_syn_term(state, env, syn_goal.concl) {
+  match resolve_syn_goal_term_with_env(state, env, syn_goal.concl) {
     Ok(concl) => Ok(ResolvedGoal::{ hyps, concl })
     Err(e) => Err(e)
   }
@@ -2627,9 +2709,9 @@ pub fn parse_goal_with_env(
   env : ParseEnv,
   src : String,
 ) -> Result[ParsedGoal, ParseBridgeError] {
-  match parse_resolved_goal_with_env(state, env, src) {
-    Ok(goal) => lower_resolved_goal_with_env(goal)
-    Err(e) => Err(e)
+  match parse_goal_raw(src) {
+    Ok(goal) => lower_syn_goal_with_env(state, env, goal)
+    Err(e) => Err(Parse(e))
   }
 }
 
@@ -2639,26 +2721,16 @@ pub fn lower_syn_goal_with_env(
   env : ParseEnv,
   syn_goal : SynGoal,
 ) -> Result[ParsedGoal, ParseBridgeError] {
-  match lower_syn_resolved_goal_with_env(state, env, syn_goal) {
-    Ok(goal) => lower_resolved_goal_with_env(goal)
-    Err(e) => Err(e)
-  }
-}
-
-///|
-fn lower_resolved_goal_with_env(
-  goal : ResolvedGoal,
-) -> Result[ParsedGoal, ParseBridgeError] {
   let hyps : Array[Term] = []
-  for h in goal.hyps {
-    match elab_lower_to_term(h) {
+  for h in syn_goal.hyps {
+    match lower_syn_term_with_env(state, env, h) {
       Ok(t) => hyps.push(t)
-      Err(e) => return Err(map_elab_error(e))
+      Err(e) => return Err(e)
     }
   }
-  match elab_lower_to_term(goal.concl) {
+  match lower_syn_goal_term_with_env(state, env, syn_goal.concl) {
     Ok(concl) => Ok(ParsedGoal::{ hyps, concl })
-    Err(e) => Err(map_elab_error(e))
+    Err(e) => Err(e)
   }
 }
 

@@ -76,3 +76,52 @@ using @logic {
   logic_prop_resolve_exact_witness,
   logic_prop_resolve_ref,
 }
+
+///|
+test "alias keepalive for logic imports" {
+  let _ : SigError? = None
+  let _ : LogicError? = None
+  let _ : ExtensionCert? = None
+  let _ = ty_eq
+  let _ = ks_definition_theorem
+  let _ = ks_define_const_thm
+  let _ = dest_comb
+  let _ = dest_abs
+  let _ = dest_const
+  let _ = assume_checked
+  let _ = add_assum_checked
+  let _ = refl_checked
+  let _ = trans_checked
+  let _ = mk_comb_rule_checked
+  let _ = abs_rule_checked
+  let _ = beta_rule_checked
+  let _ = eq_mp_checked
+  let _ = deduct_antisym_rule_checked
+  let _ = inst_type
+  let _ = inst_checked
+  let _ = ks_register_type_definition
+  let _ = ks_specify_const
+  let _ = ks_register_ind_infinity_axiom
+  let _ = ks_ind_infinity_axiom
+  let _ = ks_typedef_contract
+  let _ = ks_extension_cert_count
+  let _ = ks_extension_cert_at
+  let _ = ks_conservative_replay_ok
+  let _ = logic_prop_theorem_count
+  let _ = logic_prop_theorem_at
+  let _ = logic_prop_theorem_entry
+  let _ = logic_prop_named_theorem
+  let _ = logic_prop_context_theorem
+  let _ = logic_prop_context_apply_theorem
+  let _ = logic_prop_resolve_apply_theorem
+  let _ = logic_prop_resolve_exact_theorem
+  let _ = logic_prop_resolve_exact_witness
+  let _ = logic_prop_resolve_ref
+  let _ : PropApplyTheoremResolution? = None
+  let _ : PropExactTheoremResolution? = None
+  let _ : PropExactWitness? = None
+  let _ : PropExactWitnessResolution? = None
+  let _ : PropTheoremClass? = None
+  let _ : PropTheoremEntry? = None
+  let _ : PropRefResolution? = None
+}

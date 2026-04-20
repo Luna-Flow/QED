@@ -831,6 +831,82 @@ test "prove_theorem_script supports quantified intro replay" {
 }
 
 ///|
+test "prove_theorem_script supports raw forall goal sugar" {
+  let result = prove_theorem_script_detailed(
+    empty_kernel_state(),
+    "theorem quant_raw_intro_ok : ⊢ forall (x : bool), x -> x := by intro h; exact h",
+    default_prover_options(),
+  )
+  match result {
+    Proved(_) => ()
+    Unfinished(_) => panic()
+    Failed(_) => panic()
+  }
+}
+
+///|
+test "prove_theorem_script supports parenthesized raw forall goal sugar" {
+  let result = prove_theorem_script_detailed(
+    empty_kernel_state(),
+    "theorem quant_raw_intro_paren_ok : ⊢ (forall (x : bool), x -> x) := by intro h; exact h",
+    default_prover_options(),
+  )
+  match result {
+    Proved(_) => ()
+    Unfinished(_) => panic()
+    Failed(_) => panic()
+  }
+}
+
+///|
+test "prove_theorem_script supports theorem binders mixed with raw forall goals" {
+  let result = prove_theorem_script(
+    empty_kernel_state(),
+    "theorem quant_mixed_ok (P : A -> bool) : ⊢ forall (x : A), P x -> P x := by intro h; exact h",
+    default_prover_options(),
+  )
+  assert_true(result is Ok(_))
+}
+
+///|
+test "binder theorem output still supports abstraction wrapping" {
+  let (st, th) = expect_ok_prover(
+    prove_theorem_script(
+      empty_kernel_state(),
+      "theorem quant_wrap_seed (x : bool) : ⊢ x -> x := by intro h; exact h",
+      default_prover_options(),
+    ),
+  )
+  let prelude = default_prop_prelude()
+  let x = mk_var("x", bool_ty())
+  let truth = expect_ok_prover(logic_prop_truth_const_thm(st, prelude))
+  let th_eq = expect_ok_prover(logic_deduct_antisym(st, th, truth))
+  assert_true(logic_abs_rule(st, x, th_eq) is Ok(_))
+}
+
+///|
+test "parsed body theorem still supports abstraction wrapping" {
+  let st = expect_ok_prover(install_prop_prelude(empty_kernel_state()))
+  let env = parse_env_push_local(empty_parse_env(), "x", bool_ty())
+  let parsed = expect_ok_prover(parse_goal_with_env(st, env, "⊢ x -> x"))
+  let ps0 = ps_init(
+    mk_goal(parsed_goal_hyps(parsed), parsed_goal_concl(parsed)),
+  )
+  let ps1 = expect_ok_prover(
+    ps_apply(st, default_prop_prelude(), ps0, step_intro("h")),
+  )
+  let ps2 = expect_ok_prover(
+    ps_apply(st, default_prop_prelude(), ps1, step_exact("h")),
+  )
+  let th = expect_ok_prover(ps_qed(ps2))
+  let truth = expect_ok_prover(
+    logic_prop_truth_const_thm(st, default_prop_prelude()),
+  )
+  let th_eq = expect_ok_prover(logic_deduct_antisym(st, th, truth))
+  assert_true(logic_abs_rule(st, mk_var("x", bool_ty()), th_eq) is Ok(_))
+}
+
+///|
 test "prove_theorem_script rejects intro on non-quantified goals" {
   let err = expect_failed(
     prove_theorem_script_detailed(
@@ -846,30 +922,37 @@ test "prove_theorem_script rejects intro on non-quantified goals" {
 }
 
 ///|
-test "prove_theorem_script_detailed rejects raw forall goals on the shipped path" {
+test "prove_theorem_script_detailed reports raw forall tactic failures" {
   let err = expect_failed(
     prove_theorem_script_detailed(
       empty_kernel_state(),
-      "theorem quant_bad_apply : ⊢ forall (x : A), T := by intro x; apply truth",
+      "theorem quant_bad_apply : ⊢ forall (x : bool), x -> x ∨ x := by intro h; left { exact truth }",
       default_prover_options(),
     ),
   )
   assert_eq(err.theorem_name, Some("quant_bad_apply"))
   assert_true(
     match err.kind {
-      Bridge => true
-      _ => false
+      Tactic => true
+      Parse => false
+      Bridge => false
+      Sig => false
+      Logic => false
     },
   )
-  assert_true(
-    err.detail.contains(
-      "quantifier frontend is not yet resolved on the shipped path",
-    ),
-  )
-  assert_true(err.step_index is None)
-  assert_true(err.branch_path.length() == 0)
-  assert_true(err.step_src is None)
-  assert_true(err.current_goal is None)
+  assert_true(err.detail.contains("GoalShapeMismatch"))
+  assert_eq(err.step_index, Some(3))
+  assert_eq(err.branch_path, [1])
+  assert_eq(err.step_src, Some("exact truth"))
+  match err.current_goal {
+    Some(goal) => {
+      assert_eq(goal_hyps(goal).length(), 1)
+      assert_true(term_alpha_eq(goal_hyps(goal)[0], goal_concl(goal)))
+    }
+    None => panic()
+  }
+  assert_eq(err.local_hyps.length(), 1)
+  assert_eq(err.local_hyps[0].name, "h")
 }
 
 ///|

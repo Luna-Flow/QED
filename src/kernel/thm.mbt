@@ -293,28 +293,30 @@ fn db_lift_bvars(term : DbTerm, cutoff : Int, delta : Int) -> DbTerm {
 }
 
 ///|
-/// After `db_shift_all_bvars(_, 1)`, replace the given free variable with `BVar(0)`.
-fn db_subst_free_with_bvar0(
+/// After `db_shift_all_bvars(_, 1)`, replace the given free variable with
+/// `BVar(depth)`, accounting for nested abstractions introduced in the body.
+fn db_subst_free_with_bvar(
   term : DbTerm,
   name : String,
   fty : HolType,
+  depth : Int,
 ) -> DbTerm {
   match term {
     DbBound(i, t) => DbBound(i, t)
     DbFree(n, t) =>
       if n == name && ty_eq(t, fty) {
-        DbBound(0, fty)
+        DbBound(depth, fty)
       } else {
         term
       }
     DbConst(_, _, _) => term
     DbComb(f, a) =>
       DbComb(
-        db_subst_free_with_bvar0(f, name, fty),
-        db_subst_free_with_bvar0(a, name, fty),
+        db_subst_free_with_bvar(f, name, fty, depth),
+        db_subst_free_with_bvar(a, name, fty, depth),
       )
     DbAbs(inner_ty, b) =>
-      DbAbs(inner_ty, db_subst_free_with_bvar0(b, name, fty))
+      DbAbs(inner_ty, db_subst_free_with_bvar(b, name, fty, depth + 1))
   }
 }
 
@@ -325,7 +327,7 @@ fn db_abstract_body_for_abs_rule(
   fty : HolType,
 ) -> DbTerm {
   let lifted = db_lift_bvars(term, 0, 1)
-  db_subst_free_with_bvar0(lifted, name, fty)
+  db_subst_free_with_bvar(lifted, name, fty, 0)
 }
 
 ///|

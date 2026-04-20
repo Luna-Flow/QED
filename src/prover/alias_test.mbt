@@ -22,15 +22,31 @@ using @kernel {
 using @parser {parsed_goal_concl, parsed_goal_hyps, parse_goal, source_span}
 
 ///|
-using @tactics {type Goal, goal_hyps, goal_concl, mk_goal}
+using @parser {empty_parse_env, parse_env_push_local, parse_goal_with_env}
+
+///|
+using @tactics {
+  type Goal,
+  goal_hyps,
+  goal_concl,
+  mk_goal,
+  ps_init,
+  ps_apply,
+  ps_qed,
+  step_intro,
+  step_exact,
+}
 
 ///|
 using @logic {
   install_prop_prelude,
   default_prop_prelude,
+  logic_abs_rule,
   logic_beta_nf_bool_term_deep,
+  logic_deduct_antisym,
   prop_mk_imp,
   prop_mk_and,
+  logic_prop_truth_const_thm,
 }
 
 ///|

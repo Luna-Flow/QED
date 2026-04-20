@@ -164,22 +164,6 @@ test "parse offsets remain aligned to raw input after normalization" {
 test "parse_term_raw succeeds on base term forms" {
   assert_true(parse_term_raw("P") is Ok(Name("P")))
   assert_true(parse_term_raw("f x") is Ok(App(Name("f"), Name("x"))))
-  match parse_term_raw("forall (x : A), P x") {
-    Ok(Forall(name, ty, body)) => {
-      assert_eq(name, "x")
-      assert_true(ty_eq(ty, mk_tyvar("A")))
-      assert_true(body is App(Name("P"), Name("x")))
-    }
-    _ => panic()
-  }
-  match parse_term_raw("∀ (x : A), P x") {
-    Ok(Forall(name, ty, body)) => {
-      assert_eq(name, "x")
-      assert_true(ty_eq(ty, mk_tyvar("A")))
-      assert_true(body is App(Name("P"), Name("x")))
-    }
-    _ => panic()
-  }
   assert_true(
     parse_term_raw("(f x) = y")
     is Ok(Infix("=", App(Name("f"), Name("x")), Name("y"))),
@@ -246,8 +230,8 @@ test "parse_term_raw reports nonassoc chain and malformed input" {
 }
 
 ///|
-test "parse quantifier raw offsets remain aligned to source input" {
-  match parse_term_raw("  forall   (x : A)   P x") {
+test "parse quantifier goal raw offsets remain aligned to source input" {
+  match parse_goal_raw("⊢  forall   (x : A)   P x") {
     Err(e) => {
       assert_true(
         match e.code {
@@ -256,9 +240,25 @@ test "parse quantifier raw offsets remain aligned to source input" {
         },
       )
       assert_eq(e.detail, "expected `,` after `forall` binder")
-      assert_eq(e.offset, 21)
+      assert_eq(e.offset, 22)
     }
     Ok(_) => panic()
+  }
+}
+
+///|
+test "parse_goal_raw accepts parenthesized raw forall goal sugar" {
+  match parse_goal_raw("⊢ (forall (x : A), x = x)") {
+    Ok(g) =>
+      match g.concl {
+        Forall(name, ty, body) => {
+          assert_eq(name, "x")
+          assert_true(ty_eq(ty, mk_tyvar("A")))
+          assert_true(body is Infix("=", Name("x"), Name("x")))
+        }
+        _ => panic()
+      }
+    Err(_) => panic()
   }
 }
 
@@ -818,28 +818,38 @@ test "parse theorem script raw rejects malformed quantifier goals" {
 }
 
 ///|
-test "parse goal bridge rejects quantifier goals on the shipped path" {
+test "parse goal bridge lowers quantifier goals on the shipped path" {
   let env0 = expect_ok_parser(parse_let(empty_parse_env(), "let x : bool"))
-  match
-    parse_goal_with_env(
-      empty_kernel_state(),
-      env0,
-      "x ⊢ forall (x : A), x = x",
-    ) {
-    Err(Parse(e)) => {
-      assert_true(
-        match e.code {
-          UnexpectedToken => true
-          _ => false
-        },
-      )
-      assert_eq(
-        e.detail,
-        "quantifier frontend is not yet resolved on the shipped path",
-      )
-    }
-    Ok(_) => panic()
-    Err(_) => panic()
+  let st = expect_ok_parser(install_prop_prelude(empty_kernel_state()))
+  let goal = expect_ok_parser(
+    parse_goal_with_env(st, env0, "x ⊢ forall (x : A), x = x"),
+  )
+  assert_eq(parsed_goal_hyps(goal).length(), 1)
+  assert_true(term_alpha_eq(parsed_goal_hyps(goal)[0], mk_var("x", bool_ty())))
+  let concl = parsed_goal_concl(goal)
+  let (lhs, rhs) = expect_ok_parser(dest_eq(concl))
+  assert_true(term_alpha_eq(lhs, rhs))
+  match type_of(lhs) {
+    Some(ty) => assert_true(ty_eq(ty, mk_tyvar("A")))
+    None => panic()
+  }
+}
+
+///|
+test "parse goal bridge lowers parenthesized quantifier goals on the shipped path" {
+  let env0 = expect_ok_parser(parse_let(empty_parse_env(), "let x : bool"))
+  let st = expect_ok_parser(install_prop_prelude(empty_kernel_state()))
+  let goal = expect_ok_parser(
+    parse_goal_with_env(st, env0, "x ⊢ (forall (x : A), x = x)"),
+  )
+  assert_eq(parsed_goal_hyps(goal).length(), 1)
+  assert_true(term_alpha_eq(parsed_goal_hyps(goal)[0], mk_var("x", bool_ty())))
+  let concl = parsed_goal_concl(goal)
+  let (lhs, rhs) = expect_ok_parser(dest_eq(concl))
+  assert_true(term_alpha_eq(lhs, rhs))
+  match type_of(lhs) {
+    Some(ty) => assert_true(ty_eq(ty, mk_tyvar("A")))
+    None => panic()
   }
 }
 

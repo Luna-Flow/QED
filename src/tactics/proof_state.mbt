@@ -133,7 +133,7 @@ pub fn proof_state_snapshot_current(
 pub enum PendingRefine {
   ImpBackwardTerm(Term)
   ImpBackwardTheorem(Thm)
-  AbsBackwardTerm(Term)
+  AbsBackwardTerm(Term, Term)
 }
 
 ///|
@@ -593,42 +593,116 @@ fn replay_goal_refines(
   let mut ri = g.refine_chain.length()
   while ri > 0 {
     ri = ri - 1
-    t = match g.refine_chain[ri] {
-      ImpBackwardTerm(imp_t) =>
-        match
-          logic_prop_replay_imp_elim_backward(state, prelude, g.hyps, imp_t, t) {
-          Ok(v) => v
-          Err(e) => return Err(Logic(e))
-        }
-      ImpBackwardTheorem(imp_th) =>
-        match
-          logic_prop_replay_imp_elim_backward_thm(
-            state,
-            prelude,
-            g.hyps,
-            imp_th,
-            t,
-          ) {
-          Ok(v) => v
-          Err(e) => return Err(Logic(e))
-        }
-      AbsBackwardTerm(binder) => {
-        let truth = match @logic.logic_prop_truth_const_thm(state, prelude) {
-          Ok(v) => v
-          Err(e) => return Err(Logic(e))
-        }
-        let lifted = match @logic.logic_deduct_antisym(state, t, truth) {
-          Ok(v) => v
-          Err(e) => return Err(Logic(e))
-        }
-        match @logic.logic_abs_rule(state, binder, lifted) {
-          Ok(v) => v
-          Err(e) => return Err(Logic(e))
-        }
-      }
+    t = match
+      replay_goal_refines_step(state, prelude, g, t, g.refine_chain[ri]) {
+      Ok(v) => v
+      Err(e) => return Err(e)
     }
   }
   Ok(t)
+}
+
+///|
+fn replay_goal_refines_step(
+  state : KernelState,
+  prelude : PropPrelude,
+  g : PendingGoal,
+  t : Thm,
+  refine : PendingRefine,
+) -> Result[Thm, TacticExecError] {
+  match refine {
+    ImpBackwardTerm(imp_t) => {
+      let replayed = logic_prop_replay_imp_elim_backward(
+        state,
+        prelude,
+        g.hyps,
+        imp_t,
+        t,
+      )
+      match replayed {
+        Ok(v) => Ok(v)
+        Err(e) => Err(Logic(e))
+      }
+    }
+    ImpBackwardTheorem(imp_th) => {
+      let replayed = logic_prop_replay_imp_elim_backward_thm(
+        state,
+        prelude,
+        g.hyps,
+        imp_th,
+        t,
+      )
+      match replayed {
+        Ok(v) => Ok(v)
+        Err(e) => Err(Logic(e))
+      }
+    }
+    AbsBackwardTerm(_, _) => Ok(t)
+  }
+}
+
+///|
+fn replay_goal_abs_refines(
+  state : KernelState,
+  prelude : PropPrelude,
+  g : PendingGoal,
+  base_th : Thm,
+) -> Result[Thm, TacticExecError] {
+  let mut t = base_th
+  let mut ri = g.refine_chain.length()
+  while ri > 0 {
+    ri = ri - 1
+    let next = replay_goal_abs_refines_step(
+      state,
+      prelude,
+      g.refine_chain[ri],
+      t,
+    )
+    t = match next {
+      Ok(v) => v
+      Err(e) => return Err(e)
+    }
+  }
+  Ok(t)
+}
+
+///|
+fn replay_goal_abs_refines_step(
+  state : KernelState,
+  prelude : PropPrelude,
+  refine : PendingRefine,
+  t : Thm,
+) -> Result[Thm, TacticExecError] {
+  match refine {
+    AbsBackwardTerm(user_binder, hidden_binder) => {
+      let truth = match @logic.logic_prop_truth_const_thm(state, prelude) {
+        Ok(v) => v
+        Err(e) => return Err(Logic(e))
+      }
+      let lifted = match @logic.logic_deduct_antisym(state, t, truth) {
+        Ok(v) => v
+        Err(e) => return Err(Logic(e))
+      }
+      let lifted_attempt = logic_inst(
+        state,
+        [(user_binder, hidden_binder)],
+        lifted,
+      )
+      match lifted_attempt {
+        Ok(instantiated) =>
+          match @logic.logic_abs_rule(state, hidden_binder, instantiated) {
+            Ok(v) => Ok(v)
+            Err(e) => Err(Logic(e))
+          }
+        Err(_) =>
+          match @logic.logic_abs_rule(state, user_binder, lifted) {
+            Ok(v) => Ok(v)
+            Err(e) => Err(Logic(e))
+          }
+      }
+    }
+    _ => Ok(t)
+  }
 }
 
 ///|
@@ -655,7 +729,7 @@ fn wrap_and_discharge_goal(
     Ok(v) => v
     Err(e) => return Err(Logic(e))
   }
-  Ok(u)
+  replay_goal_abs_refines(state, prelude, g, u)
 }
 
 ///|
@@ -804,6 +878,42 @@ fn apply_refine_goal(
 }
 
 ///|
+fn pending_goal_after_intro(
+  g : PendingGoal,
+  name : String,
+  intro_term : Term,
+  concl : Term,
+  refine : PendingRefine?,
+  push_hyp : Bool,
+  push_imp_prefix : Bool,
+) -> PendingGoal {
+  let (hyps, locals, branch_path, ip, refines) = copy_goal_shape(g)
+  if push_hyp {
+    hyps.push(intro_term)
+  }
+  let locals = locals
+  locals.push(LocalHyp::{ name, term: intro_term })
+  if push_imp_prefix {
+    ip.push(intro_term)
+  }
+  let refines = refines
+  match refine {
+    Some(r) => refines.push(r)
+    None => ()
+  }
+  PendingGoal::{
+    hyps,
+    concl,
+    locals,
+    branch_path,
+    imp_prefix: ip,
+    refine_chain: refines,
+    split_role: g.split_role,
+    or_ctx: g.or_ctx,
+  }
+}
+
+///|
 fn apply_accept_local_term(
   state : KernelState,
   prelude : PropPrelude,
@@ -858,26 +968,8 @@ fn apply_accept_imp_intro(
   g : PendingGoal,
 ) -> Result[ApplyAcceptance, TacticExecError] {
   match prop_dest_imp(state, prelude, g.concl) {
-    Some((a, b)) => {
-      let hyps = g.hyps.copy()
-      hyps.push(a)
-      let locals = g.locals.copy()
-      locals.push(LocalHyp::{ name: "_h", term: a })
-      let ip = g.imp_prefix.copy()
-      ip.push(a)
-      Ok(
-        KeepOne(PendingGoal::{
-          hyps,
-          concl: b,
-          locals,
-          branch_path: g.branch_path.copy(),
-          imp_prefix: ip,
-          refine_chain: [],
-          split_role: g.split_role,
-          or_ctx: g.or_ctx,
-        }),
-      )
-    }
+    Some((a, b)) =>
+      Ok(KeepOne(pending_goal_after_intro(g, "_h", a, b, None, true, true)))
     None => Err(ApplyMismatch("imp_intro requires implication goal"))
   }
 }
@@ -921,6 +1013,106 @@ fn apply_accept_and_intro(
 }
 
 ///|
+fn term_uses_var_name(term : Term, name : String) -> Bool {
+  let vars = @kernel.free_vars(term)
+  let mut i = 0
+  while i < vars.length() {
+    let (var_name, _) = vars[i]
+    if var_name == name {
+      return true
+    }
+    i = i + 1
+  }
+  false
+}
+
+///|
+fn replay_binder_name_in_use(
+  g : PendingGoal,
+  binder : Term,
+  body : Term,
+  rhs_body : Term,
+  name : String,
+) -> Bool {
+  if term_uses_var_name(binder, name) ||
+    term_uses_var_name(body, name) ||
+    term_uses_var_name(rhs_body, name) {
+    return true
+  }
+  for hyp in g.hyps {
+    if term_uses_var_name(hyp, name) {
+      return true
+    }
+  }
+  for item in g.locals {
+    if item.name == name || term_uses_var_name(item.term, name) {
+      return true
+    }
+  }
+  false
+}
+
+///|
+fn fresh_quantified_replay_binder(
+  g : PendingGoal,
+  binder : Term,
+  body : Term,
+  rhs_body : Term,
+) -> Result[Term, TacticExecError] {
+  let ty = match type_of(binder) {
+    Some(v) => v
+    None =>
+      return Err(
+        ProofSynthesisUnavailable("quantified intro needs binder type"),
+      )
+  }
+  let mut idx = g.refine_chain.length()
+  while true {
+    let name = "_b" + idx.to_string()
+    if !replay_binder_name_in_use(g, binder, body, rhs_body, name) {
+      return Ok(mk_var(name, ty))
+    }
+    idx = idx + 1
+  }
+  Err(
+    ProofSynthesisUnavailable(
+      "internal: fresh quantified replay binder generation did not terminate",
+    ),
+  )
+}
+
+///|
+fn quantified_intro_truth_term(
+  state : KernelState,
+  prelude : PropPrelude,
+) -> Result[Term, TacticExecError] {
+  let truth_term = match ks_definition_theorem(state, prelude.truth_name) {
+    Ok(th) =>
+      match thm_concl(th) {
+        Ok(concl) =>
+          match @kernel.dest_eq(concl) {
+            Ok((lhs, _)) => lhs
+            Err(_) =>
+              return Err(
+                ProofSynthesisUnavailable(
+                  "quantified intro needs truth constant",
+                ),
+              )
+          }
+        Err(_) =>
+          return Err(
+            ProofSynthesisUnavailable("quantified intro needs truth constant"),
+          )
+      }
+    Err(_) =>
+      return Err(
+        ProofSynthesisUnavailable("quantified intro needs truth constant"),
+      )
+  }
+  Ok(truth_term)
+}
+
+///|
 fn intro_quantified_goal(
   state : KernelState,
   prelude : PropPrelude,
@@ -931,50 +1123,28 @@ fn intro_quantified_goal(
     Ok((lhs, rhs)) =>
       match (@kernel.dest_abs(lhs), @kernel.dest_abs(rhs)) {
         (Some((binder, body)), Some((_, rhs_body))) => {
-          let truth_term = match
-            ks_definition_theorem(state, prelude.truth_name) {
-            Ok(th) =>
-              match thm_concl(th) {
-                Ok(concl) =>
-                  match @kernel.dest_eq(concl) {
-                    Ok((lhs, _)) => lhs
-                    Err(_) =>
-                      return Err(
-                        ProofSynthesisUnavailable(
-                          "quantified intro needs truth constant",
-                        ),
-                      )
-                  }
-                Err(_) =>
-                  return Err(
-                    ProofSynthesisUnavailable(
-                      "quantified intro needs truth constant",
-                    ),
-                  )
-              }
-            Err(_) =>
-              return Err(
-                ProofSynthesisUnavailable(
-                  "quantified intro needs truth constant",
-                ),
-              )
+          let truth_term = match quantified_intro_truth_term(state, prelude) {
+            Ok(v) => v
+            Err(e) => return Err(e)
           }
           if term_logical_eq(rhs_body, truth_term) ||
             term_alpha_eq(rhs_body, truth_term) {
-            let locals = g.locals.copy()
-            locals.push(LocalHyp::{ name, term: binder })
-            let refines = g.refine_chain.copy()
-            refines.push(AbsBackwardTerm(binder))
-            Ok(PendingGoal::{
-              hyps: g.hyps.copy(),
-              concl: body,
-              locals,
-              branch_path: g.branch_path.copy(),
-              imp_prefix: g.imp_prefix.copy(),
-              refine_chain: refines,
-              split_role: g.split_role,
-              or_ctx: g.or_ctx,
-            })
+            let replay_binder = match
+              fresh_quantified_replay_binder(g, binder, body, rhs_body) {
+              Ok(v) => v
+              Err(e) => return Err(e)
+            }
+            Ok(
+              pending_goal_after_intro(
+                g,
+                name,
+                binder,
+                body,
+                Some(AbsBackwardTerm(binder, replay_binder)),
+                false,
+                false,
+              ),
+            )
           } else {
             Err(
               GoalShapeMismatch(
@@ -1143,25 +1313,8 @@ pub fn ps_apply(
       }
     Intro(name) =>
       match prop_dest_imp(state, prelude, g.concl) {
-        Some((a, b)) => {
-          let (oh, ol, obp, oip, _orc) = copy_goal_shape(g)
-          let hyps = oh
-          hyps.push(a)
-          let locals = ol
-          locals.push(LocalHyp::{ name, term: a })
-          let ip = oip
-          ip.push(a)
-          keep_one(PendingGoal::{
-            hyps,
-            concl: b,
-            locals,
-            branch_path: obp,
-            imp_prefix: ip,
-            refine_chain: [],
-            split_role: g.split_role,
-            or_ctx: g.or_ctx,
-          })
-        }
+        Some((a, b)) =>
+          keep_one(pending_goal_after_intro(g, name, a, b, None, true, true))
         None =>
           match intro_quantified_goal(state, prelude, g, name) {
             Ok(next) => keep_one(next)

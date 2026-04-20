@@ -94,7 +94,7 @@ pub enum OrContext {
 pub enum PendingRefine {
   ImpBackwardTerm(@kernel.Term)
   ImpBackwardTheorem(@kernel.Thm)
-  AbsBackwardTerm(@kernel.Term)
+  AbsBackwardTerm(@kernel.Term, @kernel.Term)
 }
 
 type ProofGoalView

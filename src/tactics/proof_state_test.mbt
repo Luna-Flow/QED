@@ -642,3 +642,49 @@ test "proof state exact does not fall through past shadowing local witness names
     ps_apply(st, prelude, ps1, step_exact("truth")) is Err(GoalShapeMismatch(_)),
   )
 }
+
+///|
+test "proof state body theorem can be abstraction-wrapped" {
+  let prelude = default_prop_prelude()
+  let st = expect_ok_ps(install_prop_prelude(empty_kernel_state()))
+  let x = mk_var("x", bool_ty())
+  let target = expect_ok_ps(prop_mk_imp(st, prelude, x, x))
+  let ps0 = ps_init(mk_goal([], target))
+  let ps1 = expect_ok_ps(ps_apply(st, prelude, ps0, step_intro("h")))
+  let ps2 = expect_ok_ps(ps_apply(st, prelude, ps1, step_exact("h")))
+  let th = expect_ok_ps(ps_qed(ps2))
+  let truth = expect_ok_ps(logic_prop_truth_const_thm(st, prelude))
+  let th_eq = expect_ok_ps(logic_deduct_antisym(st, th, truth))
+  assert_true(logic_abs_rule(st, x, th_eq) is Ok(_))
+}
+
+///|
+test "proof state body theorem with internal binder name can be wrapped" {
+  let prelude = default_prop_prelude()
+  let st = expect_ok_ps(install_prop_prelude(empty_kernel_state()))
+  let x = mk_var("_b0", bool_ty())
+  let target = expect_ok_ps(prop_mk_imp(st, prelude, x, x))
+  let ps0 = ps_init(mk_goal([], target))
+  let ps1 = expect_ok_ps(ps_apply(st, prelude, ps0, step_intro("h")))
+  let ps2 = expect_ok_ps(ps_apply(st, prelude, ps1, step_exact("h")))
+  let th = expect_ok_ps(ps_qed(ps2))
+  let truth = expect_ok_ps(logic_prop_truth_const_thm(st, prelude))
+  let th_eq = expect_ok_ps(logic_deduct_antisym(st, th, truth))
+  assert_true(logic_abs_rule(st, x, th_eq) is Ok(_))
+}
+
+///|
+test "proof state exact closes lowered raw forall goals" {
+  let prelude = default_prop_prelude()
+  let st = expect_ok_ps(install_prop_prelude(empty_kernel_state()))
+  let x = mk_var("_b0", bool_ty())
+  let body = expect_ok_ps(prop_mk_imp(st, prelude, x, x))
+  let truth = expect_ok_ps(logic_prop_truth_const_thm(st, prelude))
+  let truth_term = expect_ok_ps(thm_concl(truth))
+  let goal = expect_ok_ps(mk_eq(mk_abs(x, body), mk_abs(x, truth_term)))
+  let ps0 = ps_init(mk_goal([], goal))
+  let ps1 = expect_ok_ps(ps_apply(st, prelude, ps0, step_intro("x")))
+  let ps2 = expect_ok_ps(ps_apply(st, prelude, ps1, step_intro("h")))
+  let ps3 = expect_ok_ps(ps_apply(st, prelude, ps2, step_exact("h")))
+  assert_true(ps_qed(ps3) is Ok(_))
+}

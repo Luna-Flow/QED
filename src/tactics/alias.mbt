@@ -6,6 +6,8 @@ using @kernel {
   type Thm,
   type Term,
   type LogicError,
+  type_of,
+  mk_var,
   term_alpha_eq,
   term_logical_eq,
   ks_definition_theorem,
@@ -37,5 +39,6 @@ using @logic {
   logic_prop_or_wrap_left,
   logic_prop_or_wrap_right,
   logic_beta_nf_bool_term_deep,
+  logic_inst,
   logic_normalize_prop_beta,
 }

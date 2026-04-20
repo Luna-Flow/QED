@@ -240,6 +240,25 @@ test "abs_rule enforces binder and free-in-hyp side condition" {
 }
 
 ///|
+test "abs_rule preserves liftable theorem conclusions under nested abstractions" {
+  let st = empty_kernel_state()
+  let a = mk_tyvar("A")
+  let x = mk_var("x", a)
+  let f = mk_var("f", fun_ty(a, a))
+  let body = mk_abs(f, mk_comb(f, x))
+  let th_eq = expect_ok(refl_checked(st, body))
+  let th_abs = expect_ok(abs_rule_checked(st, x, th_eq))
+  let concl = expect_ok(thm_concl(th_abs))
+  match dest_eq(concl) {
+    Ok((lhs, rhs)) => {
+      assert_true(lhs is Abs(_, _))
+      assert_true(rhs is Abs(_, _))
+    }
+    Err(_) => panic()
+  }
+}
+
+///|
 test "beta_rule enforces redex shape and binder agreement" {
   let st = empty_kernel_state()
   let a = mk_tyvar("A")
