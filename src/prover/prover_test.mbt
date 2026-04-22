@@ -36,6 +36,14 @@ fn expect_unfinished(result : ProverRunResult) -> ProverUnfinished {
 }
 
 ///|
+fn expect_file_checked(result : ProverFileRunResult) -> ProverFileReport {
+  match result {
+    FileChecked(report) => report
+    FileFailed(_) => panic()
+  }
+}
+
+///|
 fn expect_diag_failed(
   res : Result[(KernelState, Thm), ProverScriptError],
 ) -> ProverFailure {
@@ -291,6 +299,106 @@ test "prove_theorem_script runs linear scripts with auto prelude install" {
   let _ = expect_ok_prover(
     prove_theorem_script(st_out2, script3, default_prover_options()),
   )
+}
+
+///|
+test "prove_theorem_file_detailed runs multiple qed-terminated theorem blocks" {
+  let script = "theorem t1 : ⊢ T := by exact truth\nqed\n\ntheorem t2 : ⊢ T := by exact truth\nqed"
+  let ok = expect_proved(
+    prove_theorem_file_detailed(
+      empty_kernel_state(),
+      script,
+      default_prover_options(),
+    ),
+  )
+  assert_eq(ok.theorem_name, "t2")
+}
+
+///|
+test "prove_theorem_file_results_detailed returns all successful theorem results" {
+  let script = "theorem t1 : ⊢ T := by exact truth\nqed\n\ntheorem t2 : ⊢ T := by exact truth\nqed"
+  let report = expect_file_checked(
+    prove_theorem_file_results_detailed(
+      empty_kernel_state(),
+      script,
+      default_prover_options(),
+    ),
+  )
+  assert_eq(report.items.length(), 2)
+  assert_true(report.items[0] is ProverItemProved(_))
+  assert_true(report.items[1] is ProverItemProved(_))
+}
+
+///|
+test "prove_theorem_file_detailed preserves later theorem failure context" {
+  let script = "theorem t1 : ⊢ T := by exact truth\nqed\n\ntheorem bad : ⊢ T -> T := by intro h; apply truth\nqed"
+  let err = expect_failed(
+    prove_theorem_file_detailed(
+      empty_kernel_state(),
+      script,
+      default_prover_options(),
+    ),
+  )
+  assert_eq(err.theorem_name, Some("bad"))
+  assert_eq(err.step_index, Some(2))
+  assert_true(err.detail.contains("ApplyMismatch"))
+}
+
+///|
+test "prove_theorem_file_results_detailed records theorem failures and continues" {
+  let script = "theorem t1 : ⊢ T := by exact truth\nqed\n\ntheorem bad : ⊢ T -> T := by intro h; apply truth\nqed\n\ntheorem t2 : ⊢ T := by exact truth\nqed"
+  let report = expect_file_checked(
+    prove_theorem_file_results_detailed(
+      empty_kernel_state(),
+      script,
+      default_prover_options(),
+    ),
+  )
+  assert_eq(report.items.length(), 3)
+  match report.items[1] {
+    ProverItemFailed(err) => {
+      assert_eq(err.theorem_name, Some("bad"))
+      assert_eq(err.step_index, Some(2))
+      assert_true(err.detail.contains("ApplyMismatch"))
+    }
+    _ => panic()
+  }
+  assert_true(report.items[2] is ProverItemProved(_))
+}
+
+///|
+test "prove_theorem_file_detailed stops at first unfinished theorem" {
+  let script = "theorem holey : ⊢ T := by hole h1\nqed\n\ntheorem t2 : ⊢ T := by exact truth\nqed"
+  let unfinished = expect_unfinished(
+    prove_theorem_file_detailed(
+      empty_kernel_state(),
+      script,
+      default_prover_options(),
+    ),
+  )
+  assert_eq(unfinished.theorem_name, "holey")
+  assert_eq(unfinished.hole_name, Some("h1"))
+}
+
+///|
+test "prove_theorem_file_results_detailed records unfinished theorem and continues" {
+  let script = "theorem holey : ⊢ T := by hole h1\nqed\n\ntheorem t2 : ⊢ T := by exact truth\nqed"
+  let report = expect_file_checked(
+    prove_theorem_file_results_detailed(
+      empty_kernel_state(),
+      script,
+      default_prover_options(),
+    ),
+  )
+  assert_eq(report.items.length(), 2)
+  match report.items[0] {
+    ProverItemUnfinished(unfinished) => {
+      assert_eq(unfinished.theorem_name, "holey")
+      assert_eq(unfinished.hole_name, Some("h1"))
+    }
+    _ => panic()
+  }
+  assert_true(report.items[1] is ProverItemProved(_))
 }
 
 ///|

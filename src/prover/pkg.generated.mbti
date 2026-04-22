@@ -38,6 +38,10 @@ pub fn negative_failure_class_label(NegativeFailureClass) -> String
 
 pub fn positive_corpus_cases() -> Array[PositiveCorpusCase]
 
+pub fn prove_theorem_file_detailed(@kernel.KernelState, String, ProverOptions) -> ProverRunResult
+
+pub fn prove_theorem_file_results_detailed(@kernel.KernelState, String, ProverOptions) -> ProverFileRunResult
+
 pub fn prove_theorem_script(@kernel.KernelState, String, ProverOptions) -> Result[(@kernel.KernelState, @kernel.Thm), ProverScriptError]
 
 pub fn prove_theorem_script_detailed(@kernel.KernelState, String, ProverOptions) -> ProverRunResult
@@ -172,6 +176,22 @@ pub struct ProverFailure {
   current_goal : @tactics.Goal?
   local_hyps : Array[ProverLocalHyp]
   error : ProverError
+}
+
+pub enum ProverFileItemResult {
+  ProverItemProved(ProverSuccess)
+  ProverItemFailed(ProverFailure)
+  ProverItemUnfinished(ProverUnfinished)
+}
+
+pub struct ProverFileReport {
+  state : @kernel.KernelState
+  items : Array[ProverFileItemResult]
+}
+
+pub enum ProverFileRunResult {
+  FileChecked(ProverFileReport)
+  FileFailed(ProverFailure)
 }
 
 pub struct ProverLocalHyp {

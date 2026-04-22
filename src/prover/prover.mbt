@@ -40,6 +40,19 @@ pub struct ProverSuccess {
 }
 
 ///|
+pub enum ProverFileItemResult {
+  ProverItemProved(ProverSuccess)
+  ProverItemFailed(ProverFailure)
+  ProverItemUnfinished(ProverUnfinished)
+}
+
+///|
+pub struct ProverFileReport {
+  state : KernelState
+  items : Array[ProverFileItemResult]
+}
+
+///|
 pub struct ProverFailure {
   theorem_name : String?
   kind : ProverDiagnosticKind
@@ -83,6 +96,12 @@ pub enum ProverRunResult {
   Proved(ProverSuccess)
   Failed(ProverFailure)
   Unfinished(ProverUnfinished)
+}
+
+///|
+pub enum ProverFileRunResult {
+  FileChecked(ProverFileReport)
+  FileFailed(ProverFailure)
 }
 
 ///|
@@ -1055,6 +1074,15 @@ pub fn prove_theorem_script_detailed(
         Some(e.offset),
       )
   }
+  prove_syn_theorem_script_detailed(st1, prelude, syn)
+}
+
+///|
+fn prove_syn_theorem_script_detailed(
+  st1 : KernelState,
+  prelude : PropPrelude,
+  syn : SynTheoremScript,
+) -> ProverRunResult {
   let mut goal_env = empty_parse_env()
   for binder in syn.binders {
     goal_env = parse_env_push_local(goal_env, binder.name, binder.ty)
@@ -1143,6 +1171,107 @@ pub fn prove_theorem_script_detailed(
         Tactic(e),
         None,
       )
+  }
+}
+
+///|
+pub fn prove_theorem_file_detailed(
+  state : KernelState,
+  src : String,
+  opts : ProverOptions,
+) -> ProverRunResult {
+  match prove_theorem_file_results_detailed(state, src, opts) {
+    FileChecked(report) => {
+      let mut first_unfinished : ProverUnfinished? = None
+      let mut last_success : ProverSuccess? = None
+      for item in report.items {
+        match item {
+          ProverItemProved(ok) => last_success = Some(ok)
+          ProverItemFailed(err) => return Failed(err)
+          ProverItemUnfinished(unfinished) =>
+            if first_unfinished is None {
+              first_unfinished = Some(unfinished)
+            }
+        }
+      }
+      match first_unfinished {
+        Some(unfinished) => Unfinished(unfinished)
+        None =>
+          match last_success {
+            Some(ok) => Proved(ok)
+            None => panic()
+          }
+      }
+    }
+    FileFailed(err) => Failed(err)
+  }
+}
+
+///|
+pub fn prove_theorem_file_results_detailed(
+  state : KernelState,
+  src : String,
+  opts : ProverOptions,
+) -> ProverFileRunResult {
+  let st1 = if opts.auto_install_prelude {
+    match install_prop_prelude(state) {
+      Ok(v) => v
+      Err(e) =>
+        return FileFailed(ProverFailure::{
+          theorem_name: None,
+          kind: Sig,
+          detail: diagnostic_detail(Sig(e)),
+          raw_offset: None,
+          goal_src: None,
+          goal_span: None,
+          step_index: None,
+          branch_path: [],
+          step_span: None,
+          step_src: None,
+          current_goal: None,
+          local_hyps: [],
+          error: Sig(e),
+        })
+    }
+  } else {
+    state
+  }
+  let prelude = default_prop_prelude()
+  let scripts = match parse_theorem_file_raw(src) {
+    Ok(v) => v
+    Err(e) =>
+      return FileFailed(ProverFailure::{
+        theorem_name: None,
+        kind: Parse,
+        detail: diagnostic_detail(Parse(e)),
+        raw_offset: Some(e.offset),
+        goal_src: None,
+        goal_span: None,
+        step_index: None,
+        branch_path: [],
+        step_span: None,
+        step_src: None,
+        current_goal: None,
+        local_hyps: [],
+        error: Parse(e),
+      })
+  }
+  let mut current_state = st1
+  let items : Array[ProverFileItemResult] = []
+  for syn in scripts {
+    match prove_syn_theorem_script_detailed(current_state, prelude, syn) {
+      Proved(ok) => {
+        current_state = ok.state
+        items.push(ProverItemProved(ok))
+      }
+      Failed(err) => items.push(ProverItemFailed(err))
+      Unfinished(unfinished) => items.push(ProverItemUnfinished(unfinished))
+    }
+  }
+  if items.length() == 0 {
+    panic()
+  } else {
+    FileChecked(ProverFileReport::{ state: current_state, items })
   }
 }
 
