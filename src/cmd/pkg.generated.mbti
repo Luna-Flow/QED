@@ -13,6 +13,10 @@ pub fn cmd_failure_kind_to_string(CmdFailureKind) -> String
 
 pub fn cmd_options(Bool) -> CmdOptions
 
+pub fn cmd_options_full(Bool, Bool, Bool) -> CmdOptions
+
+pub fn cmd_options_with_detail(Bool, Bool) -> CmdOptions
+
 pub fn cmd_render_result(CmdRunResult) -> String
 
 pub fn cmd_run_argv(Array[String], CmdOptions) -> CmdRunResult
@@ -49,6 +53,19 @@ pub enum CmdFailureKind {
   Logic
 }
 
+pub enum CmdFileItem {
+  CmdItemSuccess(CmdSuccess)
+  CmdItemFailure(CmdFailure)
+  CmdItemWarning(CmdUnfinished)
+}
+
+pub struct CmdFileReport {
+  path : String
+  items : Array[CmdFileItem]
+  detailed_success : Bool
+  no_warn : Bool
+}
+
 pub struct CmdLocalHypSummary {
   name : String
   term_summary : String
@@ -56,10 +73,12 @@ pub struct CmdLocalHypSummary {
 
 pub struct CmdOptions {
   auto_install_prelude : Bool
+  detailed_success : Bool
+  no_warn : Bool
 }
 
 pub enum CmdRunResult {
-  Success(CmdSuccess)
+  FileReport(CmdFileReport)
   Failure(CmdFailure)
   Unfinished(CmdUnfinished)
 }

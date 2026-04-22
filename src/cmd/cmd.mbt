@@ -1,6 +1,8 @@
 ///|
 pub struct CmdOptions {
   auto_install_prelude : Bool
+  detailed_success : Bool
+  no_warn : Bool
 }
 
 ///|
@@ -29,6 +31,21 @@ pub struct CmdSuccess {
 }
 
 ///|
+pub enum CmdFileItem {
+  CmdItemSuccess(CmdSuccess)
+  CmdItemFailure(CmdFailure)
+  CmdItemWarning(CmdUnfinished)
+}
+
+///|
+pub struct CmdFileReport {
+  path : String
+  items : Array[CmdFileItem]
+  detailed_success : Bool
+  no_warn : Bool
+}
+
+///|
 pub struct CmdFailure {
   path : String
   theorem_name : String?
@@ -54,19 +71,40 @@ pub struct CmdUnfinished {
 
 ///|
 pub enum CmdRunResult {
-  Success(CmdSuccess)
+  FileReport(CmdFileReport)
   Failure(CmdFailure)
   Unfinished(CmdUnfinished)
 }
 
 ///|
 pub fn default_cmd_options() -> CmdOptions {
-  CmdOptions::{ auto_install_prelude: true }
+  CmdOptions::{
+    auto_install_prelude: true,
+    detailed_success: false,
+    no_warn: false,
+  }
 }
 
 ///|
 pub fn cmd_options(auto_install_prelude : Bool) -> CmdOptions {
-  CmdOptions::{ auto_install_prelude, }
+  CmdOptions::{ auto_install_prelude, detailed_success: false, no_warn: false }
+}
+
+///|
+pub fn cmd_options_with_detail(
+  auto_install_prelude : Bool,
+  detailed_success : Bool,
+) -> CmdOptions {
+  CmdOptions::{ auto_install_prelude, detailed_success, no_warn: false }
+}
+
+///|
+pub fn cmd_options_full(
+  auto_install_prelude : Bool,
+  detailed_success : Bool,
+  no_warn : Bool,
+) -> CmdOptions {
+  CmdOptions::{ auto_install_prelude, detailed_success, no_warn }
 }
 
 ///|
@@ -164,7 +202,15 @@ fn render_local_hyp_summary(local_hyps : Array[CmdLocalHypSummary]) -> String {
 
 ///|
 fn usage_string(argv0 : String) -> String {
-  "usage: " + argv0 + " <file>"
+  "usage: " + argv0 + " [-d] [--no-warn] <file>"
+}
+
+///|
+fn string_starts_with_dash(s : String) -> Bool {
+  match s.view() {
+    ['-', ..] => true
+    _ => false
+  }
 }
 
 ///|
@@ -208,66 +254,187 @@ pub fn cmd_failure_kind_to_string(kind : CmdFailureKind) -> String {
 ///|
 pub fn cmd_exit_code(result : CmdRunResult) -> Int {
   match result {
-    Success(_) => 0
+    FileReport(report) => {
+      let mut has_warning = false
+      for item in report.items {
+        match item {
+          CmdItemFailure(_) => return 1
+          CmdItemWarning(_) => has_warning = true
+          CmdItemSuccess(_) => ()
+        }
+      }
+      if has_warning && !report.no_warn {
+        1
+      } else {
+        0
+      }
+    }
     Failure(_) => 1
     Unfinished(_) => 1
   }
 }
 
 ///|
+fn render_cmd_success(ok : CmdSuccess, detailed_success : Bool) -> String {
+  if detailed_success {
+    "ok " + ok.theorem_name + ": " + ok.conclusion_summary
+  } else {
+    "ok " + ok.theorem_name
+  }
+}
+
+///|
+fn render_cmd_failure(err : CmdFailure) -> String {
+  let head = "error[" +
+    cmd_failure_kind_to_string(err.kind) +
+    "] " +
+    cli_path_label(err.path, err.theorem_name) +
+    ": " +
+    err.detail
+  if !cmd_failure_has_context(err) {
+    head
+  } else {
+    let lines : Array[String] = [head]
+    match err.step_index {
+      Some(idx) => lines.push("step: " + idx.to_string())
+      None => ()
+    }
+    if err.branch_path.length() != 0 {
+      lines.push("branch: " + render_branch_path(err.branch_path))
+    }
+    match err.current_goal_summary {
+      Some(goal_summary) => lines.push("goal: " + goal_summary)
+      None => ()
+    }
+    lines.push("locals: " + render_local_hyp_summary(err.local_hyps))
+    lines.join("\n")
+  }
+}
+
+///|
+fn render_cmd_warning(st : CmdUnfinished) -> String {
+  let lines : Array[String] = [
+    "warning[unfinished] " +
+    cli_path_label(st.path, Some(st.theorem_name)) +
+    ": " +
+    st.detail,
+    "theorem: " + st.theorem_name,
+  ]
+  let step_summary = match st.step_index {
+    Some(idx) => idx.to_string()
+    None => "<none>"
+  }
+  lines.push("step: " + step_summary)
+  lines.push("branch: " + render_branch_path(st.branch_path))
+  lines.push("goal: " + st.current_goal_summary)
+  lines.push("locals: " + render_local_hyp_summary(st.local_hyps))
+  match st.hole_name {
+    Some(name) => lines.push("hole: " + name)
+    None => lines.push("hole: <none>")
+  }
+  lines.push("message: " + st.detail)
+  lines.join("\n")
+}
+
+///|
+fn render_cmd_unfinished(st : CmdUnfinished) -> String {
+  let lines : Array[String] = [
+    "unfinished " +
+    cli_path_label(st.path, Some(st.theorem_name)) +
+    ": " +
+    st.detail,
+    "theorem: " + st.theorem_name,
+  ]
+  let step_summary = match st.step_index {
+    Some(idx) => idx.to_string()
+    None => "<none>"
+  }
+  lines.push("step: " + step_summary)
+  lines.push("branch: " + render_branch_path(st.branch_path))
+  lines.push("goal: " + st.current_goal_summary)
+  lines.push("locals: " + render_local_hyp_summary(st.local_hyps))
+  match st.hole_name {
+    Some(name) => lines.push("hole: " + name)
+    None => lines.push("hole: <none>")
+  }
+  lines.push("message: " + st.detail)
+  lines.join("\n")
+}
+
+///|
 pub fn cmd_render_result(result : CmdRunResult) -> String {
   match result {
-    Success(ok) => "ok " + ok.theorem_name + ": " + ok.conclusion_summary
-    Failure(err) => {
-      let head = "error[" +
-        cmd_failure_kind_to_string(err.kind) +
-        "] " +
-        cli_path_label(err.path, err.theorem_name) +
-        ": " +
-        err.detail
-      if !cmd_failure_has_context(err) {
-        head
-      } else {
-        let lines : Array[String] = [head]
-        match err.step_index {
-          Some(idx) => lines.push("step: " + idx.to_string())
-          None => ()
+    FileReport(report) =>
+      report.items
+      .map(fn(item) {
+        match item {
+          CmdItemSuccess(success) =>
+            render_cmd_success(success, report.detailed_success)
+          CmdItemFailure(err) => render_cmd_failure(err)
+          CmdItemWarning(st) => render_cmd_warning(st)
         }
-        if err.branch_path.length() != 0 {
-          lines.push("branch: " + render_branch_path(err.branch_path))
+      })
+      .join("\n")
+    Failure(err) => render_cmd_failure(err)
+    Unfinished(st) => render_cmd_unfinished(st)
+  }
+}
+
+///|
+fn cmd_success_from_prover(
+  path : String,
+  ok : ProverSuccess,
+) -> Result[CmdSuccess, LogicError] {
+  match thm_concl(ok.thm) {
+    Err(e) => Err(e)
+    Ok(concl) =>
+      Ok(CmdSuccess::{
+        path,
+        theorem_name: ok.theorem_name,
+        conclusion: concl,
+        conclusion_summary: term_to_string(concl),
+      })
+  }
+}
+
+///|
+fn cmd_file_report_from_prover(
+  path : String,
+  report : ProverFileReport,
+  detailed_success : Bool,
+  no_warn : Bool,
+) -> CmdRunResult {
+  let items : Array[CmdFileItem] = []
+  for item in report.items {
+    match item {
+      ProverItemProved(success) =>
+        match cmd_success_from_prover(path, success) {
+          Ok(cmd_success) => items.push(CmdItemSuccess(cmd_success))
+          Err(e) =>
+            return cmd_failure(
+              path,
+              Some(success.theorem_name),
+              Logic,
+              None,
+              [],
+              None,
+              [],
+              render_logic_error(e),
+            )
         }
-        match err.current_goal_summary {
-          Some(goal_summary) => lines.push("goal: " + goal_summary)
-          None => ()
+      ProverItemFailed(failure) =>
+        match cmd_failure_from_prover(path, failure) {
+          Failure(err) => items.push(CmdItemFailure(err))
+          _ => panic()
         }
-        lines.push("locals: " + render_local_hyp_summary(err.local_hyps))
-        lines.join("\n")
-      }
-    }
-    Unfinished(st) => {
-      let lines : Array[String] = [
-        "unfinished " +
-        cli_path_label(st.path, Some(st.theorem_name)) +
-        ": " +
-        st.detail,
-        "theorem: " + st.theorem_name,
-      ]
-      let step_summary = match st.step_index {
-        Some(idx) => idx.to_string()
-        None => "<none>"
-      }
-      lines.push("step: " + step_summary)
-      lines.push("branch: " + render_branch_path(st.branch_path))
-      lines.push("goal: " + st.current_goal_summary)
-      lines.push("locals: " + render_local_hyp_summary(st.local_hyps))
-      match st.hole_name {
-        Some(name) => lines.push("hole: " + name)
-        None => lines.push("hole: <none>")
-      }
-      lines.push("message: " + st.detail)
-      lines.join("\n")
+      ProverItemUnfinished(unfinished) =>
+        match cmd_unfinished_from_prover(path, unfinished) {
+          Unfinished(st) => items.push(CmdItemWarning(st))
+          _ => panic()
+        }
     }
   }
+  FileReport(CmdFileReport::{ path, items, detailed_success, no_warn })
 }
 
 ///|
@@ -317,60 +484,90 @@ pub fn cmd_run_script(
   opts : CmdOptions,
 ) -> CmdRunResult {
   match
-    prove_theorem_script_detailed(
+    prove_theorem_file_results_detailed(
       empty_kernel_state(),
       src,
       prover_options(opts.auto_install_prelude),
     ) {
-    Proved(ok) =>
-      match thm_concl(ok.thm) {
-        Err(e) =>
-          cmd_failure(
-            path,
-            Some(ok.theorem_name),
-            Logic,
-            None,
-            [],
-            None,
-            [],
-            render_logic_error(e),
-          )
-        Ok(concl) =>
-          Success(CmdSuccess::{
-            path,
-            theorem_name: ok.theorem_name,
-            conclusion: concl,
-            conclusion_summary: term_to_string(concl),
-          })
-      }
-    Failed(failure) => cmd_failure_from_prover(path, failure)
-    Unfinished(unfinished) => cmd_unfinished_from_prover(path, unfinished)
+    FileChecked(report) =>
+      cmd_file_report_from_prover(
+        path,
+        report,
+        opts.detailed_success,
+        opts.no_warn,
+      )
+    FileFailed(failure) => cmd_failure_from_prover(path, failure)
   }
 }
 
 ///|
 pub fn cmd_run_argv(args : Array[String], opts : CmdOptions) -> CmdRunResult {
   let argv0 = if args.length() > 0 { args[0] } else { "qed-cmd" }
-  if args.length() != 2 {
-    return cmd_failure(
-      "<cli>",
-      None,
-      Usage,
-      None,
-      [],
-      None,
-      [],
-      usage_string(argv0),
-    )
+  let mut detailed_success = opts.detailed_success
+  let mut no_warn = opts.no_warn
+  let mut path : String? = None
+  let mut i = 1
+  while i < args.length() {
+    let arg = args[i]
+    if arg == "-d" {
+      detailed_success = true
+    } else if arg == "--no-warn" {
+      no_warn = true
+    } else if string_starts_with_dash(arg) {
+      return cmd_failure(
+        "<cli>",
+        None,
+        Usage,
+        None,
+        [],
+        None,
+        [],
+        usage_string(argv0),
+      )
+    } else {
+      match path {
+        None => path = Some(arg)
+        Some(_) =>
+          return cmd_failure(
+            "<cli>",
+            None,
+            Usage,
+            None,
+            [],
+            None,
+            [],
+            usage_string(argv0),
+          )
+      }
+    }
+    i = i + 1
   }
-  let path = args[1]
+  let path = match path {
+    Some(v) => v
+    None =>
+      return cmd_failure(
+        "<cli>",
+        None,
+        Usage,
+        None,
+        [],
+        None,
+        [],
+        usage_string(argv0),
+      )
+  }
+  let opts2 = cmd_options_full(
+    opts.auto_install_prelude,
+    detailed_success,
+    no_warn,
+  )
   let mut src = ""
   try read_file_to_string(path) catch {
     IOError(msg) => return cmd_failure(path, None, Io, None, [], None, [], msg)
   } noraise {
     content => src = content
   }
-  cmd_run_script(path, src, opts)
+  cmd_run_script(path, src, opts2)
 }
 
 ///|

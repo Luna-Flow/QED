@@ -1,7 +1,24 @@
 ///|
 fn expect_cmd_success(result : CmdRunResult) -> CmdSuccess {
   match result {
-    Success(ok) => ok
+    FileReport(report) =>
+      if report.items.length() == 1 {
+        match report.items[0] {
+          CmdItemSuccess(ok) => ok
+          _ => panic()
+        }
+      } else {
+        panic()
+      }
+    Failure(_) => panic()
+    Unfinished(_) => panic()
+  }
+}
+
+///|
+fn expect_cmd_file_report(result : CmdRunResult) -> CmdFileReport {
+  match result {
+    FileReport(report) => report
     Failure(_) => panic()
     Unfinished(_) => panic()
   }
@@ -10,7 +27,15 @@ fn expect_cmd_success(result : CmdRunResult) -> CmdSuccess {
 ///|
 fn expect_cmd_failure(result : CmdRunResult) -> CmdFailure {
   match result {
-    Success(_) => panic()
+    FileReport(report) =>
+      if report.items.length() == 1 {
+        match report.items[0] {
+          CmdItemFailure(err) => err
+          _ => panic()
+        }
+      } else {
+        panic()
+      }
     Failure(err) => err
     Unfinished(_) => panic()
   }
@@ -19,7 +44,15 @@ fn expect_cmd_failure(result : CmdRunResult) -> CmdFailure {
 ///|
 fn expect_cmd_unfinished(result : CmdRunResult) -> CmdUnfinished {
   match result {
-    Success(_) => panic()
+    FileReport(report) =>
+      if report.items.length() == 1 {
+        match report.items[0] {
+          CmdItemWarning(unfinished) => unfinished
+          _ => panic()
+        }
+      } else {
+        panic()
+      }
     Failure(_) => panic()
     Unfinished(unfinished) => unfinished
   }
@@ -63,11 +96,111 @@ test "cmd run script succeeds on shipped single-theorem prelude script" {
   assert_eq(ok.theorem_name, "truth_ok")
   assert_true(@kernel.term_logical_eq(ok.conclusion, concl))
   assert_eq(ok.conclusion_summary, @kernel.term_to_string(concl))
-  assert_eq(
-    cmd_render_result(result),
-    "ok truth_ok: " + @kernel.term_to_string(concl),
-  )
+  assert_eq(cmd_render_result(result), "ok truth_ok")
   assert_eq(cmd_exit_code(result), 0)
+}
+
+///|
+test "cmd run script renders detailed success when requested" {
+  let src = "theorem truth_ok : ⊢ T := by exact truth"
+  let result = cmd_run_script(
+    "truth_ok.qed",
+    src,
+    cmd_options_with_detail(true, true),
+  )
+  let ok = expect_cmd_success(result)
+  assert_true(cmd_render_result(result).contains("ok truth_ok: "))
+  assert_true(cmd_render_result(result).contains(ok.conclusion_summary))
+  assert_eq(cmd_exit_code(result), 0)
+}
+
+///|
+test "cmd run script succeeds on multiple qed-terminated theorem blocks" {
+  let src = "theorem first : ⊢ T := by exact truth\nqed\n\ntheorem second : ⊢ T := by exact truth\nqed"
+  let result = cmd_run_script("multi.qed", src, default_cmd_options())
+  let report = expect_cmd_file_report(result)
+  assert_eq(report.path, "multi.qed")
+  assert_eq(report.items.length(), 2)
+  assert_true(report.items[0] is CmdItemSuccess(_))
+  assert_true(report.items[1] is CmdItemSuccess(_))
+  assert_eq(cmd_render_result(result), "ok first\nok second")
+  assert_eq(cmd_exit_code(result), 0)
+}
+
+///|
+test "cmd run script renders multiple detailed successes when requested" {
+  let src = "theorem first : ⊢ T := by exact truth\nqed\n\ntheorem second : ⊢ T := by exact truth\nqed"
+  let result = cmd_run_script(
+    "multi.qed",
+    src,
+    cmd_options_with_detail(true, true),
+  )
+  let report = expect_cmd_file_report(result)
+  let rendered = cmd_render_result(result)
+  assert_eq(report.items.length(), 2)
+  assert_true(rendered.contains("ok first: "))
+  assert_true(rendered.contains("ok second: "))
+  assert_eq(cmd_exit_code(result), 0)
+}
+
+///|
+test "cmd run script reports unfinished as warning and continues" {
+  let src = "theorem first : ⊢ T := by exact truth\nqed\n\ntheorem holey : ⊢ T := by hole h1\nqed\n\ntheorem second : ⊢ T := by exact truth\nqed"
+  let result = cmd_run_script("multi_warn.qed", src, default_cmd_options())
+  let report = expect_cmd_file_report(result)
+  assert_eq(report.items.length(), 3)
+  assert_true(report.items[0] is CmdItemSuccess(_))
+  assert_true(report.items[1] is CmdItemWarning(_))
+  assert_true(report.items[2] is CmdItemSuccess(_))
+  let rendered = cmd_render_result(result)
+  assert_true(rendered.contains("ok first"))
+  assert_true(rendered.contains("warning[unfinished] multi_warn.qed (holey)"))
+  assert_true(rendered.contains("ok second"))
+  assert_eq(cmd_exit_code(result), 1)
+}
+
+///|
+test "cmd no-warn keeps warning visible but allows warning-only exit success" {
+  let src = "theorem first : ⊢ T := by exact truth\nqed\n\ntheorem holey : ⊢ T := by hole h1\nqed\n\ntheorem second : ⊢ T := by exact truth\nqed"
+  let result = cmd_run_script(
+    "multi_warn.qed",
+    src,
+    cmd_options_full(true, false, true),
+  )
+  let rendered = cmd_render_result(result)
+  assert_true(rendered.contains("warning[unfinished] multi_warn.qed (holey)"))
+  assert_true(rendered.contains("ok second"))
+  assert_eq(cmd_exit_code(result), 0)
+}
+
+///|
+test "cmd no-warn does not allow real errors" {
+  let src = "theorem first : ⊢ T := by exact truth\nqed\n\ntheorem bad : ⊢ T -> T := by intro h; apply truth\nqed\n\ntheorem second : ⊢ T := by exact truth\nqed"
+  let result = cmd_run_script(
+    "multi_error.qed",
+    src,
+    cmd_options_full(true, false, true),
+  )
+  let rendered = cmd_render_result(result)
+  assert_true(rendered.contains("ok first"))
+  assert_true(rendered.contains("error[tactic] multi_error.qed (bad)"))
+  assert_true(rendered.contains("ok second"))
+  assert_eq(cmd_exit_code(result), 1)
+}
+
+///|
+test "cmd run script reports missing qed before later theorem" {
+  let result = cmd_run_script(
+    "multi_missing_qed.qed",
+    "theorem first : ⊢ T := by exact truth\n\ntheorem second : ⊢ T := by exact truth",
+    default_cmd_options(),
+  )
+  let err = expect_cmd_failure(result)
+  assert_eq(err.path, "multi_missing_qed.qed")
+  assert_true(err.theorem_name is None)
+  assert_eq(cmd_failure_kind_to_string(err.kind), "parse")
+  assert_true(err.detail.contains("missing qed before next theorem"))
+  assert_eq(cmd_exit_code(result), 1)
 }
 
 ///|
@@ -297,7 +430,7 @@ test "cmd run script keeps quantifier-facing binder unfinished rendering stable"
   assert_eq(
     rendered,
     [
-      "unfinished quant_unfinished.qed (quant_hole): proof contains an unfinished hole",
+      "warning[unfinished] quant_unfinished.qed (quant_hole): proof contains an unfinished hole",
       "theorem: quant_hole", "step: 4", "branch: 1.1", "goal: [Var(x : bool)] |- Var(x : bool)",
       "locals: h: Var(x : bool)", "hole: h1", "message: proof contains an unfinished hole",
     ].join("\n"),
@@ -327,7 +460,7 @@ test "cmd run script keeps raw forall quantifier unfinished rendering stable" {
   assert_eq(
     rendered,
     [
-      "unfinished quant_forall_unfinished.qed (quant_forall_hole): proof contains an unfinished hole",
+      "warning[unfinished] quant_forall_unfinished.qed (quant_forall_hole): proof contains an unfinished hole",
       "theorem: quant_forall_hole", "step: 4", "branch: 1.1", "goal: [Var(x : bool)] |- Var(x : bool)",
       "locals: h: Var(x : bool)", "hole: h1", "message: proof contains an unfinished hole",
     ].join("\n"),
@@ -341,7 +474,7 @@ test "cmd argv reports usage and io failures" {
   let usage_err = expect_cmd_failure(usage_result)
   assert_eq(usage_err.path, "<cli>")
   assert_eq(cmd_failure_kind_to_string(usage_err.kind), "usage")
-  assert_eq(usage_err.detail, "usage: qed-cmd <file>")
+  assert_eq(usage_err.detail, "usage: qed-cmd [-d] [--no-warn] <file>")
   assert_eq(cmd_exit_code(usage_result), 1)
 
   let io_result = cmd_run_argv(
@@ -363,6 +496,47 @@ test "cmd argv reads single theorem file and returns success" {
   assert_eq(ok.path, path)
   assert_eq(ok.theorem_name, "truth_file")
   assert_true(ok.conclusion_summary.contains("Const(T"))
+  assert_eq(cmd_render_result(result), "ok truth_file")
+  if @fs.path_exists(path) {
+    @fs.remove_file(path)
+  }
+}
+
+///|
+test "cmd argv accepts detail flag before file" {
+  let path = tmp_test_path("argv_detail_success")
+  @fs.write_string_to_file(path, "theorem truth_file : ⊢ T := by exact truth")
+  let result = cmd_run_argv(["qed-cmd", "-d", path], default_cmd_options())
+  let ok = expect_cmd_success(result)
+  assert_eq(ok.path, path)
+  assert_eq(ok.theorem_name, "truth_file")
+  assert_true(cmd_render_result(result).contains("ok truth_file: "))
+  assert_true(cmd_render_result(result).contains(ok.conclusion_summary))
+  if @fs.path_exists(path) {
+    @fs.remove_file(path)
+  }
+}
+
+///|
+test "cmd argv accepts no-warn and detail flags in either order" {
+  let path = tmp_test_path("argv_no_warn")
+  @fs.write_string_to_file(
+    path, "theorem truth_file : ⊢ T := by exact truth\nqed\ntheorem holey : ⊢ T := by hole h1\nqed",
+  )
+  let result1 = cmd_run_argv(
+    ["qed-cmd", "--no-warn", "-d", path],
+    default_cmd_options(),
+  )
+  assert_true(cmd_render_result(result1).contains("ok truth_file: "))
+  assert_true(cmd_render_result(result1).contains("warning[unfinished]"))
+  assert_eq(cmd_exit_code(result1), 0)
+  let result2 = cmd_run_argv(
+    ["qed-cmd", "-d", "--no-warn", path],
+    default_cmd_options(),
+  )
+  assert_true(cmd_render_result(result2).contains("ok truth_file: "))
+  assert_true(cmd_render_result(result2).contains("warning[unfinished]"))
+  assert_eq(cmd_exit_code(result2), 0)
   if @fs.path_exists(path) {
     @fs.remove_file(path)
   }

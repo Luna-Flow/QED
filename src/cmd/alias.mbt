@@ -12,11 +12,13 @@ using @kernel {
 
 ///|
 using @prover {
+  type ProverFileReport,
   type ProverDiagnosticKind,
   type ProverFailure,
   type ProverLocalHyp,
+  type ProverSuccess,
   type ProverUnfinished,
-  prove_theorem_script_detailed,
+  prove_theorem_file_results_detailed,
   prover_options,
 }
 
