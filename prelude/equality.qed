@@ -1,0 +1,14 @@
+theorem eq_refl_bool (p : bool) : ⊢ p = p := by
+  exact eq_refl
+qed
+
+theorem eq_sym_bool (p : bool) (q : bool) : ⊢ p = q -> q = p := by
+  intro h
+  exact eq_sym
+qed
+
+theorem eq_mp_bool (p : bool) (q : bool) : ⊢ (p = q) -> p -> q := by
+  intro heq
+  intro hp
+  exact eq_mp
+qed

@@ -1,0 +1,42 @@
+theorem and_dup (p : bool) : ⊢ p -> p ∧ p := by
+  intro hp
+  split
+  exact hp
+  exact hp
+qed
+
+theorem and_comm (p : bool) (q : bool) : ⊢ p ∧ q -> q ∧ p := by
+  intro h
+  split
+  exact and_elim_r
+  exact and_elim_l
+qed
+
+theorem and_left_proj (p : bool) (q : bool) : ⊢ p ∧ q -> p := by
+  intro h
+  exact and_elim_l
+qed
+
+theorem and_right_proj (p : bool) (q : bool) : ⊢ p ∧ q -> q := by
+  intro h
+  exact and_elim_r
+qed
+
+theorem and_chain_pack (p : bool) (q : bool) (r : bool) (s : bool) : ⊢ (p -> q) -> (p -> r) -> (p -> s) -> p -> (q ∧ r) ∧ s := by
+  intro hpq
+  intro hpr
+  intro hps
+  intro hp
+  split {
+    split {
+      apply hpq
+      exact hp
+    } {
+      apply hpr
+      exact hp
+    }
+  } {
+    apply hps
+    exact hp
+  }
+qed

@@ -662,6 +662,10 @@ QED 采用 kernel-first 架构。唯一 theorem-construction boundary 是 `src/k
 
 其中只有不依赖额外自由常量的 state-free 脚本，才适合作为第一次上手的 file-first 示例。对第一次使用本项目的用户，优先看本手册前面的 `truth_file`、`id_bool`、`dup_bool`。
 
+仓库根目录下的 `prelude/` 还额外收集了一批当前可直接运行的 theorem 资产，
+对应 HOL Light bool-core 邻近层；这些文件用于 runnable library-style examples，
+但尚未接入当前 theorem-name inventory / resolver。
+
 下面这组例子主要用于公开说明当前 shipped theorem-script 子集的覆盖面：
 
 ```text

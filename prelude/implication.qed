@@ -1,0 +1,48 @@
+theorem imp_id (p : bool) : ⊢ p -> p := by
+  intro h
+  exact h
+qed
+
+theorem imp_truth (p : bool) : ⊢ p -> T := by
+  intro h
+  exact truth
+qed
+
+theorem imp_drop_left (p : bool) (q : bool) : ⊢ p -> q -> p := by
+  intro hp
+  intro hq
+  exact hp
+qed
+
+theorem imp_chain (p : bool) (q : bool) (r : bool) : ⊢ (p -> q) -> (q -> r) -> p -> r := by
+  intro hpq
+  intro hqr
+  intro hp
+  apply hqr
+  apply hpq
+  exact hp
+qed
+
+theorem imp_fork (p : bool) (q : bool) (r : bool) : ⊢ (p -> q) -> (p -> r) -> p -> q ∧ r := by
+  intro hpq
+  intro hpr
+  intro hp
+  split
+  apply hpq
+  exact hp
+  apply hpr
+  exact hp
+qed
+
+theorem imp_diamond (p : bool) (q : bool) (r : bool) (s : bool) : ⊢ (p -> q) -> (q -> r) -> (p -> s) -> p -> r ∧ s := by
+  intro hpq
+  intro hqr
+  intro hps
+  intro hp
+  split
+  apply hqr
+  apply hpq
+  exact hp
+  apply hps
+  exact hp
+qed

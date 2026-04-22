@@ -42,6 +42,9 @@ theorem truth_file : ⊢ T := by exact truth
 - `examples/bad_branch.qed`
 - `examples/unfinished_branch.qed`
 
+仓库根目录下另有 `prelude/`，存放当前可直接运行的 theorem 资产文件；它们是
+可运行脚本，不是当前 theorem-name catalog 的公开 surface。
+
 ## 文件形状
 
 当前 shipped 的 theorem script 形状是：

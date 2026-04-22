@@ -541,3 +541,72 @@ test "cmd argv accepts no-warn and detail flags in either order" {
     @fs.remove_file(path)
   }
 }
+
+///|
+test "cmd prelude assets smoke test" {
+  let implication = cmd_run_argv(
+    ["qed-cmd", "prelude/implication.qed"],
+    default_cmd_options(),
+  )
+  let implication_report = expect_cmd_file_report(implication)
+  assert_eq(implication_report.items.length(), 6)
+  for item in implication_report.items {
+    assert_true(item is CmdItemSuccess(_))
+  }
+  assert_eq(cmd_exit_code(implication), 0)
+
+  let conjunction = cmd_run_argv(
+    ["qed-cmd", "prelude/conjunction.qed"],
+    default_cmd_options(),
+  )
+  let conjunction_report = expect_cmd_file_report(conjunction)
+  assert_eq(conjunction_report.items.length(), 5)
+  for item in conjunction_report.items {
+    assert_true(item is CmdItemSuccess(_))
+  }
+  assert_eq(cmd_exit_code(conjunction), 0)
+
+  let disjunction = cmd_run_argv(
+    ["qed-cmd", "prelude/disjunction_intro.qed"],
+    default_cmd_options(),
+  )
+  let disjunction_report = expect_cmd_file_report(disjunction)
+  assert_eq(disjunction_report.items.length(), 6)
+  for item in disjunction_report.items {
+    assert_true(item is CmdItemSuccess(_))
+  }
+  assert_eq(cmd_exit_code(disjunction), 0)
+
+  let equality = cmd_run_argv(
+    ["qed-cmd", "prelude/equality.qed"],
+    default_cmd_options(),
+  )
+  let equality_report = expect_cmd_file_report(equality)
+  assert_eq(equality_report.items.length(), 3)
+  for item in equality_report.items {
+    assert_true(item is CmdItemSuccess(_))
+  }
+  assert_eq(cmd_exit_code(equality), 0)
+
+  let quantifier = cmd_run_argv(
+    ["qed-cmd", "prelude/quantifier_intro.qed"],
+    default_cmd_options(),
+  )
+  let quantifier_report = expect_cmd_file_report(quantifier)
+  assert_eq(quantifier_report.items.length(), 5)
+  for item in quantifier_report.items {
+    assert_true(item is CmdItemSuccess(_))
+  }
+  assert_eq(cmd_exit_code(quantifier), 0)
+
+  let mixed = cmd_run_argv(
+    ["qed-cmd", "prelude/mixed.qed"],
+    default_cmd_options(),
+  )
+  let mixed_report = expect_cmd_file_report(mixed)
+  assert_eq(mixed_report.items.length(), 2)
+  for item in mixed_report.items {
+    assert_true(item is CmdItemSuccess(_))
+  }
+  assert_eq(cmd_exit_code(mixed), 0)
+}

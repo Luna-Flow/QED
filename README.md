@@ -45,6 +45,7 @@ QED/
 │   └── cmd/                 # File-first CLI surface
 ├── formal_verification/
 │   └── QEDFV/               # Lean 4 formalization and audit pack
+├── prelude/                 # Runnable theorem assets ported from the current bool-core fragment
 ├── doc/
 │   ├── governance.md        # 文档分层、命名与引用规则
 │   ├── code_governance.md   # 包分层、alias 入口与维护规则
@@ -138,6 +139,9 @@ theorem and_comm (p : bool) (q : bool) : ⊢ p ∧ q -> q ∧ p := by
 - `examples/multi_with_hole.qed`：多 theorem 文件中包含 `hole`，演示 `warning[unfinished]` 后继续检查。
 - `examples/bad_branch.qed`：刻意失败的脚本，演示结构化 `error[...]` 输出。
 - `examples/unfinished_branch.qed`：刻意留 `hole` 的脚本，演示 unfinished warning。
+
+另外，仓库根目录下的 `prelude/` 提供了一批当前可直接运行的 theorem 资产，
+对应 HOL Light 的 bool-core 邻近层，但它们**还没有**接入当前 theorem-name catalog。
 
 这类 binder 形式 `(x : bool)` 是当前已 shipped 的量词面入口之一；raw `forall` /
 `∀` theorem goal 现在也作为 goal-only sugar 被接受，并沿用同一套 goal lowering、

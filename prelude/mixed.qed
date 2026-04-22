@@ -1,0 +1,51 @@
+theorem constructive_diamond
+  (p : bool) (q : bool) (r : bool) (s : bool)
+  : ⊢ (p -> q) -> (q -> r) -> (p -> s) -> p -> (r ∧ s) ∧ (T ∨ r) := by
+  intro hpq
+  intro hqr
+  intro hps
+  intro hp
+  split {
+    split {
+      apply hqr
+      apply hpq
+      exact hp
+    } {
+      apply hps
+      exact hp
+    }
+  } {
+    right {
+      apply hqr
+      apply hpq
+      exact hp
+    }
+  }
+qed
+
+theorem frame_stress
+  (p : bool) (q : bool) (r : bool) (s : bool) (t : bool)
+  : ⊢ (p -> q) -> (q -> r) -> (p -> s) -> (r -> t) -> p -> ((r ∧ s) ∧ (T ∨ t)) := by
+  intro hpq
+  intro hqr
+  intro hps
+  intro hrt
+  intro hp
+  split {
+    split {
+      apply hqr
+      apply hpq
+      exact hp
+    } {
+      apply hps
+      exact hp
+    }
+  } {
+    right {
+      apply hrt
+      apply hqr
+      apply hpq
+      exact hp
+    }
+  }
+qed

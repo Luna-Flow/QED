@@ -1,0 +1,52 @@
+theorem or_intro_left (p : bool) (q : bool) : ⊢ p -> p ∨ q := by
+  intro hp
+  left
+  exact hp
+qed
+
+theorem or_intro_right (p : bool) (q : bool) : ⊢ q -> p ∨ q := by
+  intro hq
+  right
+  exact hq
+qed
+
+theorem or_nested_left (p : bool) (q : bool) (r : bool) : ⊢ p -> p ∨ (q ∨ r) := by
+  intro hp
+  left
+  exact hp
+qed
+
+theorem or_nested_right (p : bool) (q : bool) (r : bool) : ⊢ r -> p ∨ (q ∨ r) := by
+  intro hr
+  right { right { exact hr } }
+qed
+
+theorem pipeline_or_right (p : bool) (q : bool) (r : bool) : ⊢ (p -> q) -> (q -> r) -> p -> T ∨ r := by
+  intro hpq
+  intro hqr
+  intro hp
+  right
+  apply hqr
+  apply hpq
+  exact hp
+qed
+
+theorem and_plus_or (p : bool) (q : bool) (r : bool) : ⊢ (p -> q) -> (p -> r) -> p -> (q ∧ r) ∧ (T ∨ q) := by
+  intro hpq
+  intro hpr
+  intro hp
+  split {
+    split {
+      apply hpq
+      exact hp
+    } {
+      apply hpr
+      exact hp
+    }
+  } {
+    right {
+      apply hpq
+      exact hp
+    }
+  }
+qed

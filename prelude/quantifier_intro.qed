@@ -1,0 +1,27 @@
+theorem forall_id : ⊢ forall (x : bool), x -> x := by
+  intro h
+  exact h
+qed
+
+theorem forall_dup : ⊢ forall (x : bool), x -> x ∧ x := by
+  intro h
+  split
+  exact h
+  exact h
+qed
+
+theorem binder_id (x : bool) : ⊢ x -> x := by
+  intro h
+  exact h
+qed
+
+theorem binder_or_intro (x : bool) : ⊢ x -> T ∨ x := by
+  intro h
+  right
+  exact h
+qed
+
+theorem forall_chain : ⊢ forall (x : bool), x -> T := by
+  intro h
+  exact truth
+qed
