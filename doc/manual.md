@@ -75,7 +75,30 @@ moon run src/cmd truth_file.qed
 当前成功输出形如：
 
 ```text
-ok truth_file: T
+ok truth_file
+```
+
+如果需要查看完整 conclusion summary，可加 `-d`：
+
+```bash
+moon run src/cmd -- -d truth_file.qed
+```
+
+通过 `moon run` 启动时，`--` 是 MoonBit runner 的参数分隔符；没有它，
+`-d` 会先被 `moon` 解析，QED CLI 收不到这个开关。编译成独立可执行文件后，
+可以直接写：
+
+```bash
+qed-cmd -d truth_file.qed
+```
+
+包含 `hole` 的 theorem 会作为 `warning[unfinished]` 输出；它不会构造 theorem，
+也不会进入后续 kernel state。默认 warning 会让整体退出码为非 0；如果只想在没有
+真正 error 时允许 warning，可以使用 `--no-warn`：
+
+```bash
+moon run src/cmd -- --no-warn file.qed
+qed-cmd --no-warn file.qed
 ```
 
 这个例子适合第一步上手，因为它不依赖额外自由常量，也不要求你提前理解 binder、分支或 theorem inventory。
@@ -192,13 +215,21 @@ theorem <name> [(binder...)] : <goal> := by <steps>
 
 ```bash
 moon run src/cmd <file>
+moon run src/cmd -- -d <file>
+moon run src/cmd -- --no-warn <file>
 ```
 
-输入是单个 theorem-script 文件。输出有三类：
+输入是 theorem-script 文件；单 theorem 文件可省略末尾 `qed`，多 theorem 文件用
+小写 `qed` 分隔。输出有三类：
 
-- 成功：`ok <theorem_name>: <conclusion_summary>`
+- 成功：默认每个 theorem 输出一行 `ok <theorem_name>`；使用 `-d` 时输出
+  `ok <theorem_name>: <conclusion_summary>`
 - 失败：`error[kind] ...`，必要时带 `step`、`branch`、`goal`、`locals`
-- 未完成：`unfinished ...`，并带 `hole`、`goal`、`locals` 等上下文
+- 未完成：`warning[unfinished] ...`，并带 `hole`、`goal`、`locals` 等上下文；
+  不产生 theorem authority，但会继续检查后续 theorem
+
+`moon run` 下传 `-d` / `--no-warn` 需要 `--` 分隔；独立可执行文件可直接使用
+`qed-cmd -d --no-warn <file>`。
 
 这意味着它已经不是“只有成功/失败两类”的黑箱 CLI，而是能把当前 proof state 相关的关键诊断暴露出来。
 
@@ -523,7 +554,8 @@ QED 采用 kernel-first 架构。唯一 theorem-construction boundary 是 `src/k
 - proposition prelude definition theorems + unfold helpers
 - supported propositional tactic replay to kernel `Thm`
 - unfinished-proof reporting for theorem scripts containing holes
-- file-first `cmd` workflow for single theorem-script files
+- file-first `cmd` workflow for theorem-script files with optional `qed`
+  terminators and multiple theorem blocks
 
 ### Explicitly not shipped
 
@@ -623,6 +655,10 @@ QED 采用 kernel-first 架构。唯一 theorem-construction boundary 是 `src/k
 
 - “在测试/预置 state 中可运行”；
 - “用户直接通过 `moon run src/cmd <file>` 即可运行”。
+
+如果需要查看成功 theorem 的完整 conclusion summary，通过 `moon run` 时使用
+`moon run src/cmd -- -d <file>`；编译成独立可执行文件后使用
+`qed-cmd -d <file>`。
 
 其中只有不依赖额外自由常量的 state-free 脚本，才适合作为第一次上手的 file-first 示例。对第一次使用本项目的用户，优先看本手册前面的 `truth_file`、`id_bool`、`dup_bool`。
 
@@ -730,19 +766,27 @@ theorem unf_quant_forall_nested_branch_hole : ⊢ forall (x : bool), x -> x ∨ 
 
 ```bash
 moon run src/cmd <file>
+moon run src/cmd -- -d <file>
+moon run src/cmd -- --no-warn <file>
 ```
 
 当前合同是：
 
-- 输入是单个 theorem-script 文件；
-- 成功输出 `ok <theorem_name>: <conclusion_summary>`；
+- 输入是 theorem-script 文件；单 theorem 文件可省略末尾 `qed`，多 theorem 文件用
+  小写 `qed` 分隔；
+- 成功输出默认是每个 theorem 一行 `ok <theorem_name>`；使用 `-d` 时输出
+  `ok <theorem_name>: <conclusion_summary>`；
 - 失败输出保留 `error[kind]`、文件路径、theorem name，并在 tactic failure 上额外给出：
   - `step`
   - `branch`
   - `goal`
   - `locals`
-- 若脚本包含 `hole`，当前输出 `unfinished ...`，并给出 `step`、`branch`、`goal`、
-  `locals`、`hole`、`message` 摘要；空值标记稳定为 `<none>` / `<root>`
+- 若脚本包含 `hole`，当前输出 `warning[unfinished] ...`，并给出 `step`、`branch`、
+  `goal`、`locals`、`hole`、`message` 摘要；空值标记稳定为 `<none>` / `<root>`。
+  warning 不构造 theorem，但文件级 runner 会继续检查后续 theorem；
+- `--no-warn` 只影响 warning-only 文件的退出码，不隐藏 warning 输出；
+- `moon run` 下的 `--` 只是把后续参数转发给 QED CLI；编译成独立可执行文件后，
+  使用 `qed-cmd -d --no-warn <file>` 即可，不需要 `--`。
 - theorem-header binder 脚本与 raw `forall` theorem-goal 脚本沿用同一份 CLI
   合同；`goal` / `locals` 摘要当前固定为 kernel-term string，branch/step blame 与
   unfinished rendering 由 `src/cmd/cmd_corpus_wbtest.mbt` 与
@@ -767,7 +811,7 @@ locals: h: Var(x : bool)
 ```
 
 ```text
-unfinished quant_forall_unfinished.qed (quant_forall_hole): proof contains an unfinished hole
+warning[unfinished] quant_forall_unfinished.qed (quant_forall_hole): proof contains an unfinished hole
 theorem: quant_forall_hole
 step: 4
 branch: 1.1

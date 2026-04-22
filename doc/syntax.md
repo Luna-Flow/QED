@@ -17,9 +17,16 @@ Last reviewed: 2026-04-20
 
 ```bash
 moon run src/cmd <file>
+moon run src/cmd -- -d <file>
+moon run src/cmd -- --no-warn <file>
 ```
 
-输入是单个 theorem-script 文件，例如：
+`-d` 会输出完整 conclusion summary。`--no-warn` 会在只有 warning、
+没有 error 时返回成功退出码。通过 `moon run` 启动时需要用 `--`
+把后续参数转发给 QED CLI；编译成独立可执行文件后可直接运行
+`qed-cmd -d --no-warn <file>`。
+
+输入是 theorem-script 文件，例如：
 
 ```text
 theorem truth_file : ⊢ T := by exact truth
@@ -30,6 +37,8 @@ theorem truth_file : ⊢ T := by exact truth
 - `examples/truth_file.qed`
 - `examples/demo_and.qed`
 - `examples/and_comm.qed`
+- `examples/multi_theorems.qed`
+- `examples/multi_with_hole.qed`
 - `examples/bad_branch.qed`
 - `examples/unfinished_branch.qed`
 
@@ -41,6 +50,16 @@ theorem truth_file : ⊢ T := by exact truth
 theorem <name> [(binder...)] : <goal> := by <steps>
 ```
 
+当一个文件里写多个 theorem 时，用小写 `qed` 结束前一个 theorem block：
+
+```text
+theorem t1 : ⊢ T := by exact truth
+qed
+
+theorem t2 : ⊢ T := by exact truth
+qed
+```
+
 其中：
 
 - `<name>` 是 theorem 名。
@@ -48,7 +67,8 @@ theorem <name> [(binder...)] : <goal> := by <steps>
 - `<goal>` 是一个 sequent。
 - `<steps>` 是 proof steps，可以写成单行顺序形式，也可以写成换行块状形式。
 
-当前 `src/cmd` 的 file-first 工作流只处理单个 theorem script 文件。
+单 theorem 文件为了兼容既有示例，末尾可以省略 `qed`。多 theorem 文件中，前一个
+theorem 必须在下一个顶层 `theorem` 之前写 `qed`。
 
 ## theorem 头
 
@@ -74,6 +94,7 @@ theorem truth_file : ⊢ T := by exact truth
 theorem id_bool (x : bool) : ⊢ x -> x := by
   intro h
   exact h
+qed
 ```
 
 当前文档和示例里最稳妥的 file-first 用法，是先使用 `bool` binder。
@@ -86,6 +107,7 @@ theorem id_bool (x : bool) : ⊢ x -> x := by
 theorem quant_raw_intro_ok : ⊢ forall (x : bool), x -> x := by
   intro h
   exact h
+qed
 ```
 
 parenthesized 写法也被接受：
@@ -94,6 +116,7 @@ parenthesized 写法也被接受：
 theorem quant_raw_intro_paren_ok : ⊢ (forall (x : bool), x -> x) := by
   intro h
   exact h
+qed
 ```
 
 也就是说：
@@ -220,6 +243,7 @@ theorem t1 (x : bool) : ⊢ x -> x := by intro h; exact h
 theorem t1 (x : bool) : ⊢ x -> x := by
   intro h
   exact h
+qed
 ```
 
 当步骤需要显式分支时，当前支持最小结构化 branch block：
@@ -228,6 +252,7 @@ theorem t1 (x : bool) : ⊢ x -> x := by
 theorem demo_and (x : bool) : ⊢ x -> x ∧ x := by
   intro h
   split { exact h } { exact h }
+qed
 ```
 
 更像经典命题逻辑的例子：
@@ -236,17 +261,19 @@ theorem demo_and (x : bool) : ⊢ x -> x ∧ x := by
 theorem and_comm (p : bool) (q : bool) : ⊢ p ∧ q -> q ∧ p := by
   intro h
   split { exact and_elim_r } { exact and_elim_l }
+qed
 ```
 
 ```text
 theorem bad_branch (x : bool) : ⊢ x -> x ∨ x := by
   intro h
   left { exact truth }
+qed
 ```
 
 ## 当前最重要的限制
 
-- 当前 `src/cmd` 工作流是 file-first，只接受单个 theorem-script 文件。
+- 当前 `src/cmd` 工作流是 file-first；单 theorem 文件可省略末尾 `qed`，多 theorem 文件用 `qed` 分隔。
 - 直接 runnable 的公开例子应优先使用 `examples/` 中已有脚本。
 - theorem-header binder 已 shipped；raw `forall` theorem goal 作为 goal-only sugar 已支持，term-level 仍不支持。
 - 不支持的路径必须 fail-closed，不会伪造 theorem success。
@@ -256,8 +283,12 @@ theorem bad_branch (x : bool) : ⊢ x -> x ∨ x := by
 
 当前 CLI 输出分三类：
 
-- 成功：`ok <theorem_name>: <conclusion_summary>`
+- 成功：默认每个 theorem 输出一行 `ok <theorem_name>`；使用 `-d` 时输出
+  `ok <theorem_name>: <conclusion_summary>`
 - 失败：`error[kind] ...`
-- 未完成：`unfinished ...`
+- 未完成：`warning[unfinished] ...`，不会产生 theorem authority，但会继续检查后续 theorem。
+
+`moon run src/cmd -- -d --no-warn <file>` 中的 `--` 只属于 `moon run`
+参数转发；独立可执行文件不需要它，直接用 `qed-cmd -d --no-warn <file>`。
 
 更完整的失败字段、unfinished 字段和稳定示例见 `doc/manual.md`。

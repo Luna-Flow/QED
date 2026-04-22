@@ -1,0 +1,10 @@
+theorem before_hole : ⊢ T := by exact truth
+qed
+
+theorem unfinished_demo (x : bool) : ⊢ x -> x ∨ (x ∨ x) := by
+  intro h
+  right { right { hole h1 } }
+qed
+
+theorem after_hole : ⊢ T := by exact truth
+qed

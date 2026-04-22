@@ -83,7 +83,29 @@ theorem truth_file : ⊢ T := by exact truth
 成功时当前输出形如：
 
 ```text
-ok truth_file: T
+ok truth_file
+```
+
+需要查看完整 conclusion summary 时使用 `-d`：
+
+```bash
+moon run src/cmd -- -d examples/truth_file.qed
+```
+
+这里的 `--` 是 `moon run` 的参数分隔符，表示后面的 `-d` 传给 QED CLI，
+而不是传给 `moon`。如果以后编译成独立可执行文件，可以直接运行：
+
+```bash
+qed-cmd -d examples/truth_file.qed
+```
+
+包含 `hole` 的 theorem 会作为 warning 输出，并且不会产生 theorem authority。
+默认只要存在 warning，退出码就是非 0；如果只想在没有真正 error 时允许 warning，
+可以使用 `--no-warn`：
+
+```bash
+moon run src/cmd -- --no-warn examples/multi_with_hole.qed
+qed-cmd --no-warn examples/multi_with_hole.qed
 ```
 
 如果你没有 HOL 基础，可以先用下面这个直觉理解 QED 的当前子集：
@@ -110,10 +132,12 @@ theorem and_comm (p : bool) (q : bool) : ⊢ p ∧ q -> q ∧ p := by
   split { exact and_elim_r } { exact and_elim_l }
 ```
 
-仓库当前还提供两个最小对照示例：
+仓库当前还提供几个最小对照示例：
 
+- `examples/multi_theorems.qed`：多个 theorem 写在同一文件中，用 `qed` 分隔。
+- `examples/multi_with_hole.qed`：多 theorem 文件中包含 `hole`，演示 `warning[unfinished]` 后继续检查。
 - `examples/bad_branch.qed`：刻意失败的脚本，演示结构化 `error[...]` 输出。
-- `examples/unfinished_branch.qed`：刻意留 `hole` 的脚本，演示 `unfinished ...` 输出。
+- `examples/unfinished_branch.qed`：刻意留 `hole` 的脚本，演示 unfinished warning。
 
 这类 binder 形式 `(x : bool)` 是当前已 shipped 的量词面入口之一；raw `forall` /
 `∀` theorem goal 现在也作为 goal-only sugar 被接受，并沿用同一套 goal lowering、

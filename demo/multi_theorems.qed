@@ -1,0 +1,12 @@
+theorem truth_demo : ⊢ T := by exact truth
+qed
+
+theorem id_bool_demo (x : bool) : ⊢ x -> x := by
+  intro h
+  exact h
+qed
+
+theorem dup_bool_demo (x : bool) : ⊢ x -> x ∧ x := by
+  intro h
+  split { exact h } { exact h }
+qed
