@@ -1686,6 +1686,42 @@ fn last_non_newline_token_index(
 }
 
 ///|
+fn token_is_line_start(tokens : Array[Token], idx : Int) -> Bool {
+  if idx <= 0 {
+    true
+  } else {
+    token_at(tokens, idx - 1).kind is TkNewline
+  }
+}
+
+///|
+fn token_line_remainder_is_empty(
+  tokens : Array[Token],
+  start : Int,
+  end : Int,
+) -> Bool {
+  let i = start + 1
+  if i >= end {
+    true
+  } else {
+    match token_at(tokens, i).kind {
+      TkNewline => true
+      _ => false
+    }
+  }
+}
+
+///|
+fn token_is_qed_terminator(tokens : Array[Token], idx : Int, end : Int) -> Bool {
+  match token_at(tokens, idx).kind {
+    TkName("qed") =>
+      token_is_line_start(tokens, idx) &&
+      token_line_remainder_is_empty(tokens, idx, end)
+    _ => false
+  }
+}
+
+///|
 fn parse_script_step_segment(
   input : NormalizedInput,
   raw_src : String,
@@ -2147,18 +2183,51 @@ pub fn parse_theorem_script_raw(
   if end_idx < 5 {
     return Err(mk_parse_error(UnexpectedEof, 0, "incomplete theorem script"))
   }
-  let theorem_idx = next_non_newline_token_index(tokens, 0)
+  let body_end_idx = match last_non_newline_token_index(tokens, 0, end_idx) {
+    Some(last_idx) =>
+      if token_is_qed_terminator(tokens, last_idx, end_idx) {
+        last_idx
+      } else {
+        end_idx
+      }
+    None => end_idx
+  }
+  match parse_theorem_script_range(input, src, tokens, 0, body_end_idx) {
+    Ok(v) => Ok(v)
+    Err(e) => Err(map_parse_error_offset(input, e))
+  }
+}
+
+///|
+fn parse_theorem_script_range(
+  input : NormalizedInput,
+  src : String,
+  tokens : Array[Token],
+  start_idx : Int,
+  end_idx : Int,
+) -> Result[SynTheoremScript, ParseError] {
+  if end_idx - start_idx < 5 {
+    return Err(
+      mk_parse_error(
+        UnexpectedEof,
+        if start_idx < tokens.length() {
+          token_at(tokens, start_idx).offset
+        } else {
+          0
+        },
+        "incomplete theorem script",
+      ),
+    )
+  }
+  let theorem_idx = next_non_newline_token_index(tokens, start_idx)
   match token_at(tokens, theorem_idx).kind {
     TkName("theorem") => ()
     _ =>
       return Err(
-        map_parse_error_offset(
-          input,
-          mk_parse_error(
-            UnexpectedToken,
-            token_at(tokens, theorem_idx).offset,
-            "expected `theorem`",
-          ),
+        mk_parse_error(
+          UnexpectedToken,
+          token_at(tokens, theorem_idx).offset,
+          "expected `theorem`",
         ),
       )
   }
@@ -2167,13 +2236,10 @@ pub fn parse_theorem_script_raw(
     TkName(n) => n
     _ =>
       return Err(
-        map_parse_error_offset(
-          input,
-          mk_parse_error(
-            UnexpectedToken,
-            token_at(tokens, name_idx).offset,
-            "expected theorem name",
-          ),
+        mk_parse_error(
+          UnexpectedToken,
+          token_at(tokens, name_idx).offset,
+          "expected theorem name",
         ),
       )
   }
@@ -2193,21 +2259,18 @@ pub fn parse_theorem_script_raw(
             binders.push(binder)
             header_idx = next_non_newline_token_index(tokens, next_idx)
           }
-          Err(e) => return Err(map_parse_error_offset(input, e))
+          Err(e) => return Err(e)
         }
       _ =>
         return Err(
-          map_parse_error_offset(
-            input,
-            mk_parse_error(
-              UnexpectedToken,
-              token_at(tokens, header_idx).offset,
-              if binders.length() == 0 {
-                "expected `:` after theorem name"
-              } else {
-                "expected theorem binder or `:` after theorem name"
-              },
-            ),
+          mk_parse_error(
+            UnexpectedToken,
+            token_at(tokens, header_idx).offset,
+            if binders.length() == 0 {
+              "expected `:` after theorem name"
+            } else {
+              "expected theorem binder or `:` after theorem name"
+            },
           ),
         )
     }
@@ -2216,10 +2279,7 @@ pub fn parse_theorem_script_raw(
     Some(v) => v
     None =>
       return Err(
-        map_parse_error_offset(
-          input,
-          mk_parse_error(UnexpectedEof, 0, "missing `:` in theorem header"),
-        ),
+        mk_parse_error(UnexpectedEof, 0, "missing `:` in theorem header"),
       )
   }
 
@@ -2242,23 +2302,14 @@ pub fn parse_theorem_script_raw(
   }
   let k = match assign_idx {
     Some(v) => v
-    None =>
-      return Err(
-        map_parse_error_offset(
-          input,
-          mk_parse_error(UnexpectedToken, 0, "missing `:=`"),
-        ),
-      )
+    None => return Err(mk_parse_error(UnexpectedToken, 0, "missing `:=`"))
   }
   if k <= goal_start {
     return Err(
-      map_parse_error_offset(
-        input,
-        mk_parse_error(
-          EmptyConclusion,
-          token_at(tokens, colon_idx).offset,
-          "empty theorem goal",
-        ),
+      mk_parse_error(
+        EmptyConclusion,
+        token_at(tokens, colon_idx).offset,
+        "empty theorem goal",
       ),
     )
   }
@@ -2267,13 +2318,10 @@ pub fn parse_theorem_script_raw(
     TkName("by") => ()
     _ =>
       return Err(
-        map_parse_error_offset(
-          input,
-          mk_parse_error(
-            UnexpectedToken,
-            token_at(tokens, by_idx).offset,
-            "expected `by` after `:=`",
-          ),
+        mk_parse_error(
+          UnexpectedToken,
+          token_at(tokens, by_idx).offset,
+          "expected `by` after `:=`",
         ),
       )
   }
@@ -2286,13 +2334,10 @@ pub fn parse_theorem_script_raw(
     Some(v) => v
     None =>
       return Err(
-        map_parse_error_offset(
-          input,
-          mk_parse_error(
-            EmptyConclusion,
-            token_at(tokens, colon_idx).offset,
-            "empty theorem goal",
-          ),
+        mk_parse_error(
+          EmptyConclusion,
+          token_at(tokens, colon_idx).offset,
+          "empty theorem goal",
         ),
       )
   }
@@ -2303,16 +2348,97 @@ pub fn parse_theorem_script_raw(
   )
   let goal = match parse_goal_tokens(goal_tokens) {
     Ok(v) => v
-    Err(e) => return Err(map_parse_error_offset(input, e))
+    Err(e) => return Err(e)
   }
 
   let body = match
     parse_script_body_range(input, src, tokens, by_idx + 1, end_idx) {
     Ok(v) => v
-    Err(e) => return Err(map_parse_error_offset(input, e))
+    Err(e) => return Err(e)
   }
 
   Ok(SynTheoremScript::{ name, binders, goal, goal_src, goal_span, body })
+}
+
+///|
+pub fn parse_theorem_file_raw(
+  src : String,
+) -> Result[Array[SynTheoremScript], ParseError] {
+  let input = match normalize_theorem_script_input(src) {
+    Ok(v) => v
+    Err(e) => return Err(e)
+  }
+  let tokens = match lex_tokens_layout(input.text, true) {
+    Ok(v) => v
+    Err(e) => return Err(map_parse_error_offset(input, e))
+  }
+  let end_idx = tokens.length() - 1
+  let scripts : Array[SynTheoremScript] = []
+  let mut block_start = next_non_newline_token_index(tokens, 0)
+  while block_start < end_idx {
+    match token_at(tokens, block_start).kind {
+      TkName("theorem") => ()
+      _ =>
+        return Err(
+          map_parse_error_offset(
+            input,
+            mk_parse_error(
+              UnexpectedToken,
+              token_at(tokens, block_start).offset,
+              "expected `theorem`",
+            ),
+          ),
+        )
+    }
+    let mut depth = 0
+    let mut cursor = block_start + 1
+    let mut block_end = end_idx
+    let mut terminated = false
+    while cursor < end_idx {
+      if depth == 0 && token_is_line_start(tokens, cursor) {
+        match token_at(tokens, cursor).kind {
+          TkName("qed") if token_is_qed_terminator(tokens, cursor, end_idx) => {
+            block_end = cursor
+            terminated = true
+            break
+          }
+          TkName("theorem") =>
+            return Err(
+              map_parse_error_offset(
+                input,
+                mk_parse_error(
+                  UnexpectedToken,
+                  token_at(tokens, cursor).offset,
+                  "missing qed before next theorem",
+                ),
+              ),
+            )
+          _ => ()
+        }
+      }
+      match token_at(tokens, cursor).kind {
+        TkLBrace => depth = depth + 1
+        TkRBrace => if depth > 0 { depth = depth - 1 } else { () }
+        _ => ()
+      }
+      cursor = cursor + 1
+    }
+    match
+      parse_theorem_script_range(input, src, tokens, block_start, block_end) {
+      Ok(script) => scripts.push(script)
+      Err(e) => return Err(map_parse_error_offset(input, e))
+    }
+    if terminated {
+      block_start = next_non_newline_token_index(tokens, cursor + 1)
+    } else {
+      block_start = end_idx
+    }
+  }
+  if scripts.length() == 0 {
+    Err(mk_parse_error(UnexpectedEof, 0, "incomplete theorem script"))
+  } else {
+    Ok(scripts)
+  }
 }
 
 ///|

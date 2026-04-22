@@ -624,6 +624,58 @@ test "parse theorem script raw supports linear by-steps" {
 }
 
 ///|
+test "parse theorem script raw accepts trailing qed terminator" {
+  let src = "theorem t1 : ⊢ P -> P := by\n  intro h\n  exact h\nqed"
+  match parse_theorem_script_raw(src) {
+    Ok(s) => {
+      assert_eq(s.name, "t1")
+      assert_eq(s.body.steps.length(), 2)
+      assert_true(expect_script_step(s.body.steps[0]) is Intro("h"))
+      assert_true(expect_script_step(s.body.steps[1]) is Exact("h"))
+    }
+    Err(_) => panic()
+  }
+}
+
+///|
+test "parse theorem file raw supports multiple qed-terminated theorem blocks" {
+  let src = "theorem t1 : ⊢ T := by exact truth\nqed\n\ntheorem t2 : ⊢ T := by\n  exact truth\nqed"
+  match parse_theorem_file_raw(src) {
+    Ok(scripts) => {
+      assert_eq(scripts.length(), 2)
+      assert_eq(scripts[0].name, "t1")
+      assert_eq(scripts[0].body.steps.length(), 1)
+      assert_eq(scripts[1].name, "t2")
+      assert_eq(scripts[1].body.steps.length(), 1)
+    }
+    Err(_) => panic()
+  }
+}
+
+///|
+test "parse theorem file raw rejects missing qed before next theorem" {
+  let src = "theorem t1 : ⊢ T := by exact truth\n\ntheorem t2 : ⊢ T := by exact truth"
+  match parse_theorem_file_raw(src) {
+    Err(e) => {
+      assert_true(e.code is UnexpectedToken)
+      assert_eq(e.detail, "missing qed before next theorem")
+    }
+    Ok(_) => panic()
+  }
+}
+
+///|
+test "parse theorem file raw treats non-terminating qed as a tactic token" {
+  match parse_theorem_file_raw("theorem t1 : ⊢ T := by\nqed extra") {
+    Err(e) => {
+      assert_true(e.code is UnexpectedToken)
+      assert_eq(e.detail, "malformed tactic step")
+    }
+    Ok(_) => panic()
+  }
+}
+
+///|
 test "parse theorem script raw supports hole steps" {
   match parse_theorem_script_raw("theorem t1 : ⊢ P := by hole") {
     Ok(s) => {
