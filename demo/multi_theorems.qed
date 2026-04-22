@@ -10,3 +10,8 @@ theorem dup_bool_demo (x : bool) : ⊢ x -> x ∧ x := by
   intro h
   split { exact h } { exact h }
 qed
+
+theorem try (x : bool) : ⊢ x -> ((T ∨ x) -> T) := by
+  intro h
+  right { exact h }
+qed

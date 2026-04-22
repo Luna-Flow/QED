@@ -8,8 +8,6 @@ using @kernel {
   type Thm,
   type SigError,
   type LogicError,
-  term_alpha_eq,
-  term_logical_eq,
 }
 
 ///|
@@ -39,8 +37,6 @@ using @tactics {
   type ProofState,
   type TacticStep,
   type TacticExecError,
-  goal_hyps,
-  goal_concl,
   local_hyp_name,
   local_hyp_term,
   mk_goal,
@@ -49,8 +45,10 @@ using @tactics {
   ps_current_branch_path,
   ps_goal_count,
   ps_init,
+  ps_isolate_pending_at,
+  ps_close_current_with_th,
+  ps_close_frame,
   ps_current_goal,
-  ps_pending_goal_at,
   ps_qed,
   tactic_goal_shape_mismatch,
   step_intro,
@@ -63,9 +61,4 @@ using @tactics {
 }
 
 ///|
-using @logic {
-  type PropPrelude,
-  install_prop_prelude,
-  default_prop_prelude,
-  logic_beta_nf_bool_term_deep,
-}
+using @logic {type PropPrelude, install_prop_prelude, default_prop_prelude}

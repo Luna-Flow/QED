@@ -35,6 +35,10 @@ pub fn ps_apply(@kernel.KernelState, @logic.PropPrelude, ProofState, TacticStep)
 
 pub fn ps_apply_script(@kernel.KernelState, @logic.PropPrelude, ProofState, Array[TacticStep]) -> Result[ProofState, TacticExecError]
 
+pub fn ps_close_current_with_th(@kernel.KernelState, @logic.PropPrelude, ProofState, @kernel.Thm) -> Result[ProofState, TacticExecError]
+
+pub fn ps_close_frame(ProofState) -> Result[@kernel.Thm, TacticExecError]
+
 pub fn ps_current_branch_path(ProofState) -> Array[Int]
 
 pub fn ps_current_focus(ProofState) -> ProofGoalView?
@@ -43,9 +47,13 @@ pub fn ps_current_goal(ProofState) -> Goal?
 
 pub fn ps_current_local_hyps(ProofState) -> Array[LocalHyp]
 
+pub fn ps_enter_frame(Goal) -> ProofState
+
 pub fn ps_goal_count(ProofState) -> Int
 
 pub fn ps_init(Goal) -> ProofState
+
+pub fn ps_isolate_pending_at(ProofState, Int) -> ProofState?
 
 pub fn ps_pending_focus_at(ProofState, Int) -> ProofGoalView?
 

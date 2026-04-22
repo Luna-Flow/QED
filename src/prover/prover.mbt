@@ -311,48 +311,6 @@ pub fn prover_unfinished(
 }
 
 ///|
-fn goal_shape_matches(state : KernelState, lhs : Goal, rhs : Goal) -> Bool {
-  let nf_term = fn(term : Term) {
-    match logic_beta_nf_bool_term_deep(state, term) {
-      Ok(v) => v
-      Err(_) => term
-    }
-  }
-  let lhs_hyps = goal_hyps(lhs)
-  let rhs_hyps = goal_hyps(rhs)
-  if lhs_hyps.length() != rhs_hyps.length() {
-    return false
-  }
-  let used : Array[Bool] = []
-  let mut i = 0
-  while i < rhs_hyps.length() {
-    used.push(false)
-    i = i + 1
-  }
-  for h in lhs_hyps {
-    let h_nf = nf_term(h)
-    let mut j = 0
-    let mut matched = false
-    while j < rhs_hyps.length() {
-      let rhs_nf = nf_term(rhs_hyps[j])
-      if !used[j] &&
-        (term_logical_eq(h_nf, rhs_nf) || term_alpha_eq(h_nf, rhs_nf)) {
-        used[j] = true
-        matched = true
-        break
-      }
-      j = j + 1
-    }
-    if !matched {
-      return false
-    }
-  }
-  let lhs_concl = nf_term(goal_concl(lhs))
-  let rhs_concl = nf_term(goal_concl(rhs))
-  term_logical_eq(lhs_concl, rhs_concl) || term_alpha_eq(lhs_concl, rhs_concl)
-}
-
-///|
 fn step_branch_arity(step : SynTacticStep) -> Int {
   match step {
     Split => 2
@@ -535,6 +493,77 @@ fn structured_branch_step_result(
 }
 
 ///|
+fn run_branch_body_isolated(
+  state : KernelState,
+  prelude : PropPrelude,
+  theorem_name : String,
+  goal_src : String,
+  goal_span : SourceSpan,
+  parent_ps : ProofState,
+  branch_index : Int,
+  body : SynScriptBody,
+  step_idx : Int,
+  branch_path : Array[Int],
+  script_step : SynScriptStep,
+  span_offset : Int,
+  incomplete_detail : String,
+) -> (ProofState, Int, Thm?, ProverRunResult?) {
+  let child_ps0 = match ps_isolate_pending_at(parent_ps, branch_index) {
+    Some(v) => v
+    None =>
+      return (
+        parent_ps,
+        step_idx,
+        None,
+        Some(
+          branch_goal_failure(
+            theorem_name,
+            goal_src,
+            goal_span,
+            step_idx,
+            branch_path,
+            script_step,
+            parent_ps,
+            incomplete_detail,
+            Some(span_offset),
+          ),
+        ),
+      )
+  }
+  let (child_ps, next_idx, err) = execute_script_body(
+    state, prelude, theorem_name, goal_src, goal_span, child_ps0, body, step_idx,
+    branch_path, 0,
+  )
+  match err {
+    Some(v) => return (parent_ps, next_idx, None, Some(v))
+    None => ()
+  }
+  match ps_close_frame(child_ps) {
+    Ok(th) => (parent_ps, next_idx, Some(th), None)
+    Err(_) =>
+      (
+        parent_ps,
+        next_idx,
+        None,
+        Some(
+          branch_step_failure(
+            theorem_name,
+            goal_src,
+            goal_span,
+            next_idx,
+            branch_path,
+            script_step,
+            ps_current_goal(child_ps),
+            prover_local_hyps_of(child_ps),
+            Tactic(tactic_goal_shape_mismatch(incomplete_detail)),
+            Some(span_offset),
+          ),
+        ),
+      )
+  }
+}
+
+///|
 fn run_split_branch_bodies(
   state : KernelState,
   prelude : PropPrelude,
@@ -544,177 +573,35 @@ fn run_split_branch_bodies(
   ps : ProofState,
   script_step : SynScriptStep,
   step_idx : Int,
-  before_goal_count : Int,
+  _before_goal_count : Int,
   branch_path : Array[Int],
 ) -> (ProofState, Int, ProverRunResult?) {
-  let branch1_goal = match ps_pending_goal_at(ps, 0) {
-    Some(goal) => goal
-    None =>
-      return (
-        ps,
-        step_idx,
-        Some(
-          branch_goal_failure(
-            theorem_name,
-            goal_src,
-            goal_span,
-            step_idx,
-            branch_path,
-            script_step,
-            ps,
-            "split did not expose the first branch goal",
-            Some(script_step.span.start_offset),
-          ),
-        ),
-      )
-  }
-  let branch2_goal = match ps_pending_goal_at(ps, 1) {
-    Some(goal) => goal
-    None =>
-      return (
-        ps,
-        step_idx,
-        Some(
-          branch_goal_failure(
-            theorem_name,
-            goal_src,
-            goal_span,
-            step_idx,
-            branch_path,
-            script_step,
-            ps,
-            "split did not expose the second branch goal",
-            Some(script_step.span.start_offset),
-          ),
-        ),
-      )
-  }
-  match ps_current_goal(ps) {
-    Some(goal) =>
-      if !goal_shape_matches(state, goal, branch1_goal) {
-        let branch1_path = branch_path.copy()
-        branch1_path.push(1)
-        return (
-          ps,
-          step_idx,
-          Some(
-            branch_step_failure(
-              theorem_name,
-              goal_src,
-              goal_span,
-              step_idx,
-              branch1_path,
-              script_step,
-              Some(goal),
-              prover_local_hyps_of(ps),
-              Tactic(
-                tactic_goal_shape_mismatch(
-                  "first split branch body did not start from the first split goal",
-                ),
-              ),
-              Some(script_step.branches[0].span.start_offset),
-            ),
-          ),
-        )
-      }
-    None => {
-      let branch1_path = branch_path.copy()
-      branch1_path.push(1)
-      return (
-        ps,
-        step_idx,
-        Some(
-          branch_step_failure(
-            theorem_name,
-            goal_src,
-            goal_span,
-            step_idx,
-            branch1_path,
-            script_step,
-            None,
-            prover_local_hyps_of(ps),
-            Tactic(
-              tactic_goal_shape_mismatch(
-                "first split branch body did not start from the first split goal",
-              ),
-            ),
-            Some(script_step.branches[0].span.start_offset),
-          ),
-        ),
-      )
-    }
-  }
   let branch1_path = branch_path.copy()
   branch1_path.push(1)
-  let (after_branch1, next_idx1, err1) = execute_script_body(
+  let (_, next_idx1, th1, err1) = run_branch_body_isolated(
     state,
     prelude,
     theorem_name,
     goal_src,
     goal_span,
     ps,
+    0,
     script_step.branches[0].body,
     step_idx,
     branch1_path,
-    0,
+    script_step,
+    script_step.branches[0].span.start_offset,
+    "first split branch did not fully discharge its branch goal",
   )
   match err1 {
-    Some(v) => return (after_branch1, next_idx1, Some(v))
+    Some(v) => return (ps, next_idx1, Some(v))
     None => ()
   }
-  if ps_goal_count(after_branch1) != before_goal_count {
-    return (
-      after_branch1,
-      next_idx1,
-      Some(
-        branch_step_failure(
-          theorem_name,
-          goal_src,
-          goal_span,
-          next_idx1,
-          branch1_path,
-          script_step,
-          ps_current_goal(after_branch1),
-          prover_local_hyps_of(after_branch1),
-          Tactic(
-            tactic_goal_shape_mismatch(
-              "first split branch did not discharge exactly one branch goal",
-            ),
-          ),
-          Some(script_step.branches[0].span.start_offset),
-        ),
-      ),
-    )
-  }
-  match ps_current_goal(after_branch1) {
-    Some(goal) =>
-      if !goal_shape_matches(state, goal, branch2_goal) {
-        return (
-          after_branch1,
-          next_idx1,
-          Some(
-            branch_step_failure(
-              theorem_name,
-              goal_src,
-              goal_span,
-              next_idx1,
-              branch_path,
-              script_step,
-              Some(goal),
-              prover_local_hyps_of(after_branch1),
-              Tactic(
-                tactic_goal_shape_mismatch(
-                  "split branch order does not match the explicit branch bodies",
-                ),
-              ),
-              Some(script_step.branches[1].span.start_offset),
-            ),
-          ),
-        )
-      }
+  let th1 = match th1 {
+    Some(v) => v
     None =>
       return (
-        after_branch1,
+        ps,
         next_idx1,
         Some(
           branch_step_failure(
@@ -722,13 +609,82 @@ fn run_split_branch_bodies(
             goal_src,
             goal_span,
             next_idx1,
-            branch_path,
+            branch1_path,
             script_step,
             None,
-            prover_local_hyps_of(after_branch1),
+            [],
             Tactic(
               tactic_goal_shape_mismatch(
-                "split branch order does not match the explicit branch bodies",
+                "first split branch did not fully discharge its branch goal",
+              ),
+            ),
+            Some(script_step.branches[0].span.start_offset),
+          ),
+        ),
+      )
+  }
+  let after_branch1 = match ps_close_current_with_th(state, prelude, ps, th1) {
+    Ok(v) => v
+    Err(e) =>
+      return (
+        ps,
+        next_idx1,
+        Some(
+          branch_step_failure(
+            theorem_name,
+            goal_src,
+            goal_span,
+            next_idx1,
+            branch1_path,
+            script_step,
+            ps_current_goal(ps),
+            prover_local_hyps_of(ps),
+            Tactic(e),
+            Some(script_step.branches[0].span.start_offset),
+          ),
+        ),
+      )
+  }
+  let branch2_path = branch_path.copy()
+  branch2_path.push(2)
+  let (_, next_idx2, th2, err2) = run_branch_body_isolated(
+    state,
+    prelude,
+    theorem_name,
+    goal_src,
+    goal_span,
+    after_branch1,
+    0,
+    script_step.branches[1].body,
+    next_idx1,
+    branch2_path,
+    script_step,
+    script_step.branches[1].span.start_offset,
+    "second split branch did not fully discharge its branch goal",
+  )
+  match err2 {
+    Some(v) => return (after_branch1, next_idx2, Some(v))
+    None => ()
+  }
+  let th2 = match th2 {
+    Some(v) => v
+    None =>
+      return (
+        after_branch1,
+        next_idx2,
+        Some(
+          branch_step_failure(
+            theorem_name,
+            goal_src,
+            goal_span,
+            next_idx2,
+            branch2_path,
+            script_step,
+            None,
+            [],
+            Tactic(
+              tactic_goal_shape_mismatch(
+                "second split branch did not fully discharge its branch goal",
               ),
             ),
             Some(script_step.branches[1].span.start_offset),
@@ -736,47 +692,28 @@ fn run_split_branch_bodies(
         ),
       )
   }
-  let branch2_path = branch_path.copy()
-  branch2_path.push(2)
-  let (after_branch2, next_idx2, err2) = execute_script_body(
-    state,
-    prelude,
-    theorem_name,
-    goal_src,
-    goal_span,
-    after_branch1,
-    script_step.branches[1].body,
-    next_idx1,
-    branch2_path,
-    0,
-  )
-  match err2 {
-    Some(v) => return (after_branch2, next_idx2, Some(v))
-    None => ()
-  }
-  if ps_goal_count(after_branch2) != before_goal_count - 1 {
-    return (
-      after_branch2,
-      next_idx2,
-      Some(
-        branch_step_failure(
-          theorem_name,
-          goal_src,
-          goal_span,
-          next_idx2,
-          branch2_path,
-          script_step,
-          ps_current_goal(after_branch2),
-          prover_local_hyps_of(after_branch2),
-          Tactic(
-            tactic_goal_shape_mismatch(
-              "split branch blocks did not fully discharge conjunction goal",
-            ),
+  let after_branch2 = match
+    ps_close_current_with_th(state, prelude, after_branch1, th2) {
+    Ok(v) => v
+    Err(e) =>
+      return (
+        after_branch1,
+        next_idx2,
+        Some(
+          branch_step_failure(
+            theorem_name,
+            goal_src,
+            goal_span,
+            next_idx2,
+            branch2_path,
+            script_step,
+            ps_current_goal(after_branch1),
+            prover_local_hyps_of(after_branch1),
+            Tactic(e),
+            Some(script_step.branches[1].span.start_offset),
           ),
-          Some(script_step.branches[1].span.start_offset),
         ),
-      ),
-    )
+      )
   }
   (after_branch2, next_idx2, None)
 }
@@ -791,126 +728,77 @@ fn run_disjunction_branch_body(
   ps : ProofState,
   script_step : SynScriptStep,
   step_idx : Int,
-  before_goal_count : Int,
+  _before_goal_count : Int,
   branch_path : Array[Int],
 ) -> (ProofState, Int, ProverRunResult?) {
-  let branch_goal = match ps_pending_goal_at(ps, 0) {
-    Some(goal) => goal
-    None =>
-      return (
-        ps,
-        step_idx,
-        Some(
-          branch_goal_failure(
-            theorem_name,
-            goal_src,
-            goal_span,
-            step_idx,
-            branch_path,
-            script_step,
-            ps,
-            "disjunction branch did not expose the selected branch goal",
-            Some(script_step.span.start_offset),
-          ),
-        ),
-      )
-  }
-  match ps_current_goal(ps) {
-    Some(goal) =>
-      if !goal_shape_matches(state, goal, branch_goal) {
-        let branch1_path = branch_path.copy()
-        branch1_path.push(1)
-        return (
-          ps,
-          step_idx,
-          Some(
-            branch_step_failure(
-              theorem_name,
-              goal_src,
-              goal_span,
-              step_idx,
-              branch1_path,
-              script_step,
-              Some(goal),
-              prover_local_hyps_of(ps),
-              Tactic(
-                tactic_goal_shape_mismatch(
-                  "disjunction branch body did not start from the selected branch goal",
-                ),
-              ),
-              Some(script_step.branches[0].span.start_offset),
-            ),
-          ),
-        )
-      }
-    None => {
-      let branch1_path = branch_path.copy()
-      branch1_path.push(1)
-      return (
-        ps,
-        step_idx,
-        Some(
-          branch_step_failure(
-            theorem_name,
-            goal_src,
-            goal_span,
-            step_idx,
-            branch1_path,
-            script_step,
-            None,
-            prover_local_hyps_of(ps),
-            Tactic(
-              tactic_goal_shape_mismatch(
-                "disjunction branch body did not start from the selected branch goal",
-              ),
-            ),
-            Some(script_step.branches[0].span.start_offset),
-          ),
-        ),
-      )
-    }
-  }
   let branch1_path = branch_path.copy()
   branch1_path.push(1)
-  let (after_branch, next_idx, err) = execute_script_body(
+  let (_, next_idx, th, err) = run_branch_body_isolated(
     state,
     prelude,
     theorem_name,
     goal_src,
     goal_span,
     ps,
+    0,
     script_step.branches[0].body,
     step_idx,
     branch1_path,
-    0,
+    script_step,
+    script_step.branches[0].span.start_offset,
+    "branch block did not fully discharge disjunction branch goal",
   )
   match err {
-    Some(v) => return (after_branch, next_idx, Some(v))
+    Some(v) => return (ps, next_idx, Some(v))
     None => ()
   }
-  if ps_goal_count(after_branch) != before_goal_count - 1 {
-    return (
-      after_branch,
-      next_idx,
-      Some(
-        branch_step_failure(
-          theorem_name,
-          goal_src,
-          goal_span,
-          next_idx,
-          branch1_path,
-          script_step,
-          ps_current_goal(after_branch),
-          prover_local_hyps_of(after_branch),
-          Tactic(
-            tactic_goal_shape_mismatch(
-              "branch block did not fully discharge disjunction branch goal",
+  let th = match th {
+    Some(v) => v
+    None =>
+      return (
+        ps,
+        next_idx,
+        Some(
+          branch_step_failure(
+            theorem_name,
+            goal_src,
+            goal_span,
+            next_idx,
+            branch1_path,
+            script_step,
+            None,
+            [],
+            Tactic(
+              tactic_goal_shape_mismatch(
+                "branch block did not fully discharge disjunction branch goal",
+              ),
             ),
+            Some(script_step.branches[0].span.start_offset),
           ),
-          Some(script_step.branches[0].span.start_offset),
         ),
-      ),
-    )
+      )
+  }
+  let after_branch = match ps_close_current_with_th(state, prelude, ps, th) {
+    Ok(v) => v
+    Err(e) =>
+      return (
+        ps,
+        next_idx,
+        Some(
+          branch_step_failure(
+            theorem_name,
+            goal_src,
+            goal_span,
+            next_idx,
+            branch1_path,
+            script_step,
+            ps_current_goal(ps),
+            prover_local_hyps_of(ps),
+            Tactic(e),
+            Some(script_step.branches[0].span.start_offset),
+          ),
+        ),
+      )
   }
   (after_branch, next_idx, None)
 }

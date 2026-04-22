@@ -1,4 +1,3 @@
-qed
 theorem forall_dup : ⊢ forall (x : bool), x -> x ∧ x := by
     intro h
     split { exact h } { exact h }

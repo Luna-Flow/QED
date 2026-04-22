@@ -719,6 +719,15 @@ test "prove_theorem_script supports structured split left right and nested branc
 }
 
 ///|
+test "prove_theorem_script supports constructive diamond with framed branches" {
+  let script = "theorem constructive_diamond (p : bool) (q : bool) (r : bool) (s : bool) : ⊢ (p -> q) -> (q -> r) -> (p -> s) -> p -> (r ∧ s) ∧ (T ∨ r) := by intro hpq; intro hqr; intro hps; intro hp; split { split { apply hqr; apply hpq; exact hp } { apply hps; exact hp } } { right { apply hqr; apply hpq; exact hp } }"
+  assert_true(
+    prove_theorem_script(empty_kernel_state(), script, default_prover_options())
+    is Ok(_),
+  )
+}
+
+///|
 test "prove_theorem_script_detailed records branch path for nested branch failures" {
   let script = "theorem bad : P, Q ⊢ P ∧ (P ∨ Q) := by split { assumption } { right { apply truth } }"
   let st0 = expect_ok_prover(ks_add_const(empty_kernel_state(), "P", bool_ty()))

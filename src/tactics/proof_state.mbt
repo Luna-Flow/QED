@@ -298,6 +298,39 @@ pub fn ps_pending_goal_at(ps : ProofState, idx : Int) -> Goal? {
 }
 
 ///|
+fn isolated_pending_goal(g : PendingGoal) -> PendingGoal {
+  PendingGoal::{
+    hyps: g.hyps.copy(),
+    concl: g.concl,
+    locals: g.locals.copy(),
+    branch_path: g.branch_path.copy(),
+    imp_prefix: [],
+    refine_chain: [],
+    split_role: SplitNone,
+    or_ctx: OrNone,
+  }
+}
+
+///|
+pub fn ps_enter_frame(goal : Goal) -> ProofState {
+  ps_init(goal)
+}
+
+///|
+pub fn ps_isolate_pending_at(ps : ProofState, idx : Int) -> ProofState? {
+  if idx < 0 || idx >= ps.pending.length() {
+    None
+  } else {
+    let g = isolated_pending_goal(ps.pending[idx])
+    Some(ProofState::{
+      root_goal: mk_goal(g.hyps, g.concl),
+      pending: [g],
+      final_thm: None,
+    })
+  }
+}
+
+///|
 fn split_pending_tail(
   pending : Array[PendingGoal],
 ) -> (PendingGoal, Array[PendingGoal])? {
@@ -451,6 +484,20 @@ fn exact_from_theorem(
       )
   }
   finish_goal_evidence(state, prelude, ps, g, rest, checked)
+}
+
+///|
+pub fn ps_close_current_with_th(
+  state : KernelState,
+  prelude : PropPrelude,
+  ps : ProofState,
+  theorem : Thm,
+) -> Result[ProofState, TacticExecError] {
+  let (g, rest) = match split_pending_tail(ps.pending) {
+    Some(v) => v
+    None => return Err(NoGoals)
+  }
+  exact_from_theorem(state, prelude, ps, g, rest, theorem)
 }
 
 ///|
@@ -1423,4 +1470,9 @@ pub fn ps_qed(ps : ProofState) -> Result[Thm, TacticExecError] {
         ),
       )
   }
+}
+
+///|
+pub fn ps_close_frame(ps : ProofState) -> Result[Thm, TacticExecError] {
+  ps_qed(ps)
 }

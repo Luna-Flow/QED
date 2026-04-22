@@ -75,6 +75,25 @@ test "proof state exact supports named theorem imp_refl" {
 }
 
 ///|
+test "proof state isolated frame preserves parent pending goals" {
+  let (st, prelude, p, q, _) = setup_prop_env()
+  let and_pq = expect_ok_ps(prop_mk_and(st, prelude, p, q))
+  let ps0 = ps_init(mk_goal([p, q], and_pq))
+  let ps1 = expect_ok_ps(ps_apply(st, prelude, ps0, step_split()))
+  let child = match ps_isolate_pending_at(ps1, 0) {
+    Some(v) => v
+    None => panic()
+  }
+  let child_done = expect_ok_ps(ps_apply(st, prelude, child, step_assumption()))
+  let th = expect_ok_ps(ps_close_frame(child_done))
+  assert_eq(ps_goal_count(ps1), 2)
+  let ps2 = expect_ok_ps(ps_close_current_with_th(st, prelude, ps1, th))
+  assert_eq(ps_goal_count(ps2), 1)
+  let branch2 = expect_some_goal(ps_current_goal(ps2))
+  assert_true(term_alpha_eq(goal_concl(branch2), q))
+}
+
+///|
 test "proof state split and left/right transform goals" {
   let (st, prelude, p, q, r) = setup_prop_env()
   let and_pq = expect_ok_ps(prop_mk_and(st, prelude, p, q))
