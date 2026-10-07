@@ -2,7 +2,7 @@
 
 Status: research-only
 Audience: maintainers, designers
-Authority: non-authoritative research gate note; subordinate to `doc/qed_formal_spec.pdf`, current code/tests, and `doc/governance.md`
+Authority: non-authoritative research gate note; subordinate to `doc/attachments/qed_formal_spec.typ`, current code/tests, and `doc/manual/governance.md`
 Scope: promotion criteria for rewrite/simplify research, not shipped behavior
 Last reviewed: 2026-04-16
 
@@ -14,7 +14,7 @@ line into a real tactic candidate.
 
 Primary anchors:
 
-- `doc/qed_formal_spec.pdf` / `doc/qed_formal_spec.typ`
+- `doc/attachments/qed_formal_spec.typ`
 - Part II Appendix G conformance obligations:
   - rule-fidelity replay
   - boundary-fidelity

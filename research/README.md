@@ -2,7 +2,7 @@
 
 Status: research-only
 Audience: maintainers, designers
-Authority: non-authoritative design notes; subordinate to `doc/qed_formal_spec.pdf`, current code/tests, and `doc/governance.md`
+Authority: non-authoritative design notes; subordinate to `doc/attachments/qed_formal_spec.typ`, current code/tests, and `doc/manual/governance.md`
 Scope: unshipped design exploration, promotion gates, and go/no-go conclusions
 Last reviewed: 2026-04-16
 
@@ -17,7 +17,7 @@ Last reviewed: 2026-04-16
 这里的文档不能做的事情：
 
 - 代表当前 shipped capability；
-- 高于 `doc/manual.md` 或 `doc/conformance.md`；
+- 高于 `doc/manual/manual.md` 或 `doc/manual/conformance.md`；
 - 用研究原型去替代当前代码和测试事实。
 
 当前研究主题：

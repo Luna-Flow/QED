@@ -2,7 +2,7 @@
 
 Status: research-only
 Audience: maintainers, designers
-Authority: non-authoritative design note; subordinate to `doc/qed_formal_spec.pdf`, current code/tests, and `doc/governance.md`
+Authority: non-authoritative design note; subordinate to `doc/attachments/qed_formal_spec.typ`, current code/tests, and `doc/manual/governance.md`
 Scope: minimum safe boundary for an isolated rewrite/simplify prototype
 Last reviewed: 2026-04-16
 
@@ -20,14 +20,14 @@ Goal:
 
 Normative anchors:
 
-- `doc/qed_formal_spec.pdf` / `doc/qed_formal_spec.typ`
+- `doc/attachments/qed_formal_spec.typ`
 - Appendix G `Part II Conformance Validation Scenarios`, especially:
   - rule-fidelity replay
   - boundary-fidelity
   - gate-fidelity
   - certificate non-authority
-- [doc/manual.md](/Users/kcn/Desktop/repos/MoonVibe/QED/doc/manual.md)
-- [doc/conformance.md](/Users/kcn/Desktop/repos/MoonVibe/QED/doc/conformance.md)
+- [doc/manual/manual.md](../../doc/manual/manual.md)
+- [doc/manual/conformance.md](../../doc/manual/conformance.md)
 - [research/README.md](/Users/kcn/Desktop/repos/MoonVibe/QED/research/README.md)
 - [PLAN.md](/Users/kcn/Desktop/repos/MoonVibe/QED/PLAN.md)
 
