@@ -5,9 +5,10 @@ QED 是一个基于 MoonBit 的 theorem prover 项目，采用 kernel-first 架�
 - MoonBit 实现线负责可执行、可测试的可信内核与受控前端。
 - Lean 4 形式化线负责对论文规范做语义对齐、审计与符合性封板。
 
-唯一规范性来源是 `doc/qed_formal_spec.pdf`（源文件：`doc/qed_formal_spec.typ`）。
-当前文档治理规则见 `doc/governance.md`。
-代码分层与 alias 入口治理规则见 `doc/code_governance.md`。
+唯一规范性来源是 QED 形式规范（Typst 源文件：[`doc/attachments/qed_formal_spec.typ`](doc/attachments/qed_formal_spec.typ)，PDF 随文档站点发布）。
+完整文档发布于 <https://luna-flow.github.io/en/QED/>，源文件位于 [`doc/manual/`](doc/manual/index.md)。
+当前文档治理规则见 `doc/manual/governance.md`。
+代码分层与 alias 入口治理规则见 `doc/manual/code_governance.md`。
 
 ## 当前状态
 
@@ -27,9 +28,9 @@ QED 是一个基于 MoonBit 的 theorem prover 项目，采用 kernel-first 架�
 如果你是第一次接触这个项目，建议按下面顺序读文档：
 
 1. `README.md`：项目概览、当前能力边界、如何启动。
-2. `doc/manual.md`：用户手册 + 实现合同，包含面向非 HOL 读者的铺垫、简单证明示例、CLI 使用方式和当前支持矩阵。
-3. `doc/syntax.md`：当前 theorem-script 输入语法速查，适合查 theorem 头、binder、goal 和 proof step 写法。
-4. `doc/conformance.md`：代码/测试如何对齐论文规范，以及贡献者义务。
+2. `doc/manual/manual.md`：用户手册 + 实现合同，包含面向非 HOL 读者的铺垫、简单证明示例、CLI 使用方式和当前支持矩阵。
+3. `doc/manual/syntax.md`：当前 theorem-script 输入语法速查，适合查 theorem 头、binder、goal 和 proof step 写法。
+4. `doc/manual/conformance.md`：代码/测试如何对齐论文规范，以及贡献者义务。
 
 ## 仓库结构
 
@@ -47,13 +48,10 @@ QED/
 │   └── QEDFV/               # Lean 4 formalization and audit pack
 ├── prelude/                 # Runnable theorem assets ported from the current bool-core fragment
 ├── doc/
-│   ├── governance.md        # 文档分层、命名与引用规则
-│   ├── code_governance.md   # 包分层、alias 入口与维护规则
-│   ├── manual.md            # 用户手册 + 当前实现合同
-│   ├── conformance.md       # 论文对齐与外围工程符合性
-│   ├── current_workspace_audit.md # 当前阶段的风险与缺口
-│   ├── qed_formal_spec.pdf  # 规范正文（normative source）
-│   └── qed_formal_spec.typ  # 规范源文件
+│   ├── manual/              # 英文文档源文件（手册、语法、符合性、治理、API/设计/教程）
+│   ├── attachments/
+│   │   └── qed_formal_spec.typ # 规范源文件（normative source）
+│   └── locale/              # 中文、日文翻译目录（gettext）
 ├── research/
 │   ├── README.md            # 研究文档入口与边界声明
 │   └── rewrite-simplify/    # rewrite/simplify 研究线
@@ -146,7 +144,7 @@ theorem and_comm (p : bool) (q : bool) : ⊢ p ∧ q -> q ∧ p := by
 这类 binder 形式 `(x : bool)` 是当前已 shipped 的量词面入口之一；raw `forall` /
 `∀` theorem goal 现在也作为 goal-only sugar 被接受，并沿用同一套 goal lowering、
 proof-state locals 与 CLI diagnostics 合同。更多面向初学者的解释和示例见
-`doc/manual.md`；如果只是查当前 theorem-script 语法，直接看 `doc/syntax.md`。
+`doc/manual/manual.md`；如果只是查当前 theorem-script 语法，直接看 `doc/manual/syntax.md`。
 
 ## 构建与验证
 
@@ -179,13 +177,13 @@ lake build
 
 ## 文档地图
 
-- `doc/governance.md`：文档层级、命名、元数据和引用规则。
-- `doc/syntax.md`：当前 theorem-script 输入语法速查。
-- `doc/code_governance.md`：包分层、alias 入口与代码维护义务。
-- `doc/qed_formal_spec.pdf`：唯一规范性来源。
-- `doc/manual.md`：用户手册 + 当前实现合同 + 支持矩阵 + honest failure 示例。
-- `doc/conformance.md`：代码/测试映射、工程符合性与示例来源约束。
-- `doc/current_workspace_audit.md`：当前阶段仍未关闭的风险、缺口和 follow-up。
+- `doc/manual/governance.md`：文档层级、命名、元数据和引用规则。
+- `doc/manual/syntax.md`：当前 theorem-script 输入语法速查。
+- `doc/manual/code_governance.md`：包分层、alias 入口与代码维护义务。
+- `doc/attachments/qed_formal_spec.typ`：唯一规范性来源（形式规范的 Typst 源文件）。
+- `doc/manual/manual.md`：用户手册 + 当前实现合同 + 支持矩阵 + honest failure 示例。
+- `doc/manual/conformance.md`：代码/测试映射、工程符合性与示例来源约束。
+- `doc/manual/current_workspace_audit.md`：当前阶段仍未关闭的风险、缺口和 follow-up。
 - `research/README.md`：研究目录入口；研究文档不代表 shipped capability。
 
 ## 工程约定

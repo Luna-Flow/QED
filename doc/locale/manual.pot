@@ -1,0 +1,4223 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Luna-Flow documentation\n"
+"Report-Msgid-Bugs-To: https://github.com/Luna-Flow\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: conf.json:summary
+msgid "A kernel-first theorem prover written in MoonBit, governed by a formal specification."
+msgstr ""
+
+#: manual/api/kernel.md:1
+msgid "kernel API"
+msgstr ""
+
+#: manual/api/kernel.md:3
+msgid "kernel is part of Luna-Flow/QED. This page should describe the public types, constructors, functions, traits, and observable semantics that are implemented in the current branch."
+msgstr ""
+
+#: manual/api/kernel.md:5
+#: manual/api/parser.md:5
+#: manual/api/prover.md:5
+#: manual/api/tactics.md:5
+msgid "Scope"
+msgstr ""
+
+#: manual/api/kernel.md:7
+msgid "Source boundary: `src/kernel`"
+msgstr ""
+
+#: manual/api/kernel.md:8
+#: manual/api/parser.md:8
+#: manual/api/prover.md:8
+#: manual/api/tactics.md:8
+msgid "Audience: package users, integrators, and maintainers who need the exported contract"
+msgstr ""
+
+#: manual/api/kernel.md:9
+#: manual/api/parser.md:9
+#: manual/api/prover.md:9
+#: manual/api/tactics.md:9
+#: manual/code_governance.md:3
+#: manual/conformance.md:3
+#: manual/governance.md:3
+#: manual/manual.md:3
+#: manual/syntax.md:3
+msgid "Status: active"
+msgstr ""
+
+#: manual/api/kernel.md:11
+#: manual/api/parser.md:11
+#: manual/api/prover.md:11
+#: manual/api/tactics.md:11
+msgid "Public Contract"
+msgstr ""
+
+#: manual/api/kernel.md:13
+#: manual/api/parser.md:13
+#: manual/api/prover.md:13
+#: manual/api/tactics.md:13
+msgid "Describe only exported behavior that exists today."
+msgstr ""
+
+#: manual/api/kernel.md:14
+#: manual/api/parser.md:14
+#: manual/api/prover.md:14
+#: manual/api/tactics.md:14
+msgid "Call out backend or subtype differences when they are observable."
+msgstr ""
+
+#: manual/api/kernel.md:15
+#: manual/api/parser.md:15
+#: manual/api/prover.md:15
+#: manual/api/tactics.md:15
+msgid "Keep naming, argument ordering, and error semantics aligned with sibling modules when possible."
+msgstr ""
+
+#: manual/api/parser.md:1
+msgid "parser API"
+msgstr ""
+
+#: manual/api/parser.md:3
+msgid "parser is part of Luna-Flow/QED. This page should describe the public types, constructors, functions, traits, and observable semantics that are implemented in the current branch."
+msgstr ""
+
+#: manual/api/parser.md:7
+msgid "Source boundary: `src/parser`"
+msgstr ""
+
+#: manual/api/prover.md:1
+msgid "prover API"
+msgstr ""
+
+#: manual/api/prover.md:3
+msgid "prover is part of Luna-Flow/QED. This page should describe the public types, constructors, functions, traits, and observable semantics that are implemented in the current branch."
+msgstr ""
+
+#: manual/api/prover.md:7
+msgid "Source boundary: `src/prover`"
+msgstr ""
+
+#: manual/api/tactics.md:1
+msgid "tactics API"
+msgstr ""
+
+#: manual/api/tactics.md:3
+msgid "tactics is part of Luna-Flow/QED. This page should describe the public types, constructors, functions, traits, and observable semantics that are implemented in the current branch."
+msgstr ""
+
+#: manual/api/tactics.md:7
+msgid "Source boundary: `src/tactics`"
+msgstr ""
+
+#: manual/code_governance.md:1
+msgid "Code governance"
+msgstr ""
+
+#: manual/code_governance.md:4
+#: manual/governance.md:4
+msgid "Audience: contributors, maintainers"
+msgstr ""
+
+#: manual/code_governance.md:5
+msgid "Authority: repository code-organization policy; subordinate to [QED formal specification](../attachments/qed_formal_spec.typ), current code/tests, and [Documentation governance](governance.md)"
+msgstr ""
+
+#: manual/code_governance.md:6
+msgid "Scope: package layering, alias entrypoints, source responsibilities, and code-change documentation obligations"
+msgstr ""
+
+#: manual/code_governance.md:7
+#: manual/current_workspace_audit.md:7
+msgid "Last reviewed: 2026-04-18"
+msgstr ""
+
+#: manual/code_governance.md:9
+msgid "This document defines the code governance rules for the QED repository. It adds no new semantic specification layer; it only fixes package boundaries, alias entry points, and documentation write-back obligations, so that the code structure does not drift over time."
+msgstr ""
+
+#: manual/code_governance.md:13
+msgid "Layering"
+msgstr ""
+
+#: manual/code_governance.md:15
+msgid "The default dependency direction is fixed as:"
+msgstr ""
+
+#: manual/code_governance.md:19
+msgid "Governance requirements:"
+msgstr ""
+
+#: manual/code_governance.md:21
+msgid "`kernel` is the only theorem-construction boundary."
+msgstr ""
+
+#: manual/code_governance.md:22
+msgid "`logic` may only provide checked helpers, definition/unfold, replay helpers, and theorem catalog organization; it must not add new primitive authority."
+msgstr ""
+
+#: manual/code_governance.md:23
+msgid "`parser` is only responsible for textual syntax, normalization, resolution, and lowering; it must not depend directly on tactics execution objects."
+msgstr ""
+
+#: manual/code_governance.md:24
+msgid "`tactics` is only responsible for goal-state transformation and replay orchestration; it must not write back into parser semantics."
+msgstr ""
+
+#: manual/code_governance.md:25
+msgid "`prover` only orchestrates parser/tactics/kernel and produces structured diagnostics; it must not become a new logical authority."
+msgstr ""
+
+#: manual/code_governance.md:26
+msgid "`cmd` stays the thinnest outer layer; it only consumes stable facades and adds no low-level knowledge."
+msgstr ""
+
+#: manual/code_governance.md:28
+msgid "If a change requires a reverse dependency, treat it as a design problem by default; prefer introducing a neutral data structure or an explicit bridge over a direct cross-layer reference."
+msgstr ""
+
+#: manual/code_governance.md:31
+msgid "Alias entry points"
+msgstr ""
+
+#: manual/code_governance.md:33
+msgid "Each package has exactly two kinds of official alias entry points:"
+msgstr ""
+
+#: manual/code_governance.md:35
+msgid "`alias.mbt` Production source entry point."
+msgstr ""
+
+#: manual/code_governance.md:37
+msgid "`alias_test.mbt` Blackbox test entry point."
+msgstr ""
+
+#: manual/code_governance.md:40
+msgid "The constraints are:"
+msgstr ""
+
+#: manual/code_governance.md:42
+msgid "`alias.mbt` only exposes the stable symbols that the package's production source actually needs."
+msgstr ""
+
+#: manual/code_governance.md:43
+msgid "`alias_test.mbt` must first mirror the production exports of `alias.mbt`, then add test-only imports."
+msgstr ""
+
+#: manual/code_governance.md:44
+msgid "`alias_test.mbt` is not a second public API; it must not follow an export philosophy different from the production entry point."
+msgstr ""
+
+#: manual/code_governance.md:45
+msgid "The header comment of an alias file must state the scope of the entry point and its maintenance rules."
+msgstr ""
+
+#: manual/code_governance.md:46
+msgid "An alias file must not be used as an unbounded re-export table for lower-layer symbols."
+msgstr ""
+
+#: manual/code_governance.md:48
+msgid "Source responsibilities"
+msgstr ""
+
+#: manual/code_governance.md:50
+msgid "A single file or module should, as far as possible, carry only one primary responsibility:"
+msgstr ""
+
+#: manual/code_governance.md:52
+msgid "pure data objects and accessors"
+msgstr ""
+
+#: manual/code_governance.md:53
+msgid "pure lowering / normalization / rendering"
+msgstr ""
+
+#: manual/code_governance.md:54
+msgid "replay / orchestration"
+msgstr ""
+
+#: manual/code_governance.md:55
+msgid "corpus / mapping / fixtures"
+msgstr ""
+
+#: manual/code_governance.md:57
+msgid "The following cases should be split first:"
+msgstr ""
+
+#: manual/code_governance.md:59
+msgid "orchestration logic and error rendering stay mixed in the same file over the long term"
+msgstr ""
+
+#: manual/code_governance.md:60
+msgid "parser-side lowering constructs tactics objects directly"
+msgstr ""
+
+#: manual/code_governance.md:61
+msgid "a façade-layer file gradually turns into a cross-layer catch-all entry point"
+msgstr ""
+
+#: manual/code_governance.md:63
+msgid "The first governance patterns currently in place in this repository include:"
+msgstr ""
+
+#: manual/code_governance.md:65
+msgid "parser outputs a parser-owned `ParsedGoal`, which the upper layer explicitly bridges to `tactics.Goal`"
+msgstr ""
+
+#: manual/code_governance.md:66
+msgid "prover keeps its orchestration role, but continues to separate diagnostic rendering and corpus data from the main execution path"
+msgstr ""
+
+#: manual/code_governance.md:68
+msgid "Documentation obligations"
+msgstr ""
+
+#: manual/code_governance.md:70
+msgid "When a code change affects any of the following, the documentation must be updated in step:"
+msgstr ""
+
+#: manual/code_governance.md:72
+msgid "public capability claims"
+msgstr ""
+
+#: manual/code_governance.md:73
+msgid "package responsibilities or layering boundaries"
+msgstr ""
+
+#: manual/code_governance.md:74
+msgid "alias entry-point semantics"
+msgstr ""
+
+#: manual/code_governance.md:75
+msgid "failure semantics or structured diagnostic fields"
+msgstr ""
+
+#: manual/code_governance.md:77
+msgid "Default maintenance order:"
+msgstr ""
+
+#: manual/code_governance.md:79
+#: manual/governance.md:127
+msgid "Code and tests"
+msgstr ""
+
+#: manual/code_governance.md:80
+#: manual/conformance.md:304
+#: manual/governance.md:128
+msgid "[User manual](manual.md)"
+msgstr ""
+
+#: manual/code_governance.md:81
+#: manual/governance.md:129
+msgid "[Specification conformance](conformance.md)"
+msgstr ""
+
+#: manual/code_governance.md:83
+msgid "[Workspace audit (2026-04-18)](current_workspace_audit.md) (only when the point-in-time conclusions change)"
+msgstr ""
+
+#: manual/code_governance.md:85
+msgid "Review checklist"
+msgstr ""
+
+#: manual/code_governance.md:87
+msgid "On submission and review, check at least:"
+msgstr ""
+
+#: manual/code_governance.md:89
+msgid "whether new dependencies follow the established layering"
+msgstr ""
+
+#: manual/code_governance.md:90
+msgid "whether `alias.mbt` / `alias_test.mbt` are still the single official entry points"
+msgstr ""
+
+#: manual/code_governance.md:91
+msgid "whether the responsibilities of parser/tactics/prover are being coupled together again"
+msgstr ""
+
+#: manual/code_governance.md:92
+msgid "whether `.mbti` changes match the intended public boundary"
+msgstr ""
+
+#: manual/code_governance.md:93
+msgid "whether the documentation reflects the new shipped state in step"
+msgstr ""
+
+#: manual/conformance.md:1
+msgid "Specification conformance"
+msgstr ""
+
+#: manual/conformance.md:4
+msgid "Audience: contributors, reviewers"
+msgstr ""
+
+#: manual/conformance.md:5
+msgid "Authority: engineering conformance guide; subordinate to [QED formal specification](../attachments/qed_formal_spec.typ) and current code/tests"
+msgstr ""
+
+#: manual/conformance.md:6
+msgid "Scope: code/test mapping, implementation alignment, contributor obligations, and documentation example rules"
+msgstr ""
+
+#: manual/conformance.md:7
+#: manual/manual.md:7
+#: manual/syntax.md:7
+msgid "Last reviewed: 2026-04-20"
+msgstr ""
+
+#: manual/conformance.md:9
+msgid "This document records how the current MoonBit engineering line aligns with [QED formal specification](../attachments/qed_formal_spec.typ), and what peripheral engineering must do to conform to the current core."
+msgstr ""
+
+#: manual/conformance.md:12
+msgid "It is not a new normative layer; its role is to put \"paper requirements\", \"current code\", \"current tests\", and \"peripheral engineering obligations\" on the same table."
+msgstr ""
+
+#: manual/conformance.md:15
+msgid "Normative source"
+msgstr ""
+
+#: manual/conformance.md:17
+msgid "QED's current authority relations are as follows:"
+msgstr ""
+
+#: manual/conformance.md:19
+msgid "[QED formal specification](../attachments/qed_formal_spec.typ) is the only normative source."
+msgstr ""
+
+#: manual/conformance.md:20
+msgid "[`doc/attachments/qed_formal_spec.typ`](../attachments/qed_formal_spec.typ) is the specification source file."
+msgstr ""
+
+#: manual/conformance.md:21
+msgid "Current code and tests determine the actual current shipped state."
+msgstr ""
+
+#: manual/conformance.md:22
+msgid "[Documentation governance](governance.md) defines the documentation hierarchy and citation rules."
+msgstr ""
+
+#: manual/conformance.md:23
+msgid "[User manual](manual.md) describes the implementation contract in the current repository."
+msgstr ""
+
+#: manual/conformance.md:24
+msgid "This document describes engineering conformance, the code/test mapping, and the contributor checklist."
+msgstr ""
+
+#: manual/conformance.md:26
+msgid "The Lean anchors for Part II conformance are mainly in:"
+msgstr ""
+
+#: manual/conformance.md:33
+msgid "Implemented vs not implemented"
+msgstr ""
+
+#: manual/conformance.md:35
+msgid "Implemented and tested"
+msgstr ""
+
+#: manual/conformance.md:37
+msgid "The parts currently backed by stable code and regression tests are:"
+msgstr ""
+
+#: manual/conformance.md:39
+msgid "typed term/type core"
+msgstr ""
+
+#: manual/conformance.md:40
+msgid "opaque theorem object + checked primitive rules"
+msgstr ""
+
+#: manual/conformance.md:41
+msgid "scoped signature stack and definition history discipline"
+msgstr ""
+
+#: manual/conformance.md:42
+msgid "`DefOK` / `TypeDefOK` / `SpecOK` gate"
+msgstr ""
+
+#: manual/conformance.md:43
+msgid "theorem admissibility around const identity, schema instance, definitional coherence, and type-language admissibility"
+msgstr ""
+
+#: manual/conformance.md:45
+msgid "resolved elaboration boundary with frozen constant identity"
+msgstr ""
+
+#: manual/conformance.md:46
+msgid "parser normalize + raw-offset contract"
+msgstr ""
+
+#: manual/conformance.md:47
+msgid "parser-owned goal lowering boundary without direct tactics dependency"
+msgstr ""
+
+#: manual/conformance.md:48
+msgid "basis-backed lowering contract for surface connectors"
+msgstr ""
+
+#: manual/conformance.md:49
+msgid "canonical definition-theorem-backed connector recognition"
+msgstr ""
+
+#: manual/conformance.md:50
+msgid "audit certificates and executable conservative replay hook"
+msgstr ""
+
+#: manual/conformance.md:51
+msgid "definition theorem / unfold / replay helpers in the logic layer"
+msgstr ""
+
+#: manual/conformance.md:52
+msgid "supported propositional theorem scripting paths that replay to kernel `Thm`"
+msgstr ""
+
+#: manual/conformance.md:54
+msgid "Implemented but intentionally partial"
+msgstr ""
+
+#: manual/conformance.md:56
+msgid "The following parts exist, but their coverage is still limited:"
+msgstr ""
+
+#: manual/conformance.md:58
+msgid "`Goal` / `ProofState` / step execution and the `ps_qed` success path in `tactics`"
+msgstr ""
+
+#: manual/conformance.md:59
+msgid "the theorem-script driver in `prover`"
+msgstr ""
+
+#: manual/conformance.md:60
+msgid "theorem-name based replay currently covers only a small catalog of stable propositions"
+msgstr ""
+
+#: manual/conformance.md:61
+msgid "the parser currently supports theorem-header binders, sequential `by` bodies, and a minimal structured branch block syntax: a theorem header may carry zero or more `(name : type)` binders; the body may be written as a single line `theorem ... := by step; step; ...`, or as a block `theorem ... := by` followed by a newline-separated list of steps; `split` / `left` / `right` may still carry the minimal branch block syntax, and the parser keeps raw binder/goal/step spans; the actual scheduling and blame attribution of branch bodies is handled by `prover`"
+msgstr ""
+
+#: manual/conformance.md:69
+msgid "theorem-script also currently supports the `hole` / `hole <name>` unfinished-proof step; theorem-header binders now form a shipped quantifier-facing surface that reliably enters goal lowering, proof-state locals, and cmd diagnostics; a raw `forall` / `∀` theorem goal also enters the shipped lowering path as goal-only sugar, but is still not term-level syntax"
+msgstr ""
+
+#: manual/conformance.md:74
+msgid "parser-side `parse_let` / `parse_def_function` are formalized as a non-script utility surface"
+msgstr ""
+
+#: manual/conformance.md:76
+msgid "These layers are not a complete frontend in which \"any user proof can produce a trusted theorem\"."
+msgstr ""
+
+#: manual/conformance.md:78
+msgid "Not implemented"
+msgstr ""
+
+#: manual/conformance.md:80
+msgid "The following are currently not implemented and should be treated explicitly as missing capabilities:"
+msgstr ""
+
+#: manual/conformance.md:82
+msgid "richer proof blocks"
+msgstr ""
+
+#: manual/conformance.md:83
+msgid "promoted rewrite/simplify tactic / command surface"
+msgstr ""
+
+#: manual/conformance.md:84
+msgid "dictionary passing"
+msgstr ""
+
+#: manual/conformance.md:85
+msgid "typeclass frontend"
+msgstr ""
+
+#: manual/conformance.md:86
+msgid "instance environment / instance search"
+msgstr ""
+
+#: manual/conformance.md:87
+msgid "constraint solving"
+msgstr ""
+
+#: manual/conformance.md:88
+msgid "metavariables / holes"
+msgstr ""
+
+#: manual/conformance.md:89
+msgid "local type inference"
+msgstr ""
+
+#: manual/conformance.md:90
+msgid "higher-order unification"
+msgstr ""
+
+#: manual/conformance.md:91
+msgid "complete theorem reconstruction for arbitrary scripts / arbitrary tactic combinations"
+msgstr ""
+
+#: manual/conformance.md:93
+msgid "Code and test mapping"
+msgstr ""
+
+#: manual/conformance.md:95
+msgid "Area"
+msgstr ""
+
+#: manual/conformance.md:95
+msgid "Current implementation"
+msgstr ""
+
+#: manual/conformance.md:95
+msgid "Regression coverage"
+msgstr ""
+
+#: manual/conformance.md:97
+msgid "Typed core + boundary conversion"
+msgstr ""
+
+#: manual/conformance.md:98
+msgid "Scoped state + extension gates"
+msgstr ""
+
+#: manual/conformance.md:99
+msgid "Primitive rules + admissibility"
+msgstr ""
+
+#: manual/conformance.md:100
+msgid "Resolved elaboration boundary"
+msgstr ""
+
+#: manual/conformance.md:101
+msgid "Parser bridge + normalize/raw-offset contract"
+msgstr ""
+
+#: manual/conformance.md:102
+msgid "Parser-to-tactics explicit goal bridge"
+msgstr ""
+
+#: manual/conformance.md:103
+msgid "Surface connector basis expansion"
+msgstr ""
+
+#: manual/conformance.md:104
+msgid "Proposition theorem replay/catalog seeds"
+msgstr ""
+
+#: manual/conformance.md:105
+msgid "Operational proof scripting + M1 subset replay"
+msgstr ""
+
+#: manual/conformance.md:106
+msgid "File-first `cmd` integration surface"
+msgstr ""
+
+#: manual/conformance.md:107
+msgid "Quantifier-facing binder / raw-`forall` corpus + CLI contract"
+msgstr ""
+
+#: manual/conformance.md:108
+msgid "Formal Part I / Part II conformance pack"
+msgstr ""
+
+#: manual/conformance.md:110
+msgid "Regression points that deserve particular attention:"
+msgstr ""
+
+#: manual/conformance.md:112
+msgid "`src/kernel/kernel_audit_test.mbt` already covers high-risk scenarios such as def-head monotonicity, typedef witness validity, const-id drift, typed beta/trans guards, and conservative replay."
+msgstr ""
+
+#: manual/conformance.md:115
+msgid "`src/parser/parser_test.mbt` already covers the normalize/raw-offset contract and the fail-closed rejection of non-`bool` connectors."
+msgstr ""
+
+#: manual/conformance.md:117
+msgid "`src/parser/parser_test.mbt` currently also covers theorem-header binders, structured branch block parsing, and raw-span regressions."
+msgstr ""
+
+#: manual/conformance.md:119
+msgid "`src/parser/parser_test.mbt` and `src/prover/prover_positive_corpus_test.mbt` together currently pin down the contract for parser-owned goal lowering and the explicit upper-layer bridge to `tactics.Goal`."
+msgstr ""
+
+#: manual/conformance.md:122
+msgid "`src/prover/prover_test.mbt` currently pins down script scheduling, branch path attribution, and the step blame convention for structured branch blocks."
+msgstr ""
+
+#: manual/conformance.md:124
+msgid "`src/prover/prover_test.mbt` currently covers positive `Ok((KernelState, Thm))` cases for the supported M1 subset, as well as several direct-close / implication-backed theorem-name paths."
+msgstr ""
+
+#: manual/conformance.md:126
+msgid "`src/prover/prover_positive_corpus_test.mbt` / `src/prover/prover_negative_corpus_test.mbt` currently hold the canonical script corpus for the shipped subset, used to pin down capability coverage and the honest failure convention."
+msgstr ""
+
+#: manual/conformance.md:129
+msgid "`src/prover/prover_test.mbt`, `src/prover/prover_mapping_matrix_test.mbt`, and `src/cmd/cmd_corpus_wbtest.mbt` currently also cover the structured contract for unfinished-proof / hole reporting and the canonical unfinished corpus anchors."
+msgstr ""
+
+#: manual/conformance.md:132
+msgid "`src/prover/prover_mapping_matrix_test.mbt` and `src/cmd/cmd_corpus_wbtest.mbt` currently also cover the nested branch unfinished path and stable empty-marker rendering."
+msgstr ""
+
+#: manual/conformance.md:134
+msgid "`src/cmd/cmd_corpus_wbtest.mbt` and `src/cmd/cmd_wbtest.mbt` currently also pin down the success / failure / unfinished CLI contract for shipped quantifier-facing binder / raw-`forall` scripts, including goal, locals, branch path, and step blame."
+msgstr ""
+
+#: manual/conformance.md:137
+msgid "`src/prover/prover_mapping_matrix_test.mbt` currently binds the positive / negative / unfinished canonical case ids, the quantifier binder / raw-`forall` case ids, the capability tags, and the public example anchors in [User manual](manual.md) into a single set of regression constraints."
+msgstr ""
+
+#: manual/conformance.md:140
+msgid "`src/cmd/cmd_wbtest.mbt` currently covers success rendering, parse/io/usage failures, tactic failure context rendering, branch-path rendering, and the file-first argv workflow."
+msgstr ""
+
+#: manual/conformance.md:144
+msgid "Documentation example source contract"
+msgstr ""
+
+#: manual/conformance.md:146
+msgid "To keep the documentation from presenting planned capabilities as delivered ones, documentation examples must currently follow these source constraints:"
+msgstr ""
+
+#: manual/conformance.md:149
+msgid "`README.md` only publishes a summary of the current shipped subset and does not invent new example semantics on its own."
+msgstr ""
+
+#: manual/conformance.md:151
+msgid "Runnable theorem-script examples in [User manual](manual.md) must come from existing regression test coverage."
+msgstr ""
+
+#: manual/conformance.md:153
+msgid "Theorem-producing positive example scripts currently use `src/prover/prover_test.mbt` and `src/prover/prover_positive_corpus_test.mbt` as their primary anchors."
+msgstr ""
+
+#: manual/conformance.md:156
+msgid "Negative / honest failure examples for the shipped subset currently use `src/prover/prover_negative_corpus_test.mbt` as their primary anchor."
+msgstr ""
+
+#: manual/conformance.md:158
+msgid "Canonical unfinished-proof examples currently use `src/prover/prover_test.mbt`, `src/prover/prover_mapping_matrix_test.mbt`, and `src/cmd/cmd_corpus_wbtest.mbt` as their primary anchors; both root-level unfinished and nested branch unfinished samples must be kept in sync."
+msgstr ""
+
+#: manual/conformance.md:162
+msgid "Quantifier-facing binder / raw-`forall` examples currently also use `src/prover/corpus.mbt`, `src/prover/prover_mapping_matrix_test.mbt`, and `src/cmd/cmd_corpus_wbtest.mbt` as their primary anchors; public documentation may only cite these canonical case ids."
+msgstr ""
+
+#: manual/conformance.md:166
+msgid "The mapping from case ids to example anchors in public documentation currently uses `src/prover/prover_mapping_matrix_test.mbt` as its primary anchor."
+msgstr ""
+
+#: manual/conformance.md:168
+msgid "Tactic-level examples, local-over-name conflicts, and wrong-mode honest failures currently use `src/tactics/proof_state_test.mbt` as their primary anchor."
+msgstr ""
+
+#: manual/conformance.md:170
+msgid "If the documentation adds, modifies, or removes a public example, the corresponding regression test must be added, modified, or removed at the same time."
+msgstr ""
+
+#: manual/conformance.md:173
+msgid "Part II conformance obligations"
+msgstr ""
+
+#: manual/conformance.md:175
+msgid "Lean now states the Part II obligations of peripheral engineering explicitly as engineering obligations. The core items are:"
+msgstr ""
+
+#: manual/conformance.md:186
+msgid "For contributors, the more actionable checklist is the following set of rules."
+msgstr ""
+
+#: manual/conformance.md:188
+msgid "Contributor checklist"
+msgstr ""
+
+#: manual/conformance.md:190
+msgid "`logic` may only provide checked wrappers, definition/unfold helpers, replay helpers, and organization of non-authoritative theorem references; it must not bypass the kernel to invent new rules."
+msgstr ""
+
+#: manual/conformance.md:193
+msgid "`parser` must preserve `local > const` and the normalize + raw-offset contract, and must share the same connector contract with `logic`."
+msgstr ""
+
+#: manual/conformance.md:195
+msgid "`elab` must freeze resolved identity; when later typing encounters const-id or schema drift, it must fail closed."
+msgstr ""
+
+#: manual/conformance.md:197
+msgid "`tactics` may hand out a theorem through `ps_qed` only when replay through `logic` constructs a `Thm` consistent with the sequent; otherwise it must fail closed."
+msgstr ""
+
+#: manual/conformance.md:199
+msgid "Final acceptance in `ps_qed` must currently use strict normalized sequent equality; the old boundary that admitted results based only on shape-aware compatibility must not be kept."
+msgstr ""
+
+#: manual/conformance.md:201
+msgid "`prover` returns `Ok` and a `Thm` only when replay succeeds; otherwise it keeps returning honest errors."
+msgstr ""
+
+#: manual/conformance.md:203
+msgid "`cmd` may only be a new non-authoritative integration layer and must not become a second proof kernel."
+msgstr ""
+
+#: manual/conformance.md:205
+msgid "Extension certificates may only be audit artifacts; they must not be treated as a substitute for theorem acceptance."
+msgstr ""
+
+#: manual/conformance.md:208
+msgid "The goal of this checklist is to progressively compress the executable frontend into what the paper calls a faithful realization, rather than adding a second logical system in peripheral engineering."
+msgstr ""
+
+#: manual/conformance.md:211
+msgid "Peripheral alignment"
+msgstr ""
+
+#: manual/conformance.md:213
+msgid "The engineering mainline of the current workspace is a deliberate consolidation:"
+msgstr ""
+
+#: manual/conformance.md:215
+msgid "The parser has moved from \"relying on a prelude constant of the same name existing in the state\" to \"basis-backed builder + resolve/lowering contract\"."
+msgstr ""
+
+#: manual/conformance.md:217
+msgid "Logic has advanced from \"registering surface symbol names\" to \"defined constants + definition theorem + unfold/replay helpers + small theorem catalog + shared theorem inventory\"."
+msgstr ""
+
+#: manual/conformance.md:219
+msgid "Tactics/prover have moved from a purely operational prototype to \"the supported subset replays to kernel `Thm`, with the support matrix and honest failures pinned down by the canonical corpus\"."
+msgstr ""
+
+#: manual/conformance.md:222
+msgid "For peripheral engineering to keep conforming to the current core, it should continue to:"
+msgstr ""
+
+#: manual/conformance.md:224
+msgid "extend replay builders on top of the shared theorem inventory and the canonical corpus;"
+msgstr ""
+
+#: manual/conformance.md:225
+msgid "write new shipped capabilities back into the canonical corpus / mapping matrix / manual anchors, so the documentation does not lag behind the implementation;"
+msgstr ""
+
+#: manual/conformance.md:227
+msgid "turn goal / hole / unfinished-proof diagnostics into a formal frontend contract, while continuing to state explicitly that they are not proof objects;"
+msgstr ""
+
+#: manual/conformance.md:229
+msgid "keep the parser/lowering/replay boundaries explicit for the shipped quantifier-facing path of theorem-header binders, as well as for the raw `forall` theorem-goal sugar;"
+msgstr ""
+
+#: manual/conformance.md:231
+msgid "have `cmd` keep reusing the structured failure contract of `prover` instead of interpreting error strings on its own;"
+msgstr ""
+
+#: manual/conformance.md:233
+msgid "keep expanding frontend expressiveness on top of the current file-first workflow."
+msgstr ""
+
+#: manual/conformance.md:235
+msgid "These tasks should reuse the existing tools:"
+msgstr ""
+
+#: manual/conformance.md:245
+msgid "Do not create a separate ad-hoc proof semantics that holds only inside tactic/prover but cannot be replayed to the kernel path."
+msgstr ""
+
+#: manual/conformance.md:248
+msgid "Remaining non-shipped surfaces"
+msgstr ""
+
+#: manual/conformance.md:250
+msgid "The capabilities that are still not shipped include:"
+msgstr ""
+
+#: manual/conformance.md:252
+msgid "the theorem catalog is still small and not yet enough to support a large body of more natural scripts; however, the inventory, mode boundaries, and corpus of the current shipped subset are already fixed;"
+msgstr ""
+
+#: manual/conformance.md:255
+msgid "the canonical corpus still needs its hardening regressions filled in to complete the `H5` integration gate;"
+msgstr ""
+
+#: manual/conformance.md:257
+msgid "the theorem-script body already supports minimal `M4b` structured branch blocks, but richer proof blocks are still not implemented;"
+msgstr ""
+
+#: manual/conformance.md:259
+msgid "holes / unfinished proofs have now entered the shipped theorem-script surface, but hole completion / metavariable authority is still not implemented;"
+msgstr ""
+
+#: manual/conformance.md:261
+msgid "the theorem-header binder quantifier-facing surface is shipped; the raw `forall` / `∀` theorem-goal frontend is also supported as goal-only sugar;"
+msgstr ""
+
+#: manual/conformance.md:263
+msgid "the parser-side utility surface has been consolidated into a non-script API; going forward, documentation and tests only need to be kept in sync;"
+msgstr ""
+
+#: manual/conformance.md:265
+msgid "the Lean line is currently a paper/conformance pack, not a direct mechanized proof of the MoonBit source."
+msgstr ""
+
+#: manual/conformance.md:268
+msgid "A more accurate assessment of the status is therefore:"
+msgstr ""
+
+#: manual/conformance.md:270
+msgid "the Part I core and the main conformance conventions of Part II are in place;"
+msgstr ""
+
+#: manual/conformance.md:271
+msgid "a theorem-producing frontend over the supported subset already exists;"
+msgstr ""
+
+#: manual/conformance.md:272
+msgid "but a more complete faithful realization is still being consolidated."
+msgstr ""
+
+#: manual/conformance.md:274
+msgid "Verification gate"
+msgstr ""
+
+#: manual/conformance.md:276
+msgid "The currently recommended paper-alignment / engineering-conformance gate is:"
+msgstr ""
+
+#: manual/conformance.md:285
+msgid "When preparing to merge or freeze a release, also run:"
+msgstr ""
+
+#: manual/conformance.md:295
+#: manual/manual.md:902
+msgid "Local check results on 2026-04-05:"
+msgstr ""
+
+#: manual/conformance.md:297
+#: manual/manual.md:904
+msgid "`moon test` passes"
+msgstr ""
+
+#: manual/conformance.md:298
+#: manual/manual.md:905
+msgid "`lake build` passes"
+msgstr ""
+
+#: manual/conformance.md:300
+msgid "When a change touches the trust boundary, scope, gates, the connector contract, proof scripting, or documentation conventions, also check:"
+msgstr ""
+
+#: manual/conformance.md:303
+#: manual/current_workspace_audit.md:14
+#: manual/index.md:9
+msgid "[QED formal specification](../attachments/qed_formal_spec.typ)"
+msgstr ""
+
+#: manual/conformance.md:305
+msgid "this document"
+msgstr ""
+
+#: manual/current_workspace_audit.md:1
+msgid "Workspace audit (2026-04-18)"
+msgstr ""
+
+#: manual/current_workspace_audit.md:3
+msgid "Status: point-in-time audit"
+msgstr ""
+
+#: manual/current_workspace_audit.md:4
+msgid "Audience: maintainers, contributors"
+msgstr ""
+
+#: manual/current_workspace_audit.md:5
+msgid "Authority: stage audit; subordinate to [QED formal specification](../attachments/qed_formal_spec.typ), current code/tests, and implementation docs"
+msgstr ""
+
+#: manual/current_workspace_audit.md:6
+msgid "Scope: risks, gaps, and follow-up items that still remain material on the audited baseline"
+msgstr ""
+
+#: manual/current_workspace_audit.md:9
+msgid "_Date: 2026-04-18_"
+msgstr ""
+
+#: manual/current_workspace_audit.md:11
+msgid "This report audits the current workspace against the repository's source-of-truth order:"
+msgstr ""
+
+#: manual/current_workspace_audit.md:15
+msgid "current code and regression tests"
+msgstr ""
+
+#: manual/current_workspace_audit.md:16
+msgid "implementation-facing docs ([User manual](manual.md), [Specification conformance](conformance.md))"
+msgstr ""
+
+#: manual/current_workspace_audit.md:17
+msgid "top-level summary docs (`README.md`, `application.typ`)"
+msgstr ""
+
+#: manual/current_workspace_audit.md:19
+msgid "Validation baseline used during this audit:"
+msgstr ""
+
+#: manual/current_workspace_audit.md:21
+msgid "`moon test` -> pass (`276/276`)"
+msgstr ""
+
+#: manual/current_workspace_audit.md:22
+msgid "`formal_verification/lake build` -> pass"
+msgstr ""
+
+#: manual/current_workspace_audit.md:24
+msgid "These green gates show the workspace is internally consistent on the current baseline. They do not by themselves mean that every planned product capability is already shipped."
+msgstr ""
+
+#: manual/current_workspace_audit.md:28
+msgid "Resolved since the previous audit"
+msgstr ""
+
+#: manual/current_workspace_audit.md:30
+msgid "The following previously reported risks are no longer current findings:"
+msgstr ""
+
+#: manual/current_workspace_audit.md:32
+msgid "type-language admissibility is now enforced at trusted theorem / sentence boundaries;"
+msgstr ""
+
+#: manual/current_workspace_audit.md:34
+msgid "connector recognition is now definition-theorem-backed rather than raw head-name acceptance;"
+msgstr ""
+
+#: manual/current_workspace_audit.md:36
+msgid "non-`bool` surface connectors now fail closed with structured errors rather than crashing on user-reachable paths."
+msgstr ""
+
+#: manual/current_workspace_audit.md:38
+msgid "the theorem-name inventory, the `exact` / `apply` mode boundary, and the canonical positive / negative script corpus are now all explicit and have regression coverage."
+msgstr ""
+
+#: manual/current_workspace_audit.md:41
+msgid "file-first `cmd` surface now exists, is covered by regression tests, and uses structured tactic-failure context instead of raw string-only reporting."
+msgstr ""
+
+#: manual/current_workspace_audit.md:43
+msgid "the current M4 slice is now integrated on the shipped path: theorem-header binders, sequential block-body theorem-script parsing, raw binder/goal/step spans, and structured frontend diagnostics all have regression coverage."
+msgstr ""
+
+#: manual/current_workspace_audit.md:47
+msgid "`ProofState` final theorem validation is now tightened to strict normalized sequent matching, with regressions that reject the old wide-match behavior."
+msgstr ""
+
+#: manual/current_workspace_audit.md:49
+msgid "disjunction wrap replay now enforces the same explicit full-goal postcondition discipline as conjunction merge."
+msgstr ""
+
+#: manual/current_workspace_audit.md:51
+msgid "local `exact` witnesses are now frozen to active hypothesis aliases only, and local shadowing no longer falls through to same-name theorem entries."
+msgstr ""
+
+#: manual/current_workspace_audit.md:53
+msgid "canonical prover corpus and mapping-matrix coverage are now aligned with the hardened replay/final-theorem contracts, so `H5` no longer depends on a stale wider corpus contract."
+msgstr ""
+
+#: manual/current_workspace_audit.md:56
+msgid "minimal `M4b` is now shipped on the main theorem-script path: structured branch blocks for `split` / `left` / `right` are parsed, replayed, covered by parser/prover/cmd regressions, and diagnosed with stable branch paths."
+msgstr ""
+
+#: manual/current_workspace_audit.md:61
+msgid "This audit therefore focuses only on the issues and gaps that still remain material today."
+msgstr ""
+
+#: manual/current_workspace_audit.md:64
+msgid "Findings"
+msgstr ""
+
+#: manual/current_workspace_audit.md:66
+msgid "[P2] The Lean line remains a paper/conformance pack, not a direct proof of the MoonBit implementation"
+msgstr ""
+
+#: manual/current_workspace_audit.md:68
+msgid "**Why this matters**"
+msgstr ""
+
+#: manual/current_workspace_audit.md:70
+msgid "This is not a bug in the MoonBit kernel, but it is an important status boundary for honest communication. `lake build` proves the paper model and abstract conformance obligations. It does not mechanically bind the current MoonBit source tree to the Lean `Realization`."
+msgstr ""
+
+#: manual/current_workspace_audit.md:75
+msgid "**Evidence**"
+msgstr ""
+
+#: manual/current_workspace_audit.md:77
+msgid "`formal_verification/QEDFV/Engineering/Conformance.lean` reasons about abstract realizations and obligations;"
+msgstr ""
+
+#: manual/current_workspace_audit.md:79
+msgid "the traceability and rule-mapping files are paper/conformance artifacts, not a generated link to MoonBit symbols;"
+msgstr ""
+
+#: manual/current_workspace_audit.md:81
+msgid "repository docs already treat the Lean line as paper-first rather than direct implementation verification."
+msgstr ""
+
+#: manual/current_workspace_audit.md:84
+msgid "**Impact**"
+msgstr ""
+
+#: manual/current_workspace_audit.md:86
+msgid "public assurance language must stay precise;"
+msgstr ""
+
+#: manual/current_workspace_audit.md:87
+msgid "`lake build` should be read as “spec/conformance pack is closed”, not “the MoonBit program is machine-checked equivalent to Lean”."
+msgstr ""
+
+#: manual/current_workspace_audit.md:90
+msgid "**Required follow-up**"
+msgstr ""
+
+#: manual/current_workspace_audit.md:92
+msgid "keep docs precise on this boundary;"
+msgstr ""
+
+#: manual/current_workspace_audit.md:93
+msgid "only add a stronger claim later if a concrete MoonBit-to-Lean binding story is introduced as a new milestone."
+msgstr ""
+
+#: manual/current_workspace_audit.md:96
+msgid "**Opened task(s)**"
+msgstr ""
+
+#: manual/current_workspace_audit.md:100
+msgid "Testing gaps that still matter"
+msgstr ""
+
+#: manual/current_workspace_audit.md:102
+msgid "The current suite is strong, but the following gaps remain important for the next stages:"
+msgstr ""
+
+#: manual/current_workspace_audit.md:105
+msgid "richer proof-block expansion beyond the current minimal branch-block slice;"
+msgstr ""
+
+#: manual/current_workspace_audit.md:106
+msgid "richer hole / unfinished-proof reporting beyond the canonical unfinished case;"
+msgstr ""
+
+#: manual/current_workspace_audit.md:107
+msgid "quantifier-facing frontend and its trust-relevant lowering contract;"
+msgstr ""
+
+#: manual/current_workspace_audit.md:108
+msgid "any future CLI feature must continue to reuse the current positive / negative corpus instead of forking a second script matrix."
+msgstr ""
+
+#: manual/current_workspace_audit.md:111
+msgid "Overall assessment"
+msgstr ""
+
+#: manual/current_workspace_audit.md:113
+msgid "The kernel and the current theorem-producing propositional subset remain in a materially stronger state than the previous audit snapshot described."
+msgstr ""
+
+#: manual/current_workspace_audit.md:115
+msgid "This review did not uncover a direct checked-kernel soundness break in the current shipped path."
+msgstr ""
+
+#: manual/current_workspace_audit.md:117
+msgid "The most important next work is now:"
+msgstr ""
+
+#: manual/current_workspace_audit.md:118
+msgid "keep the new structured branch-block surface on the same checked lowering / replay boundary;"
+msgstr ""
+
+#: manual/current_workspace_audit.md:120
+msgid "move the roadmap toward richer user-facing proof experience: script, goal, proof blocks, and quantifier frontend;"
+msgstr ""
+
+#: manual/current_workspace_audit.md:122
+msgid "continue corpus + docs + conformance maintenance as the frontend expands."
+msgstr ""
+
+#: manual/current_workspace_audit.md:123
+msgid "The rewrite/simplify line remains research only."
+msgstr ""
+
+#: manual/current_workspace_audit.md:124
+msgid "The Lean line remains green and valuable, but it should continue to be described as a paper/conformance pack unless a stronger implementation binding is explicitly added later."
+msgstr ""
+
+#: manual/design/kernel.md:1
+msgid "kernel Design"
+msgstr ""
+
+#: manual/design/kernel.md:3
+msgid "The kernel is the trusted computing base and must stay aligned with the formal specification and conformance documents."
+msgstr ""
+
+#: manual/design/kernel.md:5
+#: manual/design/parser.md:5
+#: manual/design/prover.md:5
+#: manual/design/tactics.md:5
+msgid "Responsibilities"
+msgstr ""
+
+#: manual/design/kernel.md:7
+msgid "Keep the code and docs aligned around `src/kernel`."
+msgstr ""
+
+#: manual/design/kernel.md:8
+#: manual/design/parser.md:8
+#: manual/design/prover.md:8
+#: manual/design/tactics.md:8
+msgid "Preserve the real execution model instead of smoothing over important internal differences."
+msgstr ""
+
+#: manual/design/kernel.md:9
+#: manual/design/parser.md:9
+#: manual/design/prover.md:9
+#: manual/design/tactics.md:9
+msgid "Note extension points, invariants, and limitations that maintainers must keep stable."
+msgstr ""
+
+#: manual/design/kernel.md:11
+#: manual/design/parser.md:11
+#: manual/design/prover.md:11
+#: manual/design/tactics.md:11
+msgid "Maintenance Notes"
+msgstr ""
+
+#: manual/design/kernel.md:13
+#: manual/design/parser.md:13
+#: manual/design/prover.md:13
+#: manual/design/tactics.md:13
+msgid "Update this page whenever the module boundary, core algorithm, or observable semantics change."
+msgstr ""
+
+#: manual/design/kernel.md:14
+#: manual/design/parser.md:14
+#: manual/design/prover.md:14
+#: manual/design/tactics.md:14
+msgid "If the module is intentionally incomplete, say so here instead of documenting speculative APIs."
+msgstr ""
+
+#: manual/design/parser.md:1
+msgid "parser Design"
+msgstr ""
+
+#: manual/design/parser.md:3
+msgid "Use this page to explain the structural responsibilities and implementation constraints of this module. parser in Luna-Flow/QED."
+msgstr ""
+
+#: manual/design/parser.md:7
+msgid "Keep the code and docs aligned around `src/parser`."
+msgstr ""
+
+#: manual/design/prover.md:1
+msgid "prover Design"
+msgstr ""
+
+#: manual/design/prover.md:3
+msgid "Use this page to explain the structural responsibilities and implementation constraints of this module. prover in Luna-Flow/QED."
+msgstr ""
+
+#: manual/design/prover.md:7
+msgid "Keep the code and docs aligned around `src/prover`."
+msgstr ""
+
+#: manual/design/tactics.md:1
+msgid "tactics Design"
+msgstr ""
+
+#: manual/design/tactics.md:3
+msgid "Use this page to explain the structural responsibilities and implementation constraints of this module. tactics in Luna-Flow/QED."
+msgstr ""
+
+#: manual/design/tactics.md:7
+msgid "Keep the code and docs aligned around `src/tactics`."
+msgstr ""
+
+#: manual/governance.md:1
+msgid "Documentation governance"
+msgstr ""
+
+#: manual/governance.md:5
+msgid "Authority: repository documentation policy; subordinate to [QED formal specification](../attachments/qed_formal_spec.typ)"
+msgstr ""
+
+#: manual/governance.md:6
+msgid "Scope: document hierarchy, naming, metadata, and cross-reference rules"
+msgstr ""
+
+#: manual/governance.md:7
+msgid "Last reviewed: 2026-04-16"
+msgstr ""
+
+#: manual/governance.md:9
+msgid "This document defines the documentation governance rules for the QED repository. Its goal is not to add a new specification layer but to strictly layer the existing documents by authority, purpose, and audience, so that the same topic is not narrated repeatedly in several entry points and allowed to drift over time."
+msgstr ""
+
+#: manual/governance.md:13
+msgid "Document layers"
+msgstr ""
+
+#: manual/governance.md:15
+msgid "QED currently uses the following document layers:"
+msgstr ""
+
+#: manual/governance.md:17
+msgid "Specification layer [QED formal specification](../attachments/qed_formal_spec.typ) is the only normative source; [`doc/attachments/qed_formal_spec.typ`](../attachments/qed_formal_spec.typ) is its source file."
+msgstr ""
+
+#: manual/governance.md:19
+msgid "Implementation layer The current code and regression tests determine the real shipped state."
+msgstr ""
+
+#: manual/governance.md:21
+msgid "Implementation documentation layer [User manual](manual.md), [Specification conformance](conformance.md), and [Workspace audit (2026-04-18)](current_workspace_audit.md) describe the current implementation contract, engineering conformance, and point-in-time audits."
+msgstr ""
+
+#: manual/governance.md:24
+msgid "Summary and navigation layer `README.md` and `application.typ` only provide summaries and entry-point navigation; they must not rank above the implementation layer or the implementation documentation layer."
+msgstr ""
+
+#: manual/governance.md:27
+msgid "Research layer `research/` only holds unshipped design research, promotion gates, go/no-go conclusions, and prototype evaluations. Research documents are not a product contract."
+msgstr ""
+
+#: manual/governance.md:31
+msgid "If code and documentation conflict, first establish the real state from code + tests, then write it back into the implementation documentation. If the implementation conflicts with the paper specification, the paper specification still prevails."
+msgstr ""
+
+#: manual/governance.md:35
+msgid "Canonical entry points"
+msgstr ""
+
+#: manual/governance.md:37
+msgid "Every category of information must have a single primary entry point:"
+msgstr ""
+
+#: manual/governance.md:39
+msgid "Current implementation contract: [User manual](manual.md)"
+msgstr ""
+
+#: manual/governance.md:40
+msgid "Quick reference for the current user input syntax: [Syntax guide](syntax.md)"
+msgstr ""
+
+#: manual/governance.md:41
+msgid "Engineering conformance and code/test mapping: [Specification conformance](conformance.md)"
+msgstr ""
+
+#: manual/governance.md:42
+msgid "Point-in-time risks and gaps: [Workspace audit (2026-04-18)](current_workspace_audit.md)"
+msgstr ""
+
+#: manual/governance.md:43
+msgid "Repository summary and quick entry point: `README.md`"
+msgstr ""
+
+#: manual/governance.md:44
+msgid "Research directory entry point: `research/README.md`"
+msgstr ""
+
+#: manual/governance.md:46
+msgid "Other documents may only supplement these; they must not duplicate the \"current state\" in parallel."
+msgstr ""
+
+#: manual/governance.md:48
+msgid "Code organization and alias entry-point governance are defined in one place, [Code governance](code_governance.md); it does not rank above the current code and implementation documentation, and only fixes engineering boundaries and maintenance obligations."
+msgstr ""
+
+#: manual/governance.md:52
+msgid "Metadata contract"
+msgstr ""
+
+#: manual/governance.md:54
+msgid "Apart from the top-level `README.md` and the specification text itself, every maintenance-facing document should include in its header:"
+msgstr ""
+
+#: manual/governance.md:63
+msgid "Status labels use the following vocabulary:"
+msgstr ""
+
+#: manual/governance.md:71
+msgid "Naming rules"
+msgstr ""
+
+#: manual/governance.md:73
+msgid "Implementation documents use responsibility-oriented names, such as `manual.md`, `conformance.md`, and `current_workspace_audit.md`."
+msgstr ""
+
+#: manual/governance.md:74
+msgid "Research documents use a topic directory plus stage file names, all in lowercase kebab-case."
+msgstr ""
+
+#: manual/governance.md:75
+msgid "New research topics go under `research/<topic>/`, for example `research/rewrite-simplify/`."
+msgstr ""
+
+#: manual/governance.md:76
+msgid "Do not add temporary names such as `v2`, `new`, `tmp`, or `final`; when a replacement is needed, complete the migration directly and delete the old entry point."
+msgstr ""
+
+#: manual/governance.md:78
+msgid "Content rules"
+msgstr ""
+
+#: manual/governance.md:80
+msgid "`README.md` may only contain:"
+msgstr ""
+
+#: manual/governance.md:81
+msgid "a project introduction"
+msgstr ""
+
+#: manual/governance.md:82
+msgid "a high-level summary of the current shipped subset"
+msgstr ""
+
+#: manual/governance.md:83
+msgid "build commands"
+msgstr ""
+
+#: manual/governance.md:84
+msgid "a documentation map"
+msgstr ""
+
+#: manual/governance.md:85
+msgid "`README.md` should not carry:"
+msgstr ""
+
+#: manual/governance.md:86
+msgid "the full support matrix"
+msgstr ""
+
+#: manual/governance.md:87
+msgid "long capability lists"
+msgstr ""
+
+#: manual/governance.md:88
+msgid "audit details"
+msgstr ""
+
+#: manual/governance.md:89
+msgid "details of future plans"
+msgstr ""
+
+#: manual/governance.md:90
+msgid "[User manual](manual.md) describes the current implementation boundary, module responsibilities, support matrix, and stable examples."
+msgstr ""
+
+#: manual/governance.md:91
+msgid "[Syntax guide](syntax.md) only describes the current shipped theorem-script input syntax and known limitations; it does not serve as the implementation contract."
+msgstr ""
+
+#: manual/governance.md:92
+msgid "[Specification conformance](conformance.md) describes specification alignment, code/test mapping, contributor checklists, and constraints on documentation examples."
+msgstr ""
+
+#: manual/governance.md:93
+msgid "[Workspace audit (2026-04-18)](current_workspace_audit.md) only records risks, gaps, and follow-ups that still hold at a given point in time, and does not repeat the stable facts of manual/conformance over the long term."
+msgstr ""
+
+#: manual/governance.md:94
+msgid "`research/` documents must explicitly declare `research-only`, `not shipped`, and `non-authoritative`."
+msgstr ""
+
+#: manual/governance.md:96
+msgid "Example and reference rules"
+msgstr ""
+
+#: manual/governance.md:98
+msgid "Every publicly claimed capability must be traceable to the current code and regression tests."
+msgstr ""
+
+#: manual/governance.md:99
+msgid "Public runnable examples must be anchored to existing tests; documentation must not invent untested scripts."
+msgstr ""
+
+#: manual/governance.md:100
+msgid "`README.md` only summarizes capabilities and does not invent example semantics on its own."
+msgstr ""
+
+#: manual/governance.md:101
+msgid "Research documents may refer to the shipped state, but should link to the implementation documentation instead of writing a separate long-lived status description."
+msgstr ""
+
+#: manual/governance.md:103
+msgid "Current document map"
+msgstr ""
+
+#: manual/governance.md:105
+msgid "`README.md` Repository summary and navigation entry point."
+msgstr ""
+
+#: manual/governance.md:107
+msgid "[User manual](manual.md) Current implementation contract."
+msgstr ""
+
+#: manual/governance.md:109
+msgid "[Syntax guide](syntax.md) Quick reference for the current shipped theorem-script input syntax."
+msgstr ""
+
+#: manual/governance.md:111
+msgid "[Specification conformance](conformance.md) Code/test mapping and engineering conformance."
+msgstr ""
+
+#: manual/governance.md:113
+msgid "[Code governance](code_governance.md) Package layering, alias entry points, and code maintenance obligations."
+msgstr ""
+
+#: manual/governance.md:115
+msgid "[Workspace audit (2026-04-18)](current_workspace_audit.md) Point-in-time audit of the current workspace."
+msgstr ""
+
+#: manual/governance.md:117
+msgid "[Formal specification changelog](qed_formal_spec_changelog.md) Specification changelog; auxiliary material for specification maintenance."
+msgstr ""
+
+#: manual/governance.md:119
+msgid "`research/README.md` Research directory entry point and boundary statement."
+msgstr ""
+
+#: manual/governance.md:122
+msgid "Maintenance rule"
+msgstr ""
+
+#: manual/governance.md:124
+msgid "When a change affects the implementation, the public capability claims, and research judgments at the same time, maintain the documents in the following order:"
+msgstr ""
+
+#: manual/governance.md:131
+msgid "[Workspace audit (2026-04-18)](current_workspace_audit.md)"
+msgstr ""
+
+#: manual/governance.md:132
+msgid "Related `research/` documents"
+msgstr ""
+
+#: manual/index.md:1
+msgid "QED"
+msgstr ""
+
+#: manual/index.md:3
+msgid "QED (Quite Easy Deduction) is a theorem prover written in MoonBit with a kernel-first architecture. The MoonBit implementation provides an executable, tested trusted kernel and a controlled frontend. A Lean 4 formalization in `formal_verification/` aligns the implementation with the paper specification for semantics, audit and conformance."
+msgstr ""
+
+#: manual/index.md:5
+msgid "Formal specification"
+msgstr ""
+
+#: manual/index.md:7
+msgid "The formal specification is the only normative source for the kernel."
+msgstr ""
+
+#: manual/index.md:11
+msgid "Packages"
+msgstr ""
+
+#: manual/index.md:13
+msgid "**`kernel`** (`src/kernel`): the trusted kernel. See the [API reference](api/kernel.md), the [design notes](design/kernel.md) and the [tutorial](tutorial/kernel.md)."
+msgstr ""
+
+#: manual/index.md:14
+msgid "**`parser`** (`src/parser`): the text frontend and its bridge to the kernel. See the [API reference](api/parser.md), the [design notes](design/parser.md) and the [tutorial](tutorial/parser.md)."
+msgstr ""
+
+#: manual/index.md:15
+msgid "**`tactics`** (`src/tactics`): the proof-state execution engine. See the [API reference](api/tactics.md), the [design notes](design/tactics.md) and the [tutorial](tutorial/tactics.md)."
+msgstr ""
+
+#: manual/index.md:16
+msgid "**`prover`** (`src/prover`): the theorem-script driver. See the [API reference](api/prover.md), the [design notes](design/prover.md) and the [tutorial](tutorial/prover.md)."
+msgstr ""
+
+#: manual/index.md:18
+msgid "Guides"
+msgstr ""
+
+#: manual/index.md:20
+msgid "If you are new to the project, read the guides in this order:"
+msgstr ""
+
+#: manual/index.md:22
+msgid "[User manual](manual.md): the user guide and implementation contract, with background for readers new to HOL, simple proofs, command-line usage and the current support matrix."
+msgstr ""
+
+#: manual/index.md:23
+msgid "[Syntax guide](syntax.md): a quick reference for the theorem-script input syntax."
+msgstr ""
+
+#: manual/index.md:24
+msgid "[Specification conformance](conformance.md): how code and tests align with the specification, and what contributors must do."
+msgstr ""
+
+#: manual/index.md:26
+msgid "The remaining guides serve maintainers:"
+msgstr ""
+
+#: manual/index.md:28
+msgid "[Documentation governance](governance.md) and [Code governance](code_governance.md): repository rules for documents, package layering and alias entry points."
+msgstr ""
+
+#: manual/index.md:29
+msgid "[Formal specification changelog](qed_formal_spec_changelog.md): revisions of the specification."
+msgstr ""
+
+#: manual/index.md:30
+msgid "[Workspace audit (2026-04-18)](current_workspace_audit.md): a point-in-time record of the risks and gaps on the audited baseline."
+msgstr ""
+
+#: manual/manual.md:1
+msgid "User manual"
+msgstr ""
+
+#: manual/manual.md:4
+msgid "Audience: users, contributors, implementers"
+msgstr ""
+
+#: manual/manual.md:5
+msgid "Authority: user guide + implementation contract; subordinate to [QED formal specification](../attachments/qed_formal_spec.typ) and current code/tests"
+msgstr ""
+
+#: manual/manual.md:6
+msgid "Scope: current shipped behavior, beginner-facing usage, trust boundary, support matrix, and stable examples"
+msgstr ""
+
+#: manual/manual.md:9
+msgid "This document is both the current QED user manual and its implementation contract."
+msgstr ""
+
+#: manual/manual.md:11
+msgid "It follows the MoonBit and Lean code in the current repository workspace and answers three questions:"
+msgstr ""
+
+#: manual/manual.md:13
+msgid "how an ordinary user actually writes and runs a small proof today;"
+msgstr ""
+
+#: manual/manual.md:14
+msgid "what is actually implemented today;"
+msgstr ""
+
+#: manual/manual.md:15
+msgid "what the surrounding tooling is currently allowed and not allowed to do."
+msgstr ""
+
+#: manual/manual.md:17
+msgid "For readers new to HOL"
+msgstr ""
+
+#: manual/manual.md:19
+msgid "If you have not used proof assistants such as HOL, Lean, HOL Light, or Isabelle before, the following intuitions are enough to understand the subset QED currently ships:"
+msgstr ""
+
+#: manual/manual.md:22
+msgid "A \"proof\" here is not a natural-language paragraph but a script that the kernel checks."
+msgstr ""
+
+#: manual/manual.md:23
+msgid "The goals currently shipped are mainly a minimal propositional-logic subset, plus a small amount of equality and theorem replay."
+msgstr ""
+
+#: manual/manual.md:25
+msgid "`⊢ goal` means \"prove `goal` with no premises\"."
+msgstr ""
+
+#: manual/manual.md:26
+msgid "`A, B ⊢ goal` means \"prove `goal` under the hypotheses `A` and `B`\"."
+msgstr ""
+
+#: manual/manual.md:27
+msgid "Intuitively, read `T` as \"the always-true proposition\" and `F` as \"the false proposition\"."
+msgstr ""
+
+#: manual/manual.md:28
+msgid "`A -> B` means \"given `A`, you can derive `B`\"."
+msgstr ""
+
+#: manual/manual.md:29
+msgid "`A ∧ B` means \"prove both `A` and `B`\"."
+msgstr ""
+
+#: manual/manual.md:30
+msgid "`A ∨ B` means \"proving one side of `A` or `B` suffices, but you must explicitly choose left or right\"."
+msgstr ""
+
+#: manual/manual.md:31
+msgid "`P = Q` denotes equality; the currently shipped subset also supports a small amount of equality-related theorem replay."
+msgstr ""
+
+#: manual/manual.md:34
+msgid "Roughly, a theorem script is currently a sequence of \"goal-directed proof steps\":"
+msgstr ""
+
+#: manual/manual.md:36
+msgid "`intro h`: if the current goal is `A -> B`, it becomes \"add a local hypothesis `A` named `h` and continue proving `B`\"."
+msgstr ""
+
+#: manual/manual.md:38
+msgid "`exact h`: if `h` is already direct evidence for the current goal, it closes the goal immediately."
+msgstr ""
+
+#: manual/manual.md:39
+msgid "`assumption`: searches the current local hypotheses for evidence that matches the goal."
+msgstr ""
+
+#: manual/manual.md:40
+msgid "`apply th`: applies an implication theorem or a local implication hypothesis to the current goal, producing new subgoals."
+msgstr ""
+
+#: manual/manual.md:42
+msgid "`split`: when the goal is `A ∧ B`, splits it into two subgoals."
+msgstr ""
+
+#: manual/manual.md:43
+msgid "`left` / `right`: when the goal is `A ∨ B`, explicitly chooses to prove the left or the right branch."
+msgstr ""
+
+#: manual/manual.md:44
+msgid "`hole`: admits that this point is not proved yet; the system returns a structured unfinished result instead of faking success."
+msgstr ""
+
+#: manual/manual.md:47
+msgid "These intuitions are enough to start reading the first few examples in this user manual; the full boundaries, rule names, and support matrix come later."
+msgstr ""
+
+#: manual/manual.md:50
+msgid "Getting started order"
+msgstr ""
+
+#: manual/manual.md:52
+msgid "We recommend starting in this order:"
+msgstr ""
+
+#: manual/manual.md:54
+msgid "Run `moon build` and `moon test` first to confirm the workspace itself is green."
+msgstr ""
+
+#: manual/manual.md:55
+msgid "Use `src/cmd` to run a fully state-free theorem file and get familiar with the input and output format."
+msgstr ""
+
+#: manual/manual.md:56
+msgid "Then try examples with theorem-header binders to understand \"how local variables enter the proof context\"."
+msgstr ""
+
+#: manual/manual.md:57
+msgid "Finally, read the support matrix, failure matrix, and implementation contract to understand which capabilities are shipped and which are not."
+msgstr ""
+
+#: manual/manual.md:60
+#: manual/syntax.md:15
+msgid "Quick start"
+msgstr ""
+
+#: manual/manual.md:62
+msgid "1. Build"
+msgstr ""
+
+#: manual/manual.md:69
+msgid "2. Run your first proof file"
+msgstr ""
+
+#: manual/manual.md:71
+msgid "Create a file in the repository root, for example `truth_file.qed`:"
+msgstr ""
+
+#: manual/manual.md:77
+msgid "Then run:"
+msgstr ""
+
+#: manual/manual.md:83
+msgid "A successful run currently prints:"
+msgstr ""
+
+#: manual/manual.md:89
+msgid "To see the full conclusion summary, add `-d`:"
+msgstr ""
+
+#: manual/manual.md:95
+msgid "When launching through `moon run`, `--` is the MoonBit runner's argument separator; without it, `moon` parses `-d` itself and the QED CLI never receives the flag. Once compiled to a standalone executable, you can write directly:"
+msgstr ""
+
+#: manual/manual.md:103
+msgid "A theorem that contains `hole` is reported as `warning[unfinished]`; it does not construct a theorem and does not enter the subsequent kernel state. By default a warning makes the overall exit code non-zero; to allow warnings as long as there is no real error, use `--no-warn`:"
+msgstr ""
+
+#: manual/manual.md:112
+msgid "This example is a good first step because it depends on no extra free constants and does not require you to understand binders, branches, or the theorem inventory in advance."
+msgstr ""
+
+#: manual/manual.md:115
+msgid "3. Second example: the minimal \"assume and return it unchanged\""
+msgstr ""
+
+#: manual/manual.md:123
+msgid "There are two layers to note here:"
+msgstr ""
+
+#: manual/manual.md:125
+msgid "`(x : bool)` is a theorem header binder. It introduces a local variable `x` into the theorem goal."
+msgstr ""
+
+#: manual/manual.md:126
+msgid "`intro h` turns the goal `x -> x` into \"assume `h : x`, prove `x`\"."
+msgstr ""
+
+#: manual/manual.md:127
+msgid "`exact h` states that the local hypothesis `h` is now direct evidence for the current goal."
+msgstr ""
+
+#: manual/manual.md:129
+msgid "This is also currently the script best suited to readers without a HOL background: it only shows \"goal rewriting\" and \"closing with evidence\", and depends on no extra theorem names."
+msgstr ""
+
+#: manual/manual.md:132
+msgid "4. Third example: constructing a conjunction"
+msgstr ""
+
+#: manual/manual.md:140
+msgid "This example shows that:"
+msgstr ""
+
+#: manual/manual.md:142
+msgid "the goal `x ∧ x` requires proving the left and right sides separately;"
+msgstr ""
+
+#: manual/manual.md:143
+msgid "`split` produces two branches;"
+msgstr ""
+
+#: manual/manual.md:144
+msgid "each branch can again be closed with `exact h`."
+msgstr ""
+
+#: manual/manual.md:146
+msgid "If you prefer the sequential style, you can also `split` first and then complete the two subgoals in order; for beginners, however, the structured branch blocks of `split { ... } { ... }` are more intuitive."
+msgstr ""
+
+#: manual/manual.md:149
+msgid "5. Fourth example: a classic conjunction commutativity theorem"
+msgstr ""
+
+#: manual/manual.md:157
+msgid "This script shows one of the most classic propositional-logic patterns: building `q ∧ p` back from `p ∧ q`. It looks more like a real mathematical statement than `x -> x`, yet it stays entirely within the currently shipped syntax and capabilities."
+msgstr ""
+
+#: manual/manual.md:161
+msgid "6. Fifth example: seeing an honest failure"
+msgstr ""
+
+#: manual/manual.md:163
+msgid "The following script is deliberately wrong:"
+msgstr ""
+
+#: manual/manual.md:171
+msgid "It does not return theorem success; it returns a structured failure. The reason is that the current left-branch goal is actually `x`, but `truth` can only directly close `T`."
+msgstr ""
+
+#: manual/manual.md:174
+msgid "For the current canonical output example, see `manual:quantifier_failure_matrix` later in this document."
+msgstr ""
+
+#: manual/manual.md:176
+msgid "7. Sixth example: seeing an unfinished proof"
+msgstr ""
+
+#: manual/manual.md:184
+msgid "Here `hole h1` means \"I know one proof obligation is still missing, but I am leaving it empty for now\". QED honestly returns an unfinished result and keeps:"
+msgstr ""
+
+#: manual/manual.md:187
+msgid "the theorem name;"
+msgstr ""
+
+#: manual/manual.md:188
+msgid "the step index;"
+msgstr ""
+
+#: manual/manual.md:189
+msgid "the branch path;"
+msgstr ""
+
+#: manual/manual.md:190
+msgid "the current goal;"
+msgstr ""
+
+#: manual/manual.md:191
+msgid "the current locals;"
+msgstr ""
+
+#: manual/manual.md:192
+msgid "the hole name."
+msgstr ""
+
+#: manual/manual.md:194
+msgid "This matters for interactive frontends, IDE diagnostics, and later proof authoring, but it is not a theorem."
+msgstr ""
+
+#: manual/manual.md:196
+msgid "The current input model from a user's perspective"
+msgstr ""
+
+#: manual/manual.md:198
+msgid "If you mainly want to look up \"exactly what syntax the command line accepts\", see [Syntax guide](syntax.md) first. This section keeps a shorter summary of the input model; for the support matrix, failure semantics, and implementation contract, this document remains authoritative."
+msgstr ""
+
+#: manual/manual.md:202
+msgid "What a theorem script looks like"
+msgstr ""
+
+#: manual/manual.md:204
+msgid "The currently shipped theorem script has the shape:"
+msgstr ""
+
+#: manual/manual.md:210
+msgid "where:"
+msgstr ""
+
+#: manual/manual.md:212
+#: manual/syntax.md:69
+msgid "`<name>` is the theorem name."
+msgstr ""
+
+#: manual/manual.md:213
+msgid "`[(binder...)]` currently supports zero or more theorem-header binders of the form `(x : bool)`."
+msgstr ""
+
+#: manual/manual.md:214
+msgid "`<goal>` is a sequent, for example `⊢ T`, `P ⊢ P`, `⊢ x -> x ∧ x`."
+msgstr ""
+
+#: manual/manual.md:215
+msgid "`<steps>` can be written sequentially on one line, as a newline-separated block, or with a minimal structured branch block after `split` / `left` / `right`; this branch syntax is accepted by the parser and its execution is orchestrated by the prover."
+msgstr ""
+
+#: manual/manual.md:219
+msgid "The most important current limitations"
+msgstr ""
+
+#: manual/manual.md:221
+msgid "If you are using `src/cmd` for the first time, these points matter most:"
+msgstr ""
+
+#: manual/manual.md:223
+msgid "When running scripts directly file-first, start with state-free examples such as `T`, `F`, and the theorem-header binder `(x : bool)`."
+msgstr ""
+
+#: manual/manual.md:225
+msgid "Many examples in the docs that use `P`, `Q`, and the like exist to illustrate the support matrix; in the tests they are first placed into the corresponding kernel state before the prover is called."
+msgstr ""
+
+#: manual/manual.md:227
+msgid "Theorem-header binders are already a shipped surface; raw `forall (x : A), body` / `∀ (x : A), body` is now accepted as goal-only sugar, but it is still not term-level syntax."
+msgstr ""
+
+#: manual/manual.md:229
+msgid "The only supported steps are `intro`, `exact`, `apply`, `assumption`, `split`, `left`, `right`, `hole`."
+msgstr ""
+
+#: manual/manual.md:230
+msgid "Unsupported paths fail closed and never fake theorem success."
+msgstr ""
+
+#: manual/manual.md:232
+msgid "Command-line workflow"
+msgstr ""
+
+#: manual/manual.md:234
+#: manual/manual.md:809
+msgid "The currently shipped `cmd` entry point is:"
+msgstr ""
+
+#: manual/manual.md:242
+msgid "The input is a theorem-script file; a single-theorem file may omit the trailing `qed`, and a multi-theorem file separates theorems with lowercase `qed`. There are three kinds of output:"
+msgstr ""
+
+#: manual/manual.md:245
+msgid "Success: by default one line `ok <theorem_name>` per theorem; with `-d` the output is `ok <theorem_name>: <conclusion_summary>`"
+msgstr ""
+
+#: manual/manual.md:247
+msgid "Failure: `error[kind] ...`, with `step`, `branch`, `goal`, `locals` when relevant"
+msgstr ""
+
+#: manual/manual.md:248
+msgid "Unfinished: `warning[unfinished] ...`, with context such as `hole`, `goal`, `locals`; it produces no theorem authority, but checking continues with the following theorems"
+msgstr ""
+
+#: manual/manual.md:251
+msgid "Under `moon run`, passing `-d` / `--no-warn` requires the `--` separator; a standalone executable can use `qed-cmd -d --no-warn <file>` directly."
+msgstr ""
+
+#: manual/manual.md:254
+msgid "This means it is no longer a black-box CLI with \"only success and failure\", but one that exposes the key diagnostics about the current proof state."
+msgstr ""
+
+#: manual/manual.md:257
+msgid "Source-of-truth hierarchy"
+msgstr ""
+
+#: manual/manual.md:259
+msgid "QED currently follows the documentation hierarchy defined in [Documentation governance](governance.md). For the implementation contract, the relevant order is:"
+msgstr ""
+
+#: manual/manual.md:262
+msgid "[QED formal specification](../attachments/qed_formal_spec.typ) is the only normative source, and [`doc/attachments/qed_formal_spec.typ`](../attachments/qed_formal_spec.typ) is its source file."
+msgstr ""
+
+#: manual/manual.md:264
+msgid "The current code and regression tests determine the \"actual shipped state\"."
+msgstr ""
+
+#: manual/manual.md:265
+msgid "This document and [Specification conformance](conformance.md) describe the current implementation contract and engineering conformance."
+msgstr ""
+
+#: manual/manual.md:266
+msgid "`README.md` and `application.typ` are external summaries only and rank no higher than the above."
+msgstr ""
+
+#: manual/manual.md:267
+msgid "`research/` only records unshipped design research and is not a product contract."
+msgstr ""
+
+#: manual/manual.md:269
+msgid "If the implementation and the documentation conflict, first establish the actual state from code + tests, then update the documentation. If the implementation and the paper's specification conflict, the paper's specification still prevails."
+msgstr ""
+
+#: manual/manual.md:273
+msgid "Trust boundary"
+msgstr ""
+
+#: manual/manual.md:275
+msgid "QED uses a kernel-first architecture. The only theorem-construction boundary is `src/kernel`."
+msgstr ""
+
+#: manual/manual.md:277
+msgid "`kernel` owns types, terms, theorem objects, signature state, primitive rules, and the `DefOK` / `TypeDefOK` / `SpecOK` gates."
+msgstr ""
+
+#: manual/manual.md:279
+msgid "`logic` may only be a thin wrapper over the checked kernel API, definition/unfold helpers, replay helpers, and a non-authoritative theorem-reference organization layer; it must not introduce new primitive rule authority."
+msgstr ""
+
+#: manual/manual.md:282
+msgid "`elab` owns one-shot resolution, resolved/core typing, and lowering; it does not define new logic."
+msgstr ""
+
+#: manual/manual.md:283
+msgid "`parser` owns textual syntax, normalization, parser-owned lowering results, and local environment management; it must not silently change connector semantics or scope rules, and must not directly own tactics execution objects."
+msgstr ""
+
+#: manual/manual.md:286
+msgid "`tactics` owns goal-state transformation and replay orchestration; it owns no theorem authority and does not interpret the structured branch syntax of theorem scripts."
+msgstr ""
+
+#: manual/manual.md:288
+msgid "`prover` is only the orchestration entry point over parser + tactics + kernel; on the supported subset it can return a trusted `Thm`, and unsupported paths must keep failing closed; it may explicitly bridge parser lowering results to `tactics.Goal` and schedules the scripts of structured branch blocks, but it never pushes tactics objects back into the parser."
+msgstr ""
+
+#: manual/manual.md:292
+msgid "The repository no longer keeps the old phase0/demo `cmd` path; the current `src/cmd` is a file-first, non-authoritative entry point and still must not become a second proof kernel."
+msgstr ""
+
+#: manual/manual.md:295
+msgid "`Thm` remains an opaque type at the package boundary; external callers must interact through the checked/stateful interfaces."
+msgstr ""
+
+#: manual/manual.md:298
+msgid "Implemented kernel"
+msgstr ""
+
+#: manual/manual.md:300
+msgid "The parts of the kernel that are currently stable include:"
+msgstr ""
+
+#: manual/manual.md:302
+msgid "Type core: `bool`, `ind`, `fun(a, b)`, general `TyApp`, and type variables."
+msgstr ""
+
+#: manual/manual.md:303
+msgid "Term boundary: named `Term` externally, typed `DbTerm` internally to run the alpha-invariant rule core."
+msgstr ""
+
+#: manual/manual.md:304
+msgid "Checked primitive rule interfaces:"
+msgstr ""
+
+#: manual/manual.md:315
+msgid "Theorem admissibility checks:"
+msgstr ""
+
+#: manual/manual.md:316
+msgid "theorem const-id bindings must agree with the current state;"
+msgstr ""
+
+#: manual/manual.md:317
+msgid "constant instantiation must satisfy the principal schema instance relation;"
+msgstr ""
+
+#: manual/manual.md:318
+msgid "definitional theorems must pass `def_inst_coherent`;"
+msgstr ""
+
+#: manual/manual.md:319
+msgid "every type occurring in a theorem / sentence must belong to the current `Sigma_t`;"
+msgstr ""
+
+#: manual/manual.md:320
+msgid "type substitutions must pass the admissibility gate."
+msgstr ""
+
+#: manual/manual.md:321
+msgid "Scoped signature state:"
+msgstr ""
+
+#: manual/manual.md:328
+msgid "Extension gates:"
+msgstr ""
+
+#: manual/manual.md:333
+msgid "Key constraints already covered by the extension discipline:"
+msgstr ""
+
+#: manual/manual.md:334
+msgid "def-head monotonicity"
+msgstr ""
+
+#: manual/manual.md:335
+msgid "scope push/pop discipline"
+msgstr ""
+
+#: manual/manual.md:336
+msgid "ghost type variable rejection"
+msgstr ""
+
+#: manual/manual.md:337
+msgid "definition closure / cycle rejection"
+msgstr ""
+
+#: manual/manual.md:338
+msgid "typedef witness validity"
+msgstr ""
+
+#: manual/manual.md:339
+msgid "specification witness validity"
+msgstr ""
+
+#: manual/manual.md:340
+msgid "Audit and replay helper interfaces:"
+msgstr ""
+
+#: manual/manual.md:345
+msgid "These audit objects serve only observability and conservativity regression; they are not new proof objects."
+msgstr ""
+
+#: manual/manual.md:347
+msgid "Frontend contracts"
+msgstr ""
+
+#: manual/manual.md:349
+msgid "Resolved elaboration"
+msgstr ""
+
+#: manual/manual.md:351
+msgid "The frontend currently keeps three term representations:"
+msgstr ""
+
+#: manual/manual.md:353
+msgid "named `Term`"
+msgstr ""
+
+#: manual/manual.md:354
+msgid "resolved `RTerm`"
+msgstr ""
+
+#: manual/manual.md:355
+msgid "typed `DbTerm`"
+msgstr ""
+
+#: manual/manual.md:357
+msgid "`RTerm` is not meant to replace kernel terms; it freezes the result of one-shot resolution. Currently `ResolvedConst` records:"
+msgstr ""
+
+#: manual/manual.md:365
+msgid "This means a constant is bound to its kernel identity at elaboration time; later `push` / `pop` / shadowing only affects future name resolution and never writes back into existing resolved objects."
+msgstr ""
+
+#: manual/manual.md:368
+msgid "The current resolved/core typing contract is:"
+msgstr ""
+
+#: manual/manual.md:370
+msgid "`RVar` matches only against the current local context and its explicit type;"
+msgstr ""
+
+#: manual/manual.md:371
+msgid "`RConst` must still correspond to the same `const_id` and `schema_ty`;"
+msgstr ""
+
+#: manual/manual.md:372
+msgid "`inst_ty` must still satisfy the principal schema instance relation;"
+msgstr ""
+
+#: manual/manual.md:373
+msgid "if a scope change makes the frozen identity no longer acceptable, typing must fail closed instead of silently looking up a constant with the same name again."
+msgstr ""
+
+#: manual/manual.md:376
+msgid "Parser"
+msgstr ""
+
+#: manual/manual.md:378
+msgid "The parser is currently the single entry point for \"textual syntax -> AST -> resolved elaboration -> parser-owned lowered object\"."
+msgstr ""
+
+#: manual/manual.md:381
+#: manual/manual.md:618
+msgid "The stable contract includes:"
+msgstr ""
+
+#: manual/manual.md:383
+msgid "Name resolution order is always `local > const`."
+msgstr ""
+
+#: manual/manual.md:384
+msgid "`parse_goal` / `lower_syn_goal_with_env` currently return a parser-owned `ParsedGoal`; tactics execution objects are constructed only when the upper layer bridges."
+msgstr ""
+
+#: manual/manual.md:386
+msgid "Input first goes through `normalize_parser_input`:"
+msgstr ""
+
+#: manual/manual.md:387
+msgid ""
+"`\\n"
+"ot` / `\\and` / `\\or` / `\\imp` are normalized to their canonical forms;"
+msgstr ""
+
+#: manual/manual.md:388
+msgid "`|-` is normalized to `⊢`;"
+msgstr ""
+
+#: manual/manual.md:389
+msgid "basic redundant whitespace is collapsed;"
+msgstr ""
+
+#: manual/manual.md:390
+msgid "this phase does no AST-level pretty printing."
+msgstr ""
+
+#: manual/manual.md:391
+msgid "`ParseError.offset` still maps back to the user's original input, not to coordinates in the normalized string."
+msgstr ""
+
+#: manual/manual.md:392
+msgid "The canonical display syntax is primarily Unicode:"
+msgstr ""
+
+#: manual/manual.md:393
+msgid "term: `¬`, `∧`, `∨`, `->`, `=`"
+msgstr ""
+
+#: manual/manual.md:394
+msgid "goal: `⊢`"
+msgstr ""
+
+#: manual/manual.md:395
+msgid "Compatibility input is still accepted:"
+msgstr ""
+
+#: manual/manual.md:398
+msgid "The old ASCII connective spellings `/\\` and `\\/` are no longer accepted"
+msgstr ""
+
+#: manual/manual.md:399
+msgid "The raw theorem script entry point currently supports:"
+msgstr ""
+
+#: manual/manual.md:400
+msgid "zero or more `(name : type)` binders in the theorem header"
+msgstr ""
+
+#: manual/manual.md:401
+msgid "single-line `theorem <name> : <goal> := by <step>; <step>; ...`"
+msgstr ""
+
+#: manual/manual.md:402
+msgid "block-style `theorem <name> : <goal> := by` followed by a newline-separated sequential list of steps"
+msgstr ""
+
+#: manual/manual.md:403
+msgid "the `hole` / `hole <name>` unfinished-proof step"
+msgstr ""
+
+#: manual/manual.md:404
+msgid "The theorem-script AST currently keeps raw-source spans for theorem header binders, the theorem goal, and each step; these positions still refer to the user's original input and are never silently rewritten to normalized coordinates."
+msgstr ""
+
+#: manual/manual.md:407
+msgid "Theorem header binders are currently a shipped quantifier-facing surface: they introduce binder names into goal lowering, proof-state locals, and cmd diagnostics; but they grant no new theorem authority to tactic/prover."
+msgstr ""
+
+#: manual/manual.md:410
+msgid "`forall (x : A), body` / `∀ (x : A), body` is currently accepted as goal-only sugar; but it is still not term-level syntax."
+msgstr ""
+
+#: manual/manual.md:413
+msgid "The parser also currently exposes:"
+msgstr ""
+
+#: manual/manual.md:418
+msgid "They are currently a supported parser-side utility surface: covered by tests and callable on their own, they handle local environment extension and closure-style function definition parsing; but they are not part of the main theorem-script syntax and do not extend theorem-construction authority."
+msgstr ""
+
+#: manual/manual.md:422
+msgid "Surface connectors"
+msgstr ""
+
+#: manual/manual.md:424
+msgid "`¬` / `->` / `∧` / `∨` are currently all surface connectors, not kernel primitive logic."
+msgstr ""
+
+#: manual/manual.md:426
+msgid "The common contract includes:"
+msgstr ""
+
+#: manual/manual.md:428
+msgid "during lowering, parser/bridge generate proposition terms through the basis-backed builders of the `logic` layer;"
+msgstr ""
+
+#: manual/manual.md:429
+msgid "`prop_mk_not` / `prop_mk_imp` / `prop_mk_and` / `prop_mk_or` must return `LogicError` on non-`bool` input and must not crash;"
+msgstr ""
+
+#: manual/manual.md:431
+msgid "the trusted semantic basis of these connectors comes from kernel terms, equality `=`, choice `@`, and checked primitive rules;"
+msgstr ""
+
+#: manual/manual.md:433
+msgid "they must not be treated as additional rule authority in `tactics`, `prover`, or a future `cmd`;"
+msgstr ""
+
+#: manual/manual.md:434
+msgid "the parser no longer requires an ordinary constant of the same name to exist in the state before it can parse these connectors;"
+msgstr ""
+
+#: manual/manual.md:436
+msgid "`logic.install_prop_prelude` counts as an idempotent success only when the existing constant of the same name already has the canonical definition theorem; a placeholder constant with the same name and type but no canonical definition must be rejected;"
+msgstr ""
+
+#: manual/manual.md:439
+msgid "`prop_dest_not` / `prop_dest_imp` / `prop_dest_and` / `prop_dest_or` currently use state-backed trusted recognition: they accept only canonical basis terms or connector constants that have the canonical definition theorem in the current state."
+msgstr ""
+
+#: manual/manual.md:443
+msgid "Logic helpers"
+msgstr ""
+
+#: manual/manual.md:445
+msgid "`src/logic` currently serves as the foundation layer for broadening theorem replay in the future; its stable visible capabilities include:"
+msgstr ""
+
+#: manual/manual.md:448
+msgid "Proposition basis term builders:"
+msgstr ""
+
+#: manual/manual.md:453
+msgid "Proposition destructors:"
+msgstr ""
+
+#: manual/manual.md:458
+msgid "Connector definition theorem / unfolding helpers:"
+msgstr ""
+
+#: manual/manual.md:468
+msgid "Equality lifting / normalization helpers:"
+msgstr ""
+
+#: manual/manual.md:474
+msgid "Proposition replay helpers:"
+msgstr ""
+
+#: manual/manual.md:482
+msgid "Theorem catalog / resolver helpers:"
+msgstr ""
+
+#: manual/manual.md:489
+msgid "The goal of these helpers is to keep the replay paths of proof synthesis and the theorem catalog on an explicit kernel-checked path, instead of silently adding semantic shortcuts in the frontend."
+msgstr ""
+
+#: manual/manual.md:492
+msgid "Proof scripting status"
+msgstr ""
+
+#: manual/manual.md:494
+msgid "For **supported tactics and prelude rules**, the proof scripting layer currently constructs a kernel `Thm` through `logic` replay; unsupported input still fails closed and never fakes a theorem."
+msgstr ""
+
+#: manual/manual.md:497
+msgid "The objects and entry points already implemented include:"
+msgstr ""
+
+#: manual/manual.md:511
+msgid "The only currently supported steps are:"
+msgstr ""
+
+#: manual/manual.md:522
+msgid "`exact` / `apply` are no longer limited to local-name-only operations."
+msgstr ""
+
+#: manual/manual.md:524
+msgid "`exact` currently works with witness semantics: it first resolves a local hypothesis witness; on a local miss, it resolves an exact-capable theorem entry and requires it to directly witness the current sequent."
+msgstr ""
+
+#: manual/manual.md:526
+msgid "`apply` first resolves a local implication; on a local miss, it can resolve a small set of stable propositional theorem names or context-derived propositional theorems."
+msgstr ""
+
+#: manual/manual.md:528
+msgid "The current exact-capable theorem names are:"
+msgstr ""
+
+#: manual/manual.md:540
+msgid "The current implication-backed apply names are:"
+msgstr ""
+
+#: manual/manual.md:546
+msgid "`or_intro_l` / `or_intro_r` currently stay `apply`-only; they need backward replay to construct their premises, so they are not direct witnesses of the current goal."
+msgstr ""
+
+#: manual/manual.md:548
+msgid "The theorem-name inventory is now exposed in one place by `logic` and consumed jointly by `tactics`, `prover`, tests, and documentation; no second set of theorem-name semantics may again be maintained piecemeal inside `ProofState`."
+msgstr ""
+
+#: manual/manual.md:551
+msgid "All these names must replay to existing kernel-checked `Thm`s; they are not new proof authority."
+msgstr ""
+
+#: manual/manual.md:552
+msgid "`exact` never implicitly degrades into `apply`; names that first need new subgoals and then completion through backward replay do not belong to `exact`."
+msgstr ""
+
+#: manual/manual.md:554
+msgid "Local `exact h` currently accepts only an active hypothesis alias; once a name hits a local, it never falls back to a theorem entry with the same name."
+msgstr ""
+
+#: manual/manual.md:556
+msgid "`apply` accepts only implication theorems; for direct-close theorem names such as `truth` / `not_elim` / `ex_falso` it must fail honestly."
+msgstr ""
+
+#: manual/manual.md:559
+msgid "The current semantic boundary should be understood as follows:"
+msgstr ""
+
+#: manual/manual.md:561
+msgid "`tactics` transforms the stack of unsolved goals and organizes the evidence needed for replay;"
+msgstr ""
+
+#: manual/manual.md:562
+msgid "`prover` parses the script, sets up the goal, and executes the steps;"
+msgstr ""
+
+#: manual/manual.md:563
+msgid "`prove_theorem_script_detailed` / `prove_theorem_script_with_diagnostics` currently keep, on honest failure, the theorem name, step index, current goal, local hypotheses, branch path, and the raw-source location of the goal/step; these diagnostic objects are engineering aids, not new proof objects;"
+msgstr ""
+
+#: manual/manual.md:566
+msgid "if a theorem script contains `hole`, a structured unfinished-proof result is currently returned, keeping the theorem name, step index, current goal, local hypotheses, branch path, hole name, and source location; an unfinished-proof result is not a theorem;"
+msgstr ""
+
+#: manual/manual.md:569
+msgid "`ps_qed` returns the final `Thm` only when replay succeeds and matches the root goal's sequent;"
+msgstr ""
+
+#: manual/manual.md:570
+msgid "`ps_qed` currently validates the final theorem with strict normalized sequent matching: it first applies proposition beta normalization uniformly, then checks alpha-invariant agreement of the hypothesis set and the conclusion; the old loose shape match is no longer accepted."
+msgstr ""
+
+#: manual/manual.md:573
+msgid "Unsupported paths keep returning honest failures such as `ProofSynthesisUnavailable`, `Logic`, or tactic errors."
+msgstr ""
+
+#: manual/manual.md:575
+msgid "Current support matrix"
+msgstr ""
+
+#: manual/manual.md:577
+msgid "Shipped now"
+msgstr ""
+
+#: manual/manual.md:579
+msgid "checked kernel + scoped signature + gate discipline"
+msgstr ""
+
+#: manual/manual.md:580
+msgid "resolved elaboration boundary"
+msgstr ""
+
+#: manual/manual.md:581
+msgid "parser normalize/raw-offset/theorem-script raw parsing, including sequential block bodies, structured branch blocks, theorem-header binders, the hole step, and raw binder/goal/step spans"
+msgstr ""
+
+#: manual/manual.md:584
+msgid "a quantifier-facing script surface driven by theorem-header binders, with the corresponding prover/cmd goal, locals, branch, and unfinished-proof summaries"
+msgstr ""
+
+#: manual/manual.md:586
+msgid "parser-side utility APIs `parse_let` / `parse_def_function`"
+msgstr ""
+
+#: manual/manual.md:587
+msgid "proposition prelude definition theorems + unfold helpers"
+msgstr ""
+
+#: manual/manual.md:588
+msgid "supported propositional tactic replay to kernel `Thm`"
+msgstr ""
+
+#: manual/manual.md:589
+msgid "unfinished-proof reporting for theorem scripts containing holes"
+msgstr ""
+
+#: manual/manual.md:590
+msgid "file-first `cmd` workflow for theorem-script files with optional `qed` terminators and multiple theorem blocks"
+msgstr ""
+
+#: manual/manual.md:593
+msgid "Explicitly not shipped"
+msgstr ""
+
+#: manual/manual.md:595
+msgid "richer theorem blocks"
+msgstr ""
+
+#: manual/manual.md:596
+msgid "promoted rewrite/simplify tactic or command surface"
+msgstr ""
+
+#: manual/manual.md:597
+msgid "kernel metavariables / hole completion authority"
+msgstr ""
+
+#: manual/manual.md:598
+msgid "dictionary passing / typeclass frontend"
+msgstr ""
+
+#: manual/manual.md:599
+msgid "arbitrary theorem-environment references"
+msgstr ""
+
+#: manual/manual.md:600
+msgid "arbitrary script completeness"
+msgstr ""
+
+#: manual/manual.md:602
+#: manual/manual.md:872
+msgid "Current extension contract"
+msgstr ""
+
+#: manual/manual.md:604
+msgid "the theorem-name inventory, corpus, mapping matrix, and docs use the same set of shipped anchors;"
+msgstr ""
+
+#: manual/manual.md:605
+msgid "nested proof blocks continue to be organized through the current checked replay boundary;"
+msgstr ""
+
+#: manual/manual.md:606
+msgid "hole / unfinished-proof remains a frontend contract, not kernel metavariable authority;"
+msgstr ""
+
+#: manual/manual.md:607
+msgid "theorem-header binders remain part of the currently shipped quantifier-facing syntax and stay in sync with the corpus / matrix;"
+msgstr ""
+
+#: manual/manual.md:609
+msgid "a new public example must enter the regression tests first, and only then the documentation anchors."
+msgstr ""
+
+#: manual/manual.md:611
+msgid "Stable theorem-name surface"
+msgstr ""
+
+#: manual/manual.md:613
+#: manual/manual.md:656
+msgid "Surface"
+msgstr ""
+
+#: manual/manual.md:613
+msgid "Current supported capability"
+msgstr ""
+
+#: manual/manual.md:613
+msgid "Stable theorem names"
+msgstr ""
+
+#: manual/manual.md:615
+msgid "local hypothesis witness, theorem entries with exact capability"
+msgstr ""
+
+#: manual/manual.md:616
+msgid "local implication, implication-backed named theorem, implication-backed context theorem"
+msgstr ""
+
+#: manual/manual.md:620
+msgid "`exact` consumes only the exact capability and never implicitly degrades into `apply`. This covers both direct-close entries and context-derived exact entries; local `exact h` must also interpret `h` as a direct witness of the current sequent, and `h` must still be an active hypothesis alias, not a shape-based guess or some other local artifact."
+msgstr ""
+
+#: manual/manual.md:624
+msgid "`apply` consumes only the implication-backed capability; it never accepts a direct-close theorem name as an implication."
+msgstr ""
+
+#: manual/manual.md:626
+msgid "Wrong-mode theorem usage keeps failing honestly; `exact or_intro_l` currently returns `GoalShapeMismatch`, local `exact h` also returns `GoalShapeMismatch` if `h` is not a direct witness of the current goal; `apply truth`, `apply ex_falso`, and `apply not_elim` must all currently return `ApplyMismatch`."
+msgstr ""
+
+#: manual/manual.md:630
+msgid "Local name resolution still follows `local > theorem name`."
+msgstr ""
+
+#: manual/manual.md:632
+msgid "M3c corpus / mapping matrix"
+msgstr ""
+
+#: manual/manual.md:634
+msgid "The canonical corpus of the currently shipped subset uses \"four kinds\":"
+msgstr ""
+
+#: manual/manual.md:636
+msgid "Executable corpus:"
+msgstr ""
+
+#: manual/manual.md:639
+msgid "the canonical unfinished-proof regressions in `src/prover/prover_test.mbt` / `src/cmd/cmd_corpus_wbtest.mbt`"
+msgstr ""
+
+#: manual/manual.md:641
+msgid "the quantifier-facing binder / raw-`forall` canonical cases in `src/prover/corpus.mbt`, anchored jointly by `src/cmd/cmd_corpus_wbtest.mbt` and `src/prover/prover_mapping_matrix_test.mbt`"
+msgstr ""
+
+#: manual/manual.md:645
+msgid "Readable mapping:"
+msgstr ""
+
+#: manual/manual.md:646
+msgid "the support matrix and example-source notes in this section"
+msgstr ""
+
+#: manual/manual.md:648
+msgid "Here:"
+msgstr ""
+
+#: manual/manual.md:650
+msgid "`manual:runnable_examples` denotes the runnable theorem-script examples currently published;"
+msgstr ""
+
+#: manual/manual.md:651
+msgid "`manual:support_matrix` denotes the positive support-matrix cases currently published;"
+msgstr ""
+
+#: manual/manual.md:652
+msgid "`manual:failure_matrix` denotes the honest failure / negative examples currently published;"
+msgstr ""
+
+#: manual/manual.md:653
+msgid "`internal_only` denotes cases that still belong to the canonical corpus but are currently not placed directly into the documentation's example text."
+msgstr ""
+
+#: manual/manual.md:656
+#: manual/manual.md:723
+#: manual/manual.md:758
+msgid "Corpus case"
+msgstr ""
+
+#: manual/manual.md:656
+msgid "Visibility / anchor"
+msgstr ""
+
+#: manual/manual.md:656
+msgid "Catalog / capability"
+msgstr ""
+
+#: manual/manual.md:656
+msgid "Current contract"
+msgstr ""
+
+#: manual/manual.md:658
+msgid "Local hypothesis closes the goal directly"
+msgstr ""
+
+#: manual/manual.md:660
+msgid "direct-close theorem"
+msgstr ""
+
+#: manual/manual.md:661
+msgid "Depends on a conjunction owner in the context"
+msgstr ""
+
+#: manual/manual.md:662
+msgid "implication-backed context replay"
+msgstr ""
+
+#: manual/manual.md:663
+msgid "implication-backed goal-shape replay"
+msgstr ""
+
+#: manual/manual.md:664
+msgid "Sequential structural goal orchestration"
+msgstr ""
+
+#: manual/manual.md:665
+msgid "Structured conjunction branch blocks"
+msgstr ""
+
+#: manual/manual.md:666
+msgid "Sequential branch selection on a disjunction goal"
+msgstr ""
+
+#: manual/manual.md:667
+msgid "Structured disjunction branch block"
+msgstr ""
+
+#: manual/manual.md:668
+msgid "Closes a `T` goal directly"
+msgstr ""
+
+#: manual/manual.md:669
+msgid "Honestly closes any bool goal under hypothesis `F`"
+msgstr ""
+
+#: manual/manual.md:670
+msgid "`(x : bool)` binder + `intro` / `exact`"
+msgstr ""
+
+#: manual/manual.md:670
+msgid "Sequential quantifier surface driven by a theorem-header binder"
+msgstr ""
+
+#: manual/manual.md:671
+msgid "`(x : bool)` binder + `split { ... } { ... }`"
+msgstr ""
+
+#: manual/manual.md:671
+msgid "Compatibility positive case for binder + branch block"
+msgstr ""
+
+#: manual/manual.md:672
+msgid "Sequential quantifier surface driven by raw theorem-goal sugar"
+msgstr ""
+
+#: manual/manual.md:673
+msgid "Compatibility positive case for raw theorem-goal sugar + branch block"
+msgstr ""
+
+#: manual/manual.md:674
+msgid "apply-only theorem misuse in exact mode"
+msgstr ""
+
+#: manual/manual.md:675
+msgid "direct-close theorem misuse"
+msgstr ""
+
+#: manual/manual.md:676
+msgid "local shadow failure"
+msgstr ""
+
+#: manual/manual.md:676
+msgid "Still resolves the local first, then fails honestly"
+msgstr ""
+
+#: manual/manual.md:677
+msgid "context-derived missing owner"
+msgstr ""
+
+#: manual/manual.md:678
+msgid "frontend boundary reject"
+msgstr ""
+
+#: manual/manual.md:678
+msgid "Non-`bool` connector fails closed"
+msgstr ""
+
+#: manual/manual.md:679
+msgid "`(x : bool)` binder + `left { exact truth }`"
+msgstr ""
+
+#: manual/manual.md:679
+msgid "Binder locals are kept and branch blame is stable"
+msgstr ""
+
+#: manual/manual.md:680
+msgid "Locals and branch blame are stable under raw theorem-goal sugar"
+msgstr ""
+
+#: manual/manual.md:681
+msgid "`(x : bool)` binder + nested `hole`"
+msgstr ""
+
+#: manual/manual.md:681
+msgid "Binder locals, nested branch path, and unfinished rendering"
+msgstr ""
+
+#: manual/manual.md:682
+msgid "`forall (x : bool), ...` + nested `hole`"
+msgstr ""
+
+#: manual/manual.md:682
+msgid "Locals, nested branch path, and unfinished rendering under raw theorem-goal sugar"
+msgstr ""
+
+#: manual/manual.md:684
+msgid "Runnable theorem-script examples"
+msgstr ""
+
+#: manual/manual.md:686
+msgid "The following scripts are all **theorem-script examples that actually exist in the regression corpus**, not planned capabilities."
+msgstr ""
+
+#: manual/manual.md:689
+msgid "But two things must be distinguished:"
+msgstr ""
+
+#: manual/manual.md:691
+msgid "\"runnable in tests / a pre-populated state\";"
+msgstr ""
+
+#: manual/manual.md:692
+msgid "\"runnable by the user directly through `moon run src/cmd <file>`\"."
+msgstr ""
+
+#: manual/manual.md:694
+msgid "To see the full conclusion summary of a successful theorem, use `moon run src/cmd -- -d <file>` when going through `moon run`; once compiled to a standalone executable, use `qed-cmd -d <file>`."
+msgstr ""
+
+#: manual/manual.md:698
+msgid "Only state-free scripts that depend on no extra free constants are suitable as first file-first examples. Users new to this project should look first at `truth_file`, `id_bool`, and `dup_bool` earlier in this manual."
+msgstr ""
+
+#: manual/manual.md:701
+msgid "The `prelude/` directory at the repository root additionally collects a set of theorem assets that can currently be run directly, corresponding to the layer adjacent to HOL Light bool-core; these files serve as runnable library-style examples, but are not yet wired into the current theorem-name inventory / resolver."
+msgstr ""
+
+#: manual/manual.md:705
+msgid "The following examples mainly serve to publicly document the coverage of the currently shipped theorem-script subset:"
+msgstr ""
+
+#: manual/manual.md:717
+msgid "These examples are currently covered by the positive regressions in `src/prover/prover_test.mbt`, `src/prover/prover_positive_corpus_test.mbt`, and `src/tactics/proof_state_test.mbt`; when adding or changing a public example, first make the corresponding test facts hold, then update the documentation."
+msgstr ""
+
+#: manual/manual.md:721
+msgid "The current mapping between the public runnable examples and canonical case ids is:"
+msgstr ""
+
+#: manual/manual.md:723
+#: manual/manual.md:758
+msgid "Example"
+msgstr ""
+
+#: manual/manual.md:723
+#: manual/manual.md:758
+msgid "Current support path"
+msgstr ""
+
+#: manual/manual.md:725
+msgid "local fact / `intro_exact`"
+msgstr ""
+
+#: manual/manual.md:726
+msgid "implication-backed / `apply_named_imp`"
+msgstr ""
+
+#: manual/manual.md:727
+msgid "structural-only / `left`"
+msgstr ""
+
+#: manual/manual.md:728
+msgid "structural-only / `left` structured branch"
+msgstr ""
+
+#: manual/manual.md:729
+msgid "direct-close / `exact_named_direct_close`"
+msgstr ""
+
+#: manual/manual.md:730
+msgid "context-derived / `exact_context_derived`"
+msgstr ""
+
+#: manual/manual.md:732
+msgid "`src/prover/prover_mapping_matrix_test.mbt` is currently the single test anchor between corpus cases, capability labels, and documentation anchors; to add, change, or remove a public example in the documentation, first update the corresponding canonical case, then update the mapping matrix and this document accordingly."
+msgstr ""
+
+#: manual/manual.md:737
+msgid "Quantifier-facing examples"
+msgstr ""
+
+#: manual/manual.md:739
+msgid "The currently shipped quantifier surface has two user paths: theorem-header binders and raw `forall` theorem goal sugar. The two groups of scripts below are both anchored by regression tests and the mapping matrix:"
+msgstr ""
+
+#: manual/manual.md:756
+msgid "The mapping between these examples and canonical case ids is:"
+msgstr ""
+
+#: manual/manual.md:760
+msgid "quantifier surface / `quantifier_intro_exact`"
+msgstr ""
+
+#: manual/manual.md:761
+msgid "quantifier surface / `quantifier_split_branch`"
+msgstr ""
+
+#: manual/manual.md:762
+msgid "quantifier failure / `quantifier_goal_shape_mismatch`"
+msgstr ""
+
+#: manual/manual.md:763
+msgid "quantifier unfinished / `quantifier_unfinished_hole`"
+msgstr ""
+
+#: manual/manual.md:764
+msgid "quantifier surface / `quantifier_forall_intro_exact`"
+msgstr ""
+
+#: manual/manual.md:765
+msgid "quantifier surface / `quantifier_forall_split_branch`"
+msgstr ""
+
+#: manual/manual.md:766
+msgid "quantifier failure / `quantifier_forall_goal_shape_mismatch`"
+msgstr ""
+
+#: manual/manual.md:767
+msgid "quantifier unfinished / `quantifier_forall_unfinished_hole`"
+msgstr ""
+
+#: manual/manual.md:769
+msgid "In addition, forms with outer parentheses such as `⊢ (forall (x : bool), x -> x)` are currently also accepted by the parser / prover; they follow the same raw-goal-sugar lowering path and simply do not have a corpus case id of their own at present."
+msgstr ""
+
+#: manual/manual.md:773
+msgid "Readers without a HOL background can first understand these quantifier examples as follows:"
+msgstr ""
+
+#: manual/manual.md:775
+msgid "a theorem can first declare a local variable, such as `(x : bool)`;"
+msgstr ""
+
+#: manual/manual.md:776
+msgid "the goal that follows can then refer to this variable directly;"
+msgstr ""
+
+#: manual/manual.md:777
+msgid "a raw `forall` theorem goal is currently lowered to the same binder-oriented replay path."
+msgstr ""
+
+#: manual/manual.md:779
+msgid "The currently shipped quantifier frontend includes the binder entry and raw `forall` goal sugar; raw `forall` is still not accepted in term positions. This means users can now write and prove `forall` theorem goals, but it is still not general term-level quantifier syntax, and it adds no kernel primitive quantifier authority."
+msgstr ""
+
+#: manual/manual.md:784
+msgid "Unfinished-proof example"
+msgstr ""
+
+#: manual/manual.md:786
+msgid "The current canonical unfinished-proof cases are also regression anchors and do not return a theorem:"
+msgstr ""
+
+#: manual/manual.md:793
+msgid "These two cases are currently anchored jointly by `src/prover/prover_test.mbt`, `src/prover/prover_mapping_matrix_test.mbt`, and `src/cmd/cmd_corpus_wbtest.mbt`; the former fixes the root-level unfinished contract, the latter fixes the nested branch path and unfinished rendering."
+msgstr ""
+
+#: manual/manual.md:797
+msgid "The current quantifier-facing unfinished anchors cover both the binder path and the raw `forall` path:"
+msgstr ""
+
+#: manual/manual.md:804
+msgid "They currently fix, respectively, the binder / raw-goal-sugar locals, the nested branch path, and the CLI unfinished rendering."
+msgstr ""
+
+#: manual/manual.md:807
+msgid "File-first workflow"
+msgstr ""
+
+#: manual/manual.md:817
+msgid "The current contract is:"
+msgstr ""
+
+#: manual/manual.md:819
+msgid "The input is a theorem-script file; a single-theorem file may omit the trailing `qed`, and a multi-theorem file separates theorems with lowercase `qed`;"
+msgstr ""
+
+#: manual/manual.md:821
+msgid "Success output is by default one line `ok <theorem_name>` per theorem; with `-d` the output is `ok <theorem_name>: <conclusion_summary>`;"
+msgstr ""
+
+#: manual/manual.md:823
+msgid "Failure output keeps `error[kind]`, the file path, and the theorem name, and on a tactic failure additionally reports:"
+msgstr ""
+
+#: manual/manual.md:829
+msgid "If the script contains `hole`, the output is currently `warning[unfinished] ...`, with a summary of `step`, `branch`, `goal`, `locals`, `hole`, `message`; empty-value markers are stably `<none>` / `<root>`. A warning constructs no theorem, but the file-level runner keeps checking the following theorems;"
+msgstr ""
+
+#: manual/manual.md:832
+msgid "`--no-warn` only affects the exit code of warning-only files and does not hide the warning output;"
+msgstr ""
+
+#: manual/manual.md:833
+msgid "Under `moon run`, `--` only forwards the following arguments to the QED CLI; once compiled to a standalone executable, `qed-cmd -d --no-warn <file>` is enough and no `--` is needed."
+msgstr ""
+
+#: manual/manual.md:835
+msgid "Theorem-header binder scripts and raw `forall` theorem-goal scripts share the same CLI contract; the `goal` / `locals` summaries are currently fixed as kernel-term strings, and branch/step blame and unfinished rendering are anchored jointly by `src/cmd/cmd_corpus_wbtest.mbt` and `src/cmd/cmd_wbtest.mbt`"
+msgstr ""
+
+#: manual/manual.md:840
+msgid "The current minimal regression-checked example is:"
+msgstr ""
+
+#: manual/manual.md:846
+msgid "If you only want to confirm that the environment and the command chain work, this is the best one to run first."
+msgstr ""
+
+#: manual/manual.md:848
+msgid "For a raw `forall` theorem-goal file, the current canonical CLI output example is:"
+msgstr ""
+
+#: manual/manual.md:869
+msgid "The theorem-header binder syntax currently uses the same set of fields and the same kind of blame reporting; for the corresponding canonical corpus anchors, see `src/cmd/cmd_corpus_wbtest.mbt`."
+msgstr ""
+
+#: manual/manual.md:874
+msgid "The executable frontend may currently only be extended along the same set of shipped anchors:"
+msgstr ""
+
+#: manual/manual.md:876
+msgid "the theorem inventory, mode-aware resolver, corpus, mapping matrix, and docs keep a single source;"
+msgstr ""
+
+#: manual/manual.md:877
+msgid "structured branch blocks, as a prover-side script contract, keep reusing the existing checked replay boundary;"
+msgstr ""
+
+#: manual/manual.md:878
+msgid "hole / unfinished proof remains a frontend-only contract and does not enter kernel metavariable authority;"
+msgstr ""
+
+#: manual/manual.md:879
+msgid "theorem-header binders remain part of the currently shipped quantifier-facing user syntax;"
+msgstr ""
+
+#: manual/manual.md:880
+msgid "raw `forall` theorem goals remain supported as goal-only sugar and must not be documented as term-level syntax;"
+msgstr ""
+
+#: manual/manual.md:881
+msgid "the file-first workflow keeps reusing the same corpus / mapping matrix and does not fork a second set of semantics."
+msgstr ""
+
+#: manual/manual.md:883
+msgid "Validation gate"
+msgstr ""
+
+#: manual/manual.md:885
+msgid "Contributors should currently use the following gate to check that the implementation and the documentation agree:"
+msgstr ""
+
+#: manual/manual.md:894
+msgid "If `.mbti` changes are involved or a merge is being prepared, also run:"
+msgstr ""
+
+#: manual/manual.md:907
+msgid "For paper alignment, the code/test mapping, and the checklist for the surrounding tooling, read [Specification conformance](conformance.md)."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:1
+msgid "Formal specification changelog"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:3
+msgid "Goals and scope of this round"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:5
+msgid "Goal: finalize the specification so that the structural link between `INST_TYPE` and `DefOK`/`TypeDefOK` is explicit at the rule level, and reviewers do not need to read across several sections to see where soundness comes from."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:8
+msgid "Scope:"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:9
+msgid "Consistency sweep of the manuscript (terminology, state model, non-empty type semantics);"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:10
+msgid "Rewrite of the `INST_TYPE` rule (premises, failure classification, bridge note);"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:11
+msgid "Production of the complete review package (main manuscript + PDF + this changelog)."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:12
+msgid "Out of scope: changes to the kernel implementation code."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:14
+msgid "Section-by-section changes"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:17
+msgid "Makes the two-layer state model `(T, S)` explicit: `T` is the global theory history, `S` is the local poppable visibility layer."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:19
+msgid "Adds a proposition stating that `DefHeads(T)` is monotone and that pop does not roll back definition history."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:20
+msgid "Adds an equivalent implementation view: \"can be realized as a tombstone registry\"."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:23
+msgid "Adds the `TypeDefOK` admission condition and rule step for type extensions."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:24
+msgid "Introduces the \"no empty-type escape\" construction invariant, which turns non-emptiness from a bare assumption into an auditable gate constraint."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:27
+msgid "`= Definitional Extension Discipline` and `== Definition Admissibility Judgment` (`doc/attachments/qed_formal_spec.typ:694`, `doc/attachments/qed_formal_spec.typ:731`)"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:29
+msgid "Unifies definition-head novelty as `c ∉ DefHeads(T)` (replacing the ambiguous check against current visibility)."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:30
+msgid "Keeps and strengthens `TVars(r) ⊆ TVars(tau)` as a normative condition, which continues to close the ghost-type loophole."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:34
+msgid "Extends the envelope: in addition to `DefOK`, adds `TypeDefOK` as a required gate for type extensions."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:37
+msgid "Rewrites the generic `valid(theta)` into structured premises:"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:41
+msgid "Extends the failure classification to 5 entries, each corresponding one-to-one to the premises above."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:42
+msgid "Adds a Bridge Note that states explicitly how the rule closes the loop with `DefOK`/`TypeDefOK`/Global Envelope."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:45
+msgid "Introduces the principal type scheme of constants `kappa_c : tau_gen` and the instance relation `tau preceq tau_gen`."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:47
+msgid "States that constant instantiation is a first-class relation at the specification level; the \"type in the term == registered type\" literal identity is no longer required."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:51
+msgid "Changes the `RConst` rule from \"exact type equality\" matching to \"principal scheme + instance relation\" matching."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:53
+msgid "Adds a lemma on the availability of polymorphic constant instantiation, stating that the system is not locked into monomorphism."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:56
+msgid "`= Soundness Strategy` and the dependency graph (`doc/attachments/qed_formal_spec.typ:1132`, `doc/attachments/qed_formal_spec.typ:1152`)"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:57
+msgid "Extends the obligations from 4 to 5, with \"type-level non-emptiness preservation\" listed separately."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:58
+msgid "Adds the nodes `Type Admissibility + TypeDefOK` and `Type Non-Emptiness Preservation` to the dependency graph."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:61
+msgid "Narrows \"all types are non-empty\" from a single global assumption to:"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:62
+msgid "a non-emptiness assumption for the base prelude;"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:63
+msgid "a global non-emptiness preservation theorem under the `TypeDefOK` premise."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:65
+msgid "Appendix updates (from `doc/attachments/qed_formal_spec.typ:1301` onward)"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:66
+msgid "Appendix A: `INST_TYPE` dependencies now include `TypeDefOK` and definitional coherence."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:67
+msgid "Appendix B: check items now cover the type gate and the separation of state history."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:68
+msgid "Appendix C: extended to Definition + State scenarios, with a pop-then-redefine rejection case."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:69
+msgid "Appendix D: adds type soundness audit scenarios."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:71
+msgid "Audit issue matrix (Issue -> Fix -> Location -> Residual Risk)"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:73
+msgid "Issue"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:73
+msgid "Fix"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:73
+msgid "Location"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:73
+msgid "Residual Risk"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:75
+msgid "Ghost Type Variable (free type variables escaping from a definition body)"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:75
+msgid "Enforce `TVars(r) ⊆ TVars(tau)` + `INST_TYPE` Bridge Note + `def_inst_coherent` premise"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:75
+msgid "Low (the implementation must still enforce exactly the same condition)"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:76
+msgid "Empty Type Semantic Escape (semantic escape through empty types)"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:76
+msgid "Add `TypeDefOK` + non-emptiness witness gate + non-emptiness preservation theorem"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:76
+msgid "Low to medium (future extensions of typedef syntax must keep the witness rule)"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:77
+msgid "Stack vs Theory inconsistency (ambiguous redefinition after pop)"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:77
+msgid "Separate `(T,S)`; bind definition-head novelty to `DefHeads(T)`; pop does not roll back history"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:77
+msgid "Low (the UI layer must still show kernel identities to avoid symbol confusion)"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:78
+msgid "`INST_TYPE` not traceable in review (requires guessing across chapters)"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:78
+msgid "Add explicit admissibility anchors and failure mapping inside the rule"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:78
+msgid "Low"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:79
+msgid "De Bruijn Type Erasure (type erasure at the kernel level)"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:79
+msgid "Change the De Bruijn core syntax to carry explicit type labels (`DAbs(tau, ...)`, `DBound(..., tau)`), and change the `TRANS`/`BETA` matching conditions to typed-core guards"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:79
+msgid "Low (the implementation must strictly preserve type labels during boundary lowering)"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:80
+msgid "Polymorphism Lockout (polymorphic constant instantiation locked out)"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:80
+msgid "Introduce principal schemes for constants and the instance relation `tau ≼ tau_gen`, and add instance guards to elaboration, core typing and `INST_TYPE`"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:80
+msgid "Low (the implementation must use the same instance judgment)"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:82
+msgid "Incremental revision (De Bruijn type erasure audit)"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:85
+msgid "Replaces the untyped constructors (`Abs(t)`, `BVar(k)`) with typed core constructors (`DAbs(tau, t)`, `DBound(k, tau)`)."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:87
+msgid "Adds a binder/argument type agreement side condition to the `beta` contraction rule."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:88
+msgid "Adds a typed-core injectivity invariant that prevents abstractions over different domain types from being structurally identified."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:92
+msgid "Adds the Type-Sensitive Core Matching lemma, stating that boundary lowering does not erase binder-domain type labels."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:96
+msgid "Adds a typed De Bruijn core matching premise and the corresponding failure entry, which prevents middle terms from being mismatched by their \"erased structure\"."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:100
+msgid "Rewrites the redex shape into its typed version;"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:101
+msgid "Adds binder-domain label mismatch to the failure classification;"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:102
+msgid "The antecedent form now explicitly includes `type_of(u) = tau`."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:104
+#: manual/qed_formal_spec_changelog.md:125
+msgid "Appendix enhancements:"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:105
+msgid "Appendix A adds the typed-core dependencies of `TRANS`/`BETA`;"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:106
+msgid "Appendix B adds a check item for type-sensitive De Bruijn matching;"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:107
+msgid "Adds Appendix E (Typed De Bruijn Core Audit Scenarios)."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:109
+msgid "Incremental revision (Polymorphism Lockout audit)"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:112
+msgid "Adds the principal scheme of constants `kappa_c : tau_gen` and the instance relation `tau ≼ tau_gen`."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:113
+msgid "States that a constant is valid in the core as \"principal scheme + instantiated type\"; literal type equality is no longer required."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:116
+msgid "`== Named Elaboration Judgment` and `== Core Typing over Resolved Terms`"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:117
+msgid "The elaboration and core typing premises of `RConst` both switch to the instance-relation judgment."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:118
+msgid "Adds the \"Polymorphic Constant Instantiation Admissibility\" lemma and a \"No Monomorphic Lockout\" remark."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:121
+msgid "Adds a constant-instance consistency side condition: `tau_i ≼ tau_gen(kappa_c)`."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:122
+msgid "Adds constant-instance mismatch to the failure classification."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:123
+msgid "The Bridge Note now covers the constant-instance guard and expressiveness."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:126
+msgid "Appendix A adds the dependency of `INST_TYPE` on the constant instance relation;"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:127
+msgid "Appendix B adds a `tau ≼ tau_gen` check item;"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:128
+msgid "Appendix D adds a polymorphic constant instantiation audit scenario (`id` usable at the `bool/int` instances)."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:130
+msgid "Acceptance checklist (with pass/fail)"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:132
+msgid "[PASS] The `INST_TYPE` section explicitly references `DefOK`, `TypeDefOK` and the Global Admissibility Envelope."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:133
+msgid "[PASS] Global history semantics is unified as `DefHeads(T)` and separated from local `pop` behavior."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:134
+msgid "[PASS] Non-empty type semantics moves from a bare assumption to the `TypeDefOK` gate + preservation theorem narrative."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:136
+msgid "[PASS] The manuscript appendices include Ghost/Empty/Pop-Redefine regression scenarios."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:137
+msgid "[PASS] The De Bruijn core carries explicit type annotations, and the `TRANS`/`BETA` rules enforce checks on them."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:138
+msgid "[PASS] Polymorphic constant use is enabled through the `tau preceq tau_gen` instance relation, avoiding monomorphic lockout."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:140
+msgid "[PASS] The compilation check passes:"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:141
+msgid "Command: `typst compile doc/qed_formal_spec.typ doc/qed_formal_spec.pdf`"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:142
+msgid "Result: [QED formal specification](../attachments/qed_formal_spec.typ) is generated successfully."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:144
+msgid "Open items (write None if there are none)"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:146
+msgid "None."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:148
+msgid "Incremental revision (constructive closure)"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:150
+msgid "Upgrades the *Theorem Goal* in the `SpecOK` section to a formal theorem, and adds a constructive proof method for \"single-step spec head elimination\":"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:152
+msgid "defines the recursive eliminator `erase_spec` within the manuscript;"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:153
+msgid "gives a well-founded induction invariant based on derivation tree size."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:154
+msgid "Adds the `Constructive Closure: Derivation Objects and Erasure Operators` section:"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:155
+msgid "introduces finite derivation objects `Derives(D, s)`;"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:156
+msgid "defines three kinds of eliminators: `erase_def` / `erase_spec` / `erase_typedef`;"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:157
+msgid "gives three corresponding correctness theorems (preservation of old-language sentences)."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:158
+msgid "Upgrades `Meta-Theorem Target` to a formal global conservativity meta-theorem:"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:159
+msgid "writes out explicitly the compositional proof by step-by-step back-erasure over finite extension sequences;"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:160
+msgid "derives the global `T' ⊢ φ => T ⊢ φ` from the correctness of each per-step gate elimination."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:161
+msgid "Updates the document status and the P0 checklist accordingly:"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:162
+msgid "`Current Status` now reads \"constructive closure is given in the manuscript\";"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:163
+msgid "the checklist adds two items: \"derivation object system\" and \"per-gate elimination + composition theorem\"."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:165
+msgid "Incremental revision (two-part split and authority boundary)"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:167
+msgid "Adds `Part I: Logic Core (Normative)` and an *Authority Contract* at the front of the main manuscript:"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:168
+msgid "states that Part I is the sole normative source for the logic;"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:169
+msgid "states that De Bruijn and scope are mechanisms of logical correctness, not optional engineering details."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:170
+msgid "Renames the entry of the engineering part to `Part II: Engineering Realization (Informative + Conformance)`:"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:172
+msgid "declares explicitly that Part II is downstream of Part I and must not define the logic in reverse."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:173
+msgid "Adds the `Conformance Obligations (Part I -> Part II)` subsection:"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:174
+msgid "five implementation conformance obligations: rule fidelity, boundary fidelity, scope stability, gate fidelity and certificate non-authority."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:176
+msgid "Rewrites the first sentence of `Documentation Maintenance Notes` to reflect the two-part maintenance approach:"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:177
+msgid "Part I is maintained as the source of truth for the logic;"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:178
+msgid "Part II is maintained as the conformance-report layer for Part I."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:180
+msgid "Incremental revision (strengthened De Bruijn / scope proofs)"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:182
+msgid "Adds three bridge theorems to the De Bruijn section:"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:186
+msgid "Turns the three scoped shadowing propositions from proof sketches into full proofs (derived step by step from the definitions)."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:188
+msgid "Adds the `Resolution Freeze under Scope Mutation` theorem:"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:189
+msgid "formally states that the premises of already-resolved terms are invariant under subsequent `push/add/pop` sequences;"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:191
+msgid "states that scope only affects future name resolution and does not write back to existing resolved objects."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:193
+msgid "Incremental revision (automatic phase advance: de-engineering Part I + converging Part II)"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:195
+msgid "Removes engineering ties from the wording of Part I (without changing the logical content):"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:196
+msgid "the Abstract changes from \"implementation-aware specification\" to \"formal mathematical specification\";"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:197
+msgid "\"In implementation terms\" in `Type Grammar` / `Term Grammar` is rewritten as \"One canonical concrete representation\";"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:199
+msgid "API/implementation wording in the boundary/scope paragraphs is rewritten as abstract semantic wording (still implementable, but not tied to any particular implementation)."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:201
+msgid "Upgrades the `MK_COMB` section from `Type Preservation Sketch` to `Type Preservation Theorem`:"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:202
+msgid "keeps the original derivation structure and completes it in the full \"Proof.\" closing style."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:203
+msgid "Converges Part II to conformance semantics:"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:204
+msgid "the error taxonomy alignment paragraph changes from \"normative for final API\" to \"conformance target for engineering realizations\";"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:206
+msgid "the closing sentence of Appendix B changes to \"logic-closure + conformance/regression gate\"."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:208
+msgid "Incremental revision (automatic phase advance: Part II conformance closure)"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:210
+msgid "Adds an \"informative only\" boundary statement to `Engineering Correspondence`:"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:211
+msgid "the module mapping serves only audit coverage and does not change any definition or theorem of Part I."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:212
+msgid "Adds the `Conformance Transfer Theorem` section:"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:213
+msgid "defines `Faithful Realization` (satisfying the five conformance obligations);"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:214
+msgid "gives the transfer theorem from implementation to logic: if the implementation accepts sequent $s$, then $s$ is derivable in Part I;"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:216
+msgid "the proof reconstructs the acceptance trace: rule mapping, substitution by boundary lemmas, erasure via scope stability, gate correspondence and discarding of certificate events."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:218
+msgid "Removes implementation coupling from the introductory paragraph of Primitive Rules:"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:219
+msgid "changes \"parallel with implementation updates\" to \"Part I side conditions are authoritative\"."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:221
+msgid "Incremental revision (automatic phase advance: strengthened constructive closure for Primitive Rules)"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:223
+msgid "Adds `Rule-Level Constructive Preservation Capsules` at the end of the `Rule Schema` chapter:"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:224
+msgid "gives a uniform constructive template `Preserve_R : valid(Premises_R) => valid(Conclusion_R)`;"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:225
+msgid "gives an encapsulated preservation statement for each of the 10 primitive rules (including the three constraints of `INST_TYPE`: gate, coherence and instance);"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:227
+msgid "adds the summary theorem `Rule Capsule Closure`, stating that \"per-rule case analysis + capsule invocation\" is enough to close the P1 obligation."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:230
+msgid "Incremental revision (automatic phase advance: closing the two-part audit checklist)"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:232
+msgid "Extends Appendix B (P0 checklist) with Part II consistency items:"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:233
+msgid "adds items 24-28, covering the Part II downstream declaration, the five conformance obligations, the transfer theorem, the non-authoritative mapping and the conformance positioning of the error taxonomy."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:235
+msgid "Adds Appendix G `Part II Conformance Audit Scenarios`:"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:236
+msgid "Rule-fidelity replay;"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:237
+msgid "Boundary-fidelity;"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:238
+msgid "Scope-fidelity stability;"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:239
+msgid "Gate-fidelity;"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:240
+msgid "Certificate non-authority."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:241
+msgid "This completes the two-level audit structure of \"Part I logic closure + Part II conformance closure\"."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:243
+msgid "Incremental revision (automatic phase advance: semantic assumption package and consistency layer)"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:245
+msgid "Adds a model-class wrapper under `Semantic Assumptions`:"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:246
+msgid "adds the `Admissible Model Class` definition (typing/denotation + Choice + Infinity anchor + gate-admitted theorems)."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:248
+msgid "adds the `Model-Class Non-Emptiness` assumption, making the \"a non-trivial model exists\" premise explicit."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:249
+msgid "Adds consistency transfer results:"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:250
+msgid "`Semantic Non-Triviality Transfer` (a countermodel implies non-derivability);"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:251
+msgid "`Consistency Witness Form` (under the semantics of the same model class, a sentence and its negation are not both derivable)."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:254
+msgid "Incremental revision (automatic phase advance: claim-to-proof trace matrix)"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:256
+msgid "Adds Appendix H `Claim-to-Proof Trace Matrix`:"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:257
+msgid "gives short-path mappings from ten high-level claims C1..C10 to \"definition anchor/proof anchor\";"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:258
+msgid "covers rule soundness, conservativity of the three gate kinds, scope/boundary stability, global conservativity, conformance transfer, non-triviality and certificate non-authority."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:260
+msgid "Adds a review rule at the end of the appendix:"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:261
+msgid "each claim aims to be reachable in three steps, \"claim -> definition -> theorem\", to ease review and cross-checking."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:264
+msgid "Incremental revision (automatic phase advance: terminology consistency refinement)"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:266
+msgid "Further removes engineering terms from Part I and unifies them:"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:267
+msgid "`external modules` becomes `external contexts`;"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:268
+msgid "`implementation-level check` becomes `admission-procedure check`;"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:269
+msgid "`module boundaries and test responsibilities` is rewritten from a proof-block perspective;"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:270
+msgid "the word `implementation` at the infinity anchor and the canonical theorems is replaced with realization/presentation semantics."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:272
+msgid "Unifies the wording of the maintenance notes and audit scenarios accordingly:"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:273
+msgid "`APIs evolve` becomes `realization interfaces evolve`;"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:274
+msgid "the schema widening scenario in Appendix F now uses admission-procedure semantics."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:275
+msgid "Unifies notation:"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:276
+msgid "the semantic interpretation notation is unified as `\"denote\"(t, rho, M)`, using the same parameter convention as the later boundary denotation lemmas."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:279
+msgid "Incremental revision (automatic phase advance: filling in closure anchors)"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:281
+msgid "Adds the missing definition anchors to `Audit Certificates and Replay Interface` in Part II:"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:282
+msgid "adds the `Admissible(T, t_h)` definition (witnessed by Part I `Derives` objects and gate legality);"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:283
+msgid "adds the `SentenceInLanguage(T_0, t_h)` definition (closed sentence + base language symbol constraint)."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:284
+msgid "`ConservativeReplayOK` now uses explicitly defined predicates and no longer relies on implicit semantic premises."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:287
+msgid "Incremental revision (notation consistency fix)"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:289
+msgid "Makes the slash notation in substitutions consistent:"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:290
+msgid "unifies `t[s/x]` as `t[s\\/x]`;"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:291
+msgid "matches the existing `s[u\\/x]` notation in the text, avoiding ambiguity of the `[A/B]` form in review and rendering."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:294
+msgid "Incremental revision (tone refinement)"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:296
+msgid "Moves the tone of the whole text toward an academic paper style, without changing the logical content:"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:297
+msgid "`Authority Contract` becomes `Normative Scope`, and some strongly imperative sentences are rewritten as academic expository sentences;"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:299
+msgid "the opening of Part II shifts from \"implementation hooks\" framing to \"concrete realization and conformance record\" framing;"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:301
+msgid "`Documentation Maintenance Notes` becomes `Concluding Remarks`, and `Near-term maintenance focus` becomes `Future refinement directions`."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:303
+msgid "Unifies the tone of the appendices:"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:304
+msgid "`Audit Scenarios` is uniformly renamed `Validation Scenarios`;"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:305
+msgid "the ending changes from \"required before claiming\" to \"provide structured evidence for ...\"."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:306
+msgid "Detailed semantic consistency:"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:307
+msgid "the semantic interpretation notation is unified as `\"denote\"(t, rho, M)` (consistent with the later denotation lemmas);"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:309
+msgid "the predicates related to `ConservativeReplayOK` are now defined by name in the text, reducing implicit terminology."
+msgstr ""
+
+#: manual/syntax.md:1
+msgid "Syntax guide"
+msgstr ""
+
+#: manual/syntax.md:4
+msgid "Audience: users, contributors"
+msgstr ""
+
+#: manual/syntax.md:5
+msgid "Authority: user-facing syntax reference for current shipped input surface; subordinate to [QED formal specification](../attachments/qed_formal_spec.typ), current code/tests, and [User manual](manual.md)"
+msgstr ""
+
+#: manual/syntax.md:6
+msgid "Scope: current theorem-script surface syntax, CLI-facing file shape, supported proof steps, and known unsupported forms"
+msgstr ""
+
+#: manual/syntax.md:9
+msgid "This document is a quick reference for QED's current shipped user input syntax."
+msgstr ""
+
+#: manual/syntax.md:11
+msgid "It answers only one question: what kind of theorem script does `src/cmd` currently accept. For capability boundaries, the support matrix, failure semantics, and the implementation contract, [User manual](manual.md) remains the main entry point."
+msgstr ""
+
+#: manual/syntax.md:17
+msgid "The current command-line entry point is:"
+msgstr ""
+
+#: manual/syntax.md:25
+msgid "`-d` prints the full conclusion summary. `--no-warn` returns a success exit code when there are only warnings and no errors. When launching through `moon run`, use `--` to forward the remaining arguments to the QED CLI; once compiled into a standalone executable, you can run `qed-cmd -d --no-warn <file>` directly."
+msgstr ""
+
+#: manual/syntax.md:30
+msgid "The input is a theorem-script file, for example:"
+msgstr ""
+
+#: manual/syntax.md:36
+msgid "Runnable examples in the repository:"
+msgstr ""
+
+#: manual/syntax.md:46
+msgid "The repository root also has `prelude/`, which holds theorem asset files that can be run directly; they are runnable scripts, not the public surface of the current theorem-name catalog."
+msgstr ""
+
+#: manual/syntax.md:49
+msgid "File shape"
+msgstr ""
+
+#: manual/syntax.md:51
+msgid "The current shipped theorem script shape is:"
+msgstr ""
+
+#: manual/syntax.md:57
+msgid "When a file contains several theorems, end each preceding theorem block with a lowercase `qed`:"
+msgstr ""
+
+#: manual/syntax.md:67
+msgid "Where:"
+msgstr ""
+
+#: manual/syntax.md:70
+msgid "`[(binder...)]` currently supports zero or more theorem-header binders."
+msgstr ""
+
+#: manual/syntax.md:71
+msgid "`<goal>` is a sequent."
+msgstr ""
+
+#: manual/syntax.md:72
+msgid "`<steps>` are the proof steps, written either in single-line sequential form or in newline-separated block form."
+msgstr ""
+
+#: manual/syntax.md:75
+msgid "For compatibility with existing examples, a single-theorem file may omit the trailing `qed`. In a multi-theorem file, each preceding theorem must be followed by `qed` before the next top-level `theorem`."
+msgstr ""
+
+#: manual/syntax.md:79
+msgid "Theorem header"
+msgstr ""
+
+#: manual/syntax.md:81
+msgid "Theorem name"
+msgstr ""
+
+#: manual/syntax.md:83
+msgid "Minimal example:"
+msgstr ""
+
+#: manual/syntax.md:89
+msgid "Theorem-header binders"
+msgstr ""
+
+#: manual/syntax.md:91
+msgid "The current shipped binder form is:"
+msgstr ""
+
+#: manual/syntax.md:97
+msgid "For example:"
+msgstr ""
+
+#: manual/syntax.md:106
+msgid "The safest file-first usage in the current documentation and examples is to start with `bool` binders."
+msgstr ""
+
+#: manual/syntax.md:109
+msgid "Currently supported quantified goals"
+msgstr ""
+
+#: manual/syntax.md:111
+msgid "A raw `forall` theorem goal like the following is now accepted as goal-only sugar:"
+msgstr ""
+
+#: manual/syntax.md:120
+msgid "The parenthesized form is also accepted:"
+msgstr ""
+
+#: manual/syntax.md:129
+msgid "In other words:"
+msgstr ""
+
+#: manual/syntax.md:131
+msgid "Theorem-header binders `(x : bool)` and raw `forall` / `∀` theorem goals are both part of the currently shipped quantifier-facing user syntax."
+msgstr ""
+
+#: manual/syntax.md:133
+msgid "Raw `forall (x : A), body` / `∀ (x : A), body` is accepted only at the theorem-script goal / `parse_goal` entry points; it is not term-level syntax."
+msgstr ""
+
+#: manual/syntax.md:135
+msgid "The raw `forall` path is currently only goal sugar; it follows the same lowering / replay / CLI diagnostics contract and introduces no new kernel quantifier authority."
+msgstr ""
+
+#: manual/syntax.md:138
+msgid "Goal shape"
+msgstr ""
+
+#: manual/syntax.md:140
+msgid "The current shipped surface uses sequent goals:"
+msgstr ""
+
+#: manual/syntax.md:148
+msgid "The minimal runnable examples in the README and `examples/` mainly use:"
+msgstr ""
+
+#: manual/syntax.md:155
+msgid "For first-time CLI users, it is safest to start with state-free examples using `T`, `F`, and theorem-header binders."
+msgstr ""
+
+#: manual/syntax.md:158
+msgid "Proof steps"
+msgstr ""
+
+#: manual/syntax.md:160
+msgid "The current shipped steps are only these:"
+msgstr ""
+
+#: manual/syntax.md:177
+msgid "When the current goal is `A -> B`, introduces a local hypothesis and continues by proving the consequent."
+msgstr ""
+
+#: manual/syntax.md:187
+msgid "Closes the current goal directly."
+msgstr ""
+
+#: manual/syntax.md:195
+msgid "Applies an implication-backed theorem or a local implication hypothesis to the current goal, producing new subgoals."
+msgstr ""
+
+#: manual/syntax.md:204
+msgid "Searches the current local hypotheses for evidence that matches the current goal."
+msgstr ""
+
+#: manual/syntax.md:208
+#: manual/syntax.md:222
+msgid "Sequential form:"
+msgstr ""
+
+#: manual/syntax.md:214
+#: manual/syntax.md:229
+msgid "Structured branch form:"
+msgstr ""
+
+#: manual/syntax.md:243
+msgid "`hole` does not fake success; it currently returns a structured unfinished result."
+msgstr ""
+
+#: manual/syntax.md:245
+msgid "Sequential blocks and structured branch blocks"
+msgstr ""
+
+#: manual/syntax.md:247
+msgid "`<steps>` can currently be written on a single line:"
+msgstr ""
+
+#: manual/syntax.md:253
+msgid "or as a multi-line block:"
+msgstr ""
+
+#: manual/syntax.md:262
+msgid "When steps need explicit branching, a minimal structured branch block is currently supported:"
+msgstr ""
+
+#: manual/syntax.md:271
+msgid "An example closer to classical propositional logic:"
+msgstr ""
+
+#: manual/syntax.md:287
+msgid "Most important current limitations"
+msgstr ""
+
+#: manual/syntax.md:289
+msgid "The current `src/cmd` workflow is file-first; a single-theorem file may omit the trailing `qed`, and a multi-theorem file uses `qed` as a separator."
+msgstr ""
+
+#: manual/syntax.md:291
+msgid "Directly runnable public examples should preferably use the existing scripts in `examples/`."
+msgstr ""
+
+#: manual/syntax.md:292
+msgid "Theorem-header binders are shipped; raw `forall` theorem goals are supported as goal-only sugar, while term-level forms are still unsupported."
+msgstr ""
+
+#: manual/syntax.md:294
+msgid "Unsupported paths must fail closed and never fake theorem success."
+msgstr ""
+
+#: manual/syntax.md:295
+msgid "`hole` returns unfinished, not theorem success."
+msgstr ""
+
+#: manual/syntax.md:297
+msgid "Output shape"
+msgstr ""
+
+#: manual/syntax.md:299
+msgid "Current CLI output falls into three categories:"
+msgstr ""
+
+#: manual/syntax.md:301
+msgid "Success: by default, one line `ok <theorem_name>` per theorem; with `-d`, the output is `ok <theorem_name>: <conclusion_summary>`"
+msgstr ""
+
+#: manual/syntax.md:303
+msgid "Failure: `error[kind] ...`"
+msgstr ""
+
+#: manual/syntax.md:304
+msgid "Unfinished: `warning[unfinished] ...`; it produces no theorem authority, but checking continues with the following theorems."
+msgstr ""
+
+#: manual/syntax.md:307
+msgid "The `--` in `moon run src/cmd -- -d --no-warn <file>` belongs only to `moon run` argument forwarding; a standalone executable does not need it, so run `qed-cmd -d --no-warn <file>` directly."
+msgstr ""
+
+#: manual/syntax.md:310
+msgid "See [User manual](manual.md) for the complete failure fields, unfinished fields, and stable examples."
+msgstr ""
+
+#: manual/tutorial/kernel.md:1
+msgid "kernel Tutorial"
+msgstr ""
+
+#: manual/tutorial/kernel.md:3
+msgid "Use this page as the starting point for practical workflows around this module. kernel in Luna-Flow/QED."
+msgstr ""
+
+#: manual/tutorial/kernel.md:5
+#: manual/tutorial/parser.md:5
+#: manual/tutorial/prover.md:5
+#: manual/tutorial/tactics.md:5
+msgid "Suggested Flow"
+msgstr ""
+
+#: manual/tutorial/kernel.md:7
+msgid "Read the repository README and the kernel API reference."
+msgstr ""
+
+#: manual/tutorial/kernel.md:8
+msgid "Start from the constructors or entry points under `src/kernel`."
+msgstr ""
+
+#: manual/tutorial/kernel.md:9
+#: manual/tutorial/parser.md:9
+#: manual/tutorial/prover.md:9
+#: manual/tutorial/tactics.md:9
+msgid "Validate behavior with the existing tests or examples before depending on edge-case semantics."
+msgstr ""
+
+#: manual/tutorial/kernel.md:11
+#: manual/tutorial/parser.md:11
+#: manual/tutorial/prover.md:11
+#: manual/tutorial/tactics.md:11
+msgid "Practical Guidance"
+msgstr ""
+
+#: manual/tutorial/kernel.md:13
+#: manual/tutorial/parser.md:13
+#: manual/tutorial/prover.md:13
+#: manual/tutorial/tactics.md:13
+msgid "Prefer the documented entry points over internal helpers."
+msgstr ""
+
+#: manual/tutorial/kernel.md:14
+#: manual/tutorial/parser.md:14
+#: manual/tutorial/prover.md:14
+#: manual/tutorial/tactics.md:14
+msgid "Record runtime, numeric, or proof-state assumptions explicitly in downstream code."
+msgstr ""
+
+#: manual/tutorial/parser.md:1
+msgid "parser Tutorial"
+msgstr ""
+
+#: manual/tutorial/parser.md:3
+msgid "Use this page as the starting point for practical workflows around this module. parser in Luna-Flow/QED."
+msgstr ""
+
+#: manual/tutorial/parser.md:7
+msgid "Read the repository README and the parser API reference."
+msgstr ""
+
+#: manual/tutorial/parser.md:8
+msgid "Start from the constructors or entry points under `src/parser`."
+msgstr ""
+
+#: manual/tutorial/prover.md:1
+msgid "prover Tutorial"
+msgstr ""
+
+#: manual/tutorial/prover.md:3
+msgid "Use this page as the starting point for practical workflows around this module. prover in Luna-Flow/QED."
+msgstr ""
+
+#: manual/tutorial/prover.md:7
+msgid "Read the repository README and the prover API reference."
+msgstr ""
+
+#: manual/tutorial/prover.md:8
+msgid "Start from the constructors or entry points under `src/prover`."
+msgstr ""
+
+#: manual/tutorial/tactics.md:1
+msgid "tactics Tutorial"
+msgstr ""
+
+#: manual/tutorial/tactics.md:3
+msgid "Use this page as the starting point for practical workflows around this module. tactics in Luna-Flow/QED."
+msgstr ""
+
+#: manual/tutorial/tactics.md:7
+msgid "Read the repository README and the tactics API reference."
+msgstr ""
+
+#: manual/tutorial/tactics.md:8
+msgid "Start from the constructors or entry points under `src/tactics`."
+msgstr ""

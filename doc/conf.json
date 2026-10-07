@@ -1,0 +1,8 @@
+{
+  "title": "QED",
+  "summary": "A kernel-first theorem prover written in MoonBit, governed by a formal specification.",
+  "locales": [
+    "zh_CN",
+    "ja_JP"
+  ]
+}
