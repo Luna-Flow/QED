@@ -219,131 +219,139 @@ msgstr ""
 msgid "An alias file must not be used as an unbounded re-export table for lower-layer symbols."
 msgstr ""
 
+#: manual/code_governance.md:47
+msgid "When a blackbox test references symbols of its own package, `alias_test.mbt` must import them explicitly with `using @<package> {...}` (MoonBit's `test_unqualified_package` rule); tests must not rely on implicit imports."
+msgstr ""
+
 #: manual/code_governance.md:48
-msgid "Source responsibilities"
+msgid "`kernel` depends on no other QED package, so it has no `alias.mbt`, only an `alias_test.mbt` that lists the package symbols its tests use."
 msgstr ""
 
 #: manual/code_governance.md:50
-msgid "A single file or module should, as far as possible, carry only one primary responsibility:"
+msgid "Source responsibilities"
 msgstr ""
 
 #: manual/code_governance.md:52
-msgid "pure data objects and accessors"
-msgstr ""
-
-#: manual/code_governance.md:53
-msgid "pure lowering / normalization / rendering"
+msgid "A single file or module should, as far as possible, carry only one primary responsibility:"
 msgstr ""
 
 #: manual/code_governance.md:54
-msgid "replay / orchestration"
+msgid "pure data objects and accessors"
 msgstr ""
 
 #: manual/code_governance.md:55
-msgid "corpus / mapping / fixtures"
+msgid "pure lowering / normalization / rendering"
+msgstr ""
+
+#: manual/code_governance.md:56
+msgid "replay / orchestration"
 msgstr ""
 
 #: manual/code_governance.md:57
-msgid "The following cases should be split first:"
+msgid "corpus / mapping / fixtures"
 msgstr ""
 
 #: manual/code_governance.md:59
-msgid "orchestration logic and error rendering stay mixed in the same file over the long term"
-msgstr ""
-
-#: manual/code_governance.md:60
-msgid "parser-side lowering constructs tactics objects directly"
+msgid "The following cases should be split first:"
 msgstr ""
 
 #: manual/code_governance.md:61
-msgid "a façade-layer file gradually turns into a cross-layer catch-all entry point"
+msgid "orchestration logic and error rendering stay mixed in the same file over the long term"
+msgstr ""
+
+#: manual/code_governance.md:62
+msgid "parser-side lowering constructs tactics objects directly"
 msgstr ""
 
 #: manual/code_governance.md:63
-msgid "The first governance patterns currently in place in this repository include:"
+msgid "a façade-layer file gradually turns into a cross-layer catch-all entry point"
 msgstr ""
 
 #: manual/code_governance.md:65
+msgid "The first governance patterns currently in place in this repository include:"
+msgstr ""
+
+#: manual/code_governance.md:67
 msgid "parser outputs a parser-owned `ParsedGoal`, which the upper layer explicitly bridges to `tactics.Goal`"
 msgstr ""
 
-#: manual/code_governance.md:66
+#: manual/code_governance.md:68
 msgid "prover keeps its orchestration role, but continues to separate diagnostic rendering and corpus data from the main execution path"
 msgstr ""
 
-#: manual/code_governance.md:68
+#: manual/code_governance.md:70
 msgid "Documentation obligations"
 msgstr ""
 
-#: manual/code_governance.md:70
+#: manual/code_governance.md:72
 msgid "When a code change affects any of the following, the documentation must be updated in step:"
 msgstr ""
 
-#: manual/code_governance.md:72
+#: manual/code_governance.md:74
 msgid "public capability claims"
 msgstr ""
 
-#: manual/code_governance.md:73
+#: manual/code_governance.md:75
 msgid "package responsibilities or layering boundaries"
 msgstr ""
 
-#: manual/code_governance.md:74
+#: manual/code_governance.md:76
 msgid "alias entry-point semantics"
 msgstr ""
 
-#: manual/code_governance.md:75
+#: manual/code_governance.md:77
 msgid "failure semantics or structured diagnostic fields"
 msgstr ""
 
-#: manual/code_governance.md:77
+#: manual/code_governance.md:79
 msgid "Default maintenance order:"
 msgstr ""
 
-#: manual/code_governance.md:79
+#: manual/code_governance.md:81
 #: manual/governance.md:127
 msgid "Code and tests"
 msgstr ""
 
-#: manual/code_governance.md:80
+#: manual/code_governance.md:82
 #: manual/conformance.md:304
 #: manual/governance.md:128
 msgid "[User manual](manual.md)"
 msgstr ""
 
-#: manual/code_governance.md:81
+#: manual/code_governance.md:83
 #: manual/governance.md:129
 msgid "[Specification conformance](conformance.md)"
 msgstr ""
 
-#: manual/code_governance.md:83
+#: manual/code_governance.md:85
 msgid "[Workspace audit (2026-04-18)](current_workspace_audit.md) (only when the point-in-time conclusions change)"
 msgstr ""
 
-#: manual/code_governance.md:85
+#: manual/code_governance.md:87
 msgid "Review checklist"
 msgstr ""
 
-#: manual/code_governance.md:87
+#: manual/code_governance.md:89
 msgid "On submission and review, check at least:"
 msgstr ""
 
-#: manual/code_governance.md:89
+#: manual/code_governance.md:91
 msgid "whether new dependencies follow the established layering"
 msgstr ""
 
-#: manual/code_governance.md:90
+#: manual/code_governance.md:92
 msgid "whether `alias.mbt` / `alias_test.mbt` are still the single official entry points"
 msgstr ""
 
-#: manual/code_governance.md:91
+#: manual/code_governance.md:93
 msgid "whether the responsibilities of parser/tactics/prover are being coupled together again"
 msgstr ""
 
-#: manual/code_governance.md:92
+#: manual/code_governance.md:94
 msgid "whether `.mbti` changes match the intended public boundary"
 msgstr ""
 
-#: manual/code_governance.md:93
+#: manual/code_governance.md:95
 msgid "whether the documentation reflects the new shipped state in step"
 msgstr ""
 

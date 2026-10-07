@@ -44,6 +44,8 @@ The constraints are:
 - `alias_test.mbt` is not a second public API; it must not follow an export philosophy different from the production entry point.
 - The header comment of an alias file must state the scope of the entry point and its maintenance rules.
 - An alias file must not be used as an unbounded re-export table for lower-layer symbols.
+- When a blackbox test references symbols of its own package, `alias_test.mbt` must import them explicitly with `using @<package> {...}` (MoonBit's `test_unqualified_package` rule); tests must not rely on implicit imports.
+- `kernel` depends on no other QED package, so it has no `alias.mbt`, only an `alias_test.mbt` that lists the package symbols its tests use.
 
 ## Source responsibilities
 
