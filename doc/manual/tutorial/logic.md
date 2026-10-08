@@ -2,6 +2,17 @@
 
 This tutorial uses the `logic` package to prove propositional theorems forwards: you install the connectives, build formulas, and combine natural-deduction rules into proofs such as commutativity of conjunction. Every step returns a kernel theorem, so what you build here is exactly what the tactics layer builds behind a proof script.
 
+| I want to | Use |
+| --- | --- |
+| Install the connectives `T`, `F`, `and`, `imp`, `not`, `or` | `install_prop_prelude`, `default_prop_prelude` |
+| Build and take apart formulas | `prop_mk_and`, `prop_mk_imp`, `prop_mk_not`, `prop_mk_or`, `prop_dest_and`, `prop_dest_or` |
+| Introduce or eliminate a conjunction | `logic_prop_and_intro_thm`, `logic_prop_and_elim_l_thm`, `logic_prop_and_elim_r_thm` |
+| Discharge a hypothesis or use an implication | `logic_prop_imp_intro_thm`, `logic_prop_imp_elim_thm` |
+| Reason with negation and falsity | `logic_prop_not_elim`, `logic_prop_ex_falso_thm` |
+| Prove a disjunction | `logic_prop_or_intro_l_thm`, `logic_prop_or_intro_r_thm` |
+| List the theorem names scripts may cite | `logic_prop_theorem_count`, `logic_prop_theorem_at` |
+| Reduce the β-redexes left by unfolding | `logic_normalize_prop_beta` |
+
 ## Quick start
 
 Import the kernel and the logic package in `moon.pkg`:

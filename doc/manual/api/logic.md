@@ -1,10 +1,25 @@
 # logic API
 
+## Purpose
+
 The `logic` package (`Luna-Flow/QED/logic`) is the checked helper layer over the kernel. It defines the propositional connectives as kernel definitions, builds and recognises connective terms, derives the propositional rules from the primitive ones, and keeps the catalog of theorem names that `exact` and `apply` understand. It depends only on `kernel` and has no authority of its own: every theorem it returns was produced by kernel rules, so a bug here can make a proof fail but cannot make a false theorem.
 
 All functions are pure. Theorem-producing functions return `Result[@kernel.Thm, @kernel.LogicError]`; helpers that may find nothing return an `Option`. The logic behind the definitions is explained in the [logic design](../design/logic.md) and a walk-through is in the [logic tutorial](../tutorial/logic.md).
 
 In the formulas on this page, $\top$ is the constant `T`, $\bot$ the constant `F`, and $p \wedge q$, $p \Rightarrow q$, $\neg p$, $p \vee q$ the connective terms built by `prop_mk_and`, `prop_mk_imp`, `prop_mk_not` and `prop_mk_or`.
+
+## Importing
+
+Add the package to your `moon.pkg`:
+
+```moonbit nocheck
+import {
+  "Luna-Flow/QED/logic",
+  "Luna-Flow/QED/kernel",
+}
+```
+
+The examples on this page are blackbox tests. They refer to this package as `@logic` and also use `@kernel`, so they import both packages.
 
 ## Prelude
 
@@ -117,6 +132,9 @@ p \vee q &:= \neg p \Rightarrow q
 $$
 
 where $t$ is the truth term $(\lambda x.\,x) = (\lambda x.\,x)$ and $\bot_0$ is the falsity term of `logic_prop_false_term`. They fail with `NotBoolTerm` when an argument is not a proposition and with `TypeMismatch` when it is ill-typed. They do not need the prelude to be installed.
+
+> [!WARNING]
+> The binder $f$ of the conjunction is a variable with the fixed name `_p_and` and type $\mathit{bool} \to \mathit{bool} \to \mathit{bool}$, and the builders do not rename it. If an argument contains a free variable with exactly that name and type, the builder captures it and the result is not $p \wedge q$; `logic_prop_and_intro_thm` and the rules built on it then fail. Do not use the name `_p_and` for your own variables.
 
 ### `prop_dest_and`, `prop_dest_imp`, `prop_dest_not` and `prop_dest_or`
 
@@ -353,7 +371,7 @@ pub fn logic_beta_normalize_eq(@kernel.KernelState, @kernel.Thm) -> Result[@kern
 pub fn logic_normalize_prop_beta(@kernel.KernelState, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
 ```
 
-Both chain BETA, MK_COMB and TRANS steps, so the result is a kernel theorem, not a rewritten term.
+Both chain kernel steps (BETA and TRANS, plus REFL and MK_COMB to reach redexes inside applications), so the result is a kernel theorem, not a rewritten term. After 512 steps `logic_normalize_prop_beta` returns what it has reached, which may still contain redexes.
 
 ### `logic_beta_nf_bool_term` and `logic_beta_nf_bool_term_deep`
 
@@ -658,7 +676,7 @@ pub fn logic_prop_context_theorem(@kernel.KernelState, PropPrelude, String, Arra
 pub fn logic_prop_context_apply_theorem(@kernel.KernelState, PropPrelude, String, Array[@kernel.Term], @kernel.Term) -> (@kernel.Thm, @kernel.Term)?
 ```
 
-### Resolution results
+### `PropExactWitness`, `PropExactWitnessResolution`, `PropExactTheoremResolution`, `PropApplyTheoremResolution` and `PropRefResolution`
 
 The resolvers below return one of these types. `KnownButUnavailable` and its variants mean that the name is in the catalog but does not apply to this goal in this mode; the tactics layer reports that as a goal-shape or apply mismatch rather than as an unknown name.
 
