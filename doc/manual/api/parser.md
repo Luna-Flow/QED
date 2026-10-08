@@ -1,8 +1,24 @@
 # parser API
 
+## Purpose
+
 The `parser` package (`Luna-Flow/QED/parser`) is the text frontend. It normalises input, parses terms, goals and theorem scripts into syntax trees that keep positions in the original text, and lowers terms and goals to kernel terms through the `elab` and `logic` packages. It owns no tactic objects: a parsed goal is a parser-owned `ParsedGoal`, which the `prover` bridges to the tactics layer.
 
 Functions ending in `_raw` only parse. The others also resolve names and build kernel terms against a `KernelState`. The surface syntax is summarised in the [syntax guide](../syntax.md); the choices behind it are in the [parser design](../design/parser.md), and the [parser tutorial](../tutorial/parser.md) parses and lowers step by step.
+
+## Importing
+
+Add the package to your `moon.pkg`:
+
+```moonbit nocheck
+import {
+  "Luna-Flow/QED/parser",
+  "Luna-Flow/QED/kernel",
+  "Luna-Flow/QED/logic",
+}
+```
+
+The examples on this page are blackbox tests. They refer to this package as `@parser` and also use `@kernel` and `@logic`, so they import all of these packages.
 
 ## Input normalisation
 

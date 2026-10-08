@@ -5,7 +5,7 @@ The `parser` package turns text into syntax trees and syntax trees into kernel t
 ## Design goal
 
 - Accept a small, unambiguous notation for propositional goals and proof scripts, with Unicode as the canonical form and ASCII spellings as input conveniences.
-- Report every error at an offset in the text the user wrote, even after normalisation.
+- Report every syntax error at an offset in the text the user wrote, even after normalisation.
 - Lower to kernel terms only through the resolution boundary of `elab` and the connective builders of `logic`, so the parser never decides what a name or a connective means.
 - Stay below the tactics layer: produce goals, never proof states.
 
@@ -24,7 +24,7 @@ $$
 \end{aligned}
 $$
 
-The ambiguity of the first production is resolved by precedence and associativity:
+Negation is a prefix operator that binds tighter than every infix operator, so `¬ a ∧ b` is `(¬ a) ∧ b`. The ambiguity of the first production is resolved by precedence and associativity:
 
 | Operator | Precedence | Associativity | Reading of a chain |
 | --- | --- | --- | --- |
@@ -95,7 +95,7 @@ Connectives are lowered with the `logic` builders to basis terms; the parser doe
 
 ### Quantifiers only as goal sugar
 
-Raw `forall` is accepted at the start of a goal and nowhere else. A general binder in terms would need a quantifier constant and its rules in the logic layer, which the shipped subset does not have. Accepting it only at the start of a goal, where it means the same as a theorem-header binder, keeps the surface honest: anything that parses can be proved by the existing machinery, and `forall` inside a term fails with a clear `UnexpectedToken`.
+Raw `forall` is accepted at the start of a goal and nowhere else. A general binder in terms would need a quantifier constant and its rules in the logic layer, which the shipped subset does not have. Accepting it only at the start of a goal, where it means the same as a theorem-header binder, keeps the surface honest: anything that lowers can be proved by the existing machinery. `forall` inside a term is refused with `UnexpectedToken`. In a term the raw parser already refuses it, at its position. In a goal the raw parser accepts it after an operator, as in `⊢ p -> forall (x : bool), x`, and the error comes from lowering; that error carries offset 0 instead of the position of `forall`.
 
 ### Positions on every step
 
@@ -104,7 +104,7 @@ Every script step records its index, its branch path and its span. These are the
 ## Correctness and invariants
 
 - **No authority.** The parser builds terms and, through `parse_def_function`, calls the kernel's `DefOK` gate. It produces no theorem by any other route.
-- **Offsets refer to raw input.** For every `ParseError` and `SourceSpan`, offsets are positions in the original string, within $[0, \text{raw length}]$.
+- **Offsets refer to raw input.** For every `ParseError` and `SourceSpan`, offsets are positions in the original string, within $[0, \text{raw length}]$. Lowering errors carry no position of their own: `Elab`, `Logic` and `Sig` errors have none, and the few `Parse` errors raised during lowering, such as the nested `forall` above, use offset 0.
 - **Deterministic structure.** The precedence table defines one tree for every accepted chain; chains of `=` are rejected rather than guessed.
 - **Locals before constants.** A binder or `let` local shadows a constant with the same name, consistently with `elab` and the tactics layer.
 - **Step numbering.** `step_index` counts steps from 1 in source order across the whole script, including steps inside branch blocks, so the number in a diagnostic matches the reading order of the script.

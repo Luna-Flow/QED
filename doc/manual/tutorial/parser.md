@@ -2,6 +2,15 @@
 
 This tutorial reads formulas, goals and theorem scripts from text with the `parser` package. You will parse without a kernel state to inspect structure, lower text to kernel terms, locate errors in the original input, and read the step structure of a proof script. The theorem scripts used here come from the regression corpus.
 
+| I want to | Use |
+| --- | --- |
+| See how a formula groups, without a kernel state | `parse_term_raw`, `parse_goal_raw` |
+| Accept ASCII spellings such as `\and` and `\imp` | `normalize_parser_input`, which every parser calls |
+| Lower text to kernel terms and goals | `parse_term`, `parse_term_with_env`, `parse_goal`, `parse_goal_with_env` |
+| Declare locals | `empty_parse_env`, `parse_env_push_local`, `parse_let` |
+| Find where an error is | the `offset` of `ParseError` |
+| Read the steps of a theorem script | `parse_theorem_script_raw`, `parse_theorem_file_raw` |
+
 ## Quick start
 
 Import the packages in `moon.pkg`:
