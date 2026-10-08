@@ -118,4 +118,3 @@ pub struct SimplifyConfig {
 // Type aliases
 
 // Traits
-

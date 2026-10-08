@@ -312,4 +312,3 @@ pub type ConstId = Int
 pub type ExtensionCert = (ExtensionGate, Array[String], String)
 
 // Traits
-
