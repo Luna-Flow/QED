@@ -17,3 +17,6 @@ All notable changes to QED are recorded here. The format follows [Keep a Changel
 - Translate the manual into Chinese (`zh_CN`) and Japanese (`ja_JP`).
 - Rewrite `README.md` in English and add this changelog.
 - Update the documentation and code governance guides for the package pages, and the check results in the user manual and the conformance guide.
+- Review the reasoning of the design and API pages against the code: correct the `TypeDefOK`, `SpecOK` and infinity-anchor arguments in the kernel design, describe the derivations of conjunction, implication and disjunction rules as the `logic` code performs them, describe the quantified `intro` replay, and replace imprecise complexity and completeness claims.
+- Document behaviour found during the review: hypotheses are compared with constant identity stamps, `thm_bind_const_ids` rebinds unstamped constants after shadowing, the definition checks are name-based, `prop_mk_and` captures a free variable named `_p_and`, and lowering errors for a nested `forall` carry offset 0.
+- Restructure the manual overview and give every API page Purpose and Importing sections and every tutorial a task table, following the Luna-Flow documentation standard.
