@@ -2,6 +2,15 @@
 
 This tutorial drives a proof state by hand with the `tactics` package: you state a goal, apply steps one at a time, look at the pending goals in between, and collect the kernel theorem at the end. It is what the prover does for every proof script, without the parsing and scheduling.
 
+| I want to | Use |
+| --- | --- |
+| Start a proof of a goal | `mk_goal`, `ps_init` |
+| Apply one step or a list of steps | `ps_apply`, `ps_apply_script` with `step_intro`, `step_split`, `step_exact`, ... |
+| Look at the open goals | `ps_goal_count`, `ps_current_goal`, `ps_current_local_hyps`, `ps_current_branch_path` |
+| Get the kernel theorem at the end | `ps_qed` |
+| Close a goal with a theorem built elsewhere | `ps_close_current_with_th` |
+| Work on one pending goal on its own | `ps_isolate_pending_at`, `ps_close_frame` |
+
 ## Quick start
 
 Import the packages in `moon.pkg`:

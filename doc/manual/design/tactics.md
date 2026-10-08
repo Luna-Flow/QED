@@ -40,13 +40,13 @@ Each step below is a valid tactic; the justification is the kernel derivation in
 
 Validity of each line is the corresponding natural-deduction rule, derived in the [logic design](logic.md). For `intro` on an implication the subgoal has $a$ among its hypotheses, so implication introduction can discharge it, and the result has hypotheses $\Gamma$ again.
 
-`intro x` also applies to a goal of the form $(\lambda y.\,P) = (\lambda y.\,\top)$, which is HOL's encoding of $\forall y.\,P$. The subgoal is $\Gamma \vdash P[x'/y]$ for a fresh variable $x'$, and the justification is
+`intro x` also applies to a goal of the form $(\lambda y.\,P) = (\lambda y.\,\top)$, with $\top$ the constant `T`, which is HOL's encoding of $\forall y.\,P$. The kernel reads the two abstractions back with a generated binder name $z$ (`_b0`, `_b1`, ...) that is fresh for the conclusion, and the subgoal is $\Gamma \vdash P[z/y]$ with $z$ now free; the local `x` names it. When the subgoal is proved, the justification renames $z$ to a variable $x'$ chosen fresh against the goal, its locals and its hypotheses, and abstracts:
 
 $$
-\frac{\dfrac{\Gamma \vdash P \qquad \vdash \top}{\Gamma \vdash P = \top}\;\textsf{DEDUCT\_ANTISYM\_RULE}}{\Gamma \vdash (\lambda x'.\,P) = (\lambda x'.\,\top)}\;\textsf{ABS}
+\frac{\dfrac{\dfrac{\Gamma \vdash P[z/y] \qquad \vdash \top}{\Gamma \vdash P[z/y] = \top}\;\textsf{DEDUCT\_ANTISYM\_RULE}}{\Gamma \vdash P[x'/y] = \top}\;\textsf{INST}\,[z \mapsto x']}{\Gamma \vdash (\lambda x'.\,P[x'/y]) = (\lambda x'.\,\top)}\;\textsf{ABS}
 $$
 
-where ABS needs $x' \notin \mathrm{FV}(\Gamma)$, which is why the replay binder is chosen fresh against the goal, its locals and its hypotheses.
+The last line is the goal up to α-equivalence. When $z$ does not occur free in $\Gamma$, INST leaves $\Gamma$ unchanged and ABS applies, because $x'$ is fresh by construction. But $z$ is only fresh for the conclusion. If a hypothesis happens to contain a free variable with the generated name, the subgoal $\Gamma \vdash P[z/y]$ speaks about that variable, a step may close it using the hypothesis, and the replay then fails with `Logic(VarFreeInHyp)`. The step is then not a valid tactic in the LCF sense, but the failure is caught by the kernel, as described below. Goals from theorem scripts never reach this case, because the parser lowers `forall` by dropping the quantifier, not into this encoding.
 
 ## Design decisions
 

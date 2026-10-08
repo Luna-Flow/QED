@@ -1,8 +1,25 @@
 # tactics API
 
+## Purpose
+
 The `tactics` package (`Luna-Flow/QED/tactics`) runs proofs backwards. A `ProofState` holds a root goal and a list of pending subgoals; each `TacticStep` transforms the first pending goal, and when the last goal closes the package replays the recorded steps forward through the `logic` and kernel rules to build the theorem. `ps_qed` returns that theorem only if it proves exactly the root goal. The package depends on `kernel` and `logic`.
 
 The relation between steps and kernel rules is explained in the [tactics design](../design/tactics.md); the [tactics tutorial](../tutorial/tactics.md) proves goals step by step. Users who write proof scripts reach this package through the [prover](prover.md).
+
+## Importing
+
+Add the package to your `moon.pkg`:
+
+```moonbit nocheck
+import {
+  "Luna-Flow/QED/tactics",
+  "Luna-Flow/QED/kernel",
+  "Luna-Flow/QED/logic",
+  "Luna-Flow/QED/parser",
+}
+```
+
+The examples on this page are blackbox tests. They refer to this package as `@tactics` and also use `@kernel`, `@logic` and `@parser`, so they import all of these packages.
 
 ## Goals
 
