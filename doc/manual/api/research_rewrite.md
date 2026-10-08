@@ -1,11 +1,27 @@
 # research_rewrite API
 
+## Purpose
+
 The `research_rewrite` package (`Luna-Flow/QED/research_rewrite`) is a research prototype for rewriting and simplifying proof goals. It rewrites the conclusion of a goal at a chosen position, records how each step can be replayed with kernel rules, and can check such a record again. It depends only on `kernel` and `logic`.
 
 > [!IMPORTANT]
 > This package is research-only and not shipped. No other package uses it, theorem scripts have no `rewrite` or `simp` step, and the go/no-go review in `research/rewrite-simplify/` concluded "No-Go" for promotion. Its interface may change or disappear.
 
 The [research_rewrite design](../design/research_rewrite.md) explains the replay model, and the [research_rewrite tutorial](../tutorial/research_rewrite.md) runs a rewrite.
+
+## Importing
+
+Add the package to your `moon.pkg`:
+
+```moonbit nocheck
+import {
+  "Luna-Flow/QED/research_rewrite",
+  "Luna-Flow/QED/kernel",
+  "Luna-Flow/QED/logic",
+}
+```
+
+The examples on this page are blackbox tests. They refer to this package as `@research_rewrite` and also use `@kernel` and `@logic`, so they import all of these packages.
 
 ## Requests
 

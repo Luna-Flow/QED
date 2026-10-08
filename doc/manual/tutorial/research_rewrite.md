@@ -2,6 +2,14 @@
 
 This tutorial runs the rewriting prototype of the `research_rewrite` package: rewrite one subterm with a local equation, check the recorded replay obligation, and simplify a connective application. The package is research-only and not part of the shipped prover, so use it to experiment, not to build on.
 
+| I want to | Use |
+| --- | --- |
+| Rewrite a subterm of a goal with a local equation | `research_rewrite_request`, `research_local_equality`, `research_rewrite_term_concl` |
+| Rewrite with a theorem, or right to left | `research_explicit_theorem`, `research_right_to_left` |
+| Choose where to rewrite | `research_site_comb_fun`, `research_site_comb_arg` |
+| Unfold connectives and β-normalise until nothing changes | `research_simplify_config`, `research_simplify_term_concl` |
+| Check a recorded rewrite again | `research_validate_replay_obligation` |
+
 ## Quick start
 
 Import the packages in `moon.pkg`:

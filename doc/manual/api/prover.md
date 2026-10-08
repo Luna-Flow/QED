@@ -1,8 +1,23 @@
 # prover API
 
+## Purpose
+
 The `prover` package (`Luna-Flow/QED/prover`) runs theorem scripts. It parses a script or a file of scripts, installs the propositional prelude if asked, lowers each goal, runs the steps with the `tactics` package (scheduling `{ ... }` branch blocks itself), and returns either a kernel theorem, a structured failure, or an unfinished-proof report for a script with a `hole`. It also publishes the regression corpus that ties the [user manual](../manual.md) to the tests.
 
 The package orchestrates and reports; it holds no logical authority. The [prover design](../design/prover.md) explains the result model, and the [prover tutorial](../tutorial/prover.md) runs scripts from MoonBit.
+
+## Importing
+
+Add the package to your `moon.pkg`:
+
+```moonbit nocheck
+import {
+  "Luna-Flow/QED/prover",
+  "Luna-Flow/QED/kernel",
+}
+```
+
+The examples on this page are blackbox tests. They refer to this package as `@prover` and also use `@kernel`, so they import both packages.
 
 ## Options
 
@@ -360,7 +375,7 @@ pub enum QuantifierSurfaceOutcome {
 }
 ```
 
-### Classification enums
+### `ScriptLayout`, `PositiveCatalogClass`, `PositiveTacticCapability`, `NegativeFailureClass` and `NegativeErrorShape`
 
 These enums classify cases; the label functions below render them as the stable strings used in tests and documentation.
 

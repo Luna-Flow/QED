@@ -2,6 +2,14 @@
 
 This tutorial runs theorem scripts from MoonBit with the `prover` package and reads its three kinds of result: a proved theorem, a structured failure, and an unfinished proof. All scripts come from `examples/` and the regression corpus, so the outputs shown are the ones the tests check.
 
+| I want to | Use |
+| --- | --- |
+| Run one theorem script and read the outcome | `prove_theorem_script_detailed` |
+| Get just the theorem, or an error | `prove_theorem_script` |
+| Check every theorem of a file | `prove_theorem_file_results_detailed` |
+| Run against a state you prepared | `prover_options(false)` |
+| Reuse the scripts the tests run | `positive_corpus_cases`, `negative_corpus_cases`, `unfinished_corpus_cases`, `quantifier_corpus_cases` |
+
 ## Quick start
 
 Import the kernel and the prover in `moon.pkg`:

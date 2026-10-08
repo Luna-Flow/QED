@@ -1,8 +1,14 @@
 # cmd API
 
+## Purpose
+
 The `cmd` package (`Luna-Flow/QED/cmd`) is the command-line tool `qed-cmd`. It reads one theorem-script file, checks every theorem in it with the `prover` package, prints one report per theorem and exits with a status code. It is an executable package (`pkgtype(kind: "executable")` in its `moon.pkg`), so other packages cannot import it; its public functions are the tested surface of the tool and are listed here for maintainers.
 
 The [cmd tutorial](../tutorial/cmd.md) walks through the tool; the [cmd design](../design/cmd.md) explains its output contract. The full output contract is also in the [user manual](../manual.md).
+
+## Importing
+
+`cmd` is an executable package, so no `moon.pkg` can import it. Run it from the repository with `moon run src/cmd <file>`, or build it and call the `qed-cmd` binary; the [cmd tutorial](../tutorial/cmd.md) shows both. Programs that need the same results as values call the [prover](prover.md) instead.
 
 ## Command line
 

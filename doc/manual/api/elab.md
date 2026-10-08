@@ -1,8 +1,23 @@
 # elab API
 
+## Purpose
+
 The `elab` package (`Luna-Flow/QED/elab`) is the resolution boundary between names and the kernel. It resolves each name of a term once, against a local context and a kernel state, into a *resolved term* `RTerm` whose constants carry their kernel identity; it type-checks resolved terms against the state; and it lowers them to kernel terms. It also offers thin builders for kernel terms with type checks. It depends only on `kernel` and produces no theorems.
 
 The design behind the frozen identities is in the [elab design](../design/elab.md); the [elab tutorial](../tutorial/elab.md) walks through resolution and scope changes.
+
+## Importing
+
+Add the package to your `moon.pkg`:
+
+```moonbit nocheck
+import {
+  "Luna-Flow/QED/elab",
+  "Luna-Flow/QED/kernel",
+}
+```
+
+The examples on this page are blackbox tests. They refer to this package as `@elab` and also use `@kernel`, so they import both packages.
 
 ## Contexts
 

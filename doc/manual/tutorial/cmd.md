@@ -2,6 +2,13 @@
 
 This tutorial checks theorem-script files with the command-line tool `qed-cmd`. You run the examples shipped in `examples/`, read successes, errors and unfinished proofs, and use the exit status in scripts. No MoonBit code is needed.
 
+| I want to | Use |
+| --- | --- |
+| Check a file of theorem scripts | `moon run src/cmd <file>`, or `qed-cmd <file>` once built |
+| See the conclusion of every proved theorem | `-d`, as in `moon run src/cmd -- -d <file>` |
+| Accept unfinished proofs while working | `--no-warn` |
+| Fail a CI job on any error or hole | the exit status, without `--no-warn` |
+
 ## Quick start
 
 From the repository root, with the MoonBit toolchain installed:

@@ -2,6 +2,15 @@
 
 This tutorial resolves names into kernel terms with the `elab` package and shows what happens when the signature changes after resolution. Use it when you build your own frontend on top of the kernel, or when you want to understand the error `ScopeResolutionMismatch` that the parser can report.
 
+| I want to | Use |
+| --- | --- |
+| Resolve a name to a variable or a constant | `elab_resolve_name`, `elab_resolve_const` |
+| Build resolved terms bottom up | `elab_resolve_app`, `elab_resolve_abs`, `elab_resolve_eq` |
+| Use a polymorphic constant at an instance | `elab_resolve_const` with the instance type |
+| Type-check a resolved term against a state | `elab_check_core_type`, `rterm_well_formed` |
+| Turn a resolved term into a kernel term | `elab_lower_to_term` |
+| Detect that a term no longer means what it did | `elab_roundtrip_term` |
+
 ## Quick start
 
 Import the kernel and `elab` in `moon.pkg`:
