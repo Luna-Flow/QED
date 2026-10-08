@@ -6,7 +6,7 @@ pub struct Goal {
 
 ///|
 pub fn mk_goal(hyps : Array[Term], concl : Term) -> Goal {
-  Goal::{ hyps, concl }
+  Goal::{ hyps, concl, }
 }
 
 ///|

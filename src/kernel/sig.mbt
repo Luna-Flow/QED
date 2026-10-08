@@ -405,13 +405,13 @@ pub fn ks_sig(state : KernelState) -> GlobalSig {
 
 ///|
 pub fn ks_push_scope(state : KernelState) -> KernelState {
-  KernelState::{ sig: sig_push_scope(state.sig), theory: state.theory }
+  KernelState::{ sig: sig_push_scope(state.sig), theory: state.theory, }
 }
 
 ///|
 pub fn ks_pop_scope(state : KernelState) -> Result[KernelState, SigError] {
   match sig_pop_scope(state.sig) {
-    Some(sig2) => Ok(KernelState::{ sig: sig2, theory: state.theory })
+    Some(sig2) => Ok(KernelState::{ sig: sig2, theory: state.theory, })
     None => Err(ScopeUnderflow)
   }
 }

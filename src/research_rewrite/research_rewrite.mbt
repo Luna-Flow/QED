@@ -79,7 +79,7 @@ pub fn research_rewrite_request(
   direction : RewriteDirection,
   site : Array[RewriteSiteStep],
 ) -> RewriteRequest {
-  RewriteRequest::{ witness, direction, site }
+  RewriteRequest::{ witness, direction, site, }
 }
 
 ///|
@@ -149,7 +149,7 @@ pub fn research_replay_segment(
   after_concl : Term,
   steps : Array[ReplayStepKind],
 ) -> ReplaySegment {
-  ReplaySegment::{ request, before_concl, after_concl, steps }
+  ReplaySegment::{ request, before_concl, after_concl, steps, }
 }
 
 ///|
@@ -158,7 +158,7 @@ pub fn research_replay_obligation(
   after_concl : Term,
   segments : Array[ReplaySegment],
 ) -> ReplayObligation {
-  ReplayObligation::{ before_concl, after_concl, segments }
+  ReplayObligation::{ before_concl, after_concl, segments, }
 }
 
 ///|
@@ -168,7 +168,7 @@ pub fn research_simplify_config(
   allow_beta : Bool,
   rewrite_requests : Array[RewriteRequest],
 ) -> SimplifyConfig {
-  SimplifyConfig::{ step_limit, allow_unfold, allow_beta, rewrite_requests }
+  SimplifyConfig::{ step_limit, allow_unfold, allow_beta, rewrite_requests, }
 }
 
 ///|

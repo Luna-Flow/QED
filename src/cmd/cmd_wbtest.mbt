@@ -349,7 +349,7 @@ test "cmd unfinished helper renders stable unfinished contract" {
     Some(4),
     [1, 2],
     "[] |- Const(T)",
-    [CmdLocalHypSummary::{ name: "h", term_summary: "Const(T)" }],
+    [CmdLocalHypSummary::{ name: "h", term_summary: "Const(T)", }],
     Some("h1"),
     "proof is unfinished",
   )

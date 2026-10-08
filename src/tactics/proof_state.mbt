@@ -614,7 +614,7 @@ fn finalize_completed_theorem(
   if rest.length() == 0 {
     match validate_root_theorem(state, th, root, prelude) {
       Ok(_) =>
-        Ok(ProofState::{ root_goal: root, pending: [], final_thm: Some(th) })
+        Ok(ProofState::{ root_goal: root, pending: [], final_thm: Some(th), })
       Err(e) => Err(e)
     }
   } else {
@@ -939,7 +939,7 @@ fn pending_goal_after_intro(
     hyps.push(intro_term)
   }
   let locals = locals
-  locals.push(LocalHyp::{ name, term: intro_term })
+  locals.push(LocalHyp::{ name, term: intro_term, })
   if push_imp_prefix {
     ip.push(intro_term)
   }

@@ -25,13 +25,13 @@ pub fn default_prop_prelude() -> PropPrelude {
     and_name: "and",
     or_name: "or",
     rules: [
-      PropRule::{ name: "imp_intro", premise_count: 1 },
-      PropRule::{ name: "imp_elim", premise_count: 2 },
-      PropRule::{ name: "and_intro", premise_count: 2 },
-      PropRule::{ name: "and_elim_l", premise_count: 1 },
-      PropRule::{ name: "and_elim_r", premise_count: 1 },
-      PropRule::{ name: "or_intro_l", premise_count: 1 },
-      PropRule::{ name: "or_intro_r", premise_count: 1 },
+      PropRule::{ name: "imp_intro", premise_count: 1, },
+      PropRule::{ name: "imp_elim", premise_count: 2, },
+      PropRule::{ name: "and_intro", premise_count: 2, },
+      PropRule::{ name: "and_elim_l", premise_count: 1, },
+      PropRule::{ name: "and_elim_r", premise_count: 1, },
+      PropRule::{ name: "or_intro_l", premise_count: 1, },
+      PropRule::{ name: "or_intro_r", premise_count: 1, },
     ],
   }
 }

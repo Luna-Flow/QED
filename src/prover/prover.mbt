@@ -29,7 +29,7 @@ pub struct ProverLocalHyp {
 
 ///|
 pub fn prover_local_hyp(name : String, term : Term) -> ProverLocalHyp {
-  ProverLocalHyp::{ name, term }
+  ProverLocalHyp::{ name, term, }
 }
 
 ///|
@@ -106,7 +106,7 @@ pub enum ProverFileRunResult {
 
 ///|
 pub fn default_prover_options() -> ProverOptions {
-  ProverOptions::{ auto_install_prelude: true }
+  ProverOptions::{ auto_install_prelude: true, }
 }
 
 ///|
@@ -275,7 +275,7 @@ fn prover_failure(
 ///|
 fn prover_local_hyps_of(ps : ProofState) -> Array[ProverLocalHyp] {
   ps_current_local_hyps(ps).map(fn(hyp) {
-    ProverLocalHyp::{ name: local_hyp_name(hyp), term: local_hyp_term(hyp) }
+    ProverLocalHyp::{ name: local_hyp_name(hyp), term: local_hyp_term(hyp), }
   })
 }
 
@@ -1044,7 +1044,7 @@ fn prove_syn_theorem_script_detailed(
   let local_hyps = prover_local_hyps_of(ps)
   match ps_qed(ps) {
     Ok(th) =>
-      Proved(ProverSuccess::{ state: st1, theorem_name: syn.name, thm: th })
+      Proved(ProverSuccess::{ state: st1, theorem_name: syn.name, thm: th, })
     Err(e) =>
       prover_failure(
         Some(syn.name),
@@ -1159,7 +1159,7 @@ pub fn prove_theorem_file_results_detailed(
   if items.length() == 0 {
     panic()
   } else {
-    FileChecked(ProverFileReport::{ state: current_state, items })
+    FileChecked(ProverFileReport::{ state: current_state, items, })
   }
 }
 

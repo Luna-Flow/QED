@@ -87,7 +87,7 @@ pub fn default_cmd_options() -> CmdOptions {
 
 ///|
 pub fn cmd_options(auto_install_prelude : Bool) -> CmdOptions {
-  CmdOptions::{ auto_install_prelude, detailed_success: false, no_warn: false }
+  CmdOptions::{ auto_install_prelude, detailed_success: false, no_warn: false, }
 }
 
 ///|
@@ -95,7 +95,7 @@ pub fn cmd_options_with_detail(
   auto_install_prelude : Bool,
   detailed_success : Bool,
 ) -> CmdOptions {
-  CmdOptions::{ auto_install_prelude, detailed_success, no_warn: false }
+  CmdOptions::{ auto_install_prelude, detailed_success, no_warn: false, }
 }
 
 ///|
@@ -104,7 +104,7 @@ pub fn cmd_options_full(
   detailed_success : Bool,
   no_warn : Bool,
 ) -> CmdOptions {
-  CmdOptions::{ auto_install_prelude, detailed_success, no_warn }
+  CmdOptions::{ auto_install_prelude, detailed_success, no_warn, }
 }
 
 ///|
@@ -188,7 +188,10 @@ fn render_goal_summary(goal : Goal) -> String {
 
 ///|
 fn summarize_local_hyp(hyp : ProverLocalHyp) -> CmdLocalHypSummary {
-  CmdLocalHypSummary::{ name: hyp.name, term_summary: term_to_string(hyp.term) }
+  CmdLocalHypSummary::{
+    name: hyp.name,
+    term_summary: term_to_string(hyp.term),
+  }
 }
 
 ///|
@@ -434,7 +437,7 @@ fn cmd_file_report_from_prover(
         }
     }
   }
-  FileReport(CmdFileReport::{ path, items, detailed_success, no_warn })
+  FileReport(CmdFileReport::{ path, items, detailed_success, no_warn, })
 }
 
 ///|

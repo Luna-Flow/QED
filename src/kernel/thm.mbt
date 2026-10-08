@@ -28,7 +28,7 @@ fn mk_thm_with_origin(
   concl : DbTerm,
   def_origin : String?,
 ) -> Thm {
-  Thm::{ hyps: db_hyps_dedup(hyps), concl, def_origin, const_ids: [] }
+  Thm::{ hyps: db_hyps_dedup(hyps), concl, def_origin, const_ids: [], }
 }
 
 ///|
@@ -43,7 +43,7 @@ fn mk_def_thm(def_head : String, concl : DbTerm) -> Thm {
 
 ///|
 fn thm_with_const_ids(th : Thm, const_ids : Array[(String, ConstId)]) -> Thm {
-  Thm::{ hyps: th.hyps, concl: th.concl, def_origin: th.def_origin, const_ids }
+  Thm::{ hyps: th.hyps, concl: th.concl, def_origin: th.def_origin, const_ids, }
 }
 
 ///|

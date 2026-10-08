@@ -30,7 +30,7 @@ pub enum ElabError {
 
 ///|
 pub fn empty_elab_ctx() -> ElabCtx {
-  ElabCtx::{ locals: [] }
+  ElabCtx::{ locals: [], }
 }
 
 ///|
@@ -263,7 +263,7 @@ fn mk_resolved_const(
   inst_ty : HolType,
   schema_ty : HolType,
 ) -> ResolvedConst {
-  ResolvedConst::{ name, const_id, inst_ty, schema_ty }
+  ResolvedConst::{ name, const_id, inst_ty, schema_ty, }
 }
 
 ///|

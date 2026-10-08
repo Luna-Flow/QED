@@ -173,12 +173,12 @@ fn mk_parse_error(
   offset : Int,
   detail : String,
 ) -> ParseError {
-  ParseError::{ code, offset, detail }
+  ParseError::{ code, offset, detail, }
 }
 
 ///|
 pub fn empty_parse_env() -> ParseEnv {
-  ParseEnv::{ locals: [] }
+  ParseEnv::{ locals: [], }
 }
 
 ///|
@@ -248,7 +248,7 @@ fn push_normalized_char(
 pub fn source_span(start_offset : Int, end_offset : Int) -> SourceSpan {
   let start = if start_offset < 0 { 0 } else { start_offset }
   let end = if end_offset < start { start } else { end_offset }
-  SourceSpan::{ start_offset: start, end_offset: end }
+  SourceSpan::{ start_offset: start, end_offset: end, }
 }
 
 ///|
@@ -621,70 +621,70 @@ fn lex_tokens_layout(
   while true {
     match view {
       [] => {
-        out.push(Token::{ kind: TkEnd, offset: off })
+        out.push(Token::{ kind: TkEnd, offset: off, })
         return Ok(out)
       }
       [c, .. rest] =>
         if keep_newlines && c == '\n' {
-          out.push(Token::{ kind: TkNewline, offset: off })
+          out.push(Token::{ kind: TkNewline, offset: off, })
           view = rest
           off = off + 1
         } else if c.is_ascii_whitespace() {
           view = rest
           off = off + 1
         } else if c == '(' {
-          out.push(Token::{ kind: TkLParen, offset: off })
+          out.push(Token::{ kind: TkLParen, offset: off, })
           view = rest
           off = off + 1
         } else if c == ')' {
-          out.push(Token::{ kind: TkRParen, offset: off })
+          out.push(Token::{ kind: TkRParen, offset: off, })
           view = rest
           off = off + 1
         } else if c == '{' {
-          out.push(Token::{ kind: TkLBrace, offset: off })
+          out.push(Token::{ kind: TkLBrace, offset: off, })
           view = rest
           off = off + 1
         } else if c == '}' {
-          out.push(Token::{ kind: TkRBrace, offset: off })
+          out.push(Token::{ kind: TkRBrace, offset: off, })
           view = rest
           off = off + 1
         } else if c == '∧' {
-          out.push(Token::{ kind: TkAnd, offset: off })
+          out.push(Token::{ kind: TkAnd, offset: off, })
           view = rest
           off = off + 1
         } else if c == '∨' {
-          out.push(Token::{ kind: TkOr, offset: off })
+          out.push(Token::{ kind: TkOr, offset: off, })
           view = rest
           off = off + 1
         } else if c == ',' {
-          out.push(Token::{ kind: TkComma, offset: off })
+          out.push(Token::{ kind: TkComma, offset: off, })
           view = rest
           off = off + 1
         } else if c == ';' {
-          out.push(Token::{ kind: TkSemi, offset: off })
+          out.push(Token::{ kind: TkSemi, offset: off, })
           view = rest
           off = off + 1
         } else if c == ':' {
           match rest {
             ['=', .. rest2] => {
-              out.push(Token::{ kind: TkAssign, offset: off })
+              out.push(Token::{ kind: TkAssign, offset: off, })
               view = rest2
               off = off + 2
             }
             _ => {
-              out.push(Token::{ kind: TkColon, offset: off })
+              out.push(Token::{ kind: TkColon, offset: off, })
               view = rest
               off = off + 1
             }
           }
         } else if c == '=' {
-          out.push(Token::{ kind: TkEq, offset: off })
+          out.push(Token::{ kind: TkEq, offset: off, })
           view = rest
           off = off + 1
         } else if c == '-' {
           match rest {
             ['>', .. rest2] => {
-              out.push(Token::{ kind: TkArrow, offset: off })
+              out.push(Token::{ kind: TkArrow, offset: off, })
               view = rest2
               off = off + 2
             }
@@ -700,7 +700,7 @@ fn lex_tokens_layout(
         } else if c == '|' {
           match rest {
             ['-', .. rest2] => {
-              out.push(Token::{ kind: TkTurnstile, offset: off })
+              out.push(Token::{ kind: TkTurnstile, offset: off, })
               view = rest2
               off = off + 2
             }
@@ -714,15 +714,15 @@ fn lex_tokens_layout(
               )
           }
         } else if c == '⊢' {
-          out.push(Token::{ kind: TkTurnstile, offset: off })
+          out.push(Token::{ kind: TkTurnstile, offset: off, })
           view = rest
           off = off + 1
         } else if c == '¬' {
-          out.push(Token::{ kind: TkNot, offset: off })
+          out.push(Token::{ kind: TkNot, offset: off, })
           view = rest
           off = off + 1
         } else if c == '∀' {
-          out.push(Token::{ kind: TkForall, offset: off })
+          out.push(Token::{ kind: TkForall, offset: off, })
           view = rest
           off = off + 1
         } else if c == '\\' {
@@ -730,13 +730,13 @@ fn lex_tokens_layout(
             [r, ..] if is_name_start(r) => {
               let (esc_name, rest2, n) = read_name(rest)
               if esc_name == "and" {
-                out.push(Token::{ kind: TkAnd, offset: off })
+                out.push(Token::{ kind: TkAnd, offset: off, })
               } else if esc_name == "or" {
-                out.push(Token::{ kind: TkOr, offset: off })
+                out.push(Token::{ kind: TkOr, offset: off, })
               } else if esc_name == "not" {
-                out.push(Token::{ kind: TkNot, offset: off })
+                out.push(Token::{ kind: TkNot, offset: off, })
               } else if esc_name == "imp" {
-                out.push(Token::{ kind: TkArrow, offset: off })
+                out.push(Token::{ kind: TkArrow, offset: off, })
               } else {
                 return Err(
                   mk_parse_error(
@@ -760,7 +760,7 @@ fn lex_tokens_layout(
           }
         } else if is_name_start(c) {
           let (name, rest2, n) = read_name([c, ..rest])
-          out.push(Token::{ kind: TkName(name), offset: off })
+          out.push(Token::{ kind: TkName(name), offset: off, })
           view = rest2
           off = off + n
         } else if is_operator_like(c) {
@@ -793,7 +793,7 @@ fn lex_tokens(src : String) -> Result[Array[Token], ParseError] {
 ///|
 fn token_at(tokens : Array[Token], idx : Int) -> Token {
   if idx < 0 || idx >= tokens.length() {
-    Token::{ kind: TkEnd, offset: tokens.length() }
+    Token::{ kind: TkEnd, offset: tokens.length(), }
   } else {
     tokens[idx]
   }
@@ -1480,7 +1480,7 @@ fn parse_goal_tokens(tokens : Array[Token]) -> Result[SynGoal, ParseError] {
     Ok(t) => t
     Err(e) => return Err(e)
   }
-  Ok(SynGoal::{ hyps, concl })
+  Ok(SynGoal::{ hyps, concl, })
 }
 
 ///|
@@ -1496,7 +1496,7 @@ fn slice_tokens_with_end(
     i = i + 1
   }
   let end_offset = if end > start { tokens[end - 1].offset + 1 } else { start }
-  out.push(Token::{ kind: TkEnd, offset: end_offset })
+  out.push(Token::{ kind: TkEnd, offset: end_offset, })
   out
 }
 
@@ -1516,7 +1516,7 @@ fn slice_tokens_without_newlines_with_end(
     i = i + 1
   }
   let end_offset = if end > start { tokens[end - 1].offset + 1 } else { start }
-  out.push(Token::{ kind: TkEnd, offset: end_offset })
+  out.push(Token::{ kind: TkEnd, offset: end_offset, })
   out
 }
 
@@ -2357,7 +2357,7 @@ fn parse_theorem_script_range(
     Err(e) => return Err(e)
   }
 
-  Ok(SynTheoremScript::{ name, binders, goal, goal_src, goal_span, body })
+  Ok(SynTheoremScript::{ name, binders, goal, goal_src, goal_span, body, })
 }
 
 ///|
@@ -2824,7 +2824,7 @@ fn lower_syn_resolved_goal_with_env(
     }
   }
   match resolve_syn_goal_term_with_env(state, env, syn_goal.concl) {
-    Ok(concl) => Ok(ResolvedGoal::{ hyps, concl })
+    Ok(concl) => Ok(ResolvedGoal::{ hyps, concl, })
     Err(e) => Err(e)
   }
 }
@@ -2855,7 +2855,7 @@ pub fn lower_syn_goal_with_env(
     }
   }
   match lower_syn_goal_term_with_env(state, env, syn_goal.concl) {
-    Ok(concl) => Ok(ParsedGoal::{ hyps, concl })
+    Ok(concl) => Ok(ParsedGoal::{ hyps, concl, })
     Err(e) => Err(e)
   }
 }
