@@ -39,3 +39,31 @@ using @logic {install_prop_prelude}
 
 ///|
 using @parser {parsed_goal_concl, parsed_goal_hyps}
+
+///|
+/// Package-local names used by blackbox tests; blackbox tests must import
+/// them explicitly from `@parser`.
+using @parser {
+  type ParseBridgeError,
+  type ParseError,
+  type SynGoal,
+  type SynScriptStep,
+  type SynTacticStep,
+  type SynTerm,
+  empty_parse_env,
+  normalize_parser_input,
+  normalized_input_raw_offset_at,
+  parse_def_function,
+  parse_env_local_at,
+  parse_env_local_count,
+  parse_goal,
+  parse_goal_raw,
+  parse_goal_with_env,
+  parse_let,
+  parse_resolved_term_with_env,
+  parse_term,
+  parse_term_raw,
+  parse_term_with_env,
+  parse_theorem_file_raw,
+  parse_theorem_script_raw,
+}

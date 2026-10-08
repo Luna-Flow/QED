@@ -96,3 +96,45 @@ test "alias keepalive for tactics imports" {
   let _ = prop_mk_and
   let _ = prop_mk_or
 }
+
+///|
+/// Package-local names used by blackbox tests; blackbox tests must import
+/// them explicitly from `@tactics`.
+using @tactics {
+  type Goal,
+  type ProofGoalView,
+  type ProofState,
+  goal_concl,
+  goal_hyp_count,
+  goal_hyps,
+  local_hyp_name,
+  local_hyp_term,
+  mk_goal,
+  proof_goal_view_branch_path,
+  proof_goal_view_goal,
+  proof_goal_view_locals,
+  proof_state_snapshot_current,
+  proof_state_snapshot_pending_goal_count,
+  proof_state_snapshot_root_goal,
+  ps_apply,
+  ps_apply_script,
+  ps_close_current_with_th,
+  ps_close_frame,
+  ps_current_branch_path,
+  ps_current_focus,
+  ps_current_goal,
+  ps_goal_count,
+  ps_init,
+  ps_isolate_pending_at,
+  ps_pending_focus_at,
+  ps_qed,
+  ps_root_goal,
+  ps_snapshot,
+  step_apply,
+  step_assumption,
+  step_exact,
+  step_intro,
+  step_left,
+  step_right,
+  step_split,
+}

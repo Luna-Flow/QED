@@ -82,3 +82,32 @@ test "alias keepalive for elab imports" {
   let _ = db_term_eq
   let _ = ind_ty
 }
+
+///|
+/// Package-local names used by blackbox tests; blackbox tests must import
+/// them explicitly from `@elab`.
+using @elab {
+  elab_abs,
+  elab_app,
+  elab_app2,
+  elab_check_core_type,
+  elab_const,
+  elab_const_instance,
+  elab_core_type_of,
+  elab_ctx_extend,
+  elab_eq,
+  elab_is_prop,
+  elab_lower_to_db,
+  elab_lower_to_term,
+  elab_require_prop,
+  elab_resolve_abs,
+  elab_resolve_const_by_name,
+  elab_resolve_const_instance,
+  elab_resolve_named_term,
+  elab_resolve_var,
+  elab_var,
+  empty_elab_ctx,
+  rconst_id,
+  rconst_inst_ty,
+  rterm_const,
+}

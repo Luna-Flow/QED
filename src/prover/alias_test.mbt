@@ -87,3 +87,14 @@ using @prover {
   prover_local_hyp,
   prover_unfinished,
 }
+
+///|
+/// Package-local names used by blackbox tests; blackbox tests must import
+/// them explicitly from `@prover`.
+using @prover {
+  type NegativeErrorShape,
+  default_prover_options,
+  prove_theorem_script,
+  prover_options,
+  script_layout_label,
+}
