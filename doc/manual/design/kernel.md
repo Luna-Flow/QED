@@ -46,7 +46,7 @@ $$
 \frac{t : \tau}{\lambda (x{:}\sigma).\,t : \sigma \to \tau}
 $$
 
-Typing is syntax-directed and every well-typed term has exactly one type, so `type_of` is a total function into `HolType?` that runs in linear time.
+Typing is syntax-directed and every well-typed term has exactly one type, so `type_of` is a total function into `HolType?`: it makes one pass over the term and, at each application, compares the argument type with the domain of the function type, so its cost is the size of the term times the size of the largest type compared.
 
 The only logical constants of the core are equality and choice:
 
@@ -70,7 +70,7 @@ $$
 
 [^debruijn]: N. G. de Bruijn, "Lambda calculus notation with nameless dummies", Indagationes Mathematicae 34, 1972.
 
-The conversion $\lceil\cdot\rceil$ (`to_db_term`) satisfies $t_1 \equiv_\alpha t_2 \iff \lceil t_1 \rceil = \lceil t_2 \rceil$, so α-equivalence becomes structural equality (`db_term_eq`). QED's De Bruijn terms are *typed*: bound occurrences and binders keep their types. Two consequences follow. Abstractions over different types never collapse, since $\lceil \lambda (x{:}\sigma).\,x \rceil \ne \lceil \lambda (x{:}\tau).\,x \rceil$ for $\sigma \ne \tau$. And a term such as $\lambda (x{:}A).\,(x{:}B)$, whose inner variable has the name of the binder but another type, has no conversion at all: `to_db_term` returns `None` and every rule reports `BoundaryFailure`. HOL Light reads the inner `x` as a separate free variable; QED rejects the term, so that a binder name always refers to one variable.
+The conversion $\lceil\cdot\rceil$ (`to_db_term`) satisfies $t_1 \equiv_\alpha t_2 \iff \lceil t_1 \rceil = \lceil t_2 \rceil$, so α-equivalence becomes structural equality (`db_term_eq`). Constants carry one more field than in HOL Light, their identity stamp (see "Every rule is checked against a state" below), and `db_term_eq` compares it too: an occurrence built with `mk_const` (stamp $-1$, unresolved) and one built with `ks_mk_const` (the resolved identity) are different De Bruijn terms. `db_term_logical_eq` ignores the stamp. QED's De Bruijn terms are *typed*: bound occurrences and binders keep their types. Two consequences follow. Abstractions over different types never collapse, since $\lceil \lambda (x{:}\sigma).\,x \rceil \ne \lceil \lambda (x{:}\tau).\,x \rceil$ for $\sigma \ne \tau$. And a term such as $\lambda (x{:}A).\,(x{:}B)$, whose inner variable has the name of the binder but another type, has no conversion at all: `to_db_term` returns `None` and every rule reports `BoundaryFailure`. HOL Light reads the inner `x` as a separate free variable; QED rejects the term, so that a binder name always refers to one variable.
 
 ### Substitution and β-reduction
 
@@ -97,7 +97,7 @@ Substitution for *free* variables (`db_subst_free_parallel`, used by INST) is si
 
 ### Sequents and theorems
 
-A theorem is a sequent $\Gamma \vdash p$: a finite set $\Gamma$ of propositions (terms of type `bool`) and a proposition $p$. The kernel stores $\Gamma$ and $p$ as De Bruijn terms, so $\Gamma$ is literally a set of α-equivalence classes: inserting a hypothesis that is α-equivalent to one already present does nothing (`db_hyps_union`).
+A theorem is a sequent $\Gamma \vdash p$: a finite set $\Gamma$ of propositions (terms of type `bool`) and a proposition $p$. The kernel stores $\Gamma$ and $p$ as De Bruijn terms and deduplicates hypotheses with `db_term_eq`, so $\Gamma$ is a set of α-equivalence classes: inserting a hypothesis that is α-equivalent to one already present does nothing (`db_hyps_union`). Because `db_term_eq` also compares constant stamps, two hypotheses that differ only in the stamp of a constant stay two entries, and DEDUCT_ANTISYM_RULE removes only the entry whose stamps match. This can leave an extra hypothesis (the rule is weaker than intended), never a missing one, so it does not affect soundness; build all terms of one proof with `ks_mk_const` to avoid it.
 
 The intended meaning is the standard semantics of HOL: types denote non-empty sets, $\mathit{bool}$ denotes $\{\top, \bot\}$, $\sigma \to \tau$ denotes the full set of functions, $=$ denotes identity and $@$ denotes a choice function. A sequent is *valid* when every model and every valuation of the free variables that make all of $\Gamma$ true also make $p$ true.
 
@@ -109,7 +109,7 @@ The intended meaning is the standard semantics of HOL: types denote non-empty se
 
 **Options.** An LCF-style abstract type; proof terms checked by a separate checker (the approach of Coq and Lean); or a trusted record with a "verified" flag.
 
-**Choice.** `Thm` is declared `type Thm` in the interface: its fields are private and it has no public constructor. The only functions that return a `Thm` are the eleven rule functions (`refl_checked` to `inst_checked`, plus `add_assum_checked`), the gates `ks_define_const_thm` and `ks_specify_const`, the stored-theorem readers `ks_definition_theorem`, `ks_typedef_contract` and `ks_ind_infinity_axiom`, and `thm_bind_const_ids`, which returns its argument with constant identities recorded after checking it. MoonBit enforces this at compile time.
+**Choice.** `Thm` is declared `type Thm` in the interface: its fields are private and it has no public constructor. The only functions that return a `Thm` are the eleven rule functions (`refl_checked` to `inst_checked`, plus `add_assum_checked`), the gates `ks_define_const_thm` and `ks_specify_const`, the stored-theorem readers `ks_definition_theorem`, `ks_typedef_contract` and `ks_ind_infinity_axiom`, and `thm_bind_const_ids`, which returns its argument with its constant identities resolved again in the given state and checked (see "Every rule is checked against a state" below). MoonBit enforces this at compile time.
 
 **Why.** With an abstract type the trusted base is exactly this package. Proof terms would add a second trusted component, the checker, and a large proof object per theorem; QED's specification makes the LCF discipline normative (obligation "Interface safety") and checks it by inspecting the interface file.
 
@@ -151,7 +151,7 @@ One deviation: QED's BETA accepts any redex $(\lambda x.\,t)\,u$, whereas HOL Li
 
 ### Weakening is provided natively
 
-`add_assum_checked` implements weakening, $\Gamma \vdash p$ gives $\Gamma \cup \{q\} \vdash p$. It is not one of the ten rules and the specification does not list it, but it is a derived rule, so it adds no theorems:
+`add_assum_checked` implements weakening: for a proposition $q$, $\Gamma \vdash p$ gives $\Gamma \cup \{q\} \vdash p$. It is not one of the ten rules and the specification does not list it, but it is a derived rule, so it adds no theorems. Both $p$ and $q$ have type $\mathit{bool}$ (every conclusion does, and the rule checks $q$), so the two rules below apply:
 
 $$
 \begin{aligned}
@@ -162,7 +162,7 @@ $$
 \end{aligned}
 $$
 
-The hypothesis set of line 4 is $\Gamma \cup \{q\}$: the part $\{q\} \setminus \{p\}$ is contained in $\{q\}$, and $(\Gamma \setminus \{q\}) \cup \{q\} = \Gamma \cup \{q\}$. The derivation works whether or not $q \equiv_\alpha p$ or $q \in \Gamma$. The native rule is a shortcut used by replay in the `logic` package to make hypothesis sets match exactly.
+The hypothesis set of line 4 is $\Gamma \cup \{q\}$: the part $\{q\} \setminus \{p\}$ is contained in $\{q\}$, and $(\Gamma \setminus \{q\}) \cup \{q\} = \Gamma \cup \{q\}$. The derivation works whether or not $q \equiv_\alpha p$ or $q \in \Gamma$, and it only uses set operations on hypotheses, so it gives the same hypothesis set as the native rule whatever equality the kernel uses to compare hypotheses. Every premise and result is checked against the same state, as in the native rule. The native rule is a shortcut used by replay in the `logic` package to make hypothesis sets match exactly.
 
 ### A named boundary over a De Bruijn core
 
@@ -182,6 +182,8 @@ The hypothesis set of line 4 is $\Gamma \cup \{q\}$: the part $\{q\} \setminus \
 
 **Why.** Name lookup changes as scopes are pushed and popped, but a recorded identity does not. Freezing identities makes resolution stable under scope mutation (the specification's "Resolution Freeze" theorem), and the check turns a stale theorem into an `InvalidInstantiation` failure instead of a silent change of meaning. The tutorial shows a theorem that is rejected inside a shadowing scope and accepted again after the scope is popped.
 
+**One exception: `thm_bind_const_ids`.** An occurrence built with `mk_const` has stamp $-1$, and the identity the theorem records for it is taken from the state when the theorem is built. `thm_bind_const_ids(state, th)` does not check that record: it resolves every unstamped occurrence again in `state` and records the new identity. Applied after a scope has shadowed a constant `c`, it turns a theorem about the outer `c` into a theorem about the inner one. This is sound, because only constants without a definition can be shadowed: `ks_add_const` and both definition gates refuse names that are already definition, representation or abstraction heads, so a shadowed constant is uninterpreted, and a theorem about an uninterpreted constant stays valid when another constant of the same type takes its place, just as INST may replace a free variable. It does break the letter of the freeze property, so code that relies on frozen identities should build constants with `ks_mk_const`, whose occurrences carry their identity and cannot be rebound.
+
 ### Extensions go through gates
 
 The theory grows in three ways, each guarded by a gate that checks side conditions and appends an `ExtensionCert`.
@@ -191,13 +193,15 @@ The theory grows in three ways, each guarded by a gate that checks side conditio
 | Condition | Error | Counterexample it prevents |
 | --- | --- | --- |
 | $t$ is closed | `DefinitionNotClosed` | $c = x$ would give $\vdash c = x$, then INST gives $\vdash c = y$ and so $\vdash x = y$ for all $x, y$. |
-| $c$ does not occur in $t$, even through earlier definitions | `DefinitionIsCyclic` | $c = \neg c$ would give $\vdash c = \neg c$, a contradiction. |
-| $\mathrm{tyvars}(t) \subseteq \mathrm{tyvars}(\tau)$ | `GhostTypeVariable` | $c = (\forall x{:}\alpha.\,\forall y{:}\alpha.\,x = y)$ with $c : \mathit{bool}$ is true at $\alpha = \mathit{unit}$ and false at $\alpha = \mathit{bool}$, yet both instances are the same constant $c$. |
-| $c$ is fresh | `DefinitionAlreadyExists` | Two definitions of one name would give $\vdash c = t_1$ and $\vdash c = t_2$, so $\vdash t_1 = t_2$. |
+| No constant named $c$ occurs in $t$, directly or through earlier definitions | `DefinitionIsCyclic` | $c = \neg c$ would give $\vdash c = \neg c$, a contradiction. |
+| $\mathrm{tyvars}(t) \subseteq \mathrm{tyvars}(\tau)$ | `GhostTypeVariable` | $c = (\forall x{:}\alpha.\,\forall y{:}\alpha.\,x = y)$ with $c : \mathit{bool}$ is true when $\alpha$ has one element and false at $\alpha = \mathit{bool}$; INST_TYPE gives both instances of the definition, with the same left-hand side $c$, so $\vdash \top = \bot$. |
+| $c$ has never been defined | `DefinitionAlreadyExists` | Two definitions of one name would give $\vdash c = t_1$ and $\vdash c = t_2$, so $\vdash t_1 = t_2$. |
 
-Under these conditions a definition is conservative: replacing every occurrence of $c$ by $t$ maps each proof in the extended theory to a proof in the old theory, and maps a theorem that does not mention $c$ to itself. The specification proves this as "Definition-level conservativity".
+The counterexamples in the second and last rows are stated, as in the specification, for constants identified by name. In the code the new constant always receives a fresh identity, so a name $c$ that occurs in $t$ can only denote an older constant, and a second definition of $c$ in an inner scope would get a new identity too; neither could then produce the contradiction shown. The two checks are kept anyway, by name and over the whole theory history: they make every definition read as non-circular and unique when constants are read by name, which is what the specification's freshness conditions require, and they keep the unfolding argument below simple. They are deliberately stricter than identities need: `ks_define_const` refuses `c := d` in an inner scope when an earlier definition of `d` mentions an outer, undefined constant named `c`.
 
-**`TypeDefOK`, type definition.** `ks_register_type_definition` admits a type $\kappa(\bar\alpha)$ in bijection with $\{x : \rho \mid P\,x\}$, given a theorem $\vdash P\,w$. The witness matters because HOL types denote *non-empty* sets: a type defined by an empty predicate would have no model, and the axiom $\vdash \mathit{abs}(\mathit{rep}\,a) = a$ applied to the empty type would make the theory inconsistent. The gate requires the predicate's type variables to be among the parameters $\bar\alpha$ for the same reason that `DefOK` forbids ghost type variables, and returns three contract theorems:
+Under these conditions a definition is conservative. Every instance of the new constant is $c{:}\tau\theta$ for some type substitution $\theta$, and replacing it by $t\theta$ maps each proof in the extended theory to a proof in the old theory: the definition theorem $\vdash c = t$ and its type instances become instances of REFL, every other rule step maps to the same step, and a theorem that does not mention $c$ is mapped to itself. The ghost-variable condition is what makes the replacement a function of the instance $c{:}\tau\theta$ alone. The specification proves this as "Definition-level conservativity".
+
+**`TypeDefOK`, type definition.** `ks_register_type_definition` admits a type $\kappa(\bar\alpha)$ in bijection with $\{x : \rho \mid P\,x\}$, given a hypothesis-free theorem $\vdash P\,w$ for a closed term $w$. It declares the representation $\mathit{rep} : \kappa(\bar\alpha) \to \rho$, named by the caller, and the abstraction $\mathit{abs} : \rho \to \kappa(\bar\alpha)$, named `Abs_` followed by $\kappa$, and returns three contract theorems, with $a : \kappa(\bar\alpha)$ and $r : \rho$ free variables:
 
 $$
 \vdash \mathit{abs}(\mathit{rep}\,a) = a
@@ -207,17 +211,21 @@ $$
 P\,r \vdash \mathit{rep}(\mathit{abs}\,r) = r
 $$
 
-The first two say that $\mathit{rep}$ is injective with image inside $P$; the third says every element of $P$ is in the image. Together they are HOL Light's characterisation of a type bijection, with the equivalence $P\,r = (\mathit{rep}(\mathit{abs}\,r) = r)$ split into the two directions.
+The first says that $\mathit{rep}$ is injective, the second that its image lies inside $P$, and the third that every element of $P$ is in the image. HOL Light characterises a type bijection by the first theorem and the equivalence $P\,r = (\mathit{rep}(\mathit{abs}\,r) = r)$. The third theorem is the left-to-right direction of that equivalence, and the right-to-left direction follows from the second theorem instantiated at $a := \mathit{abs}\,r$ and rewritten with the hypothesis $\mathit{rep}(\mathit{abs}\,r) = r$.
 
-**`SpecOK`, constant specification.** `ks_specify_const` introduces $c$ with the property $\vdash P\,c$, given $\vdash P\,w$. It is not a new primitive: it defines $c = @P$ through `DefOK` and returns $\vdash P\,c$, which follows from the choice axiom
+The witness matters because the second contract theorem holds for a free variable $a$. If $P$ were empty, for example $P = \lambda x.\,\bot$, it would read $\vdash \bot$: HOL types denote non-empty sets, so no model can interpret a type in bijection with an empty set, and the logic, in which every type is inhabited, proves the contradiction. The gate also requires the predicate's type variables to be among the parameters $\bar\alpha$, for the same reason that `DefOK` forbids ghost type variables.
+
+**`SpecOK`, constant specification.** `ks_specify_const` introduces a constant $c : \tau$ with the property $\vdash P\,c$, given a hypothesis-free theorem $\vdash P\,w$ for a closed term $w$. The specification asks for $\vdash \exists x.\,P\,x$ instead; a concrete witness is a stronger premise, since it implies the existential. The gate defines $c := @P$ through `DefOK`, which records a `DefOK` certificate, then builds $\vdash P\,c$ itself and records a `SpecOK` certificate.
+
+The theorem $\vdash P\,c$ is not derived by kernel rules. It is an instance of the choice axiom
 
 $$
-P\,x \;\to\; P(@P)
+P\,x \;\Rightarrow\; P(@P)
 $$
 
-instantiated at $x = w$. Because the extension is a definition, its conservativity follows from that of `DefOK`; the state records both a `DefOK` and a `SpecOK` certificate.
+at $x = w$, rewritten with the definition $c = @P$, and the kernel has no rule or theorem for the choice axiom: the specification takes the axiom schema as part of its trusted baseline. The theorem is valid because $@$ denotes a choice function in every model: $\vdash P\,w$ makes $[\![P]\!]$ non-empty, so $[\![@P]\!] \in [\![P]\!]$, and $c$ denotes $[\![@P]\!]$. For the same reason the extension is conservative over the old theory *together with the choice axiom*: in a derivation, each use of $\vdash P\,c$ can be replaced by the choice instance at $w$ and the definition, and then $c$ unfolded as for `DefOK`. The conservativity of `DefOK` alone does not cover this step, because $\vdash P\,c$ does not follow from $c = @P$ without the axiom. The specification proves the combined statement as "Conservativity of Specification Extension".
 
-**Infinity anchor.** HOL needs an infinite type for arithmetic. `ks_register_ind_infinity_axiom` records a theorem about `ind` that plays this role, but only accepts a theorem that already exists; it marks the model-class restriction of the specification without adding a theorem.
+**Infinity anchor.** HOL needs an infinite type for arithmetic, and the specification assumes that `ind` is one. `ks_register_ind_infinity_axiom` stores a theorem as the anchor of that assumption, but it accepts any hypothesis-free admissible theorem whose statement mentions `ind`, even $\vdash x = x$ for $x : \mathit{ind}$, and it does not check that the theorem says `ind` is infinite. Since the kernel has no axiom of infinity, no theorem it can produce says so. The anchor therefore adds no theorem and no risk to consistency; it only marks, for audit, the model-class restriction of the specification. Arithmetic over `ind` is not available.
 
 ### Results, not exceptions
 
@@ -237,28 +245,35 @@ $$
 [\![\lambda x.\,s]\!]_v = \big(a \mapsto [\![s]\!]_{v[x\mapsto a]}\big) = \big(a \mapsto [\![t]\!]_{v[x\mapsto a]}\big) = [\![\lambda x.\,t]\!]_v
 $$
 
-by function extensionality in the standard model. Without the side condition the step "every $v[x \mapsto a]$ satisfies $\Gamma$" fails: from $\{x = 0\} \vdash x = 0$ one could derive $\{x = 0\} \vdash (\lambda x.\,x) = (\lambda x.\,0)$, which is false whenever $x = 0$ holds.
+by function extensionality in the standard model. Without the side condition the step "every $v[x \mapsto a]$ satisfies $\Gamma$" fails: from $\{x = 0\} \vdash x = 0$ one could derive $\{x = 0\} \vdash (\lambda x.\,x) = (\lambda x.\,0)$, which is false whenever $x = 0$ holds and the type of $x$ has a second element.
 
 DEDUCT_ANTISYM_RULE. Let $v$ satisfy $(\Gamma \setminus \{q\}) \cup (\Delta \setminus \{p\})$. If $[\![p]\!]_v = \top$, then $v$ satisfies $\Delta$ (the only hypothesis that may have been removed from $\Delta$ is $p$), so $[\![q]\!]_v = \top$. Symmetrically $[\![q]\!]_v = \top$ implies $[\![p]\!]_v = \top$. Two booleans that imply each other are equal, so $[\![p = q]\!]_v = \top$.
 
-The remaining rules follow the same way: REFL and TRANS from reflexivity and transitivity of identity, MK_COMB from congruence of application, BETA from the substitution lemma $[\![t[u/x]]\!]_v = [\![t]\!]_{v[x \mapsto [\![u]\!]_v]}$, EQ_MP from the meaning of $=$ on booleans, ASSUME trivially, and INST and INST_TYPE because a valid sequent is valid under every valuation and every interpretation of type variables. The specification proves each case ("Rule-level preservation").
+The remaining rules follow the same way: REFL and TRANS from reflexivity and transitivity of identity, MK_COMB from congruence of application, BETA from the substitution lemma $[\![t[u/x]]\!]_v = [\![t]\!]_{v[x \mapsto [\![u]\!]_v]}$, EQ_MP from the meaning of $=$ on booleans, ASSUME trivially, INST from the substitution lemma for free variables (a valid sequent holds under every valuation, in particular under $v[x \mapsto [\![u]\!]_v]$), and INST_TYPE because a valid sequent holds under every interpretation of its type variables by non-empty sets, and every type the state admits denotes one. The specification proves each case ("Rule-level preservation").
 
-**2. Every extension preserves consistency.** `DefOK`, `TypeDefOK` and `SpecOK` are conservative, as argued above: every model of the old theory extends to a model of the new one, so no new sentence in the old language becomes provable.
+**2. Every extension preserves consistency.** Every model of the old theory in which $@$ is a choice function extends to such a model of the new one: interpret a defined constant by its right-hand side, a new type by the non-empty subset its witness exhibits, with $\mathit{rep}$ the inclusion and $\mathit{abs}$ any retraction onto it, and a specified constant by the chosen element $[\![@P]\!]$. The theorems the gates return are valid in the extended model, as argued above, so no false sentence in the old language becomes provable.
 
-**3. Interface safety.** Because `Thm` is abstract, every `Thm` that exists at run time is the root of a finite derivation tree whose nodes are rule applications and gate outputs. Induction on the depth of that tree, using steps 1 and 2, shows that every `Thm` is sound.
+**3. Interface safety.** Because `Thm` is abstract, every `Thm` that exists at run time is the root of a finite derivation tree whose nodes are rule applications and gate outputs. `add_assum_checked` is a derived rule, as shown above; the readers `ks_definition_theorem`, `ks_typedef_contract` and `ks_ind_infinity_axiom` return gate outputs stored in the state; and `thm_bind_const_ids` changes only constant identities, in the way shown to be sound above. Induction on the depth of the tree, using steps 1 and 2, shows that every `Thm` is sound.
 
 Step 3 is a property of the code, not of the logic, and it is why nothing outside `src/kernel` needs to be trusted: the `logic`, `tactics` and `prover` packages can only call the functions in the [kernel API](../api/kernel.md), so whatever they compute, any `Thm` they return has a derivation. The specification states the six obligations and their dependencies; the conformance pack in `formal_verification/` checks the paper side in Lean.
 
 ### Invariants maintained by the code
 
-- A `Thm` stores its hypotheses as an α-deduplicated list and its conclusion as a De Bruijn term; every rule result passes `ensure_thm_admissible` in the state it was built in.
+- A `Thm` stores its hypotheses as a list without duplicates under `db_term_eq` (α-equivalence with equal constant stamps) and its conclusion as a De Bruijn term; every rule result passes `ensure_thm_admissible` in the state it was built in.
 - `KernelState` is persistent. A gate returns a new state; the base state stays valid, so `ks_conservative_replay_ok(base, extended, th)` can re-check `th` against both.
-- Constant identities are allocated from a counter in the theory state and never reused, even after a scope is popped.
+- Constant identities are allocated from a counter in the theory state and never reused, even after a scope is popped. (The `sig_*` functions on a bare `GlobalSig` number new constants after the largest identity still visible, so they can reuse one after a pop; they never touch theorems.)
 - Definition heads, type-definition heads and the infinity anchor are recorded in the theory history, which `ks_pop_scope` does not touch: a name, once defined, cannot be defined again.
 
 ### Complexity
 
-Each rule is linear in the size of its premises, except for hypothesis-set union, which compares hypotheses pairwise and is quadratic in their number. Admissibility checks walk the theorem once per constant occurrence and look up names in the scoped signature, linear in the number of declarations. Proof sizes in the shipped subset are small; the kernel favours checks that are easy to audit over asymptotic speed.
+Write $n$ for the size of the terms involved, $d$ for their binder depth, $h$ for the number of hypotheses, $k$ for the number of constant occurrences in a theorem and $D$ for the number of declarations in the signature. The costs are polynomial in these sizes:
+
+- Lowering a named input with `to_db_term` searches the binder environment at each variable and copies it at each abstraction, $O(n \cdot d)$. Reading a term back with `from_db_term`, as `thm_concl` and `thm_hyps` do, also searches the names already in use, $O(n \cdot (d + f))$ with $f$ the number of free names.
+- The rule cores walk their terms once. BETA and INST shift the inserted term at every occurrence they replace, so their cost is the size of the result, at most $O(n \cdot m)$ for an inserted term of size $m$.
+- Hypothesis union and removal compare hypotheses pairwise, $O(h_1 h_2 n)$.
+- `ensure_thm_admissible` runs on every premise and on every result. It collects constant names with linear membership tests, $O(k^2)$, and looks each occurrence up in the scoped signature and matches it against the schema, $O(k \cdot D)$ plus the size of the types.
+
+Proof sizes in the shipped subset are small; the kernel favours checks that are easy to audit over asymptotic speed.
 
 ## Alternatives rejected
 
@@ -266,7 +281,7 @@ Each rule is linear in the size of its premises, except for hypothesis-set union
 - **Connectives as kernel primitives.** Adding $\wedge$, $\to$ or $\forall$ as primitive constants with their own rules would enlarge the kernel and its soundness proof. They are definitions over $=$ instead.
 - **Exceptions for rule failure.** HOL Light raises `Failure`. Results make every failure visible in the type and keep the frontend from accidentally catching and ignoring one.
 - **Unchecked rules with a separate validation pass.** Checking admissibility only at the end would let an inadmissible intermediate theorem feed later steps. Every rule checks its inputs and output instead.
-- **Arbitrary axioms.** There is no function that turns a term into a theorem. The only non-derived theorems are definitions and type-definition contracts, both produced by gates with conservativity conditions.
+- **Arbitrary axioms.** There is no function that turns a term into a theorem. The only non-derived theorems are definitions, type-definition contracts and the property of a specified constant, all produced by gates with side conditions that keep the extension conservative.
 
 ## Boundaries
 

@@ -1,12 +1,26 @@
 # kernel API
 
+## Purpose
+
 The `kernel` package (`Luna-Flow/QED/kernel`) is the trusted kernel of QED. It defines HOL types and terms, the abstract theorem type `Thm`, the primitive inference rules that are the only way to build a `Thm`, the scoped signature, and the three extension gates `DefOK`, `TypeDefOK` and `SpecOK`. It depends on no other QED package. Every other package reaches theorems only through the functions on this page.
 
 Failures are values: rules return `Result[Thm, LogicError]` and signature operations return `Result[_, SigError]`. Nothing on this page aborts on bad input.
 
-The examples on this page are blackbox tests that import the package as `@kernel`. The meaning of the rules is explained in the [kernel design](../design/kernel.md); a guided walk is in the [kernel tutorial](../tutorial/kernel.md). The normative definitions are in the formal specification:
+The meaning of the rules is explained in the [kernel design](../design/kernel.md); a guided walk is in the [kernel tutorial](../tutorial/kernel.md). The normative definitions are in the formal specification:
 
 [QED formal specification](../../attachments/qed_formal_spec.typ)
+
+## Importing
+
+Add the package to your `moon.pkg`:
+
+```moonbit nocheck
+import {
+  "Luna-Flow/QED/kernel",
+}
+```
+
+The examples on this page are blackbox tests that refer to this package as `@kernel`.
 
 ## Types
 
@@ -389,7 +403,7 @@ test "de bruijn" {
 type Thm
 ```
 
-The type is abstract: no code outside the package can build or change a `Thm`. A value of type `Thm` exists only because a primitive rule or an extension gate produced it, and that is the whole basis of the trust argument in the [kernel design](../design/kernel.md). Hypotheses are kept as a set of α-equivalence classes: duplicates up to α-equivalence are merged.
+The type is abstract: no code outside the package can build or change a `Thm`. A value of type `Thm` exists only because a primitive rule or an extension gate produced it, and that is the whole basis of the trust argument in the [kernel design](../design/kernel.md). Hypotheses are kept as a set of α-equivalence classes: duplicates up to α-equivalence are merged. The comparison also looks at constant identity stamps, so a hypothesis built with `mk_const` and the same hypothesis built with `ks_mk_const` stay two entries, and DEDUCT_ANTISYM_RULE does not discharge one with the other. Build the terms of one proof the same way, preferably with `ks_mk_const`.
 
 ### `thm_hyps`, `thm_concl` and `thm_hyp_count`
 
@@ -413,18 +427,18 @@ pub fn thm_to_string(Thm) -> String
 
 ### `thm_is_admissible` and `thm_bind_const_ids`
 
-`thm_is_admissible(state, th)` holds when `th` is acceptable in `state`: every constant it mentions is declared there with the identity recorded in the theorem, every constant occurrence is an instance of its declared schema, every type is admissible, and a definition theorem still matches its definition. `thm_bind_const_ids` records the identities of the constants of `th` as resolved in `state` and then checks admissibility.
+`thm_is_admissible(state, th)` holds when `th` is acceptable in `state`: every constant it mentions is declared there with the identity recorded in the theorem, every constant occurrence is an instance of its declared schema, every type is admissible, and a definition theorem still matches its definition. `thm_bind_const_ids` resolves the constants of `th` again in `state`, records the identities it finds and then checks admissibility. An occurrence that carries an identity stamp keeps it; an occurrence built with `mk_const` (stamp $-1$) takes whatever the name means in `state`, even if the theorem recorded another identity for it.
 
 ```mbti
 pub fn thm_is_admissible(KernelState, Thm) -> Bool
 pub fn thm_bind_const_ids(KernelState, Thm) -> Result[Thm, LogicError]
 ```
 
-Every checked rule runs this check on its premises and on its result, so a theorem proved before a scope change cannot be used after the change made one of its constants mean something else. `thm_bind_const_ids` fails with `InvalidInstantiation` when an identity disagrees with the state and with `TypeMismatch` when a constant is unknown.
+Every checked rule runs this check on its premises and on its result, so a theorem proved before a scope change cannot be used after the change made one of its constants mean something else. `thm_bind_const_ids` is the exception: it can move a theorem about an outer constant `c`, written with unstamped occurrences, to a constant `c` declared by an inner scope. This is sound, because only constants without a definition can be shadowed, and the [kernel design](../design/kernel.md) explains why; but the result is about the inner constant. `thm_bind_const_ids` fails with `InvalidInstantiation` when a stamped identity disagrees with the state and with `TypeMismatch` when a constant is unknown.
 
 ## Primitive rules
 
-Each rule takes the kernel state first, checks that its premise theorems are admissible in that state, applies the rule and checks the result. In the rules below $\Gamma, \Delta$ are hypothesis sets, $\equiv_\alpha$ is α-equivalence (constant identities ignored), and $\setminus$ removes every hypothesis α-equivalent to the given term. The [kernel design](../design/kernel.md) explains why each rule is sound.
+Each rule takes the kernel state first, checks that its premise theorems are admissible in that state, applies the rule and checks the result. In the rules below $\Gamma, \Delta$ are hypothesis sets, $\equiv_\alpha$ is α-equivalence (constant identities ignored), and $\setminus$ removes every hypothesis α-equivalent to the given term whose constants carry the same identity stamps (see `Thm` above). The [kernel design](../design/kernel.md) explains why each rule is sound.
 
 ### `refl_checked`
 
@@ -881,7 +895,7 @@ pub fn ks_has_type_abs_head(KernelState, String) -> Bool
 pub fn ks_specify_const(KernelState, String, HolType, Term, Thm) -> Result[(KernelState, Thm), SigError]
 ```
 
-The gate is derived from the choice operator and `DefOK`: it defines $c = (@\,\mathit{pred})$ through `ks_define_const_thm`, so the state records a `DefOK` certificate followed by a `SpecOK` certificate. `pred` must be a closed abstraction over `ty` with no type variables outside `ty` (`InvalidSpecificationPredicate`, `SpecificationTypeVarLeak`), and `witness` must be a hypothesis-free theorem of the predicate at a closed term (`InvalidSpecificationWitness`). The definition conditions of `ks_define_const` apply to `c`.
+The gate is derived from the choice operator and `DefOK`: it defines $c = (@\,\mathit{pred})$ through `ks_define_const_thm`, so the state records a `DefOK` certificate followed by a `SpecOK` certificate. The returned theorem is built by the gate; it is justified by the choice axiom, which the kernel does not expose as a theorem (see the [kernel design](../design/kernel.md)). The specification states the premise as $\vdash \exists x.\,P\,x$; the gate asks for a concrete witness instead. `pred` must be a closed abstraction over `ty` with no type variables outside `ty` (`InvalidSpecificationPredicate`, `SpecificationTypeVarLeak`), and `witness` must be a hypothesis-free theorem of the predicate at a closed term (`InvalidSpecificationWitness`). The definition conditions of `ks_define_const` apply to `c`.
 
 ### `ks_register_ind_infinity_axiom`, `ks_ind_infinity_axiom` and `ks_has_ind_infinity_axiom`
 
@@ -988,13 +1002,13 @@ Certificates record what happened; they are not proof objects and cannot be turn
 
 ### `ks_conservative_replay_ok`
 
-`ks_conservative_replay_ok(base, extended, th)` is the executable conservativity check: it holds when `th` is admissible in `extended`, is a closed hypothesis-free sentence in the language of `base`, and is admissible in `base`.
+`ks_conservative_replay_ok(base, extended, th)` is the executable conservativity check: it holds when `th` is admissible in `extended`, is a closed hypothesis-free sentence in the language of `base`, and is admissible in `base`. It checks the side conditions of the conservativity theorem, not a derivation: it does not rebuild a proof of `th` in `base`. When it holds and `extended` was reached from `base` through the gates, the conservativity theorem of the specification says that `th` is also a theorem of `base`.
 
 ```mbti
 pub fn ks_conservative_replay_ok(KernelState, KernelState, Thm) -> Bool
 ```
 
-Regression tests use it to check that a theorem proved after an extension, but stated in the old language, is still a theorem of the old theory.
+Regression tests use it to check that a theorem proved after an extension is stated in the old language, so that the conservativity theorem applies to it.
 
 ```moonbit
 test "audit" {

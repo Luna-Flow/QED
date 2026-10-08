@@ -2,6 +2,17 @@
 
 This tutorial proves theorems directly with the primitive rules of the `kernel` package. By the end you can build typed terms, derive new rules such as symmetry of equality from the ten primitives, declare and define constants, and see why a theorem cannot outlive the meaning of its constants. You do not need the `parser` or `prover` packages; everything here is plain MoonBit.
 
+| I want to | Use |
+| --- | --- |
+| Build types and terms and check their types | `mk_tyvar`, `fun_ty`, `mk_var`, `mk_comb`, `mk_abs`, `type_of` |
+| Prove an equation or assume a proposition | `refl_checked`, `assume_checked` |
+| Combine equations | `trans_checked`, `mk_comb_rule_checked`, `eq_mp_checked` |
+| Reduce a β-redex or abstract both sides of an equation | `beta_rule_checked`, `abs_rule_checked` |
+| Specialise a theorem | `inst_type`, `inst_checked` |
+| Declare constants in scopes | `ks_push_scope`, `ks_add_const`, `ks_mk_const`, `ks_pop_scope` |
+| Define a constant | `ks_define_const_thm` |
+| Read a theorem | `thm_concl`, `thm_hyps`, `thm_hyp_count`, `term_alpha_eq` |
+
 ## Quick start
 
 Add QED to your module and import the kernel in the `moon.pkg` of the package that uses it:
@@ -216,7 +227,7 @@ test "instantiate" {
 }
 ```
 
-**Extend the theory.** `ks_register_type_definition` adds a new type from a non-empty subset of an existing one, and `ks_specify_const` adds a constant characterised by a property, given a witness. Both are shown on the [kernel API](../api/kernel.md) page. Keep the state before an extension: `ks_conservative_replay_ok(base, extended, th)` checks that a theorem proved after the extension but stated in the old language is still a theorem of the old theory.
+**Extend the theory.** `ks_register_type_definition` adds a new type from a non-empty subset of an existing one, and `ks_specify_const` adds a constant characterised by a property, given a witness. Both are shown on the [kernel API](../api/kernel.md) page. Keep the state before an extension: `ks_conservative_replay_ok(base, extended, th)` checks that a theorem proved after the extension is a sentence of the old language that the old state admits, which is when the conservativity theorem of the specification makes it a theorem of the old theory.
 
 **Work with errors.** All failures are values of `LogicError` or `SigError`. Match them with `is` to react to a specific failure, or propagate them with `unwrap_or_error` from a function that raises `LogicError`.
 
