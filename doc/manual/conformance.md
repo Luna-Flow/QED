@@ -4,7 +4,7 @@
 - Audience: contributors, reviewers
 - Authority: engineering conformance guide; subordinate to [QED formal specification](../attachments/qed_formal_spec.typ) and current code/tests
 - Scope: code/test mapping, implementation alignment, contributor obligations, and documentation example rules
-- Last reviewed: 2026-04-20
+- Last reviewed: 2026-10-08
 
 This document records how the current MoonBit engineering line aligns with [QED formal specification](../attachments/qed_formal_spec.typ),
 and what peripheral engineering must do to conform to the current core.
@@ -167,6 +167,12 @@ examples must currently follow these source constraints:
   `src/prover/prover_mapping_matrix_test.mbt` as its primary anchor.
 - Tactic-level examples, local-over-name conflicts, and wrong-mode honest failures currently use
   `src/tactics/proof_state_test.mbt` as their primary anchor.
+- Theorem scripts quoted on the package pages (`api/`, `design/`, `tutorial/`) reuse scripts from the
+  anchors above; they do not introduce new script semantics.
+- MoonBit API examples on the package pages are complete programs that call the public functions of the
+  current code and record their results with `assert_eq`, `assert_true` or `inspect` snapshots. Every such
+  block is compiled and run against the current code before the page changes; a block that is not meant to
+  run is fenced `moonbit nocheck`.
 - If the documentation adds, modifies, or removes a public example, the corresponding regression
   test must be added, modified, or removed at the same time.
 
@@ -292,10 +298,11 @@ cd formal_verification
 lake build
 ```
 
-Local check results on 2026-04-05:
+Local check results:
 
-- `moon test` passes
-- `lake build` passes
+- 2026-10-08, MoonBit `moonc` v0.10.14: `moon check --target all` reports no warnings and `moon test`
+  passes (357 tests) on the `wasm`, `wasm-gc`, `js` and `native` targets
+- 2026-04-05: `lake build` passes; `formal_verification/` has not changed since
 
 When a change touches the trust boundary, scope, gates, the connector contract, proof scripting, or
 documentation conventions, also check:

@@ -4,7 +4,7 @@
 - Audience: users, contributors, implementers
 - Authority: user guide + implementation contract; subordinate to [QED formal specification](../attachments/qed_formal_spec.typ) and current code/tests
 - Scope: current shipped behavior, beginner-facing usage, trust boundary, support matrix, and stable examples
-- Last reviewed: 2026-04-20
+- Last reviewed: 2026-10-08
 
 This document is both the current QED user manual and its implementation contract.
 
@@ -263,7 +263,7 @@ contract, the relevant order is:
    is its source file.
 2. The current code and regression tests determine the "actual shipped state".
 3. This document and [Specification conformance](conformance.md) describe the current implementation contract and engineering conformance.
-4. `README.md` and `application.typ` are external summaries only and rank no higher than the above.
+4. `README.md` and `CHANGELOG.md` are external summaries only and rank no higher than the above.
 5. `research/` only records unshipped design research and is not a product contract.
 
 If the implementation and the documentation conflict, first establish the actual state from code + tests,
@@ -294,6 +294,9 @@ QED uses a kernel-first architecture. The only theorem-construction boundary is 
 
 `Thm` remains an opaque type at the package boundary; external callers must interact through the
 checked/stateful interfaces.
+
+Each package also has an API reference, a design note and a tutorial; the [manual overview](index.md)
+lists them. The [kernel design](design/kernel.md) explains why soundness reduces to the kernel.
 
 ## Implemented kernel
 
@@ -899,9 +902,10 @@ moon fmt
 moon test
 ```
 
-Local check results on 2026-04-05:
+Local check results:
 
-- `moon test` passes
-- `lake build` passes
+- 2026-10-08, MoonBit `moonc` v0.10.14: `moon check --target all` reports no warnings and `moon test`
+  passes (357 tests) on the `wasm`, `wasm-gc`, `js` and `native` targets
+- 2026-04-05: `lake build` passes; `formal_verification/` has not changed since
 
 For paper alignment, the code/test mapping, and the checklist for the surrounding tooling, read [Specification conformance](conformance.md).

@@ -4,7 +4,7 @@
 - Audience: contributors, maintainers
 - Authority: repository documentation policy; subordinate to [QED formal specification](../attachments/qed_formal_spec.typ)
 - Scope: document hierarchy, naming, metadata, and cross-reference rules
-- Last reviewed: 2026-04-16
+- Last reviewed: 2026-10-08
 
 This document defines the documentation governance rules for the QED repository. Its goal is not to add a
 new specification layer but to strictly layer the existing documents by authority, purpose, and audience, so
@@ -19,11 +19,12 @@ QED currently uses the following document layers:
 2. Implementation layer
    The current code and regression tests determine the real shipped state.
 3. Implementation documentation layer
-   [User manual](manual.md), [Specification conformance](conformance.md), and [Workspace audit (2026-04-18)](current_workspace_audit.md) describe the current
-   implementation contract, engineering conformance, and point-in-time audits.
+   [User manual](manual.md), [Specification conformance](conformance.md), the package pages under `api/`,
+   `design/` and `tutorial/`, and [Workspace audit (2026-04-18)](current_workspace_audit.md) describe the current
+   implementation contract, engineering conformance, the per-package public surface, and point-in-time audits.
 4. Summary and navigation layer
-   `README.md` and `application.typ` only provide summaries and entry-point navigation; they must not rank
-   above the implementation layer or the implementation documentation layer.
+   `README.md`, `CHANGELOG.md` and the [manual overview](index.md) only provide summaries, release history and
+   entry-point navigation; they must not rank above the implementation layer or the implementation documentation layer.
 5. Research layer
    `research/` only holds unshipped design research, promotion gates, go/no-go conclusions, and prototype
    evaluations. Research documents are not a product contract.
@@ -37,10 +38,13 @@ If the implementation conflicts with the paper specification, the paper specific
 Every category of information must have a single primary entry point:
 
 - Current implementation contract: [User manual](manual.md)
+- Public surface, design rationale and walkthrough of one package: its pages under `api/`, `design/` and
+  `tutorial/`, listed in the [manual overview](index.md)
 - Quick reference for the current user input syntax: [Syntax guide](syntax.md)
 - Engineering conformance and code/test mapping: [Specification conformance](conformance.md)
 - Point-in-time risks and gaps: [Workspace audit (2026-04-18)](current_workspace_audit.md)
 - Repository summary and quick entry point: `README.md`
+- Release history: `CHANGELOG.md`
 - Research directory entry point: `research/README.md`
 
 Other documents may only supplement these; they must not duplicate the "current state" in parallel.
@@ -51,8 +55,9 @@ and maintenance obligations.
 
 ## Metadata contract
 
-Apart from the top-level `README.md` and the specification text itself, every maintenance-facing document
-should include in its header:
+Apart from the top-level `README.md`, `CHANGELOG.md`, the specification text itself, the
+[manual overview](index.md) and the package pages under `api/`, `design/` and `tutorial/` (which follow the
+Luna Flow documentation standard instead), every maintenance-facing document should include in its header:
 
 - `Status`
 - `Audience`
@@ -88,6 +93,10 @@ Status labels use the following vocabulary:
   - audit details
   - details of future plans
 - [User manual](manual.md) describes the current implementation boundary, module responsibilities, support matrix, and stable examples.
+- The package pages document one package each: `api/<package>.md` lists every public item of
+  `pkg.generated.mbti`, `design/<package>.md` explains the decisions behind it and ends with its boundaries,
+  and `tutorial/<package>.md` works through tasks with examples that compile against the current code.
+  They do not repeat the support matrix of [User manual](manual.md); they link to it.
 - [Syntax guide](syntax.md) only describes the current shipped theorem-script input syntax and known limitations; it does not serve as the implementation contract.
 - [Specification conformance](conformance.md) describes specification alignment, code/test mapping, contributor checklists, and constraints on documentation examples.
 - [Workspace audit (2026-04-18)](current_workspace_audit.md) only records risks, gaps, and follow-ups that still hold at a given point in time, and does not repeat the stable facts of manual/conformance over the long term.
@@ -104,8 +113,14 @@ Status labels use the following vocabulary:
 
 - `README.md`
   Repository summary and navigation entry point.
+- `CHANGELOG.md`
+  Release history.
+- [Manual overview](index.md)
+  Package map and reading paths.
 - [User manual](manual.md)
   Current implementation contract.
+- Package pages (`api/`, `design/`, `tutorial/`)
+  Public surface, design rationale and walkthrough of each package.
 - [Syntax guide](syntax.md)
   Quick reference for the current shipped theorem-script input syntax.
 - [Specification conformance](conformance.md)
@@ -126,7 +141,8 @@ time, maintain the documents in the following order:
 
 1. Code and tests
 2. [User manual](manual.md)
-3. [Specification conformance](conformance.md)
-4. `README.md`
-5. [Workspace audit (2026-04-18)](current_workspace_audit.md)
-6. Related `research/` documents
+3. The affected package pages (`api/`, `design/`, `tutorial/`)
+4. [Specification conformance](conformance.md)
+5. `README.md` and `CHANGELOG.md`
+6. [Workspace audit (2026-04-18)](current_workspace_audit.md)
+7. Related `research/` documents

@@ -4,7 +4,7 @@
 - Audience: contributors, maintainers
 - Authority: repository code-organization policy; subordinate to [QED formal specification](../attachments/qed_formal_spec.typ), current code/tests, and [Documentation governance](governance.md)
 - Scope: package layering, alias entrypoints, source responsibilities, and code-change documentation obligations
-- Last reviewed: 2026-04-18
+- Last reviewed: 2026-10-08
 
 This document defines the code governance rules for the QED repository. It adds no new semantic
 specification layer; it only fixes package boundaries, alias entry points, and documentation write-back
@@ -24,6 +24,10 @@ Governance requirements:
 - `tactics` is only responsible for goal-state transformation and replay orchestration; it must not write back into parser semantics.
 - `prover` only orchestrates parser/tactics/kernel and produces structured diagnostics; it must not become a new logical authority.
 - `cmd` stays the thinnest outer layer; it only consumes stable facades and adds no low-level knowledge.
+
+`research_rewrite` sits outside this chain: it is a research-only prototype that depends only on `kernel`
+and `logic`, and no shipped package depends on it. `cmd` is an executable package (`pkgtype(kind: "executable")`
+in its `moon.pkg`), so no other package can import it.
 
 If a change requires a reverse dependency, treat it as a design problem by default; prefer introducing a
 neutral data structure or an explicit bridge over a direct cross-layer reference.
@@ -80,9 +84,10 @@ Default maintenance order:
 
 1. Code and tests
 2. [User manual](manual.md)
-3. [Specification conformance](conformance.md)
-4. `README.md`
-5. [Workspace audit (2026-04-18)](current_workspace_audit.md) (only when the point-in-time conclusions change)
+3. The package pages of the affected packages (`api/`, `design/`, `tutorial/`)
+4. [Specification conformance](conformance.md)
+5. `README.md` and `CHANGELOG.md`
+6. [Workspace audit (2026-04-18)](current_workspace_audit.md) (only when the point-in-time conclusions change)
 
 ## Review checklist
 
