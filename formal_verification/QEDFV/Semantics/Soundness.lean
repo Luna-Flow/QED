@@ -107,6 +107,8 @@ theorem dep_map_implies_kernel_soundness_target
     kernel_soundness_target := by
   exact kernel_soundness_from_dep_edge (dep_map_extract_envelope_edge hMap)
 
+-- This target quantifies over one `ks`; it is same-state erasure, not
+-- `Derivable extended s → Derivable base s` for distinct theory states.
 def global_conservativity_target : Prop :=
   ∀ ks t0 steps d s,
     Derives ks d s ->

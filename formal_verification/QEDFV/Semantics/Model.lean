@@ -2,6 +2,7 @@ import QEDFV.Kernel.PrimitiveRules
 
 namespace QEDFV
 
+-- This is a law bundle, not a constructed set-theoretic HOL interpretation.
 structure Model where
   ValidExpr : DbExpr -> Prop
   validEqRefl : ∀ t : DbExpr, ValidExpr (mkEqExpr t t)

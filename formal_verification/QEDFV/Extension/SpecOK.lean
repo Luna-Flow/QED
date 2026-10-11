@@ -47,6 +47,7 @@ def spec_derived_path_obligation (t : TheoryState) (s : SpecIntro) : Prop :=
     d.rhs = s.predicate ∧
     DefOK t d
 
+-- This proposition proves freshness only, not old-language conservativity.
 def spec_extension_conservative (t : TheoryState) (s : SpecIntro) : Prop :=
   SpecOK t s -> forall c, c ∈ DefHeads t -> c ≠ s.c
 

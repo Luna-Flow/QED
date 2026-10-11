@@ -14,6 +14,8 @@ inductive DerivationObj where
   | gate : GateKind -> String -> DerivationObj -> Sequent -> DerivationObj
 deriving Repr
 
+-- This relation already assumes `Derivable k s` at rule nodes. It does not check that
+-- the named rule follows from the child sequents, so it is not yet a derivation calculus.
 def Derives (k : KernelState) : DerivationObj -> Sequent -> Prop
   | .leaf s, target => target = s ∧ Derivable k s
   | .rule _ ds s, target =>
@@ -21,6 +23,8 @@ def Derives (k : KernelState) : DerivationObj -> Sequent -> Prop
   | .gate _ _ d s, target =>
       target = s ∧ Derives k d s
 
+-- Placeholder well-formedness check; the base theory argument is not used for
+-- symbol membership. Do not use this as an old-language conservativity premise.
 def OldLang (_t0 : TheoryState) (s : Sequent) : Prop :=
   QEDExprWF s.concl ∧ ∀ h, h ∈ s.hyps -> QEDExprWF h
 

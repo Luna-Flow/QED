@@ -1,5 +1,22 @@
 # Formal specification changelog
 
+## 2026-10-12 evidence-driven audit correction
+
+- Added `doc/manual/qed_formal_audit_matrices.md` with an issue matrix and a proof-obligation matrix covering the manuscript, Lean formalization, and MoonBit realization.
+- Added `formal_verification/QEDFV/Conservativity/CrossTheoryObligations.lean`. It records the missing cross-theory simulation explicitly; it does not assert a proof without that premise.
+- Corrected the manuscript's proof-status language for definitional, specification, type-extension, and global conservativity. The previous erasure code keeps one `KernelState`, and its `OldLang` predicate does not inspect the base theory, so it proves same-state tree preservation rather than `T' ⊢ φ -> T ⊢ φ`.
+- Marked the current Lean `TypeDefOK`/typedef product contract, `DefOK` theorem shape, `SpecOK` conservativity predicate, abstract boundary laws, and model-law bundles as approximations or conditional obligations. These declarations compile, but they do not by themselves establish the stronger HOL/STT claims in the article.
+- Added conformance clarification for the reserved `@` identity and the fact that MoonBit `Thm` stores typed De Bruijn terms at the kernel boundary.
+
+### Verification for this audit
+
+- `lake build` in `formal_verification`: passed, 49 jobs.
+- `typst compile doc/attachments/qed_formal_spec.typ /tmp/qed-formal-audit.pdf`: passed.
+- `moon check`: passed.
+- `moon test`: passed, 357/357.
+
+Remaining open obligations are listed explicitly in the matrices and in the manuscript's proof-status notes; `Open items: None` from earlier rounds no longer applies to the stronger cross-theory and semantic claims.
+
 ## Goals and scope of this round
 
 - Goal: finalize the specification so that the structural link between `INST_TYPE` and `DefOK`/`TypeDefOK` is
@@ -141,9 +158,9 @@
   - Command: `typst compile doc/qed_formal_spec.typ doc/qed_formal_spec.pdf`
   - Result: [QED formal specification](../attachments/qed_formal_spec.typ) is generated successfully.
 
-## Open items (write None if there are none)
+## Open items (status at the time of that revision)
 
-None.
+None was recorded for the manuscript-editing scope of that revision. The 2026-10-12 audit supersedes that status for proof claims: cross-theory conservativity, semantic model construction, concrete boundary refinement, and the exact typedef/specification obligations remain open as documented above.
 
 ## Incremental revision (constructive closure)
 

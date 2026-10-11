@@ -35,6 +35,7 @@ import QEDFV.Conservativity.ErasureDef
 import QEDFV.Conservativity.ErasureSpec
 import QEDFV.Conservativity.ErasureTypeDef
 import QEDFV.Conservativity.GlobalConservativity
+import QEDFV.Conservativity.CrossTheoryObligations
 import QEDFV.Audit.AppendixA
 import QEDFV.Audit.AppendixB
 import QEDFV.Audit.AppendixC

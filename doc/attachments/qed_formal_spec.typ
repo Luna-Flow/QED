@@ -53,6 +53,10 @@ QED is an interactive theorem prover in MoonBit, designed around an LCF-style tr
 
 = Part I: Logic Core (Normative)
 
+#keyblock("warning", [Proof Status], [
+  Part I states the intended HOL/STT contract. Its mathematical targets are not all established by the current Lean development. Lean checks several same-state structural lemmas and conditional model-law consequences; it does not yet construct a HOL model, prove the named/De Bruijn refinement, or prove cross-theory conservativity. Sections marked *Target* or *Conditional* below identify obligations rather than completed machine-checked theorems. The current obligation inventory is in `doc/manual/qed_formal_audit_matrices.md`.
+])
+
 *Normative Scope.*
 
 - Part I is the single normative source for syntax, typing, derivability, admissibility gates, and soundness/conservativity claims.
@@ -594,6 +598,8 @@ $
 and therefore beta-contraction in named syntax and beta-contraction in typed De Bruijn syntax
 agree modulo $equiv_alpha$ after lift.
 
+*Proof status.* These boundary statements are required properties of the intended conversions. `Boundary/Conversion.lean` represents lowering and lifting as abstract functions and assumes their round-trip and typed-core laws in `BoundaryLaws`; its current `AlphaEq` is syntactic term equality. Its field named `denotationPreservationTerm` expresses lift existence, not equality of denotations. Verification for the concrete MoonBit `to_db_term`/`from_db_term` functions remains open. The executable tests exercise representative cases but do not establish the universal statements above.
+
 == Alpha-Equivalence
 
 Alpha-equivalence, written $t_1 equiv_alpha t_2$, identifies terms up to systematic renaming of bound variables. It is required by multiple kernel operations, including theorem transitivity-style checks where structural syntax should not distinguish alpha-variants.
@@ -880,12 +886,12 @@ Without Condition 5, an `INST_TYPE` step may change only the definition body ins
 *Policy Clarification (Shadowing vs Definitional Freshness).*
 Scoped insertion rules may allow same-name shadowing for ordinary local constants. Definitional extension is stricter: definitional heads are introduced with globally fresh names and are never shadow-reused. This resolves any apparent tension between local scope shadowing and global definition soundness.
 
-*Theorem (Conservativity of Definitional Extension).*
+*Target (Conservativity of Definitional Extension; open).*
 Let $T'$ be obtained from $T$ by one admissible definitional extension above. For every theorem statement $p_0$ in the old language of $T$:
 $
   T' tack.r p_0 arrow.r.double T tack.r p_0
 $
-Hence new definitions add abbreviatory power without increasing provability over the old signature.
+The claim requires a translation of derivations in $T'$ to derivations in $T$. Freshness, closure, and typing alone do not constitute that translation. The current Lean erasure theorem retains the same kernel state on both sides and therefore does not discharge this target.
 
 == Definition Admissibility Judgment
 
@@ -900,7 +906,7 @@ $
   "DefOK"(T, c : tau = r) arrow.r.double T mapsto T + {"def" c : tau = r}
 $
 
-*Lemma (Definition Theorem Shape).*
+*Obligation (Definition Theorem Shape; open in Lean).*
 If $"DefOK"(T, c : tau = r)$ and $T mapsto T'$, then the generated definition theorem has empty assumptions:
 $
   tack.r c = r
@@ -964,34 +970,32 @@ This is the only admissible introduction path for specification constants in thi
 Any admission-procedure check used by `SpecOK` must correspond to one of the six
 explicit conditions above; no additional silent premise is allowed.
 
-*Theorem (Conservativity of Specification Extension).*
+*Target (Conservativity of Specification Extension; open).*
 If $T'$ is obtained from $T$ by one admissible `SpecOK` step admitting fresh head $c$,
 and $phi$ is a sentence in the old language of $T$, then:
 $
   T' tack.r phi arrow.r.double T tack.r phi
 $
 
-*Constructive proof (derivation elimination for one spec head).*
+*Proposed derivation-elimination method (not yet proved).*
 Assume $T' = T + {"def" c : tau = "@"(lambda x : tau. P(x))}$ under `SpecOK`.
 Let $D'$ be a finite derivation object in $T'$ for $phi$.
-Define a recursive eliminator $"erase_spec"_c(D')$ by structural recursion:
+An adequate recursive eliminator $"erase_spec"_c(D')$ would need these cases:
 
 1. leaf/axiom cases not mentioning $c$: unchanged;
 2. primitive-rule nodes: map recursively on all premise sub-derivations, then rebuild the same rule node;
 3. occurrences of the admitted theorem $tack.r P(c)$:
-  replace by a derived sub-derivation using the witness theorem
-  $tack.r exists x : tau. P(x)$ plus Choice axiom instance and the defining equation for $c$;
+  first derive it from the checked witness theorem, the Choice axiom instance, and the defining equation for $c$; then eliminate $c$ from any old-language root through a definition-expansion simulation;
 4. any theorem node whose conclusion is in the old language and does not mention $c$ is rewritten only through Steps 1--3.
 
 Well-foundedness: recursion is on strict sub-derivation size.
-Correctness invariant (proved by induction on $D'$):
+Required correctness invariant (not established by the current Lean development):
 
 - every rewritten node is derivable in $T$;
 - old-language conclusions are preserved;
 - no new head outside old language is introduced.
 
-Applying the invariant to root $D'$ yields a derivation in $T$ of the same old-language
-sentence $phi$, establishing conservativity.
+If this invariant and the rule/gate cases are proved, applying it to root $D'$ yields a derivation in $T$ of the same old-language sentence $phi$. The existing Lean `spec_extension_conservative_proved` proves only that the new name is fresh relative to `DefHeads(T)`.
 
 = Global Admissibility Envelope
 
@@ -1397,6 +1401,8 @@ Let $R$ range over the ten primitive rules above. If all side conditions of $R$ 
 all premise sequents are valid, then $"Preserve"_R$ yields validity of the rule conclusion.
 Proof is by case analysis on $R$ and invocation of the corresponding capsule construction.
 
+*Proof status.* In the present Lean development, `Model` and `ModelSubstLaws` contain the equality, beta, and substitution preservation properties as fields. `RuleSoundness.lean` proves consequences of those fields. It does not construct an interpretation or prove those fields for one. Its `DEDUCT_ANTISYM_RULE` statement also requires an extra equality between the reduced and unreduced assumption unions, which is absent from the rule above. Therefore the ten exact Part I rule schemata do not yet have a complete Lean soundness proof.
+
 = Soundness Strategy
 
 The project-level soundness story is divided into six obligations.
@@ -1409,6 +1415,8 @@ The project-level soundness story is divided into six obligations.
 6. Derivation closure: any finite derivation tree built from primitive rules plus admissible extensions is sound.
 
 This decomposition is practical: it separates rule, gate, interface, and derivation obligations into reviewable proof blocks.
+
+*Status.* The dependency list is an obligation map. Type and specification gates, boundary denotation, the general `DEDUCT_ANTISYM_RULE` case, and cross-theory erasure still require proofs for the concrete calculus. A successful Lean build certifies only the weaker or conditional propositions currently encoded.
 
 Dependency closure for these obligations is now explicit:
 
@@ -1467,8 +1475,7 @@ Review rule: every Layer 1 claim must be traceable upward through Layer 2/3 to L
 
 == Constructive Closure: Derivation Objects and Erasure Operators
 
-To make closure explicit inside this paper (not deferred to external prose), we fix
-a constructive derivation object language and prove all closure theorems by structural recursion.
+The following derivation language describes the intended route to a constructive conservativity proof. The current Lean encoding does not yet realize the cross-theory judgment required by that route.
 
 *Definition (Finite Derivation Objects).*
 For theory state $T$, a derivation object is an inductive tree:
@@ -1505,7 +1512,7 @@ $
 where $s'$ is the old-language-normalized target sequent produced by the corresponding
 gate-specific rewrite.
 
-*Theorem (Definitional-Head Erasure Correctness).*
+*Target (Definitional-Head Erasure Correctness; open).*
 If $T_1 = T_0 + {"def" h : tau = r}$ with `DefOK` and
 $
   T_1 tack.r "Derives"(D, s) and "OldLang"_(T_0)(s)
@@ -1514,10 +1521,9 @@ then
 $
   T_0 tack.r "Derives"("erase_def"_h(D), s)
 $
-Proof is by structural induction on $D$, using the definition equation for $h$ only inside
-rewrite-local subtrees and then eliminating it by expansion/contraction.
+Required proof: structural induction on a rule-indexed derivation, with a simulation from each extended-theory rule or gate node into $T_0$ and a language-membership invariant for the root.
 
-*Theorem (Specification-Head Erasure Correctness).*
+*Target (Specification-Head Erasure Correctness; open).*
 If $T_1$ is obtained by one `SpecOK` admission of head $h$, and
 $
   T_1 tack.r "Derives"(D, s) and "OldLang"_(T_0)(s)
@@ -1526,10 +1532,9 @@ then
 $
   T_0 tack.r "Derives"("erase_spec"_h(D), s)
 $
-Proof is by structural induction on $D$, with the `SpecOK` witness + Choice instance
-used to reconstruct each occurrence of $P(h)$ without keeping $h$ in the final old-language root.
+The required gate case must reconstruct the specification theorem from the certified witness, Choice, and the definition of $h$, then eliminate the new head in the old-language root.
 
-*Theorem (Type-Extension Erasure Correctness for Old Language).*
+*Target (Type-Extension Erasure Correctness for Old Language; open).*
 If $T_1 = T_0 + {"typedef" k / a}$ under `TypeDefOK`, and
 $
   T_1 tack.r "Derives"(D, s) and "OldLang"_(T_0)(s)
@@ -1538,12 +1543,10 @@ then
 $
   T_0 tack.r "Derives"("erase_typedef"_k(D), s)
 $
-Proof is by structural induction on $D$, using that old-language sequents do not mention $k$
-and that typing-side rewrites are confined to extension-local nodes.
+The proof must account for type instantiation and all extension-local type occurrences, not only the root's syntax. The current Lean `erase_typedef` removes a gate tag while keeping every sequent and the same theory state.
 
-*Corollary (Constructive Local Conservativity).*
-Every single admissible extension step in this manuscript admits an explicit derivation-tree
-erasure operator that maps extended-theory derivations of old-language sequents back into base-theory derivations.
+*Conditional composition lemma.*
+If each step supplies a cross-theory erasure simulation preserving derivability of sequents in the preceding language, then finite backward composition yields local and global conservativity. `CrossTheoryObligations.lean` records the one-step simulation as an explicit premise. The existing Lean `erase_def`, `erase_spec`, and `erase_typedef` prove only preservation of `Derives` in a fixed `KernelState`; their `OldLang` predicate presently ignores the base theory argument. Neither fact proves the cross-theory premise.
 
 == Semantic Assumptions
 
@@ -1565,8 +1568,10 @@ $
 $
 No alternate theorem shape may be treated as equivalent by presentation policy alone.
 
-*Theorem (Global Non-Empty Type Preservation).*
+*Conditional target (Global Non-Empty Type Preservation; open).*
 Given the base assumption above and admissible type-constructor extensions satisfying `"TypeDefOK"`, every well-formed type in the extended signature is interpreted by a non-empty carrier. Consequently, `INST_TYPE` ranges only over non-empty type interpretations.
+
+This induction requires the `TypeDefOK` witness to prove an inhabited representation predicate for every admissible parameter interpretation. The current Lean `TypeDefOK` records a witness string but does not validate the witness theorem, and its `typedefProductContract` fields do not express the displayed Abs/Rep equations. The statement is an obligation of a future semantic interpretation, not a theorem supplied by those Lean declarations.
 
 *Assumption (Classical HOL Model Discipline).*
 The soundness argument is read under the standard HOL set-theoretic model discipline: typing and instantiation preserve denotation, and theorem validity is evaluated in that model class.
@@ -1602,17 +1607,17 @@ $
 $
 under the same semantic negation operator in the model class.
 
-*Meta-Theorem (Global Conservativity Under Admissible Extensions).*
+*Conditional meta-theorem target (Global Conservativity Under Admissible Extensions).*
 Let $T'$ be obtained from $T$ by a finite sequence of admissible steps from
 $
   {"DefOK", "TypeDefOK", "SpecOK"} " (where SpecOK is derived over Choice + DefOK)"
 $
-Then for any sentence $phi$ over the old language of $T$:
+If each step additionally has a proved cross-theory erasure simulation for old-language derivations, then for any sentence $phi$ over the old language of $T$:
 $
   T' tack.r phi arrow.r.double T tack.r phi
 $
 
-*Constructive proof (finite-step backward erasure).*
+*Conditional proof (finite-step backward erasure).*
 Let the extension sequence be
 $
   T = T_0 mapsto T_1 mapsto ... mapsto T_n = T'
@@ -1625,7 +1630,7 @@ $
 where $"erase"_(i)$ is the gate-specific erasure operator for step $T_i mapsto T_(i+1)$
 (Def-head erasure, Spec-head erasure, or Typedef erasure).
 
-By the three erasure correctness theorems above, each step preserves derivability of the
+By the three required cross-theory erasure simulations, each step preserves derivability of the
 same old-language root sentence:
 $
   T_(i + 1) tack.r "Derives"(D_(i + 1), phi) arrow.r.double T_i tack.r "Derives"(D_i, phi)
@@ -1638,7 +1643,7 @@ hence $T tack.r phi$. Therefore:
 $
   T' tack.r phi arrow.r.double T tack.r phi
 $
-constructively, by explicit recursion on derivation objects and finite-step composition.
+by finite-step composition. The induction is valid conditional on the local simulations; the current Lean `global_conservativity_target_proved` refers to a weaker same-state predicate, so it does not establish the unconditioned HOL conservativity claim.
 
 == Type Preservation Theorem for `MK_COMB`
 
@@ -1674,6 +1679,8 @@ The formal clauses above map to implementation modules as follows.
 - `src/kernel/sig.mbt`: scoped signature stack, constant registration, and definitional signature operations.
 
 This mapping is informative: it supports coverage review and does not alter any Part I definition or theorem.
+
+Concrete representation details: the reserved `@` identity is seeded into the initial signature for lookup while insertion of reserved names is rejected. `Thm` stores typed De Bruijn assumptions and conclusion; named `Term` values are reconstructed at the public boundary. The Part I statements about logical reservation and named presentation refer to semantic roles, not literal storage layout.
 
 == Audit Certificates and Replay Interface
 
@@ -1739,6 +1746,8 @@ The following obligations define what counts as a faithful implementation of Par
 3. *Scope fidelity*: push/pop/shadowing behavior must preserve resolved-theorem stability exactly as stated in Part I scope theorems.
 4. *Gate fidelity*: all extension admissions must be checked against Part I gate judgments (`DefOK`, `TypeDefOK`, `SpecOK`) without hidden implementation-only bypasses.
 5. *Certificate non-authority*: audit certificates may index/replay checks but never serve as proof objects that bypass gate or rule checking.
+
+The current `ks_specify_const` path checks a closed witness application and then creates the theorem `P(c)` inside the trusted kernel extension path. Its derivation from Choice plus the new definition is a pending formal obligation; until that derivation is checked or reconstructed, this path belongs to the trusted base for conformance review.
 
 Conformance failure in any item above is treated as an implementation defect, not as a change to the logic.
 
@@ -2365,6 +2374,8 @@ Review criteria for this matrix:
 
 Checklist for closure review:
 
+The numbered items below check whether an obligation is *stated*. They do not certify that it is proved or that the MoonBit implementation refines the stated rule. Current proof status is recorded in the audit matrices.
+
 1. Reserved logical equality symbol defined and non-shadowable.
 2. Named elaboration and resolved core typing formally separated.
 3. Scope-mutation stability theorem stated over resolved terms.
@@ -2540,21 +2551,19 @@ Together, these seventeen scenarios provide structured evidence for Part II conf
 
 = Appendix H: Claim-to-Proof Trace Matrix
 
-This appendix gives short review paths from high-level claims to their defining clauses and
-closure theorems.
+This appendix gives short review paths from high-level claims to their defining clauses and proof obligations. An anchor may be a target rather than a completed theorem.
 
-| Claim ID | High-level claim | Definition anchor | Proof anchor |
-| --- | --- | --- | --- |
-| C1 | Primitive derivations are semantically preserving | Primitive rule schemas (`REFL`..`INST`) | Rule-Level Constructive Preservation Capsules + Rule Capsule Closure |
-| C2 | Definitional extension is conservative | `DefOK` judgment | Definitional-head erasure correctness + finite-step composition |
-| C3 | Specification extension is conservative | `SpecOK` judgment | Specification-head erasure correctness + finite-step composition |
-| C4 | Type extensions do not leak empty carriers into admissible instantiation | `TypeDefOK` + non-empty construction invariant | Type-extension erasure correctness + Global Non-Empty Type Preservation |
-| C5 | Scope mutation does not invalidate resolved theorems | scoped stack judgments + one-shot resolution | Resolution Freeze under Scope Mutation |
-| C6 | Boundary conversion does not alter denotation on successful paths | `Term`/`Thm` lowering and lifting definitions | boundary denotation lemmas + semantic rule lifting theorem |
-| C7 | Global admissibility yields global conservativity for old-language sentences | Global admissibility envelope + derivation objects | finite-step backward erasure metatheorem |
-| C8 | Faithful engineering realizations cannot exceed Part I logic | Part II conformance obligations | Conformance Transfer Theorem |
-| C9 | Non-triviality is semantically witnessed | admissible model class definition | Semantic Non-Triviality Transfer + Consistency Witness Form |
-| C10 | Audit artifacts do not change derivability | extension certificate definition | certificate non-authority obligation + conformance audit scenarios |
+| Claim ID | High-level claim | Definition anchor | Proof anchor | Current status |
+| --- | --- | --- | --- | --- |
+| C1 | Primitive derivations are semantically preserving | Primitive rule schemas (`REFL`..`INST`) | Rule-Level Constructive Preservation Capsules + Rule Capsule Closure | Conditional on model laws; exact DEDUCT case open |
+| C2 | Definitional extension is conservative | `DefOK` judgment | Definitional-head erasure target | Cross-theory simulation open |
+| C3 | Specification extension is conservative | `SpecOK` judgment | Specification-head erasure target | Cross-theory simulation open |
+| C4 | Type extensions do not leak empty carriers into admissible instantiation | `TypeDefOK` + non-empty construction invariant | Global Non-Empty Type Preservation target | Semantic construction open |
+| C5 | Scope mutation does not invalidate resolved theorems | scoped stack judgments + one-shot resolution | Resolution Freeze under Scope Mutation | Abstract state law checked; concrete refinement open |
+| C6 | Boundary conversion does not alter denotation on successful paths | `Term`/`Thm` lowering and lifting definitions | boundary denotation obligations | Concrete proof open |
+| C7 | Global admissibility yields global conservativity for old-language sentences | Global admissibility envelope + derivation objects | conditional finite-step backward erasure | Local cross-theory lemmas open |
+| C8 | Faithful engineering realizations cannot exceed Part I logic | Part II conformance obligations | Conformance Transfer Theorem | Conditional; fidelity of MoonBit paths open |
+| C9 | Non-triviality is semantically witnessed | admissible model class definition | Semantic Non-Triviality Transfer + Consistency Witness Form | Conditional on model existence and soundness |
+| C10 | Audit artifacts do not change derivability | extension certificate definition | certificate non-authority obligation + conformance audit scenarios | Policy and tests; universal refinement open |
 
-Review rule: each row is intended to be checkable in at most three navigation steps
-(claim -> definition -> theorem).
+Review rule: follow claim -> definition -> proof anchor, then inspect the current status and the exact Lean theorem statement before treating the claim as established.

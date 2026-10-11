@@ -16,6 +16,8 @@ structure TypeDefContract where
 
 abbrev TySymbols (t : TheoryState) : Finset (TyCon × TypeArity) := t.tySymbols
 
+-- This approximation does not inspect `w.witnessThm` or establish semantic
+-- non-emptiness. The paper's TypeDefOK gate is a stronger outstanding obligation.
 def TypeDefOK
     (t : TheoryState)
     (k : TyCon)
@@ -33,6 +35,7 @@ def TypeDefOK
   termIsClosed predicate ∧
   termTyvarsSubset predicate repBaseTy
 
+-- These fields are syntactic placeholders, not the Abs/Rep equations in the paper.
 def typedefProductContract
     (_k : TyCon)
     (_params : List TVar)

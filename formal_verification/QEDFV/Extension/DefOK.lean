@@ -8,6 +8,7 @@ structure DefIntro where
   rhs : Term
 deriving Repr
 
+-- This exact singleton-membership test is not a recursive occurrence check.
 def acyclic (rhs : Term) (c : ConstName) : Prop :=
   ¬ (Term.const c (HolType.tyvar "_") ∈ [rhs])
 
@@ -19,6 +20,7 @@ def DefOK (t : TheoryState) (d : DefIntro) : Prop :=
   acyclic d.rhs d.c ∧
   termTyvarsSubset d.rhs d.ty
 
+-- The current shape does not express a typed equation `c = rhs` or provenance.
 def definition_theorem_shape (t : TheoryState) (d : DefIntro) : Prop :=
   DefOK t d ->
     ∃ th : Thm,
