@@ -46,3 +46,8 @@ import QEDFV.Audit.AppendixF
 import QEDFV.Audit.AppendixG
 import QEDFV.Audit.AppendixH
 import QEDFV.Audit.PartI
+import QEDFV.HOL.Types
+import QEDFV.HOL.Terms
+import QEDFV.HOL.Evaluation
+import QEDFV.HOL.Rules
+import QEDFV.HOL.Extensions

@@ -1,5 +1,28 @@
 # Formal specification changelog
 
+## 2026-10-12 typed HOL semantic core follow-up
+
+- Added `formal_verification/QEDFV/HOL/Types.lean`, an intrinsically typed HOL type
+  grammar with actual `Prop`, `Nat`, function and variable carriers, plus a
+  structural non-emptiness theorem.
+- Added `HOL/Terms.lean` and `HOL/Evaluation.lean` for typed De Bruijn terms,
+  capture-avoiding substitution, evaluation, and a machine-checked beta law.
+- Added `HOL/Extensions.lean` with predicate-subtype carriers, non-emptiness, and
+  the three semantic Abs/Rep witness equations used by a typedef contract.
+- Added `HOL/Rules.lean` with direct validity-preservation certificates for the
+  typed core rules, including the exact assumption-discharge form of DEDUCT and
+  term-instantiation validity. The restricted closed-context ABS theorem is named
+  accordingly.
+- Kept polymorphic `INST_TYPE`, general open-context ABS, Choice naturality, and
+  the legacy `Lean.Expr`/MoonBit correspondence explicitly open. The typed core is
+  evidence for the semantic direction, not a claim that the implementation has
+  already been refined to it.
+
+Verification: `lake build` in `formal_verification` passed (633 jobs after adding
+the typed core). `HOL/Instantiation.lean` was intentionally not retained because
+an arbitrary Hilbert choice interpretation is not natural under type substitution;
+that missing law is now an explicit next obligation rather than an unsound proof.
+
 ## 2026-10-12 review follow-up (#14, #15, #16)
 
 - Closed the circularity reported in [#14](https://github.com/Luna-Flow/QED/issues/14): `GlobalAdmissibilityEnvelope` is now structural and no longer contains `primitive_sound_all`.
