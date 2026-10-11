@@ -54,7 +54,7 @@ QED is an interactive theorem prover in MoonBit, designed around an LCF-style tr
 = Part I: Logic Core (Normative)
 
 #keyblock("warning", [Proof Status], [
-  Part I states the intended HOL/STT contract. Its mathematical targets are not all established by the current Lean development. Lean checks several same-state structural lemmas and conditional model-law consequences; it does not yet construct a HOL model, prove the named/De Bruijn refinement, or prove cross-theory conservativity. Sections marked *Target* or *Conditional* below identify obligations rather than completed machine-checked theorems. The current obligation inventory is in `doc/manual/qed_formal_audit_matrices.md`.
+  Part I states the intended HOL/STT contract. Its mathematical targets are not all established by the current Lean development. Lean checks several same-state structural lemmas and conditional model-law consequences; it does not yet construct a HOL model, prove the named/De Bruijn refinement, or construct the concrete cross-theory gate simulations. Sections marked *Target* or *Conditional* below identify obligations rather than completed machine-checked theorems. The current obligation inventory is in `doc/manual/qed_formal_audit_matrices.md`.
 ])
 
 *Normative Scope.*
@@ -364,7 +364,7 @@ $
 
 No weaker contract is admissible for kernel-level typedef extension.
 
-*Construction Invariant (No Empty-Type Escape).*
+*Conditional theorem target (Construction Invariant; open).*
 If base prelude types are non-empty and every later type-constructor extension satisfies `"TypeDefOK"`, then every well-formed type over the resulting signature has a non-empty semantic carrier.
 
 This invariant is the syntactic enforcement hook used by `INST_TYPE` soundness arguments.
@@ -999,6 +999,11 @@ If this invariant and the rule/gate cases are proved, applying it to root $D'$ y
 
 = Global Admissibility Envelope
 
+*Conditional status.* The Lean `GlobalAdmissibilityEnvelope` is a structural
+well-formedness condition on local scope and theory state. It does not contain
+the soundness conclusion. Primitive soundness is proved separately from the
+`Model` law bundle; a concrete HOL model and model-class existence remain open.
+
 The kernel-level soundness argument uses a single admissibility envelope:
 
 1. theorem values arise only from primitive rules or admissible extension gates;
@@ -1008,7 +1013,16 @@ The kernel-level soundness argument uses a single admissibility envelope:
 5. specification extension steps must satisfy `"SpecOK"` (derived over Choice + `DefOK`);
 6. boundary conversion failures are non-derivational failures.
 
-All later soundness obligations are stated relative to this envelope, so no rule silently bypasses definition admissibility constraints.
+All later soundness obligations are stated relative to this envelope, so no rule silently bypasses definition admissibility constraints. Issue #14 records the former circular definition in which the envelope itself contained `primitive_sound_all`; that definition has been removed.
+
+*Implementation bug status (#15).* The current MoonBit API still has an open
+forked-state provenance defect: sibling `KernelState` values can allocate the
+same `ConstId`, while theorem values do not record their originating state. A
+theorem such as `|- c = T` from one fork can therefore be combined with
+`c := F` from its sibling. The Lean specification pack does not model this
+state-lineage invariant, so its successful build is not evidence that #15 is
+fixed. The kernel must reject cross-lineage theorem reuse or make identities
+globally unique before implementation soundness can be claimed.
 
 = Primitive Inference Rules
 
@@ -1592,7 +1606,7 @@ For theory state $T$, write $"ModelClass"(T)$ for the class of models satisfying
 *Assumption (Model-Class Non-Emptiness).*
 For the base theory $T_0$, $"ModelClass"(T_0)$ is non-empty.
 
-*Theorem (Semantic Non-Triviality Transfer).*
+*Conditional theorem (Semantic Non-Triviality Transfer; proved relative to the model-law bundle).*
 If $M in "ModelClass"(T)$ and a closed sentence $psi$ is not valid in $M$, then
 $
   not (T tack.r psi)
@@ -1600,7 +1614,7 @@ $
 Proof. By contrapositive of rule/gate soundness: if $T tack.r psi$ then every
 $M in "ModelClass"(T)$ validates $psi$. Therefore a countermodel $M$ excludes derivability.
 
-*Corollary (Consistency Witness Form).*
+*Conditional corollary (Consistency Witness Form; proved relative to the same model class).*
 If $"ModelClass"(T)$ is non-empty, then there is no closed sentence $chi$ such that both
 $
   T tack.r chi and T tack.r not chi
@@ -1643,7 +1657,7 @@ hence $T tack.r phi$. Therefore:
 $
   T' tack.r phi arrow.r.double T tack.r phi
 $
-by finite-step composition. The induction is valid conditional on the local simulations; the current Lean `global_conservativity_target_proved` refers to a weaker same-state predicate, so it does not establish the unconditioned HOL conservativity claim.
+by finite-step composition. The induction is valid conditional on the local simulations; the current Lean `global_conservativity_same_state_structural_proved` refers to a weaker same-state predicate, while `SEC15_GLOBAL_CONSERVATIVITY_FINITE_conditional_proved` merely applies the explicit `CrossTheoryFiniteErasureObligation` premise. Neither establishes the unconditioned HOL conservativity claim.
 
 == Type Preservation Theorem for `MK_COMB`
 
@@ -1757,14 +1771,16 @@ Conformance failure in any item above is treated as an implementation defect, no
 A realization $R$ is faithful to this manuscript iff all five conformance obligations above hold
 for every exported theorem-construction path and every extension-admission path.
 
-*Theorem (Implementation-to-Logic Transfer).*
+*Conditional theorem (Implementation-to-Logic Transfer; proved for abstract `CheckedDerivation` evidence).*
 If $R$ is faithful and $R$ accepts a theorem object with sequent $s$, then
 $
   tack.r s
 $
 is derivable in Part I.
 
-Proof. By reconstruction on the acceptance trace produced by $R$:
+Proof status: the Lean theorem reconstructs `Derivable` from an abstract
+`CheckedDerivation`; it does not yet prove that the current MoonBit
+implementation emits such evidence. By reconstruction on the acceptance trace produced by $R$:
 
 1. every primitive-step acceptance maps to one Part I primitive rule instance (Rule fidelity);
 2. every boundary conversion step is replaced by the corresponding Part I boundary lemma (Boundary fidelity);

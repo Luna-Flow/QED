@@ -1,5 +1,22 @@
 # Formal specification changelog
 
+## 2026-10-12 review follow-up (#14, #15, #16)
+
+- Closed the circularity reported in [#14](https://github.com/Luna-Flow/QED/issues/14): `GlobalAdmissibilityEnvelope` is now structural and no longer contains `primitive_sound_all`.
+- Recorded the [#15](https://github.com/Luna-Flow/QED/issues/15) forked-state provenance counterexample as an open implementation bug. The Lean pack does not model MoonBit state lineage, so it cannot close this defect by compilation alone.
+- Renamed the same-state erasure result to `SEC15_SAME_STATE_ERASURE_FINITE` and made `SEC15_GLOBAL_CONSERVATIVITY_FINITE` a conditional theorem over an explicit `CrossTheoryFiniteErasureObligation`. The obligation's `erases` field is a required simulation conclusion; no theorem in the pack constructs it.
+- Replaced the model-class `soundKernel` assumption with an inductive `derivable_sound` proof, and replaced direct implementation derivability assumptions with recursive `CheckedDerivation` evidence. Conditional claims now use `_conditional_proved` or `_structural_proved` theorem names.
+- Added fixed matrix statuses (`proved`, `conditional`, `open`, `bug`) and GitHub issue references. The manuscript now labels Construction Invariant, Semantic Non-Triviality, Consistency Witness, and Implementation-to-Logic Transfer with their actual conditional status.
+- Corrected the workspace audit language: `lake build` validates the Lean specification/conformance pack, not the MoonBit implementation or a closed model. The current Lean build completes 51 jobs.
+
+### Verification for the review follow-up
+
+- `lake build` in `formal_verification`: passed, 51 jobs.
+- `typst compile doc/attachments/qed_formal_spec.typ /tmp/qed-formal-audit.pdf`: passed.
+- `moon check`: passed.
+- `moon test`: passed, 357/357.
+- `lunadoc check . --compile`: passed, 0 errors and 0 warnings; `zh_CN` and `ja_JP` are each 2525/2525 translated.
+
 ## 2026-10-12 evidence-driven audit correction
 
 - Added `doc/manual/qed_formal_audit_matrices.md` with an issue matrix and a proof-obligation matrix covering the manuscript, Lean formalization, and MoonBit realization.
@@ -10,7 +27,7 @@
 
 ### Verification for this audit
 
-- `lake build` in `formal_verification`: passed, 49 jobs.
+- `lake build` in `formal_verification`: passed, 51 jobs.
 - `typst compile doc/attachments/qed_formal_spec.typ /tmp/qed-formal-audit.pdf`: passed.
 - `moon check`: passed.
 - `moon test`: passed, 357/357.

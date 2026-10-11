@@ -1,12 +1,12 @@
-# Workspace audit (2026-04-18)
+# Workspace audit (2026-10-12)
 
 - Status: point-in-time audit
 - Audience: maintainers, contributors
 - Authority: stage audit; subordinate to [QED formal specification](../attachments/qed_formal_spec.typ), current code/tests, and implementation docs
 - Scope: risks, gaps, and follow-up items that still remain material on the audited baseline
-- Last reviewed: 2026-04-18
+- Last reviewed: 2026-10-12
 
-_Date: 2026-04-18_
+_Date: 2026-10-12_
 
 This report audits the current workspace against the repository's source-of-truth
 order:
@@ -18,12 +18,13 @@ order:
 
 Validation baseline used during this audit:
 
-- `moon test` -> pass (`276/276`)
-- `formal_verification/lake build` -> pass
+- `moon test` -> pass (`357/357`)
+- `formal_verification/lake build` -> pass (51 jobs)
 
-These green gates show the workspace is internally consistent on the current
-baseline. They do not by themselves mean that every planned product capability
-is already shipped.
+These green gates show that the checked packages and regression suite are
+internally consistent on the current baseline. They do not by themselves prove
+the abstract Lean model is realized by MoonBit, establish a concrete HOL model,
+or close every planned product capability.
 
 ## Resolved since the previous audit
 
@@ -84,8 +85,9 @@ source tree to the Lean `Realization`.
 **Impact**
 
 - public assurance language must stay precise;
-- `lake build` should be read as “spec/conformance pack is closed”, not “the
-  MoonBit program is machine-checked equivalent to Lean”.
+- `lake build` should be read as “the stated Lean propositions and conformance
+  pack compile”, not “the model is constructed”, “the pack is semantically
+  closed”, or “the MoonBit program is machine-checked equivalent to Lean”.
 
 **Required follow-up**
 
