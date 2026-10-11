@@ -8084,7 +8084,7 @@ msgid "`moon test`: passed, 357/357."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:18
-msgid "`lunadoc check . --compile`: passed, 0 errors and 0 warnings; `zh_CN` and `ja_JP` are each 2525/2525 translated."
+msgid "`lunadoc check . --compile`: passed, 0 errors and 0 warnings; `zh_CN` and `ja_JP` are each 2523/2523 translated."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:20

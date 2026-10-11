@@ -8125,8 +8125,8 @@ msgid "`moon test`: passed, 357/357."
 msgstr "`moon test`: 合格、357/357。"
 
 #: manual/qed_formal_spec_changelog.md:18
-msgid "`lunadoc check . --compile`: passed, 0 errors and 0 warnings; `zh_CN` and `ja_JP` are each 2525/2525 translated."
-msgstr "`lunadoc check . --compile`：合格、エラー 0 件、警告 0 件。`zh_CN` と `ja_JP` はそれぞれ 2525/2525 件が翻訳済み。"
+msgid "`lunadoc check . --compile`: passed, 0 errors and 0 warnings; `zh_CN` and `ja_JP` are each 2523/2523 translated."
+msgstr "`lunadoc check . --compile`：合格、エラー 0 件、警告 0 件。`zh_CN` と `ja_JP` はそれぞれ 2523/2523 件が翻訳済み。"
 
 #: manual/qed_formal_spec_changelog.md:20
 msgid "2026-10-12 evidence-driven audit correction"
