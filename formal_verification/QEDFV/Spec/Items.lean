@@ -573,9 +573,9 @@ theorem SEC12_SPEC_CONSERVATIVE_proved : SEC12_SPEC_CONSERVATIVE := by
 def SEC13_GLOBAL_ENVELOPE : Prop :=
   ∀ k : KernelState, global_admissibility_sound k
 
-theorem SEC13_GLOBAL_ENVELOPE_proved : SEC13_GLOBAL_ENVELOPE := by
+theorem SEC13_GLOBAL_ENVELOPE_conditional_proved : SEC13_GLOBAL_ENVELOPE := by
   intro k
-  exact global_admissibility_sound_proved k
+  exact global_admissibility_sound_conditional_proved k
 
 def SEC14_RULE_REFL : Prop :=
   ∀ k : KernelState, ∀ t : DbExpr,
@@ -700,16 +700,16 @@ theorem SEC14_RULE_INST_proved : SEC14_RULE_INST := by
 def SEC15_SOUNDNESS_STRATEGY : Prop :=
   kernel_soundness_target
 
-theorem SEC15_SOUNDNESS_STRATEGY_proved : SEC15_SOUNDNESS_STRATEGY := by
+theorem SEC15_SOUNDNESS_STRATEGY_conditional_proved : SEC15_SOUNDNESS_STRATEGY := by
   exact kernel_soundness_bridge
 
 def SEC15_DEP_MAP : Prop := soundness_dependency_map_closed
 
-theorem SEC15_DEP_MAP_proved : SEC15_DEP_MAP := by
-  exact soundness_dependency_map_closed_proved
+theorem SEC15_DEP_MAP_conditional_proved : SEC15_DEP_MAP := by
+  exact soundness_dependency_map_closed_conditional_proved
 
-theorem SEC15_DEP_MAP_kernel_target_proved : kernel_soundness_target := by
-  exact dep_map_implies_kernel_soundness_target SEC15_DEP_MAP_proved
+theorem SEC15_DEP_MAP_kernel_target_conditional_proved : kernel_soundness_target := by
+  exact dep_map_implies_kernel_soundness_target SEC15_DEP_MAP_conditional_proved
 
 def SEC16_ERROR_TAXONOMY : Prop :=
   (∃ e : LogicError, e = e) ∧
@@ -1117,13 +1117,13 @@ def allDeclared : Prop :=
   SEC14_RULE_REFL ∧
   SEC15_SOUNDNESS_STRATEGY
 
-theorem allDeclared_proved : allDeclared := by
+theorem allDeclared_conditional_proved : allDeclared := by
   exact ⟨
     SEC5_SCOPE_WF_proved,
     SEC8_DEBRUIJN_SHIFT_proved,
     SEC9_SHADOWING_DETERMINISM_proved,
     SEC14_RULE_REFL_proved,
-    SEC15_SOUNDNESS_STRATEGY_proved
+    SEC15_SOUNDNESS_STRATEGY_conditional_proved
   ⟩
 
 def RELEASE_FREEZE_GATE : Prop :=
@@ -1134,9 +1134,9 @@ def RELEASE_FREEZE_GATE : Prop :=
   APPG_PARTII_CONFORMANCE ∧
   APPH_CLAIM_TRACE_MATRIX
 
-theorem RELEASE_FREEZE_GATE_proved : RELEASE_FREEZE_GATE := by
+theorem RELEASE_FREEZE_GATE_conditional_proved : RELEASE_FREEZE_GATE := by
   exact ⟨
-    allDeclared_proved,
+    allDeclared_conditional_proved,
     SEC15_GLOBAL_CONSERVATIVITY_FINITE_conditional_proved,
     SEC16_CONFORMANCE_OBLIGATIONS_conditional_proved,
     SEC16_TRANSFER_THEOREM_conditional_proved,

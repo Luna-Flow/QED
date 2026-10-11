@@ -46,11 +46,11 @@ def kernel_soundness_target : Prop :=
 
 theorem kernel_soundness_bridge : kernel_soundness_target := by
   intro k hk
-  exact global_admissibility_sound_proved k hk
+  exact global_admissibility_sound_conditional_proved k hk
 
-theorem dep_edge_envelope_to_primitive_proved : dep_edge_envelope_to_primitive := by
+theorem dep_edge_envelope_to_primitive_conditional_proved : dep_edge_envelope_to_primitive := by
   intro k hk
-  exact global_admissibility_sound_proved k hk
+  exact global_admissibility_sound_conditional_proved k hk
 
 theorem dep_edge_modelclass_nonempty_proved : dep_edge_modelclass_nonempty := by
   intro t h
@@ -74,10 +74,10 @@ theorem kernel_soundness_from_dep_edge
   intro k hEnv
   exact hEdge k hEnv
 
-theorem soundness_dependency_map_closed_proved : soundness_dependency_map_closed := by
+theorem soundness_dependency_map_closed_conditional_proved : soundness_dependency_map_closed := by
   refine ⟨?_, ?_, ?_, ?_, ?_⟩
   · exact primitive_sound_all_proved
-  · exact dep_edge_envelope_to_primitive_proved
+  · exact dep_edge_envelope_to_primitive_conditional_proved
   · exact dep_edge_modelclass_nonempty_proved
   · exact dep_edge_modelclass_instantiation_capsules_proved
   · exact dep_edge_modelclass_alpha_capsule_proved

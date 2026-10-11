@@ -22,7 +22,7 @@ def appendix_h_claim_trace_matrix : List ClaimTraceEntry :=
   , { claimId := "C11_REPLAY_TRACE_TIGHTENING", definitionAnchor := "QEDFV.replayTraceFidelity", theoremAnchor := "QEDFV.appendix_g_replay_trace_fidelity_conditional_proved" }
   , { claimId := "C12_PRIMITIVE_INSTANCE_REPLAY", definitionAnchor := "QEDFV.derivationPrimitiveInstances", theoremAnchor := "QEDFV.appendix_g_transfer_trace_alignment_conditional_proved" }
   , { claimId := "C13_CONSERVATIVE_REPLAY", definitionAnchor := "QEDFV.conservativeReplayFidelity", theoremAnchor := "QEDFV.appendix_g_conservative_replay_fidelity_conditional_proved" }
-  , { claimId := "C14_RELEASE_FREEZE_GATE", definitionAnchor := "QEDFV.Spec.Items.RELEASE_FREEZE_GATE", theoremAnchor := "QEDFV.Spec.Items.RELEASE_FREEZE_GATE_proved" }
+  , { claimId := "C14_RELEASE_FREEZE_GATE", definitionAnchor := "QEDFV.Spec.Items.RELEASE_FREEZE_GATE", theoremAnchor := "QEDFV.Spec.Items.RELEASE_FREEZE_GATE_conditional_proved" }
   ]
 
 def appendix_h_matrix_complete : Prop :=

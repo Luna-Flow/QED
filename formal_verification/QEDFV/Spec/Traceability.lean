@@ -23,7 +23,7 @@ theorem traceability_coverage_complete : coverage100 := by
 def traceability_release_gate : Prop :=
   coverage100 ∧ QEDFV.Spec.Items.RELEASE_FREEZE_GATE
 
-theorem traceability_release_gate_proved : traceability_release_gate := by
-  exact ⟨traceability_coverage_complete, QEDFV.Spec.Items.RELEASE_FREEZE_GATE_proved⟩
+theorem traceability_release_gate_conditional_proved : traceability_release_gate := by
+  exact ⟨traceability_coverage_complete, QEDFV.Spec.Items.RELEASE_FREEZE_GATE_conditional_proved⟩
 
 end QEDFV

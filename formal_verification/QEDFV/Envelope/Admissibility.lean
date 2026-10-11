@@ -17,7 +17,7 @@ def GlobalAdmissibilityEnvelope (k : KernelState) : Prop :=
 def global_admissibility_sound (k : KernelState) : Prop :=
   GlobalAdmissibilityEnvelope k -> primitive_sound_all
 
-theorem global_admissibility_sound_proved (k : KernelState) : global_admissibility_sound k := by
+theorem global_admissibility_sound_conditional_proved (k : KernelState) : global_admissibility_sound k := by
   intro _hEnv
   exact primitive_sound_all_proved
 

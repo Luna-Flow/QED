@@ -39,7 +39,7 @@ structure PartIVerification where
 def partI_semantic_alignment : Prop :=
   Nonempty PartIVerification
 
-theorem partI_semantic_alignment_proved : partI_semantic_alignment := by
+theorem partI_semantic_alignment_conditional_proved : partI_semantic_alignment := by
   refine ⟨{
     constPrincipalSchema := QEDFV.Spec.Items.SEC4_CONST_PRINCIPAL_SCHEMA_proved
     typeInstanceRelation := QEDFV.Spec.Items.SEC4_TYPE_INSTANCE_REL_proved
@@ -69,16 +69,16 @@ theorem partI_semantic_alignment_proved : partI_semantic_alignment := by
     eraseTypeDef := QEDFV.Spec.Items.SEC15_ERASE_TYPEDEF_proved
     sameStateErasure := QEDFV.Spec.Items.SEC15_SAME_STATE_ERASURE_FINITE_structural_proved
     globalConservativity := QEDFV.Spec.Items.SEC15_GLOBAL_CONSERVATIVITY_FINITE_conditional_proved
-    soundnessStrategy := QEDFV.Spec.Items.SEC15_SOUNDNESS_STRATEGY_proved
-    soundnessDepMap := QEDFV.Spec.Items.SEC15_DEP_MAP_proved
-    soundnessDepMapKernelTarget := QEDFV.Spec.Items.SEC15_DEP_MAP_kernel_target_proved
+    soundnessStrategy := QEDFV.Spec.Items.SEC15_SOUNDNESS_STRATEGY_conditional_proved
+    soundnessDepMap := QEDFV.Spec.Items.SEC15_DEP_MAP_conditional_proved
+    soundnessDepMapKernelTarget := QEDFV.Spec.Items.SEC15_DEP_MAP_kernel_target_conditional_proved
   }⟩
 
 def partI_verification_complete : Prop :=
   partI_semantic_alignment ∧ QEDFV.coverage100
 
-theorem partI_verification_complete_proved : partI_verification_complete := by
-  exact ⟨partI_semantic_alignment_proved, QEDFV.traceability_coverage_complete⟩
+theorem partI_verification_complete_conditional_proved : partI_verification_complete := by
+  exact ⟨partI_semantic_alignment_conditional_proved, QEDFV.traceability_coverage_complete⟩
 
 structure FinalVerificationPack where
   partI : partI_verification_complete
@@ -92,15 +92,15 @@ structure FinalVerificationPack where
 def final_verification_complete : Prop :=
   Nonempty FinalVerificationPack
 
-theorem final_verification_complete_proved : final_verification_complete := by
+theorem final_verification_complete_conditional_proved : final_verification_complete := by
   refine ⟨{
-    partI := partI_verification_complete_proved
+    partI := partI_verification_complete_conditional_proved
     sec16Conformance := QEDFV.Spec.Items.SEC16_CONFORMANCE_OBLIGATIONS_conditional_proved
     sec16Transfer := QEDFV.Spec.Items.SEC16_TRANSFER_THEOREM_conditional_proved
     appendixG := QEDFV.Spec.Items.APPG_PARTII_CONFORMANCE_conditional_proved
     appendixH := QEDFV.Spec.Items.APPH_CLAIM_TRACE_MATRIX_proved
-    releaseGate := QEDFV.Spec.Items.RELEASE_FREEZE_GATE_proved
-    traceabilityGate := QEDFV.traceability_release_gate_proved
+    releaseGate := QEDFV.Spec.Items.RELEASE_FREEZE_GATE_conditional_proved
+    traceabilityGate := QEDFV.traceability_release_gate_conditional_proved
   }⟩
 
 end QEDFV
