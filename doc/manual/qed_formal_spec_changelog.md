@@ -9,7 +9,8 @@
   constructs `select_natural`, `HOL/Evaluation.lean` provides a canonical constant
   valuation, and `HOL/Conservativity.lean` proves validity invariance for every
   finite sequence of definition, specification, and typedef interpretations.
-  `HOL/Soundness.lean` exposes canonical model existence and extension soundness.
+  `HOL/Soundness.lean` exposes canonical model existence, extension soundness, and
+  the concrete consistency witness for every old-language finite extension.
 - Typed HOL now proves constructed carrier non-emptiness, the ten typed rule
   capsules, general open-context `ABS`, exact assumption discharge `DEDUCT`, typed
   `INST_TYPE` and `INST`, and indexed `derivation_sound` with no local `sorry`,

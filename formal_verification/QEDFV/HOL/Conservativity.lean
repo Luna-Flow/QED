@@ -90,6 +90,13 @@ theorem typed_derivation_sound_in_extension
     Valid (interpretSequence es (canonicalConstVal S)) s :=
   derivation_sound select_natural (interpretSequence es (canonicalConstVal S)) d
 
+theorem derivation_sound_in_extension
+    (es : List (Extension S)) (I : ConstVal S)
+    {Γ : List Ty} {s : Sequent S Γ}
+    (d : Derivation S s) :
+    Valid (interpretSequence es I) s :=
+  derivation_sound select_natural (interpretSequence es I) d
+
 theorem typed_global_semantic_conservativity
     (es : List (Extension S)) {Γ : List Ty} (s : Sequent S Γ)
     (hOld : oldLanguageSequence es s) :

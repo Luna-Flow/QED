@@ -17,8 +17,17 @@ noncomputable def canonicalModel (S : Signature) : TypedHOLModel S :=
   { constVal := canonicalConstVal S
   , choiceNatural := select_natural }
 
+noncomputable def canonicalExtendedModel
+    (es : List (Extension S)) : TypedHOLModel S :=
+  { constVal := interpretSequence es (canonicalConstVal S)
+  , choiceNatural := select_natural }
+
 theorem typed_model_nonempty (S : Signature) : Nonempty (TypedHOLModel S) :=
   ⟨canonicalModel S⟩
+
+theorem typed_extended_model_nonempty
+    (es : List (Extension S)) : Nonempty (TypedHOLModel S) :=
+  ⟨canonicalExtendedModel es⟩
 
 theorem typed_canonical_derivation_sound
     {S : Signature} {Γ : List Ty} {s : Sequent S Γ}
@@ -47,6 +56,12 @@ theorem typed_finite_extension_semantic_conservativity
       Valid (canonicalConstVal S) s :=
   typed_global_semantic_conservativity es s hOld
 
+theorem typed_extended_derivation_sound
+    (es : List (Extension S)) {Γ : List Ty} {s : Sequent S Γ}
+    (d : Derivation S s) :
+    Valid (interpretSequence es (canonicalConstVal S)) s :=
+  typed_derivation_sound_in_extension es d
+
 theorem typed_definition_semantic_conservativity
     (D : DefinitionGate S) (I : ConstVal S) (s : Sequent S Γ)
     (hOld : D.id ∉ s.constIds) :
@@ -68,5 +83,15 @@ theorem typed_concrete_consistency
     :
     ¬ Derivation standardSignature { hyps := [], concl := falseSentence } :=
   falseSentence_not_derivable select_natural
+
+theorem typed_concrete_consistency_in_extension
+    (es : List (Extension standardSignature))
+    (hOld : oldLanguageSequence es { hyps := [], concl := falseSentence }) :
+    ¬ Derivation standardSignature { hyps := [], concl := falseSentence } := by
+  intro d
+  have hExtended := derivation_sound_in_extension es standardConstVal d
+  have hBase := valid_base_of_interpretSequence es standardConstVal
+    { hyps := [], concl := falseSentence } hOld hExtended
+  exact falseSentence_not_valid hBase
 
 end QEDFV.HOL
