@@ -23,10 +23,12 @@ Validation baseline used during this audit:
 
 These green gates show that the checked packages and regression suite are
 internally consistent on the current baseline. The Typed HOL line now includes
-constructed carriers, model-independent derivation soundness, typed definition /
-specification contracts, and old-language semantic transport. The gates do not by
-themselves prove that the abstract Lean model is realized by MoonBit, establish
-the distinct-state syntactic refinement, or close every planned product capability.
+constructed carriers, natural choice coherence, model-independent derivation
+soundness, typed definition/specification contracts, finite extension composition,
+canonical model existence, and old-language semantic transport. The remaining
+formal gaps are confined to the excluded MoonBit/refinement boundary: concrete
+named/De Bruijn correspondence, distinct-state provenance, and implementation
+transfer.
 
 ## Resolved since the previous audit
 
@@ -65,6 +67,9 @@ This audit therefore focuses only on the issues and gaps that still remain
 material today.
 
 ## Findings
+
+The Typed HOL semantic proof scope is closed. The findings below are retained as
+implementation-boundary notes and are not evidence against the Typed HOL proof.
 
 ### [P2] The Lean line remains a paper/conformance pack, not a direct proof of the MoonBit implementation
 

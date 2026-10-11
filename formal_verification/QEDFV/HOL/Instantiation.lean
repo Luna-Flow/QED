@@ -57,6 +57,19 @@ structure ChoiceNatural : Prop where
       (θ.pull_admissible ρ hρ)
     HEq (select (Ty.denote ρ (a.subst θ))) (select (Ty.denote (θ.pull ρ) a))
 
+theorem select_heq_of_type_eq {A B : Type} [Nonempty A] [Nonempty B]
+    (h : A = B) : HEq (select A) (select B) := by
+  cases h
+  rfl
+
+theorem select_natural : ChoiceNatural := by
+  constructor
+  intro θ ρ hρ a
+  letI : Nonempty (Ty.denote ρ (a.subst θ)) := (a.subst θ).carrier_nonempty ρ hρ
+  letI : Nonempty (Ty.denote (θ.pull ρ) a) :=
+    a.carrier_nonempty (θ.pull ρ) (θ.pull_admissible ρ hρ)
+  exact select_heq_of_type_eq (Ty.denote_subst a θ ρ)
+
 theorem Term.eval_instType
     (hChoice : ChoiceNatural)
     (I : ConstVal S) (ρ : TypeVal) (hρ : Admissible ρ)

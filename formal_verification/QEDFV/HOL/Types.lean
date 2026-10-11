@@ -15,6 +15,15 @@ deriving DecidableEq, Repr
 abbrev TypeVal := Nat → Type
 abbrev TypeSub := Nat → Ty
 
+def Ty.typeVars : Ty → Set Nat
+  | .bool => ∅
+  | .ind => ∅
+  | .var i => {i}
+  | .arr a b => a.typeVars ∪ b.typeVars
+
+def TypeSub.imageTypeVars (θ : TypeSub) (vars : Set Nat) : Set Nat :=
+  {i | ∃ j, j ∈ vars ∧ i ∈ (θ j).typeVars}
+
 def Ty.denote (ρ : TypeVal) : Ty → Type
   | .bool => Prop
   | .ind => Nat
@@ -29,6 +38,57 @@ def Ty.subst (θ : TypeSub) : Ty → Ty
 
 abbrev TypeSub.comp (θ σ : TypeSub) : TypeSub := fun i ↦ (σ i).subst θ
 abbrev TypeSub.pull (θ : TypeSub) (ρ : TypeVal) : TypeVal := fun i ↦ (θ i).denote ρ
+
+@[simp] theorem Ty.typeVars_subst (a : Ty) (θ : TypeSub) :
+    (a.subst θ).typeVars = TypeSub.imageTypeVars θ a.typeVars := by
+  induction a with
+  | bool =>
+      ext i
+      simp [Ty.subst, Ty.typeVars, TypeSub.imageTypeVars]
+  | ind =>
+      ext i
+      simp [Ty.subst, Ty.typeVars, TypeSub.imageTypeVars]
+  | var i =>
+      ext j
+      simp [Ty.subst, Ty.typeVars, TypeSub.imageTypeVars]
+  | arr a b iha ihb =>
+      rw [Ty.subst, Ty.typeVars, iha, ihb]
+      ext i
+      simp only [Set.mem_union, TypeSub.imageTypeVars, Set.mem_setOf_eq]
+      constructor
+      · rintro (⟨j, hja, hi⟩ | ⟨j, hjb, hi⟩)
+        · exact ⟨j, Or.inl hja, hi⟩
+        · exact ⟨j, Or.inr hjb, hi⟩
+      · rintro ⟨j, (hja | hjb), hi⟩
+        · exact Or.inl ⟨j, hja, hi⟩
+        · exact Or.inr ⟨j, hjb, hi⟩
+
+theorem TypeSub.imageTypeVars_union (θ : TypeSub) (A B : Set Nat) :
+    TypeSub.imageTypeVars θ (A ∪ B) =
+      TypeSub.imageTypeVars θ A ∪ TypeSub.imageTypeVars θ B := by
+  ext i
+  constructor
+  · rintro ⟨j, (hA | hB), hi⟩
+    · exact Or.inl ⟨j, hA, hi⟩
+    · exact Or.inr ⟨j, hB, hi⟩
+  · intro hi
+    rcases hi with (⟨j, hA, hi⟩ | ⟨j, hB, hi⟩)
+    · exact ⟨j, Or.inl hA, hi⟩
+    · exact ⟨j, Or.inr hB, hi⟩
+
+theorem TypeSub.imageTypeVars_image (θ σ : TypeSub) (A : Set Nat) :
+    TypeSub.imageTypeVars θ (TypeSub.imageTypeVars σ A) =
+      TypeSub.imageTypeVars (θ.comp σ) A := by
+  ext i
+  constructor
+  · rintro ⟨j, ⟨k, hk, hj⟩, hi⟩
+    refine ⟨k, hk, ?_⟩
+    simpa [TypeSub.comp, Ty.typeVars_subst] using ⟨j, hj, hi⟩
+  · rintro ⟨k, hk, hi⟩
+    have hi' : i ∈ TypeSub.imageTypeVars θ ((σ k).typeVars) := by
+      simpa [TypeSub.comp, Ty.typeVars_subst] using hi
+    rcases hi' with ⟨j, hj, hi⟩
+    exact ⟨j, ⟨k, hk, hj⟩, hi⟩
 
 @[simp] theorem Ty.subst_id (a : Ty) : a.subst Ty.var = a := by
   induction a <;> simp_all [Ty.subst]

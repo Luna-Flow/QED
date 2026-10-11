@@ -18,6 +18,14 @@ inductive Term (S : Signature) : List Ty → Ty → Type where
   | eq : Term S Γ (.arr a (.arr a .bool))
   | choice : Term S Γ (.arr (.arr a .bool) a)
 
+def Term.typeVars : Term S Γ a → Set Nat
+  | .var _ => a.typeVars
+  | .const c σ => ((S c).subst σ).typeVars
+  | .app f x => f.typeVars ∪ x.typeVars
+  | .lam b => b.typeVars
+  | .eq => a.typeVars
+  | .choice => a.typeVars
+
 abbrev Ren (Γ Δ : List Ty) := ∀ {a}, Var Γ a → Var Δ a
 abbrev Sub (S : Signature) (Γ Δ : List Ty) := ∀ {a}, Var Γ a → Term S Δ a
 
@@ -63,5 +71,33 @@ def Term.instType (θ : TypeSub) : Term S Γ a →
   | .lam b => .lam (b.instType θ)
   | .eq => .eq
   | .choice => .choice
+
+theorem Term.typeVars_cast {h : a = b} (t : Term S Γ a) :
+    (h ▸ t).typeVars = t.typeVars := by
+  cases h
+  rfl
+
+@[simp] theorem Term.typeVars_instType (t : Term S Γ a) (θ : TypeSub) :
+    (t.instType θ).typeVars = TypeSub.imageTypeVars θ t.typeVars := by
+  induction t with
+  | var v =>
+      simp [Term.instType, Term.typeVars, Ty.typeVars_subst]
+  | const c σ =>
+      simp only [Term.instType]
+      rw [Term.typeVars_cast]
+      change ((S c).subst (θ.comp σ)).typeVars =
+        TypeSub.imageTypeVars θ ((S c).subst σ).typeVars
+      rw [Ty.typeVars_subst, Ty.typeVars_subst, TypeSub.imageTypeVars_image]
+  | app f x ihf ihx =>
+      simp only [Term.instType, Term.typeVars, ihf, ihx]
+      exact TypeSub.imageTypeVars_union θ f.typeVars x.typeVars |>.symm
+  | lam b ih =>
+      simp only [Term.instType, Term.typeVars, ih]
+  | eq =>
+      simp [Term.instType, Term.typeVars, Ty.typeVars, TypeSub.imageTypeVars,
+        Ty.typeVars_subst]
+  | choice =>
+      simp [Term.instType, Term.typeVars, Ty.typeVars, TypeSub.imageTypeVars,
+        Ty.typeVars_subst]
 
 end QEDFV.HOL

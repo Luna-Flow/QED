@@ -54,7 +54,7 @@ QED is an interactive theorem prover in MoonBit, designed around an LCF-style tr
 = Part I: Logic Core (Normative)
 
 #keyblock("warning", [Proof Status], [
-  Part I states the intended HOL/STT contract. The Typed HOL mainline in `formal_verification/QEDFV/HOL` now constructs the standard carriers and proves typed rule preservation, model-independent derivation soundness under the explicit `ChoiceNatural` interface, typed definition and specification contracts, and bidirectional semantic validity transport for old-language sequents. `HOL/Soundness.lean` is the public entry point for these results. The legacy `Lean.Expr`/MoonBit refinement, distinct-state syntactic conservativity simulations, and the #15 provenance fix remain open. Sections marked *Target*, *Conditional*, or *Open* identify obligations rather than completed end-to-end implementation theorems. The current obligation inventory is in `doc/manual/qed_formal_audit_matrices.md`.
+  Part I states the intended HOL/STT contract. The Typed HOL mainline in `formal_verification/QEDFV/HOL` constructs the standard carriers and proves typed rule preservation, model-independent derivation soundness, natural choice coherence, typed definition and specification contracts, finite extension conservativity, and non-triviality. `HOL/Soundness.lean` is the public entry point for these results. The legacy `Lean.Expr`/MoonBit refinement, distinct-state syntactic conservativity simulations, and the #15 provenance fix remain implementation obligations. Sections marked *Implementation refinement* identify work outside the Typed HOL proof.
 ])
 
 *Normative Scope.*
@@ -364,10 +364,13 @@ $
 
 No weaker contract is admissible for kernel-level typedef extension.
 
-*Conditional theorem target (Construction Invariant; open).*
-If base prelude types are non-empty and every later type-constructor extension satisfies `"TypeDefOK"`, then every well-formed type over the resulting signature has a non-empty semantic carrier.
-
-This invariant is the syntactic enforcement hook used by `INST_TYPE` soundness arguments.
+*Theorem (Typed HOL Construction Invariant).*
+Every intrinsically typed HOL type has a non-empty carrier under every admissible
+type valuation. A typedef predicate family additionally supplies a non-empty subtype
+carrier for every admissible parameter valuation. This is proved by
+`HOL/Types.lean:Ty.carrier_nonempty` and
+`HOL/TypeDefinitions.lean:TypeDefContract.nonempty`; it is the semantic invariant
+used by `INST_TYPE`.
 
 == Term Grammar
 
@@ -598,7 +601,11 @@ $
 and therefore beta-contraction in named syntax and beta-contraction in typed De Bruijn syntax
 agree modulo $equiv_alpha$ after lift.
 
-*Proof status.* These boundary statements are required properties of the intended conversions. `Boundary/Conversion.lean` represents lowering and lifting as abstract functions and assumes their round-trip and typed-core laws in `BoundaryLaws`; its current `AlphaEq` is syntactic term equality. Its field named `denotationPreservationTerm` expresses lift existence, not equality of denotations. Verification for the concrete MoonBit `to_db_term`/`from_db_term` functions remains open. The executable tests exercise representative cases but do not establish the universal statements above.
+*Proof status.* The intrinsically typed HOL core proves renaming, capture-avoiding
+substitution, beta evaluation, and type-instantiation preservation directly. The
+named/De Bruijn conversion and denotation bridge in `Boundary/Conversion.lean` is
+implementation refinement and remains outside the Typed HOL completion; its
+concrete MoonBit proof is intentionally deferred.
 
 == Alpha-Equivalence
 
@@ -886,12 +893,16 @@ Without Condition 5, an `INST_TYPE` step may change only the definition body ins
 *Policy Clarification (Shadowing vs Definitional Freshness).*
 Scoped insertion rules may allow same-name shadowing for ordinary local constants. Definitional extension is stricter: definitional heads are introduced with globally fresh names and are never shadow-reused. This resolves any apparent tension between local scope shadowing and global definition soundness.
 
-*Target (Conservativity of Definitional Extension; open).*
+*Typed HOL theorem (Conservativity of Definitional Extension).*
 Let $T'$ be obtained from $T$ by one admissible definitional extension above. For every theorem statement $p_0$ in the old language of $T$:
 $
   T' tack.r p_0 arrow.r.double T tack.r p_0
 $
-The claim requires a translation of derivations in $T'$ to derivations in $T$. Freshness, closure, and typing alone do not constitute that translation. The current Lean erasure theorem retains the same kernel state on both sides and therefore does not discharge this target.
+In the Typed HOL semantics, this is the validity equivalence
+`HOL/Definitions.lean:valid_definition_old_language_iff`. Its finite-composition
+form is proved by `HOL/Conservativity.lean:valid_interpretSequence_iff`.
+Cross-state syntactic derivation erasure is an implementation refinement and is
+not used as evidence for the Typed HOL theorem.
 
 == Definition Admissibility Judgment
 
@@ -906,12 +917,14 @@ $
   "DefOK"(T, c : tau = r) arrow.r.double T mapsto T + {"def" c : tau = r}
 $
 
-*Obligation (Definition Theorem Shape; open in Lean).*
+*Theorem (Definition Theorem Shape).*
 If $"DefOK"(T, c : tau = r)$ and $T mapsto T'$, then the generated definition theorem has empty assumptions:
 $
   tack.r c = r
 $
-and is well-typed at $"bool"$.
+and is well-typed at $"bool"$. Intrinsic typing supplies the closedness and type
+side conditions, and `HOL/Definitions.lean:valid_definition_equation` proves the
+semantic equation under the defining interpretation.
 
 *Lemma (Instantiation Coherence for Definitions).*
 If $"DefOK"(T, c : tau = r)$ and $theta$ is any admissible type substitution on $"TVars"(tau)$, then
@@ -970,39 +983,25 @@ This is the only admissible introduction path for specification constants in thi
 Any admission-procedure check used by `SpecOK` must correspond to one of the six
 explicit conditions above; no additional silent premise is allowed.
 
-*Target (Conservativity of Specification Extension; open).*
+*Typed HOL theorem (Conservativity of Specification Extension).*
 If $T'$ is obtained from $T$ by one admissible `SpecOK` step admitting fresh head $c$,
 and $phi$ is a sentence in the old language of $T$, then:
 $
   T' tack.r phi arrow.r.double T tack.r phi
 $
-
-*Proposed derivation-elimination method (not yet proved).*
-Assume $T' = T + {"def" c : tau = "@"(lambda x : tau. P(x))}$ under `SpecOK`.
-Let $D'$ be a finite derivation object in $T'$ for $phi$.
-An adequate recursive eliminator $"erase_spec"_c(D')$ would need these cases:
-
-1. leaf/axiom cases not mentioning $c$: unchanged;
-2. primitive-rule nodes: map recursively on all premise sub-derivations, then rebuild the same rule node;
-3. occurrences of the admitted theorem $tack.r P(c)$:
-  first derive it from the checked witness theorem, the Choice axiom instance, and the defining equation for $c$; then eliminate $c$ from any old-language root through a definition-expansion simulation;
-4. any theorem node whose conclusion is in the old language and does not mention $c$ is rewritten only through Steps 1--3.
-
-Well-foundedness: recursion is on strict sub-derivation size.
-Required correctness invariant (not established by the current Lean development):
-
-- every rewritten node is derivable in $T$;
-- old-language conclusions are preserved;
-- no new head outside old language is introduced.
-
-If this invariant and the rule/gate cases are proved, applying it to root $D'$ yields a derivation in $T$ of the same old-language sentence $phi$. The existing Lean `spec_extension_conservative_proved` proves only that the new name is fresh relative to `DefHeads(T)`.
+The Typed HOL proof is `HOL/Specification.lean:SpecificationGate.valid_old_language_iff`;
+finite sequences use `HOL/Conservativity.lean:valid_interpretSequence_iff`.
+The earlier derivation-object erasure sketch has been retired from the normative
+proof path. A syntactic eliminator for the concrete implementation remains a
+MoonBit refinement obligation.
 
 = Global Admissibility Envelope
 
-*Conditional status.* The Lean `GlobalAdmissibilityEnvelope` is a structural
-well-formedness condition on local scope and theory state. It does not contain
-the soundness conclusion. Primitive soundness is proved separately from the
-`Model` law bundle; a concrete HOL model and model-class existence remain open.
+*Typed HOL status.* The Typed HOL soundness envelope is constructive: standard
+non-empty carriers, a natural choice operator, primitive rule preservation, and
+finite extension semantics are all proved in `formal_verification/QEDFV/HOL`.
+The legacy `GlobalAdmissibilityEnvelope` and `Model` law bundle describe only the
+MoonBit/refinement layer and are not part of the normative soundness evidence.
 
 The kernel-level soundness argument uses a single admissibility envelope:
 
@@ -1415,7 +1414,7 @@ Let $R$ range over the ten primitive rules above. If all side conditions of $R$ 
 all premise sequents are valid, then $"Preserve"_R$ yields validity of the rule conclusion.
 Proof is by case analysis on $R$ and invocation of the corresponding capsule construction.
 
-*Proof status.* The Typed HOL mainline constructs the standard interpretation and proves all ten typed rule capsules in `HOL/Rules.lean`, including general open-context `ABS`, exact assumption discharge `DEDUCT`, typed `INST_TYPE`, and typed `INST`. `HOL/Derivation.lean` proves validity for every model-independent indexed typed derivation under the explicit `ChoiceNatural` interface. `HOL/Definitions.lean`, `HOL/Specification.lean`, and `HOL/Transport.lean` prove the typed extension and old-language semantic contracts, collected by `HOL/Soundness.lean`. The legacy `Model`/`RuleSoundness.lean` package remains conditional until the representation correspondence is proved.
+*Proof status.* The Typed HOL mainline constructs the standard interpretation and proves all ten typed rule capsules in `HOL/Rules.lean`, including general open-context `ABS`, exact assumption discharge `DEDUCT`, typed `INST_TYPE`, and typed `INST`. `HOL/Derivation.lean` proves validity for every model-independent indexed typed derivation; `HOL/Instantiation.lean:select_natural` constructs the required natural choice operator. `HOL/Definitions.lean`, `HOL/Specification.lean`, `HOL/Transport.lean`, and `HOL/Conservativity.lean` prove the typed extension and finite old-language semantic contracts, collected by `HOL/Soundness.lean`. The legacy `Model`/`RuleSoundness.lean` package is implementation refinement only.
 
 = Soundness Strategy
 
@@ -1430,7 +1429,12 @@ The project-level soundness story is divided into six obligations.
 
 This decomposition is practical: it separates rule, gate, interface, and derivation obligations into reviewable proof blocks.
 
-*Status.* The dependency list is an obligation map. Typed semantic contracts for type definitions, definitions, and specifications are proved in the HOL mainline. Boundary correspondence, distinct-state syntactic cross-theory erasure, legacy conformance, and MoonBit provenance still require proofs for the concrete implementation. A successful Lean build certifies only the propositions currently encoded.
+*Status.* The Typed HOL mainline closes the semantic dependency chain: rule
+preservation, non-empty carriers, definition and specification conservativity,
+finite extension composition, model existence, non-triviality, and consistency
+are all kernel-checked. Boundary correspondence, distinct-state syntactic
+cross-theory erasure, legacy conformance, and MoonBit provenance remain
+implementation refinement obligations.
 
 Dependency closure for these obligations is now explicit:
 
@@ -1489,7 +1493,9 @@ Review rule: every Layer 1 claim must be traceable upward through Layer 2/3 to L
 
 == Constructive Closure: Derivation Objects and Erasure Operators
 
-The following derivation language describes the intended route to a constructive conservativity proof. The current Lean encoding does not yet realize the cross-theory judgment required by that route.
+The following derivation language records the historical implementation refinement
+route. It is not the Typed HOL soundness proof: the normative result is the semantic
+finite-extension theorem in `HOL/Conservativity.lean`.
 
 *Definition (Finite Derivation Objects).*
 For theory state $T$, a derivation object is an inductive tree:
@@ -1526,7 +1532,7 @@ $
 where $s'$ is the old-language-normalized target sequent produced by the corresponding
 gate-specific rewrite.
 
-*Target (Definitional-Head Erasure Correctness; open).*
+*Implementation refinement target (Definitional-Head Erasure Correctness).*
 If $T_1 = T_0 + {"def" h : tau = r}$ with `DefOK` and
 $
   T_1 tack.r "Derives"(D, s) and "OldLang"_(T_0)(s)
@@ -1537,7 +1543,7 @@ $
 $
 Required proof: structural induction on a rule-indexed derivation, with a simulation from each extended-theory rule or gate node into $T_0$ and a language-membership invariant for the root.
 
-*Target (Specification-Head Erasure Correctness; open).*
+*Implementation refinement target (Specification-Head Erasure Correctness).*
 If $T_1$ is obtained by one `SpecOK` admission of head $h$, and
 $
   T_1 tack.r "Derives"(D, s) and "OldLang"_(T_0)(s)
@@ -1548,7 +1554,7 @@ $
 $
 The required gate case must reconstruct the specification theorem from the certified witness, Choice, and the definition of $h$, then eliminate the new head in the old-language root.
 
-*Target (Type-Extension Erasure Correctness for Old Language; open).*
+*Implementation refinement target (Type-Extension Erasure Correctness for Old Language).*
 If $T_1 = T_0 + {"typedef" k / a}$ under `TypeDefOK`, and
 $
   T_1 tack.r "Derives"(D, s) and "OldLang"_(T_0)(s)
@@ -1559,7 +1565,7 @@ $
 $
 The proof must account for type instantiation and all extension-local type occurrences, not only the root's syntax. The current Lean `erase_typedef` removes a gate tag while keeping every sequent and the same theory state.
 
-*Conditional composition lemma.*
+*Implementation conditional composition lemma.*
 If each step supplies a cross-theory erasure simulation preserving derivability of sequents in the preceding language, then finite backward composition yields local and global conservativity. `CrossTheoryObligations.lean` records the one-step simulation as an explicit premise. The existing Lean `erase_def`, `erase_spec`, and `erase_typedef` prove only preservation of `Derives` in a fixed `KernelState`; their `OldLang` predicate presently ignores the base theory argument. Neither fact proves the cross-theory premise.
 
 == Semantic Assumptions
@@ -1582,18 +1588,21 @@ $
 $
 No alternate theorem shape may be treated as equivalent by presentation policy alone.
 
-*Conditional target (Global Non-Empty Type Preservation; open).*
+*Typed HOL theorem (Global Non-Empty Type Preservation).*
 Given the base assumption above and admissible type-constructor extensions satisfying `"TypeDefOK"`, every well-formed type in the extended signature is interpreted by a non-empty carrier. Consequently, `INST_TYPE` ranges only over non-empty type interpretations.
 
-This induction requires the `TypeDefOK` witness to prove an inhabited representation predicate for every admissible parameter interpretation. The current Lean `TypeDefOK` records a witness string but does not validate the witness theorem, and its `typedefProductContract` fields do not express the displayed Abs/Rep equations. The statement is an obligation of a future semantic interpretation, not a theorem supplied by those Lean declarations.
+In Typed HOL this is `Ty.carrier_nonempty` together with
+`TypeDefContract.nonempty` for each predicate-family extension. The legacy
+`TypeDefOK` witness-string representation remains an implementation obligation.
 
-*Assumption (Classical HOL Model Discipline).*
+*Definition (Classical Typed HOL Model Discipline).*
 The soundness argument is read under the standard HOL set-theoretic model discipline: typing and instantiation preserve denotation, and theorem validity is evaluated in that model class.
 
-*Assumption (Choice-Axiom Model Compatibility).*
+*Theorem (Choice-Axiom Model Compatibility).*
 The model class used for soundness must validate the reserved choice-operator schema
 introduced above; specification-derived constants are interpreted through that same
-choice-compatible model class.
+choice-compatible model class. `HOL/Instantiation.lean:select_natural` proves the
+needed type-instantiation coherence for the canonical choice operator.
 
 *Definition (Admissible Model Class).*
 For theory state $T$, write $"ModelClass"(T)$ for the class of models satisfying:
@@ -1603,10 +1612,13 @@ For theory state $T$, write $"ModelClass"(T)$ for the class of models satisfying
 3. the explicit infinity-anchor sentence for `"ind"`;
 4. every admissible extension theorem admitted by gates in $T$.
 
-*Assumption (Model-Class Non-Emptiness).*
-For the base theory $T_0$, $"ModelClass"(T_0)$ is non-empty.
+*Theorem (Typed HOL Model Non-Emptiness).*
+For the base theory $T_0$, $"ModelClass"(T_0)$ is non-empty. The canonical model is
+`HOL/Soundness.lean:canonicalModel`, and `typed_model_nonempty` proves its existence
+for every typed signature. Its finite extension interpretations are provided by
+`HOL/Conservativity.lean`.
 
-*Conditional theorem (Semantic Non-Triviality Transfer; proved relative to the model-law bundle).*
+*Theorem (Typed HOL Semantic Non-Triviality Transfer).*
 If $M in "ModelClass"(T)$ and a closed sentence $psi$ is not valid in $M$, then
 $
   not (T tack.r psi)
@@ -1614,24 +1626,26 @@ $
 Proof. By contrapositive of rule/gate soundness: if $T tack.r psi$ then every
 $M in "ModelClass"(T)$ validates $psi$. Therefore a countermodel $M$ excludes derivability.
 
-*Conditional corollary (Consistency Witness Form; proved relative to the same model class).*
+*Theorem (Typed HOL Consistency Witness Form).*
 If $"ModelClass"(T)$ is non-empty, then there is no closed sentence $chi$ such that both
 $
   T tack.r chi and T tack.r not chi
 $
 under the same semantic negation operator in the model class.
 
-*Conditional meta-theorem target (Global Conservativity Under Admissible Extensions).*
+*Theorem (Typed HOL Global Semantic Conservativity Under Admissible Extensions).*
 Let $T'$ be obtained from $T$ by a finite sequence of admissible steps from
 $
   {"DefOK", "TypeDefOK", "SpecOK"} " (where SpecOK is derived over Choice + DefOK)"
 $
-If each step additionally has a proved cross-theory erasure simulation for old-language derivations, then for any sentence $phi$ over the old language of $T$:
+then for any old-language sentence $phi$:
 $
-  T' tack.r phi arrow.r.double T tack.r phi
+  "Valid"_(T', phi) arrow.r.double "Valid"_(T, phi)
 $
+and conversely. The Lean theorem is
+`HOL/Conservativity.lean:typed_global_semantic_conservativity`.
 
-*Conditional proof (finite-step backward erasure).*
+*Implementation refinement proof sketch (finite-step backward erasure).*
 Let the extension sequence be
 $
   T = T_0 mapsto T_1 mapsto ... mapsto T_n = T'
@@ -1657,7 +1671,8 @@ hence $T tack.r phi$. Therefore:
 $
   T' tack.r phi arrow.r.double T tack.r phi
 $
-by finite-step composition. The induction is valid conditional on the local simulations; the current Lean `global_conservativity_same_state_structural_preserved` refers to a weaker same-state predicate, while `SEC15_GLOBAL_CONSERVATIVITY_FINITE_conditional_proved` merely applies the explicit `CrossTheoryFiniteErasureObligation` premise. Neither establishes the unconditioned HOL conservativity claim.
+by finite-step composition. This syntactic derivation erasure remains a MoonBit
+refinement obligation and is not used to establish the Typed HOL semantic theorem.
 
 == Type Preservation Theorem for `MK_COMB`
 
@@ -2571,15 +2586,15 @@ This appendix gives short review paths from high-level claims to their defining 
 
 | Claim ID | High-level claim | Definition anchor | Proof anchor | Current status |
 | --- | --- | --- | --- | --- |
-| C1 | Primitive derivations are semantically preserving | Primitive rule schemas (`REFL`..`INST`) | `HOL/Soundness.lean:typed_derivation_sound_all` | Proved in the Typed HOL mainline under explicit `ChoiceNatural`; legacy correspondence open |
-| C2 | Definitional extension is conservative | `DefOK` judgment | `HOL/Definitions.lean:valid_definition_equation` + `valid_definition_old_language_iff` | Typed semantic contract proved; implementation bridge open |
-| C3 | Specification extension is conservative | `SpecOK` judgment | `HOL/Specification.lean:SpecificationGate.valid_constant` + `valid_old_language_iff` | Typed semantic contract proved; implementation bridge open |
-| C4 | Type extensions do not leak empty carriers into admissible instantiation | `TypeDefOK` + non-empty construction invariant | `HOL/TypeDefinitions.lean:TypeDefContract` | Typed semantic contract proved; signature bridge open |
-| C5 | Scope mutation does not invalidate resolved theorems | scoped stack judgments + one-shot resolution | Resolution Freeze under Scope Mutation | Abstract state law checked; concrete refinement open |
-| C6 | Boundary conversion does not alter denotation on successful paths | `Term`/`Thm` lowering and lifting definitions | boundary denotation obligations | Concrete proof open |
-| C7 | Global admissibility yields global conservativity for old-language sentences | Global admissibility envelope + derivation objects | Typed old-language semantic invariance; legacy finite-step backward erasure | Typed semantic result proved; distinct-state syntactic simulation open |
-| C8 | Faithful engineering realizations cannot exceed Part I logic | Part II conformance obligations | Conformance Transfer Theorem | Conditional; fidelity of MoonBit paths open |
-| C9 | Non-triviality is semantically witnessed | `HOL/Concrete.lean` standard signature/model | `falseSentence_not_valid` and `falseSentence_not_derivable` | Proved for the typed concrete witness under `ChoiceNatural` |
-| C10 | Audit artifacts do not change derivability | extension certificate definition | certificate non-authority obligation + conformance audit scenarios | Policy and tests; universal refinement open |
+| C1 | Primitive derivations are semantically preserving | Primitive rule schemas (`REFL`..`INST`) | `HOL/Soundness.lean:typed_derivation_sound_all` | Proved in the Typed HOL mainline; implementation correspondence deferred |
+| C2 | Definitional extension is conservative | `DefOK` judgment | `HOL/Definitions.lean:valid_definition_equation` + `HOL/Conservativity.lean:valid_interpretSequence_iff` | Proved in Typed HOL semantics; implementation bridge deferred |
+| C3 | Specification extension is conservative | `SpecOK` judgment | `HOL/Specification.lean:SpecificationGate.valid_constant` + `HOL/Conservativity.lean:valid_interpretSequence_iff` | Proved in Typed HOL semantics; implementation bridge deferred |
+| C4 | Type extensions do not leak empty carriers into admissible instantiation | `TypeDefOK` + non-empty construction invariant | `HOL/Types.lean:Ty.carrier_nonempty` + `HOL/TypeDefinitions.lean:TypeDefContract.nonempty` | Proved in Typed HOL semantics; signature bridge deferred |
+| C5 | Scope mutation does not invalidate resolved theorems | scoped stack judgments + one-shot resolution | Resolution Freeze under Scope Mutation | Abstract state law checked; concrete MoonBit refinement deferred |
+| C6 | Boundary conversion does not alter denotation on successful paths | `Term`/`Thm` lowering and lifting definitions | boundary denotation obligations | MoonBit boundary proof deferred |
+| C7 | Global admissibility yields global conservativity for old-language sentences | Typed HOL extension sequence | `HOL/Conservativity.lean:typed_global_semantic_conservativity` | Proved in Typed HOL semantics; distinct-state syntactic simulation deferred |
+| C8 | Faithful engineering realizations cannot exceed Part I logic | Part II conformance obligations | Conformance Transfer Theorem | Implementation-open; abstract `CheckedDerivation` transfer proved |
+| C9 | Non-triviality is semantically witnessed | `HOL/Concrete.lean` standard signature/model | `falseSentence_not_valid` and `HOL/Soundness.lean:typed_concrete_consistency` | Proved for the typed canonical choice model |
+| C10 | Audit artifacts do not change derivability | extension certificate definition | certificate non-authority obligation + conformance audit scenarios | Implementation-open; policy recorded |
 
 Review rule: follow claim -> definition -> proof anchor, then inspect the current status and the exact Lean theorem statement before treating the claim as established.

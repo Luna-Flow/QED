@@ -5,27 +5,31 @@
 - Integrated `HOL/Concrete.lean`, `HOL/TypeDefinitions.lean`, `HOL/Definitions.lean`,
   `HOL/Specification.lean`, `HOL/Transport.lean`, `HOL/Conservativity.lean`, and
   the public `HOL/Soundness.lean` entry point into the aggregate Lean target.
+- Closed the remaining Typed HOL semantic layer: `HOL/Instantiation.lean` now
+  constructs `select_natural`, `HOL/Evaluation.lean` provides a canonical constant
+  valuation, and `HOL/Conservativity.lean` proves validity invariance for every
+  finite sequence of definition, specification, and typedef interpretations.
+  `HOL/Soundness.lean` exposes canonical model existence and extension soundness.
 - Typed HOL now proves constructed carrier non-emptiness, the ten typed rule
   capsules, general open-context `ABS`, exact assumption discharge `DEDUCT`, typed
   `INST_TYPE` and `INST`, and indexed `derivation_sound` with no local `sorry`,
-  `axiom`, or `admit` declarations. The polymorphic-instantiation theorem is
-  parameterized by the explicit `ChoiceNatural` interface; no hidden choice
-  naturality axiom is introduced.
+  `axiom`, or `admit` declarations. `select_natural` constructs the required
+  choice coherence, and definition/specification gates explicitly record their
+  type-variable closure conditions.
 - Typed semantic contracts now cover typedef non-emptiness and Abs/Rep laws,
   fresh-constant definition equations, specification validity from a typed witness,
   bidirectional old-language validity invariance for definition/specification
-  extensions, and validity transport for old-language sequents under constant
-  agreement. `HOL/Transport.lean` contains the shared transport layer.
+  extensions, finite extension composition, and validity transport for old-language
+  sequents under constant agreement. `HOL/Transport.lean` contains the shared
+  transport layer.
 - `HOL/Concrete.lean` proves a closed `succ 0 = 0` countermodel and non-derivability
   result, giving a typed non-triviality witness.
-- Verification: `lake build` passed with **642 jobs**. The standard Lean axiom scan
-  for `derivation_sound`, `valid_inst_type`, and `Term.eval_instType` reports only
-  `propext`, `Classical.choice`, and `Quot.sound`.
-- Remaining open items are the distinct-state syntactic cross-theory erasure
-  simulation, the legacy `Lean.Expr`/MoonBit refinement and boundary correspondence,
-  the #15 theorem-provenance implementation bug, and the #14/#16 audit follow-up
-  around the legacy conditional layer. MoonBit refinement remains out of scope for
-  this Typed HOL milestone.
+- Verification: `lake build` passed with **642 jobs**. The axiom scan for all public
+  Typed HOL entry points reports only `propext`, `Classical.choice`, and
+  `Quot.sound`; the Typed HOL tree contains no local `sorry`, `axiom`, or `admit`.
+- The Typed HOL semantic proof is complete. Remaining work is explicitly outside
+  this proof scope: distinct-state syntactic erasure, the legacy `Lean.Expr`/MoonBit
+  boundary, concrete implementation transfer, and the #15 theorem-provenance bug.
 
 ## 2026-10-12 typed HOL semantic core follow-up (historical snapshot)
 

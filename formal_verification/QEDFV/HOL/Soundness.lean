@@ -13,6 +13,18 @@ structure TypedHOLModel (S : Signature) where
   constVal : ConstVal S
   choiceNatural : ChoiceNatural
 
+noncomputable def canonicalModel (S : Signature) : TypedHOLModel S :=
+  { constVal := canonicalConstVal S
+  , choiceNatural := select_natural }
+
+theorem typed_model_nonempty (S : Signature) : Nonempty (TypedHOLModel S) :=
+  ⟨canonicalModel S⟩
+
+theorem typed_canonical_derivation_sound
+    {S : Signature} {Γ : List Ty} {s : Sequent S Γ}
+    (d : Derivation S s) : Valid (canonicalConstVal S) s :=
+  derivation_sound select_natural (canonicalConstVal S) d
+
 theorem TypedHOLModel.derivation_sound
     (M : TypedHOLModel S) {Γ : List Ty} {s : Sequent S Γ}
     (d : Derivation S s) : Valid M.constVal s :=
@@ -24,6 +36,16 @@ theorem typed_derivation_sound_all
     ∀ (M : TypedHOLModel S), Valid M.constVal s := by
   intro M
   exact M.derivation_sound d
+
+theorem typed_choice_natural : ChoiceNatural :=
+  select_natural
+
+theorem typed_finite_extension_semantic_conservativity
+    (es : List (Extension S)) {Γ : List Ty} (s : Sequent S Γ)
+    (hOld : oldLanguageSequence es s) :
+    Valid (interpretSequence es (canonicalConstVal S)) s ↔
+      Valid (canonicalConstVal S) s :=
+  typed_global_semantic_conservativity es s hOld
 
 theorem typed_definition_semantic_conservativity
     (D : DefinitionGate S) (I : ConstVal S) (s : Sequent S Γ)
@@ -43,8 +65,8 @@ theorem typed_type_definition_nonempty
   C.nonempty ρ hρ
 
 theorem typed_concrete_consistency
-    (hChoice : ChoiceNatural) :
+    :
     ¬ Derivation standardSignature { hyps := [], concl := falseSentence } :=
-  falseSentence_not_derivable hChoice
+  falseSentence_not_derivable select_natural
 
 end QEDFV.HOL

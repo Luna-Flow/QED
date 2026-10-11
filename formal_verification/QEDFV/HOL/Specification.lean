@@ -36,6 +36,20 @@ structure SpecificationGate (S : Signature) where
   predicate : Term S (ty :: []) .bool
   witness : Term S [] ty
   fresh : id ∉ predicate.constIds ∪ witness.constIds
+  typeVarsClosed : predicate.typeVars ⊆ ty.typeVars
+
+theorem SpecificationGate.type_vars_closed (G : SpecificationGate S) :
+    G.predicate.typeVars ⊆ G.ty.typeVars :=
+  G.typeVarsClosed
+
+theorem SpecificationGate.instType_type_vars_closed
+    (G : SpecificationGate S) (θ : TypeSub) :
+    (G.predicate.instType θ).typeVars ⊆ (G.ty.subst θ).typeVars := by
+  intro i hi
+  rw [Term.typeVars_instType] at hi
+  rw [Ty.typeVars_subst]
+  rcases hi with ⟨j, hj, hi⟩
+  exact ⟨j, G.typeVarsClosed hj, hi⟩
 
 def SpecificationGate.body (G : SpecificationGate S) : Term S [] .bool :=
   G.predicate.substitute (Sub.single G.witness)
@@ -149,5 +163,22 @@ theorem specification_valid_from_derivation
     Valid I
       { hyps := [], concl := p.substitute (Sub.single (specificationTerm p)) } :=
   valid_specification I p w (derivation_sound hChoice I d)
+
+theorem SpecificationGate.valid_constant_from_typed_derivation
+    (G : SpecificationGate S) (I : ConstVal S)
+    (hTy : S G.id = G.ty)
+    (d : Derivation S { hyps := [], concl := G.body }) :
+    Valid (I.withSpecification G hTy)
+      { hyps := [], concl := G.predicate.substitute (Sub.single (G.constant hTy)) } :=
+  G.valid_constant I hTy (derivation_sound select_natural I d)
+
+theorem specification_valid_from_typed_derivation
+    (I : ConstVal S)
+    (p : Term S (a :: Γ) .bool) (w : Term S Γ a)
+    (d : Derivation S
+      { hyps := [], concl := p.substitute (Sub.single w) }) :
+    Valid I
+      { hyps := [], concl := p.substitute (Sub.single (specificationTerm p)) } :=
+  valid_specification I p w (derivation_sound select_natural I d)
 
 end QEDFV.HOL

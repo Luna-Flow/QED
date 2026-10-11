@@ -8,6 +8,9 @@ abbrev Env (ρ : TypeVal) (Γ : List Ty) := ∀ (a : Ty), Var Γ a → Ty.denote
 abbrev ConstVal (S : Signature) :=
   ∀ (ρ : TypeVal), Admissible ρ → ∀ c, (S c).denote ρ
 
+noncomputable def canonicalConstVal (S : Signature) : ConstVal S :=
+  fun ρ hρ c ↦ Classical.choice ((S c).carrier_nonempty ρ hρ)
+
 def Env.extend (η : Env ρ Γ) (x : Ty.denote ρ a) : Env ρ (a :: Γ)
   | _, .zero => x
   | _, .succ v => η _ v

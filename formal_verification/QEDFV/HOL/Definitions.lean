@@ -8,6 +8,20 @@ structure DefinitionGate (S : Signature) where
   id : Nat
   rhs : Term S [] (S id)
   fresh : id ∉ rhs.constIds
+  typeVarsClosed : rhs.typeVars ⊆ (S id).typeVars
+
+theorem DefinitionGate.type_vars_closed (D : DefinitionGate S) :
+    D.rhs.typeVars ⊆ (S D.id).typeVars :=
+  D.typeVarsClosed
+
+theorem DefinitionGate.instType_type_vars_closed
+    (D : DefinitionGate S) (θ : TypeSub) :
+    (D.rhs.instType θ).typeVars ⊆ ((S D.id).subst θ).typeVars := by
+  intro i hi
+  rw [Term.typeVars_instType] at hi
+  rw [Ty.typeVars_subst]
+  rcases hi with ⟨j, hj, hi⟩
+  exact ⟨j, D.typeVarsClosed hj, hi⟩
 
 def DefinitionGate.head (D : DefinitionGate S) : Term S [] (S D.id) :=
   (Ty.subst_id (S D.id)).symm ▸ (.const D.id Ty.var)
