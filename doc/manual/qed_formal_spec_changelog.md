@@ -3,8 +3,8 @@
 ## 2026-10-12 Typed HOL mainline and audit status
 
 - Integrated `HOL/Concrete.lean`, `HOL/TypeDefinitions.lean`, `HOL/Definitions.lean`,
-  `HOL/Specification.lean`, `HOL/Transport.lean`, and `HOL/Conservativity.lean`
-  into the aggregate Lean target.
+  `HOL/Specification.lean`, `HOL/Transport.lean`, `HOL/Conservativity.lean`, and
+  the public `HOL/Soundness.lean` entry point into the aggregate Lean target.
 - Typed HOL now proves constructed carrier non-emptiness, the ten typed rule
   capsules, general open-context `ABS`, exact assumption discharge `DEDUCT`, typed
   `INST_TYPE` and `INST`, and indexed `derivation_sound` with no local `sorry`,
@@ -18,7 +18,7 @@
   agreement. `HOL/Transport.lean` contains the shared transport layer.
 - `HOL/Concrete.lean` proves a closed `succ 0 = 0` countermodel and non-derivability
   result, giving a typed non-triviality witness.
-- Verification: `lake build` passed with **641 jobs**. The standard Lean axiom scan
+- Verification: `lake build` passed with **642 jobs**. The standard Lean axiom scan
   for `derivation_sound`, `valid_inst_type`, and `Term.eval_instType` reports only
   `propext`, `Classical.choice`, and `Quot.sound`.
 - Remaining open items are the distinct-state syntactic cross-theory erasure

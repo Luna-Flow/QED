@@ -14,8 +14,9 @@ discharge `DEDUCT`, typed term instantiation, and typed polymorphic `INST_TYPE`.
 `Concrete.lean` supplies a closed non-triviality countermodel; `TypeDefinitions.lean`,
 `Definitions.lean`, and `Specification.lean` supply typed semantic contracts for
 the extension gates. `Transport.lean` proves validity transport and bidirectional
-old-language invariance; `Conservativity.lean` exposes the derivation-facing
-boundary. These results are the soundness mainline; they do not yet construct a
+old-language invariance; `Soundness.lean` exposes the model and theorem entry
+points, while `Conservativity.lean` keeps the derivation-facing boundary. These
+results are the soundness mainline; they do not yet construct a
 distinct-state syntactic erasure simulation for the legacy `Lean.Expr`/MoonBit
 implementation.
 
@@ -52,7 +53,7 @@ implementation.
 | P8 Conservativity | For old-language `s`, `T₁ ⊢ s → T₀ ⊢ s` for each gate and finite sequences. | Typed HOL proves semantic old-language validity iff under definition/specification interpretation extensions. The legacy distinct-state syntactic simulation remains unconstructed. | Construct concrete gate simulations and a base/extended derivation relation for the implementation layer. | conditional | #16 |
 | P9 Implementation transfer | Every exported MoonBit theorem path reconstructs a Part I derivation. | Tests and source mapping only; no mechanized refinement. | Bind MoonBit paths to `CheckedDerivation`. | open | #16 |
 
-Current verification in the independent worktree: `lake build` passed (641 jobs);
+Current verification in the independent worktree: `lake build` passed (642 jobs);
 `typst compile doc/attachments/qed_formal_spec.typ /tmp/qed-formal-audit.pdf`,
 `moon check`, `moon test` (357/357), and `lunadoc check . --compile` passed.
 These checks establish the stated Lean and implementation-side contracts, not a

@@ -54,7 +54,7 @@ QED is an interactive theorem prover in MoonBit, designed around an LCF-style tr
 = Part I: Logic Core (Normative)
 
 #keyblock("warning", [Proof Status], [
-  Part I states the intended HOL/STT contract. The Typed HOL mainline in `formal_verification/QEDFV/HOL` now constructs the standard carriers and proves typed rule preservation, model-independent derivation soundness under the explicit `ChoiceNatural` interface, typed definition and specification contracts, and bidirectional semantic validity transport for old-language sequents. The legacy `Lean.Expr`/MoonBit refinement, distinct-state syntactic conservativity simulations, and the #15 provenance fix remain open. Sections marked *Target*, *Conditional*, or *Open* identify obligations rather than completed end-to-end implementation theorems. The current obligation inventory is in `doc/manual/qed_formal_audit_matrices.md`.
+  Part I states the intended HOL/STT contract. The Typed HOL mainline in `formal_verification/QEDFV/HOL` now constructs the standard carriers and proves typed rule preservation, model-independent derivation soundness under the explicit `ChoiceNatural` interface, typed definition and specification contracts, and bidirectional semantic validity transport for old-language sequents. `HOL/Soundness.lean` is the public entry point for these results. The legacy `Lean.Expr`/MoonBit refinement, distinct-state syntactic conservativity simulations, and the #15 provenance fix remain open. Sections marked *Target*, *Conditional*, or *Open* identify obligations rather than completed end-to-end implementation theorems. The current obligation inventory is in `doc/manual/qed_formal_audit_matrices.md`.
 ])
 
 *Normative Scope.*
@@ -1415,7 +1415,7 @@ Let $R$ range over the ten primitive rules above. If all side conditions of $R$ 
 all premise sequents are valid, then $"Preserve"_R$ yields validity of the rule conclusion.
 Proof is by case analysis on $R$ and invocation of the corresponding capsule construction.
 
-*Proof status.* The Typed HOL mainline constructs the standard interpretation and proves all ten typed rule capsules in `HOL/Rules.lean`, including general open-context `ABS`, exact assumption discharge `DEDUCT`, typed `INST_TYPE`, and typed `INST`. `HOL/Derivation.lean` proves validity for every model-independent indexed typed derivation under the explicit `ChoiceNatural` interface. `HOL/Definitions.lean`, `HOL/Specification.lean`, and `HOL/Transport.lean` prove the typed extension and old-language semantic contracts. The legacy `Model`/`RuleSoundness.lean` package remains conditional until the representation correspondence is proved.
+*Proof status.* The Typed HOL mainline constructs the standard interpretation and proves all ten typed rule capsules in `HOL/Rules.lean`, including general open-context `ABS`, exact assumption discharge `DEDUCT`, typed `INST_TYPE`, and typed `INST`. `HOL/Derivation.lean` proves validity for every model-independent indexed typed derivation under the explicit `ChoiceNatural` interface. `HOL/Definitions.lean`, `HOL/Specification.lean`, and `HOL/Transport.lean` prove the typed extension and old-language semantic contracts, collected by `HOL/Soundness.lean`. The legacy `Model`/`RuleSoundness.lean` package remains conditional until the representation correspondence is proved.
 
 = Soundness Strategy
 
@@ -2571,7 +2571,7 @@ This appendix gives short review paths from high-level claims to their defining 
 
 | Claim ID | High-level claim | Definition anchor | Proof anchor | Current status |
 | --- | --- | --- | --- | --- |
-| C1 | Primitive derivations are semantically preserving | Primitive rule schemas (`REFL`..`INST`) | Typed `valid_*` capsules + `HOL/Derivation.lean:derivation_sound_all` | Proved in the Typed HOL mainline under explicit `ChoiceNatural`; legacy correspondence open |
+| C1 | Primitive derivations are semantically preserving | Primitive rule schemas (`REFL`..`INST`) | `HOL/Soundness.lean:typed_derivation_sound_all` | Proved in the Typed HOL mainline under explicit `ChoiceNatural`; legacy correspondence open |
 | C2 | Definitional extension is conservative | `DefOK` judgment | `HOL/Definitions.lean:valid_definition_equation` + `valid_definition_old_language_iff` | Typed semantic contract proved; implementation bridge open |
 | C3 | Specification extension is conservative | `SpecOK` judgment | `HOL/Specification.lean:SpecificationGate.valid_constant` + `valid_old_language_iff` | Typed semantic contract proved; implementation bridge open |
 | C4 | Type extensions do not leak empty carriers into admissible instantiation | `TypeDefOK` + non-empty construction invariant | `HOL/TypeDefinitions.lean:TypeDefContract` | Typed semantic contract proved; signature bridge open |
