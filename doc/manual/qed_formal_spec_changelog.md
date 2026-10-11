@@ -15,7 +15,7 @@
 - `typst compile doc/attachments/qed_formal_spec.typ /tmp/qed-formal-audit.pdf`: passed.
 - `moon check`: passed.
 - `moon test`: passed, 357/357.
-- `lunadoc check . --compile`: passed, 0 errors and 0 warnings; `zh_CN` and `ja_JP` are each 2525/2525 translated.
+- `lunadoc check . --compile`: passed, 0 errors and 0 warnings; `zh_CN` and `ja_JP` are each 2523/2523 translated.
 
 ## 2026-10-12 evidence-driven audit correction
 
