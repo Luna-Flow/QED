@@ -135,8 +135,8 @@ msgid "Exit status"
 msgstr ""
 
 #: manual/api/cmd.md:52
-#: manual/qed_formal_audit_matrices.md:9
-#: manual/qed_formal_audit_matrices.md:28
+#: manual/qed_formal_audit_matrices.md:22
+#: manual/qed_formal_audit_matrices.md:41
 msgid "Status"
 msgstr ""
 
@@ -7533,497 +7533,505 @@ msgid "Status vocabulary is fixed: `proved` means the stated proposition is inde
 msgstr ""
 
 #: manual/qed_formal_audit_matrices.md:7
+msgid "2026-10-12 typed HOL core follow-up"
+msgstr ""
+
+#: manual/qed_formal_audit_matrices.md:9
+msgid "`formal_verification/QEDFV/HOL` now contains an independent intrinsically typed HOL core. `Types.lean` constructs actual carriers (`Prop`, `Nat`, functions, and type variables) and proves non-emptiness. `Evaluation.lean` proves capture-avoiding renaming, substitution, and beta evaluation laws. `Extensions.lean` proves the predicate-subtype carrier and Abs/Rep laws used by a typedef witness. `Rules.lean` proves validity preservation for the typed forms of `REFL`, `ASSUME`, `TRANS`, `MK_COMB`, a closed-context `ABS`, `BETA`, `EQ_MP`, and the exact assumption-discharge `DEDUCT` rule, plus term-instantiation validity. These theorems do not yet prove the correspondence to the legacy `Lean.Expr`/MoonBit syntax, general open-context `ABS`, or polymorphic `INST_TYPE`; those remain conditional/open below."
+msgstr ""
+
+#: manual/qed_formal_audit_matrices.md:20
 msgid "Issue matrix"
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:9
+#: manual/qed_formal_audit_matrices.md:22
 msgid "ID"
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:9
+#: manual/qed_formal_audit_matrices.md:22
 msgid "Class"
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:9
+#: manual/qed_formal_audit_matrices.md:22
 msgid "Observed evidence and cause"
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:9
+#: manual/qed_formal_audit_matrices.md:22
 msgid "Required contract / decision"
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:9
+#: manual/qed_formal_audit_matrices.md:22
 msgid "Verification and acceptance"
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:9
-#: manual/qed_formal_audit_matrices.md:28
+#: manual/qed_formal_audit_matrices.md:22
+#: manual/qed_formal_audit_matrices.md:41
 msgid "Issues"
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:11
+#: manual/qed_formal_audit_matrices.md:24
 msgid "I1"
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:11
-#: manual/qed_formal_audit_matrices.md:12
-#: manual/qed_formal_audit_matrices.md:13
-#: manual/qed_formal_audit_matrices.md:14
+#: manual/qed_formal_audit_matrices.md:24
+#: manual/qed_formal_audit_matrices.md:25
+#: manual/qed_formal_audit_matrices.md:26
+#: manual/qed_formal_audit_matrices.md:27
 msgid "Semantic deviation"
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:11
+#: manual/qed_formal_audit_matrices.md:24
 msgid "`Conservativity/DerivationObject.lean` defines `Derives` with a `Derivable k s` premise at each `rule` node and `OldLang` ignores `t0`; `Erasure*.lean` retains the same `k`. `GlobalConservativity.lean` therefore proves same-state tree erasure, not `T₁ ⊢ s → T₀ ⊢ s`."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:11
+#: manual/qed_formal_audit_matrices.md:24
 msgid "State cross-theory erasure as an explicit conditional obligation. Relabel the existing Lean theorem and manuscript proof status. A real proof needs rule-indexed derivations, old-language membership tied to `T₀`, and a gate-specific simulation into `T₀`."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:11
+#: manual/qed_formal_audit_matrices.md:24
 msgid "`lake build`; inspect theorem statements for distinct base/extended theories. Cross-theory conservativity remains open until the simulation is constructed."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:11
-#: manual/qed_formal_audit_matrices.md:15
-#: manual/qed_formal_audit_matrices.md:16
-#: manual/qed_formal_audit_matrices.md:30
-#: manual/qed_formal_audit_matrices.md:31
-#: manual/qed_formal_audit_matrices.md:35
-#: manual/qed_formal_audit_matrices.md:36
+#: manual/qed_formal_audit_matrices.md:24
+#: manual/qed_formal_audit_matrices.md:28
+#: manual/qed_formal_audit_matrices.md:29
+#: manual/qed_formal_audit_matrices.md:43
+#: manual/qed_formal_audit_matrices.md:44
+#: manual/qed_formal_audit_matrices.md:48
+#: manual/qed_formal_audit_matrices.md:49
 msgid "conditional"
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:12
+#: manual/qed_formal_audit_matrices.md:25
 msgid "I2"
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:12
+#: manual/qed_formal_audit_matrices.md:25
 msgid "`Signature/TypeDef.lean`'s `TypeDefOK` does not inspect `w.witnessThm`; `typedefProductContract` calls a free variable of `repTy` a surjectivity witness and its other two fields are implications from syntactic equality."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:12
+#: manual/qed_formal_audit_matrices.md:25
 msgid "Record `TypeDefOK` and the Abs/Rep laws as implementation/proof obligations, not established Lean theorems. A proof needs a certified witness theorem, a nonempty family for every parameter valuation, and semantic Abs/Rep equations."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:12
+#: manual/qed_formal_audit_matrices.md:25
 msgid "Typst and Lean build; no claim that current Lean typedef lemmas establish nonemptiness or the product contract."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:12
-#: manual/qed_formal_audit_matrices.md:13
-#: manual/qed_formal_audit_matrices.md:14
-#: manual/qed_formal_audit_matrices.md:17
-#: manual/qed_formal_audit_matrices.md:18
-#: manual/qed_formal_audit_matrices.md:32
-#: manual/qed_formal_audit_matrices.md:33
-#: manual/qed_formal_audit_matrices.md:34
-#: manual/qed_formal_audit_matrices.md:37
-#: manual/qed_formal_audit_matrices.md:38
+#: manual/qed_formal_audit_matrices.md:25
+#: manual/qed_formal_audit_matrices.md:26
+#: manual/qed_formal_audit_matrices.md:27
+#: manual/qed_formal_audit_matrices.md:30
+#: manual/qed_formal_audit_matrices.md:31
+#: manual/qed_formal_audit_matrices.md:45
+#: manual/qed_formal_audit_matrices.md:46
+#: manual/qed_formal_audit_matrices.md:47
+#: manual/qed_formal_audit_matrices.md:50
+#: manual/qed_formal_audit_matrices.md:51
 msgid "open"
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:13
+#: manual/qed_formal_audit_matrices.md:26
 msgid "I3"
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:13
+#: manual/qed_formal_audit_matrices.md:26
 msgid "`Extension/DefOK.lean`: `acyclic` tests singleton membership of an exact `Term.const c (tyvar \"_\")`, not recursive occurrence. `definition_theorem_shape_from_defok` constructs an arbitrary `Thm` with a bare constant conclusion."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:13
+#: manual/qed_formal_audit_matrices.md:26
 msgid "Distinguish the executable definition gate from this weak Lean approximation; require a genuine equation theorem generated by a checked extension rule."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:13
+#: manual/qed_formal_audit_matrices.md:26
 msgid "Audit `src/kernel/sig.mbt:ks_define_const` and `ks_define_const_thm`; classify Lean shape proof as insufficient."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:14
+#: manual/qed_formal_audit_matrices.md:27
 msgid "I4"
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:14
+#: manual/qed_formal_audit_matrices.md:27
 msgid "`Extension/SpecOK.lean`: `witnessShape` checks empty hypotheses only; `schemaLock` equates the witness conclusion with a constant named `c`; `spec_extension_conservative` proves freshness only. `src/kernel/sig.mbt:ks_specify_const` accepts a closed witness application and creates `P(c)` through a trusted constructor."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:14
+#: manual/qed_formal_audit_matrices.md:27
 msgid "Model the exact witness shape and a checked derivation from Choice + definition before claiming derived-only specification admission or conservativity. Until then the gate is part of the trusted extension boundary."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:14
+#: manual/qed_formal_audit_matrices.md:27
 msgid "Source comparison and `moon test`; proof status is open."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:15
+#: manual/qed_formal_audit_matrices.md:28
 msgid "I5"
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:15
-#: manual/qed_formal_audit_matrices.md:16
-#: manual/qed_formal_audit_matrices.md:18
+#: manual/qed_formal_audit_matrices.md:28
+#: manual/qed_formal_audit_matrices.md:29
+#: manual/qed_formal_audit_matrices.md:31
 msgid "Proof/oracle gap"
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:15
+#: manual/qed_formal_audit_matrices.md:28
 msgid "`Boundary/Conversion.lean` takes lowering/lifting as arbitrary functions and puts round trip, typing, and “denotation” properties into `BoundaryLaws`; its `AlphaEq` is raw term equality and its denotation field repeats lift existence."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:15
+#: manual/qed_formal_audit_matrices.md:28
 msgid "Treat named/De Bruijn typing, alpha, substitution, and denotation bridges as conditional. Prove them for the actual `src/kernel/terms.mbt` conversion if claiming unconditional transfer."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:15
+#: manual/qed_formal_audit_matrices.md:28
 msgid "`moon test`; `lake build`; theorem statement inspection."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:16
+#: manual/qed_formal_audit_matrices.md:29
 msgid "I6"
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:16
-msgid "`Semantics/Model.lean` packages equality, beta, and substitution preservation as `Model`/`ModelSubstLaws` fields; `RuleSoundness.lean` invokes those fields. No carrier interpretation, valuation, or model existence is constructed."
+#: manual/qed_formal_audit_matrices.md:29
+msgid "The legacy `Semantics/Model.lean` still packages laws as fields, but `HOL/Types.lean` and `HOL/Evaluation.lean` now construct carriers, valuations, and evaluation laws independently."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:16
-msgid "State rule soundness relative to those laws and distinguish it from a model construction and global consistency proof."
+#: manual/qed_formal_audit_matrices.md:29
+msgid "Keep the legacy law-bundle result conditional until correspondence is proved; use the typed core as the semantic witness for the core calculus."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:16
-msgid "`lake build`; axiom/law dependency review."
+#: manual/qed_formal_audit_matrices.md:29
+msgid "`lake build QEDFV.HOL.Rules`; no custom model axiom; correspondence audit remains."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:17
+#: manual/qed_formal_audit_matrices.md:30
 msgid "I7"
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:17
+#: manual/qed_formal_audit_matrices.md:30
 msgid "Integration issue"
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:17
+#: manual/qed_formal_audit_matrices.md:30
 msgid "Manuscript says `@` is outside the signature; `src/kernel/sig.mbt:initial_sig` inserts it as identity 0 while rejecting later user insertion. The manuscript describes `Thm` as a named boundary value, but `src/kernel/thm.mbt` stores De Bruijn terms."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:17
+#: manual/qed_formal_audit_matrices.md:30
 msgid "Clarify reserved logical identity and presentation/core ownership in Part II without changing the intended logic."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:17
+#: manual/qed_formal_audit_matrices.md:30
 msgid "Compare concrete representations; Typst compile."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:18
+#: manual/qed_formal_audit_matrices.md:31
 msgid "I8"
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:18
-msgid "`Kernel/RuleSoundness.lean`'s `DEDUCT_ANTISYM_RULE` requires the removed-hypothesis union to be alpha-equivalent to the original union, a condition absent from the paper rule and usually false."
+#: manual/qed_formal_audit_matrices.md:31
+msgid "The legacy `Kernel/RuleSoundness.lean` still has the overly strong union side condition. The typed core now proves the exact discharge rule in `HOL/Rules.lean`, but only for typed terms and syntactic (De Bruijn) equality."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:18
-msgid "Do not count this as proof of the general rule; derive the correct validity proof from assumptions with explicit discharge of the removed conclusions."
+#: manual/qed_formal_audit_matrices.md:31
+msgid "Replace the legacy rule with the typed discharge theorem after the syntax correspondence is proved."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:18
-msgid "Review proposition and mark obligation open; `lake build`."
+#: manual/qed_formal_audit_matrices.md:31
+msgid "`lake build QEDFV.HOL.Rules`; legacy cross-representation repair remains open."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:19
+#: manual/qed_formal_audit_matrices.md:32
 msgid "I9"
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:19
+#: manual/qed_formal_audit_matrices.md:32
 msgid "Documentation gap"
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:19
+#: manual/qed_formal_audit_matrices.md:32
 msgid "The old changelog's `[PASS]` and `Open items: None` predate this audit and claim full closure from compilation."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:19
+#: manual/qed_formal_audit_matrices.md:32
 msgid "Preserve history but append a dated correction and current proof-status ledger."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:19
+#: manual/qed_formal_audit_matrices.md:32
 msgid "Typst build and audit matrix reconciliation."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:19
-#: manual/qed_formal_audit_matrices.md:20
-#: manual/qed_formal_audit_matrices.md:21
-#: manual/qed_formal_audit_matrices.md:22
-#: manual/qed_formal_audit_matrices.md:23
+#: manual/qed_formal_audit_matrices.md:32
+#: manual/qed_formal_audit_matrices.md:33
+#: manual/qed_formal_audit_matrices.md:34
+#: manual/qed_formal_audit_matrices.md:35
+#: manual/qed_formal_audit_matrices.md:36
 msgid "proved"
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:20
+#: manual/qed_formal_audit_matrices.md:33
 msgid "I10"
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:20
-#: manual/qed_formal_audit_matrices.md:21
-#: manual/qed_formal_audit_matrices.md:22
+#: manual/qed_formal_audit_matrices.md:33
+#: manual/qed_formal_audit_matrices.md:34
+#: manual/qed_formal_audit_matrices.md:35
 msgid "Circularity"
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:20
+#: manual/qed_formal_audit_matrices.md:33
 msgid "`GlobalAdmissibilityEnvelope` previously contained the soundness conclusion, so its theorem only returned the conclusion from the same hypothesis."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:20
+#: manual/qed_formal_audit_matrices.md:33
 msgid "Keep the envelope structural (`ScopedWF` plus theory well-formedness) and prove primitive soundness from the model law bundle."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:20
+#: manual/qed_formal_audit_matrices.md:33
 msgid "Lean build; envelope no longer mentions `primitive_sound_all`."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:21
+#: manual/qed_formal_audit_matrices.md:34
 msgid "I11"
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:21
+#: manual/qed_formal_audit_matrices.md:34
 msgid "`AdmissibleModelClass` previously carried `soundKernel : Derivable -> Valid`, which made the semantic soundness theorem an assumption projection."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:21
+#: manual/qed_formal_audit_matrices.md:34
 msgid "Remove that field and prove `derivable_sound` by induction over `Derivable`; retain only primitive semantic laws and explicit substitution/alpha law bundles."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:21
+#: manual/qed_formal_audit_matrices.md:34
 msgid "Lean build; no `soundKernel` field remains."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:22
+#: manual/qed_formal_audit_matrices.md:35
 msgid "I12"
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:22
+#: manual/qed_formal_audit_matrices.md:35
 msgid "`FaithfulRealization` previously assumed `accepts -> Derivable` through `ruleFidelity`, then used that assumption as implementation transfer."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:22
+#: manual/qed_formal_audit_matrices.md:35
 msgid "Require recursive `CheckedDerivation` evidence and reconstruct `Derivable` with `checked_derivation_sound`; legacy replay helpers are no longer release evidence."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:22
+#: manual/qed_formal_audit_matrices.md:35
 msgid "Lean build; transfer uses `CheckedDerivation`."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:23
+#: manual/qed_formal_audit_matrices.md:36
 msgid "I13"
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:23
+#: manual/qed_formal_audit_matrices.md:36
 msgid "Semantic naming"
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:23
+#: manual/qed_formal_audit_matrices.md:36
 msgid "The old release theorem called same-state gate-tag erasure “global conservativity”."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:23
+#: manual/qed_formal_audit_matrices.md:36
 msgid "Rename the old result to `SEC15_SAME_STATE_ERASURE_FINITE`; make `SEC15_GLOBAL_CONSERVATIVITY_FINITE` conditional on an explicit distinct-state `CrossTheoryFiniteErasureObligation`."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:23
+#: manual/qed_formal_audit_matrices.md:36
 msgid "Lean build; theorem has separate `base` and `extended` states and an explicit obligation premise."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:24
+#: manual/qed_formal_audit_matrices.md:37
 msgid "I14"
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:24
+#: manual/qed_formal_audit_matrices.md:37
 msgid "Bug"
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:24
+#: manual/qed_formal_audit_matrices.md:37
 msgid "The forked-state counterexample shows sibling `KernelState` values can allocate the same `ConstId`; `Thm` carries no state lineage and admissibility checks the name/id shape without checking the source definition body, allowing `"
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:24
+#: manual/qed_formal_audit_matrices.md:37
 msgid "- c = T` from one fork to combine with `c := F` from another."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:24
+#: manual/qed_formal_audit_matrices.md:37
 msgid "Treat theorem provenance as a kernel invariant: reject theorem values from sibling histories, or use globally unique identities. Add a regression reproducer before claiming implementation soundness."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:24
+#: manual/qed_formal_audit_matrices.md:37
 msgid "Issue #15 reproducer; current Lean abstract pack does not model MoonBit state lineage."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:24
+#: manual/qed_formal_audit_matrices.md:37
 msgid "bug"
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:26
+#: manual/qed_formal_audit_matrices.md:39
 msgid "Proof-obligation matrix"
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:28
+#: manual/qed_formal_audit_matrices.md:41
 msgid "Obligation"
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:28
+#: manual/qed_formal_audit_matrices.md:41
 msgid "Mathematical target"
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:28
+#: manual/qed_formal_audit_matrices.md:41
 msgid "Current evidence"
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:28
+#: manual/qed_formal_audit_matrices.md:41
 msgid "Next witness"
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:30
+#: manual/qed_formal_audit_matrices.md:43
 msgid "P1 HOL/STT syntax and typing"
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:30
+#: manual/qed_formal_audit_matrices.md:43
 msgid "Every resolved term is well-typed over an admissible signature with nonempty type carriers."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:30
+#: manual/qed_formal_audit_matrices.md:43
 msgid "`Typing/Core.lean` and MoonBit `type_of`; Lean uses `Lean.Expr` for De Bruijn core."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:30
+#: manual/qed_formal_audit_matrices.md:43
 msgid "A relation to MoonBit `DbTerm` and type-admissibility preservation."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:31
+#: manual/qed_formal_audit_matrices.md:44
 msgid "P2 Scope/history"
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:31
+#: manual/qed_formal_audit_matrices.md:44
 msgid "Pop changes only `S`; admitted heads persist in `T`; resolved identities remain stable."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:31
+#: manual/qed_formal_audit_matrices.md:44
 msgid "`Signature/GlobalLocalState.lean`; MoonBit `TheoryState` and `ConstId`."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:31
+#: manual/qed_formal_audit_matrices.md:44
 msgid "Cross-layer correspondence and provenance invariant."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:32
+#: manual/qed_formal_audit_matrices.md:45
 msgid "P3 Definition admission"
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:32
+#: manual/qed_formal_audit_matrices.md:45
 msgid "Fresh, closed, typed, acyclic `c = r`, with `TVars(r) ⊆ TVars(τ)`; equation theorem is derivable."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:32
+#: manual/qed_formal_audit_matrices.md:45
 msgid "MoonBit checks most gates; Lean `DefOK` and theorem shape are weak (I3)."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:32
+#: manual/qed_formal_audit_matrices.md:45
 msgid "A checked equation theorem and recursive occurrence proof."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:33
+#: manual/qed_formal_audit_matrices.md:46
 msgid "P4 Type definition"
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:33
+#: manual/qed_formal_audit_matrices.md:46
 msgid "Witnessed nonempty predicate family and Abs/Rep equations under all parameter interpretations."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:33
+#: manual/qed_formal_audit_matrices.md:46
 msgid "MoonBit witness and contract checks; Lean contract is vacuous (I2)."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:33
+#: manual/qed_formal_audit_matrices.md:46
 msgid "A semantic witness family and Abs/Rep equations."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:34
+#: manual/qed_formal_audit_matrices.md:47
 msgid "P5 Specification"
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:34
+#: manual/qed_formal_audit_matrices.md:47
 msgid "Certified witness plus Choice derives `P(c)` through `DefOK`."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:34
+#: manual/qed_formal_audit_matrices.md:47
 msgid "MoonBit trusted `ks_specify_const`; Lean only proves freshness (I4)."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:34
+#: manual/qed_formal_audit_matrices.md:47
 msgid "A checked Choice + definition derivation."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:35
+#: manual/qed_formal_audit_matrices.md:48
 msgid "P6 Boundary/substitution/beta"
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:35
+#: manual/qed_formal_audit_matrices.md:48
 msgid "Lower/lift, typed labels, alpha and capture avoidance commute and preserve denotation."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:35
-msgid "Typed labels present in MoonBit; Lean boundary laws assumed (I5)."
+#: manual/qed_formal_audit_matrices.md:48
+msgid "`HOL/Evaluation.lean` proves typed renaming, substitution and beta evaluation; the legacy boundary/MoonBit correspondence is still assumed."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:35
-msgid "Concrete conversion refinement."
+#: manual/qed_formal_audit_matrices.md:48
+msgid "Prove the named/De Bruijn correspondence and general alpha theorem."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:36
+#: manual/qed_formal_audit_matrices.md:49
 msgid "P7 Primitive soundness"
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:36
+#: manual/qed_formal_audit_matrices.md:49
 msgid "Ten exact paper rules preserve validity in a constructed HOL model."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:36
-msgid "`derivable_sound` is now an inductive reconstruction from the primitive `Model` laws and substitution/alpha bundles; no model construction is present, and DEDUCT still follows the kernel's explicit side condition."
+#: manual/qed_formal_audit_matrices.md:49
+msgid "Typed carriers and eight core rule certificates are now constructed in `HOL/Rules.lean`; term instantiation is proved. General open-context ABS, polymorphic INST_TYPE, choice naturality, and legacy correspondence remain."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:36
-msgid "Construct a HOL model and repair the DEDUCT contract."
+#: manual/qed_formal_audit_matrices.md:49
+msgid "Complete the remaining typed rules, then prove representation correspondence."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:37
+#: manual/qed_formal_audit_matrices.md:50
 msgid "P8 Conservativity"
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:37
+#: manual/qed_formal_audit_matrices.md:50
 msgid "For old-language `s`, `T₁ ⊢ s → T₀ ⊢ s` for each gate and finite sequences."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:37
+#: manual/qed_formal_audit_matrices.md:50
 msgid "Same-state erasure is separated from a conditional theorem whose premise is `CrossTheoryFiniteErasureObligation base extended steps`."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:37
+#: manual/qed_formal_audit_matrices.md:50
 msgid "Construct concrete gate simulations."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:38
+#: manual/qed_formal_audit_matrices.md:51
 msgid "P9 Implementation transfer"
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:38
+#: manual/qed_formal_audit_matrices.md:51
 msgid "Every exported MoonBit theorem path reconstructs a Part I derivation."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:38
+#: manual/qed_formal_audit_matrices.md:51
 msgid "Tests and source mapping only; no mechanized refinement."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:38
+#: manual/qed_formal_audit_matrices.md:51
 msgid "Bind MoonBit paths to `CheckedDerivation`."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:40
+#: manual/qed_formal_audit_matrices.md:53
 msgid "Baseline commands in the independent worktree: `typst compile doc/attachments/qed_formal_spec.typ /tmp/qed-formal-baseline.pdf` passed; `moon check` passed; `moon test` passed (357/357); `lake build` passed (51 jobs). These checks establish the stated Lean and implementation-side contracts, not a direct MoonBit-to-Lean refinement."
 msgstr ""
 
@@ -8032,907 +8040,935 @@ msgid "Formal specification changelog"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:3
-msgid "2026-10-12 review follow-up (#14, #15, #16)"
+msgid "2026-10-12 typed HOL semantic core follow-up"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:5
-msgid "Closed the circularity reported in [#14](https://github.com/Luna-Flow/QED/issues/14): `GlobalAdmissibilityEnvelope` is now structural and no longer contains `primitive_sound_all`."
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:6
-msgid "Recorded the [#15](https://github.com/Luna-Flow/QED/issues/15) forked-state provenance counterexample as an open implementation bug. The Lean pack does not model MoonBit state lineage, so it cannot close this defect by compilation alone."
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:7
-msgid "Renamed the same-state erasure result to `SEC15_SAME_STATE_ERASURE_FINITE` and made `SEC15_GLOBAL_CONSERVATIVITY_FINITE` a conditional theorem over an explicit `CrossTheoryFiniteErasureObligation`. The obligation's `erases` field is a required simulation conclusion; no theorem in the pack constructs it."
+msgid "Added `formal_verification/QEDFV/HOL/Types.lean`, an intrinsically typed HOL type grammar with actual `Prop`, `Nat`, function and variable carriers, plus a structural non-emptiness theorem."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:8
-msgid "Replaced the model-class `soundKernel` assumption with an inductive `derivable_sound` proof, and replaced direct implementation derivability assumptions with recursive `CheckedDerivation` evidence. Conditional claims now use `_conditional_proved` or `_structural_proved` theorem names."
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:9
-msgid "Added fixed matrix statuses (`proved`, `conditional`, `open`, `bug`) and GitHub issue references. The manuscript now labels Construction Invariant, Semantic Non-Triviality, Consistency Witness, and Implementation-to-Logic Transfer with their actual conditional status."
+msgid "Added `HOL/Terms.lean` and `HOL/Evaluation.lean` for typed De Bruijn terms, capture-avoiding substitution, evaluation, and a machine-checked beta law."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:10
-msgid "Corrected the workspace audit language: `lake build` validates the Lean specification/conformance pack, not the MoonBit implementation or a closed model. The current Lean build completes 51 jobs."
+msgid "Added `HOL/Extensions.lean` with predicate-subtype carriers, non-emptiness, and the three semantic Abs/Rep witness equations used by a typedef contract."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:12
-msgid "Verification for the review follow-up"
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:14
-#: manual/qed_formal_spec_changelog.md:30
-msgid "`lake build` in `formal_verification`: passed, 51 jobs."
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:15
-#: manual/qed_formal_spec_changelog.md:31
-msgid "`typst compile doc/attachments/qed_formal_spec.typ /tmp/qed-formal-audit.pdf`: passed."
+msgid "Added `HOL/Rules.lean` with direct validity-preservation certificates for the typed core rules, including the exact assumption-discharge form of DEDUCT and term-instantiation validity. The restricted closed-context ABS theorem is named accordingly."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:16
-#: manual/qed_formal_spec_changelog.md:32
-msgid "`moon check`: passed."
+msgid "Kept polymorphic `INST_TYPE`, general open-context ABS, Choice naturality, and the legacy `Lean.Expr`/MoonBit correspondence explicitly open. The typed core is evidence for the semantic direction, not a claim that the implementation has already been refined to it."
 msgstr ""
 
-#: manual/qed_formal_spec_changelog.md:17
-#: manual/qed_formal_spec_changelog.md:33
-msgid "`moon test`: passed, 357/357."
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:18
-msgid "`lunadoc check . --compile`: passed, 0 errors and 0 warnings; `zh_CN` and `ja_JP` are each 2523/2523 translated."
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:20
-msgid "2026-10-12 evidence-driven audit correction"
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:22
-msgid "Added `doc/manual/qed_formal_audit_matrices.md` with an issue matrix and a proof-obligation matrix covering the manuscript, Lean formalization, and MoonBit realization."
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:23
-msgid "Added `formal_verification/QEDFV/Conservativity/CrossTheoryObligations.lean`. It records the missing cross-theory simulation explicitly; it does not assert a proof without that premise."
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:24
-msgid "Corrected the manuscript's proof-status language for definitional, specification, type-extension, and global conservativity. The previous erasure code keeps one `KernelState`, and its `OldLang` predicate does not inspect the base theory, so it proves same-state tree preservation rather than `T' ⊢ φ -> T ⊢ φ`."
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:25
-msgid "Marked the current Lean `TypeDefOK`/typedef product contract, `DefOK` theorem shape, `SpecOK` conservativity predicate, abstract boundary laws, and model-law bundles as approximations or conditional obligations. These declarations compile, but they do not by themselves establish the stronger HOL/STT claims in the article."
+#: manual/qed_formal_spec_changelog.md:21
+msgid "Verification: `lake build` in `formal_verification` passed (633 jobs after adding the typed core). `HOL/Instantiation.lean` was intentionally not retained because an arbitrary Hilbert choice interpretation is not natural under type substitution; that missing law is now an explicit next obligation rather than an unsound proof."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:26
-msgid "Added conformance clarification for the reserved `@` identity and the fact that MoonBit `Thm` stores typed De Bruijn terms at the kernel boundary."
+msgid "2026-10-12 review follow-up (#14, #15, #16)"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:28
-msgid "Verification for this audit"
+msgid "Closed the circularity reported in [#14](https://github.com/Luna-Flow/QED/issues/14): `GlobalAdmissibilityEnvelope` is now structural and no longer contains `primitive_sound_all`."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:29
+msgid "Recorded the [#15](https://github.com/Luna-Flow/QED/issues/15) forked-state provenance counterexample as an open implementation bug. The Lean pack does not model MoonBit state lineage, so it cannot close this defect by compilation alone."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:30
+msgid "Renamed the same-state erasure result to `SEC15_SAME_STATE_ERASURE_FINITE` and made `SEC15_GLOBAL_CONSERVATIVITY_FINITE` a conditional theorem over an explicit `CrossTheoryFiniteErasureObligation`. The obligation's `erases` field is a required simulation conclusion; no theorem in the pack constructs it."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:31
+msgid "Replaced the model-class `soundKernel` assumption with an inductive `derivable_sound` proof, and replaced direct implementation derivability assumptions with recursive `CheckedDerivation` evidence. Conditional claims now use `_conditional_proved` or `_structural_proved` theorem names."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:32
+msgid "Added fixed matrix statuses (`proved`, `conditional`, `open`, `bug`) and GitHub issue references. The manuscript now labels Construction Invariant, Semantic Non-Triviality, Consistency Witness, and Implementation-to-Logic Transfer with their actual conditional status."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:33
+msgid "Corrected the workspace audit language: `lake build` validates the Lean specification/conformance pack, not the MoonBit implementation or a closed model. The current Lean build completes 51 jobs."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:35
-msgid "Remaining open obligations are listed explicitly in the matrices and in the manuscript's proof-status notes; `Open items: None` from earlier rounds no longer applies to the stronger cross-theory and semantic claims."
+msgid "Verification for the review follow-up"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:37
-msgid "Goals and scope of this round"
+#: manual/qed_formal_spec_changelog.md:53
+msgid "`lake build` in `formal_verification`: passed, 51 jobs."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:38
+#: manual/qed_formal_spec_changelog.md:54
+msgid "`typst compile doc/attachments/qed_formal_spec.typ /tmp/qed-formal-audit.pdf`: passed."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:39
-msgid "Goal: finalize the specification so that the structural link between `INST_TYPE` and `DefOK`/`TypeDefOK` is explicit at the rule level, and reviewers do not need to read across several sections to see where soundness comes from."
+#: manual/qed_formal_spec_changelog.md:55
+msgid "`moon check`: passed."
 msgstr ""
 
-#: manual/qed_formal_spec_changelog.md:42
-msgid "Scope:"
+#: manual/qed_formal_spec_changelog.md:40
+#: manual/qed_formal_spec_changelog.md:56
+msgid "`moon test`: passed, 357/357."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:41
+msgid "`lunadoc check . --compile`: passed, 0 errors and 0 warnings; `zh_CN` and `ja_JP` are each 2523/2523 translated."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:43
-msgid "Consistency sweep of the manuscript (terminology, state model, non-empty type semantics);"
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:44
-msgid "Rewrite of the `INST_TYPE` rule (premises, failure classification, bridge note);"
+msgid "2026-10-12 evidence-driven audit correction"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:45
-msgid "Production of the complete review package (main manuscript + PDF + this changelog)."
+msgid "Added `doc/manual/qed_formal_audit_matrices.md` with an issue matrix and a proof-obligation matrix covering the manuscript, Lean formalization, and MoonBit realization."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:46
-msgid "Out of scope: changes to the kernel implementation code."
+msgid "Added `formal_verification/QEDFV/Conservativity/CrossTheoryObligations.lean`. It records the missing cross-theory simulation explicitly; it does not assert a proof without that premise."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:47
+msgid "Corrected the manuscript's proof-status language for definitional, specification, type-extension, and global conservativity. The previous erasure code keeps one `KernelState`, and its `OldLang` predicate does not inspect the base theory, so it proves same-state tree preservation rather than `T' ⊢ φ -> T ⊢ φ`."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:48
-msgid "Section-by-section changes"
+msgid "Marked the current Lean `TypeDefOK`/typedef product contract, `DefOK` theorem shape, `SpecOK` conservativity predicate, abstract boundary laws, and model-law bundles as approximations or conditional obligations. These declarations compile, but they do not by themselves establish the stronger HOL/STT claims in the article."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:49
+msgid "Added conformance clarification for the reserved `@` identity and the fact that MoonBit `Thm` stores typed De Bruijn terms at the kernel boundary."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:51
-msgid "Makes the two-layer state model `(T, S)` explicit: `T` is the global theory history, `S` is the local poppable visibility layer."
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:53
-msgid "Adds a proposition stating that `DefHeads(T)` is monotone and that pop does not roll back definition history."
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:54
-msgid "Adds an equivalent implementation view: \"can be realized as a tombstone registry\"."
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:57
-msgid "Adds the `TypeDefOK` admission condition and rule step for type extensions."
+msgid "Verification for this audit"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:58
-msgid "Introduces the \"no empty-type escape\" construction invariant, which turns non-emptiness from a bare assumption into an auditable gate constraint."
+msgid "Remaining open obligations are listed explicitly in the matrices and in the manuscript's proof-status notes; `Open items: None` from earlier rounds no longer applies to the stronger cross-theory and semantic claims."
 msgstr ""
 
-#: manual/qed_formal_spec_changelog.md:61
-msgid "`= Definitional Extension Discipline` and `== Definition Admissibility Judgment` (`doc/attachments/qed_formal_spec.typ:694`, `doc/attachments/qed_formal_spec.typ:731`)"
+#: manual/qed_formal_spec_changelog.md:60
+msgid "Goals and scope of this round"
 msgstr ""
 
-#: manual/qed_formal_spec_changelog.md:63
-msgid "Unifies definition-head novelty as `c ∉ DefHeads(T)` (replacing the ambiguous check against current visibility)."
+#: manual/qed_formal_spec_changelog.md:62
+msgid "Goal: finalize the specification so that the structural link between `INST_TYPE` and `DefOK`/`TypeDefOK` is explicit at the rule level, and reviewers do not need to read across several sections to see where soundness comes from."
 msgstr ""
 
-#: manual/qed_formal_spec_changelog.md:64
-msgid "Keeps and strengthens `TVars(r) ⊆ TVars(tau)` as a normative condition, which continues to close the ghost-type loophole."
+#: manual/qed_formal_spec_changelog.md:65
+msgid "Scope:"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:66
+msgid "Consistency sweep of the manuscript (terminology, state model, non-empty type semantics);"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:67
+msgid "Rewrite of the `INST_TYPE` rule (premises, failure classification, bridge note);"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:68
-msgid "Extends the envelope: in addition to `DefOK`, adds `TypeDefOK` as a required gate for type extensions."
+msgid "Production of the complete review package (main manuscript + PDF + this changelog)."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:69
+msgid "Out of scope: changes to the kernel implementation code."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:71
-msgid "Rewrites the generic `valid(theta)` into structured premises:"
+msgid "Section-by-section changes"
 msgstr ""
 
-#: manual/qed_formal_spec_changelog.md:75
-msgid "Extends the failure classification to 5 entries, each corresponding one-to-one to the premises above."
+#: manual/qed_formal_spec_changelog.md:74
+msgid "Makes the two-layer state model `(T, S)` explicit: `T` is the global theory history, `S` is the local poppable visibility layer."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:76
-msgid "Adds a Bridge Note that states explicitly how the rule closes the loop with `DefOK`/`TypeDefOK`/Global Envelope."
+msgid "Adds a proposition stating that `DefHeads(T)` is monotone and that pop does not roll back definition history."
 msgstr ""
 
-#: manual/qed_formal_spec_changelog.md:79
-msgid "Introduces the principal type scheme of constants `kappa_c : tau_gen` and the instance relation `tau preceq tau_gen`."
+#: manual/qed_formal_spec_changelog.md:77
+msgid "Adds an equivalent implementation view: \"can be realized as a tombstone registry\"."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:80
+msgid "Adds the `TypeDefOK` admission condition and rule step for type extensions."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:81
-msgid "States that constant instantiation is a first-class relation at the specification level; the \"type in the term == registered type\" literal identity is no longer required."
+msgid "Introduces the \"no empty-type escape\" construction invariant, which turns non-emptiness from a bare assumption into an auditable gate constraint."
 msgstr ""
 
-#: manual/qed_formal_spec_changelog.md:85
-msgid "Changes the `RConst` rule from \"exact type equality\" matching to \"principal scheme + instance relation\" matching."
+#: manual/qed_formal_spec_changelog.md:84
+msgid "`= Definitional Extension Discipline` and `== Definition Admissibility Judgment` (`doc/attachments/qed_formal_spec.typ:694`, `doc/attachments/qed_formal_spec.typ:731`)"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:86
+msgid "Unifies definition-head novelty as `c ∉ DefHeads(T)` (replacing the ambiguous check against current visibility)."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:87
-msgid "Adds a lemma on the availability of polymorphic constant instantiation, stating that the system is not locked into monomorphism."
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:90
-msgid "`= Soundness Strategy` and the dependency graph (`doc/attachments/qed_formal_spec.typ:1132`, `doc/attachments/qed_formal_spec.typ:1152`)"
+msgid "Keeps and strengthens `TVars(r) ⊆ TVars(tau)` as a normative condition, which continues to close the ghost-type loophole."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:91
-msgid "Extends the obligations from 4 to 5, with \"type-level non-emptiness preservation\" listed separately."
+msgid "Extends the envelope: in addition to `DefOK`, adds `TypeDefOK` as a required gate for type extensions."
 msgstr ""
 
-#: manual/qed_formal_spec_changelog.md:92
-msgid "Adds the nodes `Type Admissibility + TypeDefOK` and `Type Non-Emptiness Preservation` to the dependency graph."
+#: manual/qed_formal_spec_changelog.md:94
+msgid "Rewrites the generic `valid(theta)` into structured premises:"
 msgstr ""
 
-#: manual/qed_formal_spec_changelog.md:95
-msgid "Narrows \"all types are non-empty\" from a single global assumption to:"
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:96
-msgid "a non-emptiness assumption for the base prelude;"
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:97
-msgid "a global non-emptiness preservation theorem under the `TypeDefOK` premise."
+#: manual/qed_formal_spec_changelog.md:98
+msgid "Extends the failure classification to 5 entries, each corresponding one-to-one to the premises above."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:99
-msgid "Appendix updates (from `doc/attachments/qed_formal_spec.typ:1301` onward)"
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:100
-msgid "Appendix A: `INST_TYPE` dependencies now include `TypeDefOK` and definitional coherence."
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:101
-msgid "Appendix B: check items now cover the type gate and the separation of state history."
+msgid "Adds a Bridge Note that states explicitly how the rule closes the loop with `DefOK`/`TypeDefOK`/Global Envelope."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:102
-msgid "Appendix C: extended to Definition + State scenarios, with a pop-then-redefine rejection case."
+msgid "Introduces the principal type scheme of constants `kappa_c : tau_gen` and the instance relation `tau preceq tau_gen`."
 msgstr ""
 
-#: manual/qed_formal_spec_changelog.md:103
-msgid "Appendix D: adds type soundness audit scenarios."
+#: manual/qed_formal_spec_changelog.md:104
+msgid "States that constant instantiation is a first-class relation at the specification level; the \"type in the term == registered type\" literal identity is no longer required."
 msgstr ""
 
-#: manual/qed_formal_spec_changelog.md:105
-msgid "Audit issue matrix (Issue -> Fix -> Location -> Residual Risk)"
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:107
-msgid "Issue"
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:107
-msgid "Fix"
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:107
-msgid "Location"
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:107
-msgid "Residual Risk"
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:109
-msgid "Ghost Type Variable (free type variables escaping from a definition body)"
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:109
-msgid "Enforce `TVars(r) ⊆ TVars(tau)` + `INST_TYPE` Bridge Note + `def_inst_coherent` premise"
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:109
-msgid "Low (the implementation must still enforce exactly the same condition)"
+#: manual/qed_formal_spec_changelog.md:108
+msgid "Changes the `RConst` rule from \"exact type equality\" matching to \"principal scheme + instance relation\" matching."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:110
-msgid "Empty Type Semantic Escape (semantic escape through empty types)"
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:110
-msgid "Add `TypeDefOK` + non-emptiness witness gate + non-emptiness preservation theorem"
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:110
-msgid "Low to medium (future extensions of typedef syntax must keep the witness rule)"
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:111
-msgid "Stack vs Theory inconsistency (ambiguous redefinition after pop)"
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:111
-msgid "Separate `(T,S)`; bind definition-head novelty to `DefHeads(T)`; pop does not roll back history"
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:111
-msgid "Low (the UI layer must still show kernel identities to avoid symbol confusion)"
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:112
-msgid "`INST_TYPE` not traceable in review (requires guessing across chapters)"
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:112
-msgid "Add explicit admissibility anchors and failure mapping inside the rule"
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:112
-msgid "Low"
+msgid "Adds a lemma on the availability of polymorphic constant instantiation, stating that the system is not locked into monomorphism."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:113
-msgid "De Bruijn Type Erasure (type erasure at the kernel level)"
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:113
-msgid "Change the De Bruijn core syntax to carry explicit type labels (`DAbs(tau, ...)`, `DBound(..., tau)`), and change the `TRANS`/`BETA` matching conditions to typed-core guards"
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:113
-msgid "Low (the implementation must strictly preserve type labels during boundary lowering)"
+msgid "`= Soundness Strategy` and the dependency graph (`doc/attachments/qed_formal_spec.typ:1132`, `doc/attachments/qed_formal_spec.typ:1152`)"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:114
-msgid "Polymorphism Lockout (polymorphic constant instantiation locked out)"
+msgid "Extends the obligations from 4 to 5, with \"type-level non-emptiness preservation\" listed separately."
 msgstr ""
 
-#: manual/qed_formal_spec_changelog.md:114
-msgid "Introduce principal schemes for constants and the instance relation `tau ≼ tau_gen`, and add instance guards to elaboration, core typing and `INST_TYPE`"
+#: manual/qed_formal_spec_changelog.md:115
+msgid "Adds the nodes `Type Admissibility + TypeDefOK` and `Type Non-Emptiness Preservation` to the dependency graph."
 msgstr ""
 
-#: manual/qed_formal_spec_changelog.md:114
-msgid "Low (the implementation must use the same instance judgment)"
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:116
-msgid "Incremental revision (De Bruijn type erasure audit)"
+#: manual/qed_formal_spec_changelog.md:118
+msgid "Narrows \"all types are non-empty\" from a single global assumption to:"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:119
-msgid "Replaces the untyped constructors (`Abs(t)`, `BVar(k)`) with typed core constructors (`DAbs(tau, t)`, `DBound(k, tau)`)."
+msgid "a non-emptiness assumption for the base prelude;"
 msgstr ""
 
-#: manual/qed_formal_spec_changelog.md:121
-msgid "Adds a binder/argument type agreement side condition to the `beta` contraction rule."
+#: manual/qed_formal_spec_changelog.md:120
+msgid "a global non-emptiness preservation theorem under the `TypeDefOK` premise."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:122
-msgid "Adds a typed-core injectivity invariant that prevents abstractions over different domain types from being structurally identified."
+msgid "Appendix updates (from `doc/attachments/qed_formal_spec.typ:1301` onward)"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:123
+msgid "Appendix A: `INST_TYPE` dependencies now include `TypeDefOK` and definitional coherence."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:124
+msgid "Appendix B: check items now cover the type gate and the separation of state history."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:125
+msgid "Appendix C: extended to Definition + State scenarios, with a pop-then-redefine rejection case."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:126
-msgid "Adds the Type-Sensitive Core Matching lemma, stating that boundary lowering does not erase binder-domain type labels."
+msgid "Appendix D: adds type soundness audit scenarios."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:128
+msgid "Audit issue matrix (Issue -> Fix -> Location -> Residual Risk)"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:130
-msgid "Adds a typed De Bruijn core matching premise and the corresponding failure entry, which prevents middle terms from being mismatched by their \"erased structure\"."
+msgid "Issue"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:130
+msgid "Fix"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:130
+msgid "Location"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:130
+msgid "Residual Risk"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:132
+msgid "Ghost Type Variable (free type variables escaping from a definition body)"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:132
+msgid "Enforce `TVars(r) ⊆ TVars(tau)` + `INST_TYPE` Bridge Note + `def_inst_coherent` premise"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:132
+msgid "Low (the implementation must still enforce exactly the same condition)"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:133
+msgid "Empty Type Semantic Escape (semantic escape through empty types)"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:133
+msgid "Add `TypeDefOK` + non-emptiness witness gate + non-emptiness preservation theorem"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:133
+msgid "Low to medium (future extensions of typedef syntax must keep the witness rule)"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:134
-msgid "Rewrites the redex shape into its typed version;"
+msgid "Stack vs Theory inconsistency (ambiguous redefinition after pop)"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:134
+msgid "Separate `(T,S)`; bind definition-head novelty to `DefHeads(T)`; pop does not roll back history"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:134
+msgid "Low (the UI layer must still show kernel identities to avoid symbol confusion)"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:135
-msgid "Adds binder-domain label mismatch to the failure classification;"
+msgid "`INST_TYPE` not traceable in review (requires guessing across chapters)"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:135
+msgid "Add explicit admissibility anchors and failure mapping inside the rule"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:135
+msgid "Low"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:136
-msgid "The antecedent form now explicitly includes `type_of(u) = tau`."
+msgid "De Bruijn Type Erasure (type erasure at the kernel level)"
 msgstr ""
 
-#: manual/qed_formal_spec_changelog.md:138
-#: manual/qed_formal_spec_changelog.md:159
-msgid "Appendix enhancements:"
+#: manual/qed_formal_spec_changelog.md:136
+msgid "Change the De Bruijn core syntax to carry explicit type labels (`DAbs(tau, ...)`, `DBound(..., tau)`), and change the `TRANS`/`BETA` matching conditions to typed-core guards"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:136
+msgid "Low (the implementation must strictly preserve type labels during boundary lowering)"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:137
+msgid "Polymorphism Lockout (polymorphic constant instantiation locked out)"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:137
+msgid "Introduce principal schemes for constants and the instance relation `tau ≼ tau_gen`, and add instance guards to elaboration, core typing and `INST_TYPE`"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:137
+msgid "Low (the implementation must use the same instance judgment)"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:139
-msgid "Appendix A adds the typed-core dependencies of `TRANS`/`BETA`;"
+msgid "Incremental revision (De Bruijn type erasure audit)"
 msgstr ""
 
-#: manual/qed_formal_spec_changelog.md:140
-msgid "Appendix B adds a check item for type-sensitive De Bruijn matching;"
+#: manual/qed_formal_spec_changelog.md:142
+msgid "Replaces the untyped constructors (`Abs(t)`, `BVar(k)`) with typed core constructors (`DAbs(tau, t)`, `DBound(k, tau)`)."
 msgstr ""
 
-#: manual/qed_formal_spec_changelog.md:141
-msgid "Adds Appendix E (Typed De Bruijn Core Audit Scenarios)."
+#: manual/qed_formal_spec_changelog.md:144
+msgid "Adds a binder/argument type agreement side condition to the `beta` contraction rule."
 msgstr ""
 
-#: manual/qed_formal_spec_changelog.md:143
-msgid "Incremental revision (Polymorphism Lockout audit)"
+#: manual/qed_formal_spec_changelog.md:145
+msgid "Adds a typed-core injectivity invariant that prevents abstractions over different domain types from being structurally identified."
 msgstr ""
 
-#: manual/qed_formal_spec_changelog.md:146
-msgid "Adds the principal scheme of constants `kappa_c : tau_gen` and the instance relation `tau ≼ tau_gen`."
+#: manual/qed_formal_spec_changelog.md:149
+msgid "Adds the Type-Sensitive Core Matching lemma, stating that boundary lowering does not erase binder-domain type labels."
 msgstr ""
 
-#: manual/qed_formal_spec_changelog.md:147
-msgid "States that a constant is valid in the core as \"principal scheme + instantiated type\"; literal type equality is no longer required."
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:150
-msgid "`== Named Elaboration Judgment` and `== Core Typing over Resolved Terms`"
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:151
-msgid "The elaboration and core typing premises of `RConst` both switch to the instance-relation judgment."
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:152
-msgid "Adds the \"Polymorphic Constant Instantiation Admissibility\" lemma and a \"No Monomorphic Lockout\" remark."
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:155
-msgid "Adds a constant-instance consistency side condition: `tau_i ≼ tau_gen(kappa_c)`."
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:156
-msgid "Adds constant-instance mismatch to the failure classification."
+#: manual/qed_formal_spec_changelog.md:153
+msgid "Adds a typed De Bruijn core matching premise and the corresponding failure entry, which prevents middle terms from being mismatched by their \"erased structure\"."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:157
-msgid "The Bridge Note now covers the constant-instance guard and expressiveness."
+msgid "Rewrites the redex shape into its typed version;"
 msgstr ""
 
-#: manual/qed_formal_spec_changelog.md:160
-msgid "Appendix A adds the dependency of `INST_TYPE` on the constant instance relation;"
+#: manual/qed_formal_spec_changelog.md:158
+msgid "Adds binder-domain label mismatch to the failure classification;"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:159
+msgid "The antecedent form now explicitly includes `type_of(u) = tau`."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:161
-msgid "Appendix B adds a `tau ≼ tau_gen` check item;"
+#: manual/qed_formal_spec_changelog.md:182
+msgid "Appendix enhancements:"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:162
-msgid "Appendix D adds a polymorphic constant instantiation audit scenario (`id` usable at the `bool/int` instances)."
+msgid "Appendix A adds the typed-core dependencies of `TRANS`/`BETA`;"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:163
+msgid "Appendix B adds a check item for type-sensitive De Bruijn matching;"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:164
-msgid "Acceptance checklist (with pass/fail)"
+msgid "Adds Appendix E (Typed De Bruijn Core Audit Scenarios)."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:166
-msgid "[PASS] The `INST_TYPE` section explicitly references `DefOK`, `TypeDefOK` and the Global Admissibility Envelope."
+msgid "Incremental revision (Polymorphism Lockout audit)"
 msgstr ""
 
-#: manual/qed_formal_spec_changelog.md:167
-msgid "[PASS] Global history semantics is unified as `DefHeads(T)` and separated from local `pop` behavior."
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:168
-msgid "[PASS] Non-empty type semantics moves from a bare assumption to the `TypeDefOK` gate + preservation theorem narrative."
+#: manual/qed_formal_spec_changelog.md:169
+msgid "Adds the principal scheme of constants `kappa_c : tau_gen` and the instance relation `tau ≼ tau_gen`."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:170
-msgid "[PASS] The manuscript appendices include Ghost/Empty/Pop-Redefine regression scenarios."
+msgid "States that a constant is valid in the core as \"principal scheme + instantiated type\"; literal type equality is no longer required."
 msgstr ""
 
-#: manual/qed_formal_spec_changelog.md:171
-msgid "[PASS] The De Bruijn core carries explicit type annotations, and the `TRANS`/`BETA` rules enforce checks on them."
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:172
-msgid "[PASS] Polymorphic constant use is enabled through the `tau preceq tau_gen` instance relation, avoiding monomorphic lockout."
+#: manual/qed_formal_spec_changelog.md:173
+msgid "`== Named Elaboration Judgment` and `== Core Typing over Resolved Terms`"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:174
-msgid "[PASS] The compilation check passes:"
+msgid "The elaboration and core typing premises of `RConst` both switch to the instance-relation judgment."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:175
-msgid "Command: `typst compile doc/qed_formal_spec.typ doc/qed_formal_spec.pdf`"
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:176
-msgid "Result: [QED formal specification](../attachments/qed_formal_spec.typ) is generated successfully."
+msgid "Adds the \"Polymorphic Constant Instantiation Admissibility\" lemma and a \"No Monomorphic Lockout\" remark."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:178
-msgid "Open items (status at the time of that revision)"
+msgid "Adds a constant-instance consistency side condition: `tau_i ≼ tau_gen(kappa_c)`."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:179
+msgid "Adds constant-instance mismatch to the failure classification."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:180
-msgid "None was recorded for the manuscript-editing scope of that revision. The 2026-10-12 audit supersedes that status for proof claims: cross-theory conservativity, semantic model construction, concrete boundary refinement, and the exact typedef/specification obligations remain open as documented above."
+msgid "The Bridge Note now covers the constant-instance guard and expressiveness."
 msgstr ""
 
-#: manual/qed_formal_spec_changelog.md:182
-msgid "Incremental revision (constructive closure)"
+#: manual/qed_formal_spec_changelog.md:183
+msgid "Appendix A adds the dependency of `INST_TYPE` on the constant instance relation;"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:184
-msgid "Upgrades the *Theorem Goal* in the `SpecOK` section to a formal theorem, and adds a constructive proof method for \"single-step spec head elimination\":"
+msgid "Appendix B adds a `tau ≼ tau_gen` check item;"
 msgstr ""
 
-#: manual/qed_formal_spec_changelog.md:186
-msgid "defines the recursive eliminator `erase_spec` within the manuscript;"
+#: manual/qed_formal_spec_changelog.md:185
+msgid "Appendix D adds a polymorphic constant instantiation audit scenario (`id` usable at the `bool/int` instances)."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:187
-msgid "gives a well-founded induction invariant based on derivation tree size."
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:188
-msgid "Adds the `Constructive Closure: Derivation Objects and Erasure Operators` section:"
+msgid "Acceptance checklist (with pass/fail)"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:189
-msgid "introduces finite derivation objects `Derives(D, s)`;"
+msgid "[PASS] The `INST_TYPE` section explicitly references `DefOK`, `TypeDefOK` and the Global Admissibility Envelope."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:190
-msgid "defines three kinds of eliminators: `erase_def` / `erase_spec` / `erase_typedef`;"
+msgid "[PASS] Global history semantics is unified as `DefHeads(T)` and separated from local `pop` behavior."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:191
-msgid "gives three corresponding correctness theorems (preservation of old-language sentences)."
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:192
-msgid "Upgrades `Meta-Theorem Target` to a formal global conservativity meta-theorem:"
+msgid "[PASS] Non-empty type semantics moves from a bare assumption to the `TypeDefOK` gate + preservation theorem narrative."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:193
-msgid "writes out explicitly the compositional proof by step-by-step back-erasure over finite extension sequences;"
+msgid "[PASS] The manuscript appendices include Ghost/Empty/Pop-Redefine regression scenarios."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:194
-msgid "derives the global `T' ⊢ φ => T ⊢ φ` from the correctness of each per-step gate elimination."
+msgid "[PASS] The De Bruijn core carries explicit type annotations, and the `TRANS`/`BETA` rules enforce checks on them."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:195
-msgid "Updates the document status and the P0 checklist accordingly:"
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:196
-msgid "`Current Status` now reads \"constructive closure is given in the manuscript\";"
+msgid "[PASS] Polymorphic constant use is enabled through the `tau preceq tau_gen` instance relation, avoiding monomorphic lockout."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:197
-msgid "the checklist adds two items: \"derivation object system\" and \"per-gate elimination + composition theorem\"."
+msgid "[PASS] The compilation check passes:"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:198
+msgid "Command: `typst compile doc/qed_formal_spec.typ doc/qed_formal_spec.pdf`"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:199
-msgid "Incremental revision (two-part split and authority boundary)"
+msgid "Result: [QED formal specification](../attachments/qed_formal_spec.typ) is generated successfully."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:201
-msgid "Adds `Part I: Logic Core (Normative)` and an *Authority Contract* at the front of the main manuscript:"
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:202
-msgid "states that Part I is the sole normative source for the logic;"
+msgid "Open items (status at the time of that revision)"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:203
-msgid "states that De Bruijn and scope are mechanisms of logical correctness, not optional engineering details."
+msgid "None was recorded for the manuscript-editing scope of that revision. The 2026-10-12 audit supersedes that status for proof claims: cross-theory conservativity, semantic model construction, concrete boundary refinement, and the exact typedef/specification obligations remain open as documented above."
 msgstr ""
 
-#: manual/qed_formal_spec_changelog.md:204
-msgid "Renames the entry of the engineering part to `Part II: Engineering Realization (Informative + Conformance)`:"
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:206
-msgid "declares explicitly that Part II is downstream of Part I and must not define the logic in reverse."
+#: manual/qed_formal_spec_changelog.md:205
+msgid "Incremental revision (constructive closure)"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:207
-msgid "Adds the `Conformance Obligations (Part I -> Part II)` subsection:"
+msgid "Upgrades the *Theorem Goal* in the `SpecOK` section to a formal theorem, and adds a constructive proof method for \"single-step spec head elimination\":"
 msgstr ""
 
-#: manual/qed_formal_spec_changelog.md:208
-msgid "five implementation conformance obligations: rule fidelity, boundary fidelity, scope stability, gate fidelity and certificate non-authority."
+#: manual/qed_formal_spec_changelog.md:209
+msgid "defines the recursive eliminator `erase_spec` within the manuscript;"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:210
-msgid "Rewrites the first sentence of `Documentation Maintenance Notes` to reflect the two-part maintenance approach:"
+msgid "gives a well-founded induction invariant based on derivation tree size."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:211
-msgid "Part I is maintained as the source of truth for the logic;"
+msgid "Adds the `Constructive Closure: Derivation Objects and Erasure Operators` section:"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:212
-msgid "Part II is maintained as the conformance-report layer for Part I."
+msgid "introduces finite derivation objects `Derives(D, s)`;"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:213
+msgid "defines three kinds of eliminators: `erase_def` / `erase_spec` / `erase_typedef`;"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:214
-msgid "Incremental revision (strengthened De Bruijn / scope proofs)"
+msgid "gives three corresponding correctness theorems (preservation of old-language sentences)."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:215
+msgid "Upgrades `Meta-Theorem Target` to a formal global conservativity meta-theorem:"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:216
-msgid "Adds three bridge theorems to the De Bruijn section:"
+msgid "writes out explicitly the compositional proof by step-by-step back-erasure over finite extension sequences;"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:217
+msgid "derives the global `T' ⊢ φ => T ⊢ φ` from the correctness of each per-step gate elimination."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:218
+msgid "Updates the document status and the P0 checklist accordingly:"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:219
+msgid "`Current Status` now reads \"constructive closure is given in the manuscript\";"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:220
-msgid "Turns the three scoped shadowing propositions from proof sketches into full proofs (derived step by step from the definitions)."
+msgid "the checklist adds two items: \"derivation object system\" and \"per-gate elimination + composition theorem\"."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:222
-msgid "Adds the `Resolution Freeze under Scope Mutation` theorem:"
+msgid "Incremental revision (two-part split and authority boundary)"
 msgstr ""
 
-#: manual/qed_formal_spec_changelog.md:223
-msgid "formally states that the premises of already-resolved terms are invariant under subsequent `push/add/pop` sequences;"
+#: manual/qed_formal_spec_changelog.md:224
+msgid "Adds `Part I: Logic Core (Normative)` and an *Authority Contract* at the front of the main manuscript:"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:225
-msgid "states that scope only affects future name resolution and does not write back to existing resolved objects."
+msgid "states that Part I is the sole normative source for the logic;"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:226
+msgid "states that De Bruijn and scope are mechanisms of logical correctness, not optional engineering details."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:227
-msgid "Incremental revision (automatic phase advance: de-engineering Part I + converging Part II)"
+msgid "Renames the entry of the engineering part to `Part II: Engineering Realization (Informative + Conformance)`:"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:229
-msgid "Removes engineering ties from the wording of Part I (without changing the logical content):"
+msgid "declares explicitly that Part II is downstream of Part I and must not define the logic in reverse."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:230
-msgid "the Abstract changes from \"implementation-aware specification\" to \"formal mathematical specification\";"
+msgid "Adds the `Conformance Obligations (Part I -> Part II)` subsection:"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:231
-msgid "\"In implementation terms\" in `Type Grammar` / `Term Grammar` is rewritten as \"One canonical concrete representation\";"
+msgid "five implementation conformance obligations: rule fidelity, boundary fidelity, scope stability, gate fidelity and certificate non-authority."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:233
-msgid "API/implementation wording in the boundary/scope paragraphs is rewritten as abstract semantic wording (still implementable, but not tied to any particular implementation)."
+msgid "Rewrites the first sentence of `Documentation Maintenance Notes` to reflect the two-part maintenance approach:"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:234
+msgid "Part I is maintained as the source of truth for the logic;"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:235
-msgid "Upgrades the `MK_COMB` section from `Type Preservation Sketch` to `Type Preservation Theorem`:"
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:236
-msgid "keeps the original derivation structure and completes it in the full \"Proof.\" closing style."
+msgid "Part II is maintained as the conformance-report layer for Part I."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:237
-msgid "Converges Part II to conformance semantics:"
+msgid "Incremental revision (strengthened De Bruijn / scope proofs)"
 msgstr ""
 
-#: manual/qed_formal_spec_changelog.md:238
-msgid "the error taxonomy alignment paragraph changes from \"normative for final API\" to \"conformance target for engineering realizations\";"
+#: manual/qed_formal_spec_changelog.md:239
+msgid "Adds three bridge theorems to the De Bruijn section:"
 msgstr ""
 
-#: manual/qed_formal_spec_changelog.md:240
-msgid "the closing sentence of Appendix B changes to \"logic-closure + conformance/regression gate\"."
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:242
-msgid "Incremental revision (automatic phase advance: Part II conformance closure)"
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:244
-msgid "Adds an \"informative only\" boundary statement to `Engineering Correspondence`:"
+#: manual/qed_formal_spec_changelog.md:243
+msgid "Turns the three scoped shadowing propositions from proof sketches into full proofs (derived step by step from the definitions)."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:245
-msgid "the module mapping serves only audit coverage and does not change any definition or theorem of Part I."
+msgid "Adds the `Resolution Freeze under Scope Mutation` theorem:"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:246
-msgid "Adds the `Conformance Transfer Theorem` section:"
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:247
-msgid "defines `Faithful Realization` (satisfying the five conformance obligations);"
+msgid "formally states that the premises of already-resolved terms are invariant under subsequent `push/add/pop` sequences;"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:248
-msgid "gives the transfer theorem from implementation to logic: if the implementation accepts sequent $s$, then $s$ is derivable in Part I;"
+msgid "states that scope only affects future name resolution and does not write back to existing resolved objects."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:250
-msgid "the proof reconstructs the acceptance trace: rule mapping, substitution by boundary lemmas, erasure via scope stability, gate correspondence and discarding of certificate events."
+msgid "Incremental revision (automatic phase advance: de-engineering Part I + converging Part II)"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:252
-msgid "Removes implementation coupling from the introductory paragraph of Primitive Rules:"
+msgid "Removes engineering ties from the wording of Part I (without changing the logical content):"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:253
-msgid "changes \"parallel with implementation updates\" to \"Part I side conditions are authoritative\"."
+msgid "the Abstract changes from \"implementation-aware specification\" to \"formal mathematical specification\";"
 msgstr ""
 
-#: manual/qed_formal_spec_changelog.md:255
-msgid "Incremental revision (automatic phase advance: strengthened constructive closure for Primitive Rules)"
+#: manual/qed_formal_spec_changelog.md:254
+msgid "\"In implementation terms\" in `Type Grammar` / `Term Grammar` is rewritten as \"One canonical concrete representation\";"
 msgstr ""
 
-#: manual/qed_formal_spec_changelog.md:257
-msgid "Adds `Rule-Level Constructive Preservation Capsules` at the end of the `Rule Schema` chapter:"
+#: manual/qed_formal_spec_changelog.md:256
+msgid "API/implementation wording in the boundary/scope paragraphs is rewritten as abstract semantic wording (still implementable, but not tied to any particular implementation)."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:258
-msgid "gives a uniform constructive template `Preserve_R : valid(Premises_R) => valid(Conclusion_R)`;"
+msgid "Upgrades the `MK_COMB` section from `Type Preservation Sketch` to `Type Preservation Theorem`:"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:259
-msgid "gives an encapsulated preservation statement for each of the 10 primitive rules (including the three constraints of `INST_TYPE`: gate, coherence and instance);"
+msgid "keeps the original derivation structure and completes it in the full \"Proof.\" closing style."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:260
+msgid "Converges Part II to conformance semantics:"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:261
-msgid "adds the summary theorem `Rule Capsule Closure`, stating that \"per-rule case analysis + capsule invocation\" is enough to close the P1 obligation."
+msgid "the error taxonomy alignment paragraph changes from \"normative for final API\" to \"conformance target for engineering realizations\";"
 msgstr ""
 
-#: manual/qed_formal_spec_changelog.md:264
-msgid "Incremental revision (automatic phase advance: closing the two-part audit checklist)"
+#: manual/qed_formal_spec_changelog.md:263
+msgid "the closing sentence of Appendix B changes to \"logic-closure + conformance/regression gate\"."
 msgstr ""
 
-#: manual/qed_formal_spec_changelog.md:266
-msgid "Extends Appendix B (P0 checklist) with Part II consistency items:"
+#: manual/qed_formal_spec_changelog.md:265
+msgid "Incremental revision (automatic phase advance: Part II conformance closure)"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:267
-msgid "adds items 24-28, covering the Part II downstream declaration, the five conformance obligations, the transfer theorem, the non-authoritative mapping and the conformance positioning of the error taxonomy."
+msgid "Adds an \"informative only\" boundary statement to `Engineering Correspondence`:"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:268
+msgid "the module mapping serves only audit coverage and does not change any definition or theorem of Part I."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:269
-msgid "Adds Appendix G `Part II Conformance Audit Scenarios`:"
+msgid "Adds the `Conformance Transfer Theorem` section:"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:270
-msgid "Rule-fidelity replay;"
+msgid "defines `Faithful Realization` (satisfying the five conformance obligations);"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:271
-msgid "Boundary-fidelity;"
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:272
-msgid "Scope-fidelity stability;"
+msgid "gives the transfer theorem from implementation to logic: if the implementation accepts sequent $s$, then $s$ is derivable in Part I;"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:273
-msgid "Gate-fidelity;"
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:274
-msgid "Certificate non-authority."
+msgid "the proof reconstructs the acceptance trace: rule mapping, substitution by boundary lemmas, erasure via scope stability, gate correspondence and discarding of certificate events."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:275
-msgid "This completes the two-level audit structure of \"Part I logic closure + Part II conformance closure\"."
+msgid "Removes implementation coupling from the introductory paragraph of Primitive Rules:"
 msgstr ""
 
-#: manual/qed_formal_spec_changelog.md:277
-msgid "Incremental revision (automatic phase advance: semantic assumption package and consistency layer)"
+#: manual/qed_formal_spec_changelog.md:276
+msgid "changes \"parallel with implementation updates\" to \"Part I side conditions are authoritative\"."
 msgstr ""
 
-#: manual/qed_formal_spec_changelog.md:279
-msgid "Adds a model-class wrapper under `Semantic Assumptions`:"
+#: manual/qed_formal_spec_changelog.md:278
+msgid "Incremental revision (automatic phase advance: strengthened constructive closure for Primitive Rules)"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:280
-msgid "adds the `Admissible Model Class` definition (typing/denotation + Choice + Infinity anchor + gate-admitted theorems)."
+msgid "Adds `Rule-Level Constructive Preservation Capsules` at the end of the `Rule Schema` chapter:"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:281
+msgid "gives a uniform constructive template `Preserve_R : valid(Premises_R) => valid(Conclusion_R)`;"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:282
-msgid "adds the `Model-Class Non-Emptiness` assumption, making the \"a non-trivial model exists\" premise explicit."
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:283
-msgid "Adds consistency transfer results:"
+msgid "gives an encapsulated preservation statement for each of the 10 primitive rules (including the three constraints of `INST_TYPE`: gate, coherence and instance);"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:284
-msgid "`Semantic Non-Triviality Transfer` (a countermodel implies non-derivability);"
+msgid "adds the summary theorem `Rule Capsule Closure`, stating that \"per-rule case analysis + capsule invocation\" is enough to close the P1 obligation."
 msgstr ""
 
-#: manual/qed_formal_spec_changelog.md:285
-msgid "`Consistency Witness Form` (under the semantics of the same model class, a sentence and its negation are not both derivable)."
+#: manual/qed_formal_spec_changelog.md:287
+msgid "Incremental revision (automatic phase advance: closing the two-part audit checklist)"
 msgstr ""
 
-#: manual/qed_formal_spec_changelog.md:288
-msgid "Incremental revision (automatic phase advance: claim-to-proof trace matrix)"
+#: manual/qed_formal_spec_changelog.md:289
+msgid "Extends Appendix B (P0 checklist) with Part II consistency items:"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:290
-msgid "Adds Appendix H `Claim-to-Proof Trace Matrix`:"
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:291
-msgid "gives short-path mappings from ten high-level claims C1..C10 to \"definition anchor/proof anchor\";"
+msgid "adds items 24-28, covering the Part II downstream declaration, the five conformance obligations, the transfer theorem, the non-authoritative mapping and the conformance positioning of the error taxonomy."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:292
-msgid "covers rule soundness, conservativity of the three gate kinds, scope/boundary stability, global conservativity, conformance transfer, non-triviality and certificate non-authority."
+msgid "Adds Appendix G `Part II Conformance Audit Scenarios`:"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:293
+msgid "Rule-fidelity replay;"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:294
-msgid "Adds a review rule at the end of the appendix:"
+msgid "Boundary-fidelity;"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:295
-msgid "each claim aims to be reachable in three steps, \"claim -> definition -> theorem\", to ease review and cross-checking."
+msgid "Scope-fidelity stability;"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:296
+msgid "Gate-fidelity;"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:297
+msgid "Certificate non-authority."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:298
-msgid "Incremental revision (automatic phase advance: terminology consistency refinement)"
+msgid "This completes the two-level audit structure of \"Part I logic closure + Part II conformance closure\"."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:300
-msgid "Further removes engineering terms from Part I and unifies them:"
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:301
-msgid "`external modules` becomes `external contexts`;"
+msgid "Incremental revision (automatic phase advance: semantic assumption package and consistency layer)"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:302
-msgid "`implementation-level check` becomes `admission-procedure check`;"
+msgid "Adds a model-class wrapper under `Semantic Assumptions`:"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:303
-msgid "`module boundaries and test responsibilities` is rewritten from a proof-block perspective;"
+msgid "adds the `Admissible Model Class` definition (typing/denotation + Choice + Infinity anchor + gate-admitted theorems)."
 msgstr ""
 
-#: manual/qed_formal_spec_changelog.md:304
-msgid "the word `implementation` at the infinity anchor and the canonical theorems is replaced with realization/presentation semantics."
+#: manual/qed_formal_spec_changelog.md:305
+msgid "adds the `Model-Class Non-Emptiness` assumption, making the \"a non-trivial model exists\" premise explicit."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:306
-msgid "Unifies the wording of the maintenance notes and audit scenarios accordingly:"
+msgid "Adds consistency transfer results:"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:307
-msgid "`APIs evolve` becomes `realization interfaces evolve`;"
+msgid "`Semantic Non-Triviality Transfer` (a countermodel implies non-derivability);"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:308
-msgid "the schema widening scenario in Appendix F now uses admission-procedure semantics."
+msgid "`Consistency Witness Form` (under the semantics of the same model class, a sentence and its negation are not both derivable)."
 msgstr ""
 
-#: manual/qed_formal_spec_changelog.md:309
-msgid "Unifies notation:"
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:310
-msgid "the semantic interpretation notation is unified as `\"denote\"(t, rho, M)`, using the same parameter convention as the later boundary denotation lemmas."
+#: manual/qed_formal_spec_changelog.md:311
+msgid "Incremental revision (automatic phase advance: claim-to-proof trace matrix)"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:313
-msgid "Incremental revision (automatic phase advance: filling in closure anchors)"
+msgid "Adds Appendix H `Claim-to-Proof Trace Matrix`:"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:314
+msgid "gives short-path mappings from ten high-level claims C1..C10 to \"definition anchor/proof anchor\";"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:315
-msgid "Adds the missing definition anchors to `Audit Certificates and Replay Interface` in Part II:"
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:316
-msgid "adds the `Admissible(T, t_h)` definition (witnessed by Part I `Derives` objects and gate legality);"
+msgid "covers rule soundness, conservativity of the three gate kinds, scope/boundary stability, global conservativity, conformance transfer, non-triviality and certificate non-authority."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:317
-msgid "adds the `SentenceInLanguage(T_0, t_h)` definition (closed sentence + base language symbol constraint)."
+msgid "Adds a review rule at the end of the appendix:"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:318
-msgid "`ConservativeReplayOK` now uses explicitly defined predicates and no longer relies on implicit semantic premises."
+msgid "each claim aims to be reachable in three steps, \"claim -> definition -> theorem\", to ease review and cross-checking."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:321
-msgid "Incremental revision (notation consistency fix)"
+msgid "Incremental revision (automatic phase advance: terminology consistency refinement)"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:323
-msgid "Makes the slash notation in substitutions consistent:"
+msgid "Further removes engineering terms from Part I and unifies them:"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:324
-msgid "unifies `t[s/x]` as `t[s\\/x]`;"
+msgid "`external modules` becomes `external contexts`;"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:325
-msgid "matches the existing `s[u\\/x]` notation in the text, avoiding ambiguity of the `[A/B]` form in review and rendering."
+msgid "`implementation-level check` becomes `admission-procedure check`;"
 msgstr ""
 
-#: manual/qed_formal_spec_changelog.md:328
-msgid "Incremental revision (tone refinement)"
+#: manual/qed_formal_spec_changelog.md:326
+msgid "`module boundaries and test responsibilities` is rewritten from a proof-block perspective;"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:327
+msgid "the word `implementation` at the infinity anchor and the canonical theorems is replaced with realization/presentation semantics."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:329
+msgid "Unifies the wording of the maintenance notes and audit scenarios accordingly:"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:330
-msgid "Moves the tone of the whole text toward an academic paper style, without changing the logical content:"
+msgid "`APIs evolve` becomes `realization interfaces evolve`;"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:331
-msgid "`Authority Contract` becomes `Normative Scope`, and some strongly imperative sentences are rewritten as academic expository sentences;"
+msgid "the schema widening scenario in Appendix F now uses admission-procedure semantics."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:332
+msgid "Unifies notation:"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:333
-msgid "the opening of Part II shifts from \"implementation hooks\" framing to \"concrete realization and conformance record\" framing;"
+msgid "the semantic interpretation notation is unified as `\"denote\"(t, rho, M)`, using the same parameter convention as the later boundary denotation lemmas."
 msgstr ""
 
-#: manual/qed_formal_spec_changelog.md:335
-msgid "`Documentation Maintenance Notes` becomes `Concluding Remarks`, and `Near-term maintenance focus` becomes `Future refinement directions`."
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:337
-msgid "Unifies the tone of the appendices:"
+#: manual/qed_formal_spec_changelog.md:336
+msgid "Incremental revision (automatic phase advance: filling in closure anchors)"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:338
-msgid "`Audit Scenarios` is uniformly renamed `Validation Scenarios`;"
+msgid "Adds the missing definition anchors to `Audit Certificates and Replay Interface` in Part II:"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:339
-msgid "the ending changes from \"required before claiming\" to \"provide structured evidence for ...\"."
+msgid "adds the `Admissible(T, t_h)` definition (witnessed by Part I `Derives` objects and gate legality);"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:340
-msgid "Detailed semantic consistency:"
+msgid "adds the `SentenceInLanguage(T_0, t_h)` definition (closed sentence + base language symbol constraint)."
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:341
+msgid "`ConservativeReplayOK` now uses explicitly defined predicates and no longer relies on implicit semantic premises."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:344
+msgid "Incremental revision (notation consistency fix)"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:346
+msgid "Makes the slash notation in substitutions consistent:"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:347
+msgid "unifies `t[s/x]` as `t[s\\/x]`;"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:348
+msgid "matches the existing `s[u\\/x]` notation in the text, avoiding ambiguity of the `[A/B]` form in review and rendering."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:351
+msgid "Incremental revision (tone refinement)"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:353
+msgid "Moves the tone of the whole text toward an academic paper style, without changing the logical content:"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:354
+msgid "`Authority Contract` becomes `Normative Scope`, and some strongly imperative sentences are rewritten as academic expository sentences;"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:356
+msgid "the opening of Part II shifts from \"implementation hooks\" framing to \"concrete realization and conformance record\" framing;"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:358
+msgid "`Documentation Maintenance Notes` becomes `Concluding Remarks`, and `Near-term maintenance focus` becomes `Future refinement directions`."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:360
+msgid "Unifies the tone of the appendices:"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:361
+msgid "`Audit Scenarios` is uniformly renamed `Validation Scenarios`;"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:362
+msgid "the ending changes from \"required before claiming\" to \"provide structured evidence for ...\"."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:363
+msgid "Detailed semantic consistency:"
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:364
 msgid "the semantic interpretation notation is unified as `\"denote\"(t, rho, M)` (consistent with the later denotation lemmas);"
 msgstr ""
 
-#: manual/qed_formal_spec_changelog.md:343
+#: manual/qed_formal_spec_changelog.md:366
 msgid "the predicates related to `ConservativeReplayOK` are now defined by name in the text, reducing implicit terminology."
 msgstr ""
 

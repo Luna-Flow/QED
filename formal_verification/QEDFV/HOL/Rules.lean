@@ -84,6 +84,24 @@ theorem valid_abs_closed
   funext x
   exact hValid ρ hρ (Env.extend η x) (by simp)
 
+def weakenTerm (t : Term S Γ a) : Term S (b :: Γ) a := t.rename Var.succ
+
+def weakenSequent (s : Sequent S Γ) : Sequent S (b :: Γ) :=
+  { hyps := s.hyps.map (fun h ↦ weakenTerm h)
+  , concl := weakenTerm s.concl }
+
+theorem valid_abs
+    (I : ConstVal S) (A : Sequent S Γ) (s t : Term S (a :: Γ) b)
+    (hValid : Valid I { hyps := (weakenSequent A).hyps, concl := s.equal t }) :
+    Valid I { hyps := A.hyps, concl := (Term.lam s).equal (Term.lam t) } := by
+  intro ρ hρ η hh
+  funext x
+  have hst := hValid ρ hρ (Env.extend η x) (by
+    intro h hh'
+    rcases List.mem_map.mp hh' with ⟨h0, h0mem, rfl⟩
+    simpa [weakenTerm, Term.eval_rename] using hh h0 h0mem)
+  exact hst
+
 theorem valid_beta
     (I : ConstVal S) (s : Term S (a :: Γ) b) (x : Term S Γ a) :
     Valid I { hyps := [], concl := (Term.lam s).app x |>.equal (s.substitute (Sub.single x)) } := by
