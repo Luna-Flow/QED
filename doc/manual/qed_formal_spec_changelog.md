@@ -1,6 +1,33 @@
 # Formal specification changelog
 
-## 2026-10-12 typed HOL semantic core follow-up
+## 2026-10-12 Typed HOL mainline and audit status
+
+- Integrated `HOL/Concrete.lean`, `HOL/TypeDefinitions.lean`, `HOL/Definitions.lean`,
+  `HOL/Specification.lean`, `HOL/Transport.lean`, and `HOL/Conservativity.lean`
+  into the aggregate Lean target.
+- Typed HOL now proves constructed carrier non-emptiness, the ten typed rule
+  capsules, general open-context `ABS`, exact assumption discharge `DEDUCT`, typed
+  `INST_TYPE` and `INST`, and indexed `derivation_sound` with no local `sorry`,
+  `axiom`, or `admit` declarations. The polymorphic-instantiation theorem is
+  parameterized by the explicit `ChoiceNatural` interface; no hidden choice
+  naturality axiom is introduced.
+- Typed semantic contracts now cover typedef non-emptiness and Abs/Rep laws,
+  fresh-constant definition equations, specification validity from a typed witness,
+  bidirectional old-language validity invariance for definition/specification
+  extensions, and validity transport for old-language sequents under constant
+  agreement. `HOL/Transport.lean` contains the shared transport layer.
+- `HOL/Concrete.lean` proves a closed `succ 0 = 0` countermodel and non-derivability
+  result, giving a typed non-triviality witness.
+- Verification: `lake build` passed with **641 jobs**. The standard Lean axiom scan
+  for `derivation_sound`, `valid_inst_type`, and `Term.eval_instType` reports only
+  `propext`, `Classical.choice`, and `Quot.sound`.
+- Remaining open items are the distinct-state syntactic cross-theory erasure
+  simulation, the legacy `Lean.Expr`/MoonBit refinement and boundary correspondence,
+  the #15 theorem-provenance implementation bug, and the #14/#16 audit follow-up
+  around the legacy conditional layer. MoonBit refinement remains out of scope for
+  this Typed HOL milestone.
+
+## 2026-10-12 typed HOL semantic core follow-up (historical snapshot)
 
 - Added `formal_verification/QEDFV/HOL/Types.lean`, an intrinsically typed HOL type
   grammar with actual `Prop`, `Nat`, function and variable carriers, plus a
@@ -13,15 +40,12 @@
   typed core rules, including the exact assumption-discharge form of DEDUCT and
   term-instantiation validity. The restricted closed-context ABS theorem is named
   accordingly.
-- Kept polymorphic `INST_TYPE`, general open-context ABS, Choice naturality, and
-  the legacy `Lean.Expr`/MoonBit correspondence explicitly open. The typed core is
-  evidence for the semantic direction, not a claim that the implementation has
-  already been refined to it.
+- At this earlier checkpoint, polymorphic `INST_TYPE` and general open-context ABS
+  were still open. They are closed in the later Typed HOL mainline entry above;
+  legacy `Lean.Expr`/MoonBit correspondence remains open.
 
-Verification: `lake build` in `formal_verification` passed (633 jobs after adding
-the typed core). `HOL/Instantiation.lean` was intentionally not retained because
-an arbitrary Hilbert choice interpretation is not natural under type substitution;
-that missing law is now an explicit next obligation rather than an unsound proof.
+Verification at that checkpoint: `lake build` passed (633 jobs). The current
+verification and axiom basis are recorded in the mainline entry above.
 
 ## 2026-10-12 review follow-up (#14, #15, #16)
 

@@ -255,7 +255,7 @@ theorem certificate_non_authority_from_replay
     (hReplay : replayFidelity r) :
     certificateNonAuthority r := by
   intro s hAccept
-  exact checked_derivation_sound r.kernel (hReplay s hAccept)
+  exact checked_derivation_reconstructs_derivable r.kernel (hReplay s hAccept)
 
 theorem conservative_replay_from_replay_boundary
     (r : Realization)
@@ -263,7 +263,7 @@ theorem conservative_replay_from_replay_boundary
     (_hBoundary : boundaryFidelity r) :
     conservativeReplayFidelity r := by
   intro s hAccept
-  exact checked_derivation_sound r.kernel (hReplay s hAccept)
+  exact checked_derivation_reconstructs_derivable r.kernel (hReplay s hAccept)
 
 structure FaithfulRealization (r : Realization) : Prop where
   checked : ∀ s, r.accepts s -> CheckedDerivation r.kernel s
@@ -277,21 +277,21 @@ theorem checked_rule_fidelity
     (hFaithful : FaithfulRealization r) :
     ruleFidelity r := by
   intro s hAccept
-  exact checked_derivation_sound r.kernel (hFaithful.checked s hAccept)
+  exact checked_derivation_reconstructs_derivable r.kernel (hFaithful.checked s hAccept)
 
 theorem checked_certificate_non_authority
     (r : Realization)
     (hFaithful : FaithfulRealization r) :
     certificateNonAuthority r := by
   intro s hAccept
-  exact checked_derivation_sound r.kernel (hFaithful.checked s hAccept)
+  exact checked_derivation_reconstructs_derivable r.kernel (hFaithful.checked s hAccept)
 
 theorem checked_conservative_replay
     (r : Realization)
     (hFaithful : FaithfulRealization r) :
     conservativeReplayFidelity r := by
   intro s hAccept
-  exact checked_derivation_sound r.kernel (hFaithful.checked s hAccept)
+  exact checked_derivation_reconstructs_derivable r.kernel (hFaithful.checked s hAccept)
 
 theorem faithful_realization_conservative_replay
     (r : Realization)

@@ -70,29 +70,35 @@ inductive CheckedDerivation (k : KernelState) : Sequent -> Prop where
       CheckedDerivation k A ->
       CheckedDerivation k (applyTermSubstSequent sigma A)
 
-theorem checked_derivation_sound (k : KernelState) :
+theorem checked_derivation_reconstructs_derivable (k : KernelState) :
     ∀ {s : Sequent}, CheckedDerivation k s -> Derivable k s
   | _, .refl t => Derivable.refl t
   | _, .assume p hBool hMember => Derivable.assume p hBool hMember
   | _, .trans A B x y y' z hEqA hEqB hMid hA hB =>
       Derivable.trans A B x y y' z hEqA hEqB hMid
-        (checked_derivation_sound k hA) (checked_derivation_sound k hB)
+        (checked_derivation_reconstructs_derivable k hA)
+        (checked_derivation_reconstructs_derivable k hB)
   | _, .mkComb A B f g x y hEqA hEqB hA hB =>
       Derivable.mkComb A B f g x y hEqA hEqB
-        (checked_derivation_sound k hA) (checked_derivation_sound k hB)
+        (checked_derivation_reconstructs_derivable k hA)
+        (checked_derivation_reconstructs_derivable k hB)
   | _, .abs A n ty s t hEq hNoLoose hA =>
-      Derivable.abs A n ty s t hEq hNoLoose (checked_derivation_sound k hA)
+      Derivable.abs A n ty s t hEq hNoLoose
+        (checked_derivation_reconstructs_derivable k hA)
   | _, .beta r hGuard => Derivable.beta r hGuard
   | _, .eqMp A B p q p' hEq hAlpha hPrem hBool hA hB =>
       Derivable.eqMp A B p q p' hEq hAlpha hPrem hBool
-        (checked_derivation_sound k hA) (checked_derivation_sound k hB)
+        (checked_derivation_reconstructs_derivable k hA)
+        (checked_derivation_reconstructs_derivable k hB)
   | _, .deductAntisym A B hAlpha hA hB =>
       Derivable.deductAntisym A B hAlpha
-        (checked_derivation_sound k hA) (checked_derivation_sound k hB)
+        (checked_derivation_reconstructs_derivable k hA)
+        (checked_derivation_reconstructs_derivable k hB)
   | _, .instType theta A hSubst hImg hObj hTyping hDef hConst hStruct hA =>
       Derivable.instType theta A hSubst hImg hObj hTyping hDef hConst hStruct
-        (checked_derivation_sound k hA)
+        (checked_derivation_reconstructs_derivable k hA)
   | _, .inst sigma A hSubst hObj hA =>
-      Derivable.inst sigma A hSubst hObj (checked_derivation_sound k hA)
+      Derivable.inst sigma A hSubst hObj
+        (checked_derivation_reconstructs_derivable k hA)
 
 end QEDFV

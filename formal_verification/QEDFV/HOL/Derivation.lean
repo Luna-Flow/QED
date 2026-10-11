@@ -4,50 +4,51 @@ namespace QEDFV.HOL
 
 /-! A typed HOL derivation object. The sequent index carries the complete
 typing information, so malformed rule applications are unrepresentable. -/
-inductive Derivation (hChoice : ChoiceNatural) (I : ConstVal S) :
+inductive Derivation (S : Signature) :
     {Γ : List Ty} → Sequent S Γ → Prop where
   | refl {Γ : List Ty} {a : Ty} (t : Term S Γ a) :
-      Derivation hChoice I { hyps := [], concl := t.equal t }
+      Derivation S { hyps := [], concl := t.equal t }
   | assume {Γ : List Ty} (p : Term S Γ .bool) :
-      Derivation hChoice I { hyps := [p], concl := p }
+      Derivation S { hyps := [p], concl := p }
   | trans {Γ : List Ty} {a : Ty} {A B : Sequent S Γ}
       {x y z : Term S Γ a}
       (hA : A.concl = x.equal y) (hB : B.concl = y.equal z)
-      (dA : Derivation hChoice I A) (dB : Derivation hChoice I B) :
-      Derivation hChoice I { hyps := union A.hyps B.hyps, concl := x.equal z }
+      (dA : Derivation S A) (dB : Derivation S B) :
+      Derivation S { hyps := union A.hyps B.hyps, concl := x.equal z }
   | mkComb {Γ : List Ty} {a b : Ty} {A B : Sequent S Γ}
       {f g : Term S Γ (.arr a b)} {x y : Term S Γ a}
       (hA : A.concl = f.equal g) (hB : B.concl = x.equal y)
-      (dA : Derivation hChoice I A) (dB : Derivation hChoice I B) :
-      Derivation hChoice I
+      (dA : Derivation S A) (dB : Derivation S B) :
+      Derivation S
         { hyps := union A.hyps B.hyps, concl := (f.app x).equal (g.app y) }
   | abs {Γ : List Ty} {a b : Ty} {A : Sequent S Γ}
       {s t : Term S (a :: Γ) b}
-      (d : Derivation hChoice I
+      (d : Derivation S
         { hyps := (weakenSequent A).hyps, concl := s.equal t }) :
-      Derivation hChoice I
+      Derivation S
         { hyps := A.hyps, concl := (Term.lam s).equal (Term.lam t) }
   | beta {Γ : List Ty} {a b : Ty} (s : Term S (a :: Γ) b) (x : Term S Γ a) :
-      Derivation hChoice I
+      Derivation S
         { hyps := [], concl := (Term.lam s).app x |>.equal (s.substitute (Sub.single x)) }
   | eqMp {Γ : List Ty} {A B : Sequent S Γ} {p q : Term S Γ .bool}
       (hA : A.concl = p.equal q) (hB : B.concl = p)
-      (dA : Derivation hChoice I A) (dB : Derivation hChoice I B) :
-      Derivation hChoice I { hyps := union A.hyps B.hyps, concl := q }
+      (dA : Derivation S A) (dB : Derivation S B) :
+      Derivation S { hyps := union A.hyps B.hyps, concl := q }
   | deduct {Γ : List Ty} {A B : Sequent S Γ}
-      (dA : Derivation hChoice I A) (dB : Derivation hChoice I B) :
-      Derivation hChoice I
+      (dA : Derivation S A) (dB : Derivation S B) :
+      Derivation S
         { hyps := union (remove A.hyps B.concl) (remove B.hyps A.concl)
         , concl := A.concl.equal B.concl }
   | instType {Γ : List Ty} {A : Sequent S Γ} (θ : TypeSub)
-      (d : Derivation hChoice I A) :
-      Derivation hChoice I (typeSubstSequent θ A)
+      (d : Derivation S A) :
+      Derivation S (typeSubstSequent θ A)
   | instTerm {Γ Δ : List Ty} {A : Sequent S Γ} (σ : Sub S Γ Δ)
-      (d : Derivation hChoice I A) :
-      Derivation hChoice I (termSubstSequent σ A)
+      (d : Derivation S A) :
+      Derivation S (termSubstSequent σ A)
 
-theorem derivation_sound {Γ : List Ty} {s : Sequent S Γ}
-    (d : Derivation hChoice I s) : Valid I s := by
+theorem derivation_sound (hChoice : ChoiceNatural) (I : ConstVal S)
+    {Γ : List Ty} {s : Sequent S Γ}
+    (d : Derivation S s) : Valid I s := by
   induction d with
   | refl t => exact valid_refl I t
   | assume p => exact valid_assume I p
@@ -63,5 +64,11 @@ theorem derivation_sound {Γ : List Ty} {s : Sequent S Γ}
   | deduct dA dB ihA ihB => exact valid_deduct I _ _ ihA ihB
   | instType θ d ih => exact valid_inst_type hChoice I θ _ ih
   | instTerm σ d ih => exact valid_inst_term I σ _ ih
+
+theorem derivation_sound_all {Γ : List Ty} {s : Sequent S Γ}
+    (d : Derivation S s) :
+    ∀ (_hChoice : ChoiceNatural) (I : ConstVal S), Valid I s := by
+  intro hChoice I
+  exact derivation_sound hChoice I d
 
 end QEDFV.HOL

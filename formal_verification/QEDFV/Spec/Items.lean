@@ -575,7 +575,7 @@ def SEC13_GLOBAL_ENVELOPE : Prop :=
 
 theorem SEC13_GLOBAL_ENVELOPE_conditional_proved : SEC13_GLOBAL_ENVELOPE := by
   intro k
-  exact global_admissibility_sound_conditional_proved k
+  exact global_admissibility_sound_legacy_from_model_laws k
 
 def SEC14_RULE_REFL : Prop :=
   ∀ k : KernelState, ∀ t : DbExpr,

@@ -19,12 +19,14 @@ order:
 Validation baseline used during this audit:
 
 - `moon test` -> pass (`357/357`)
-- `formal_verification/lake build` -> pass (51 jobs)
+- `formal_verification/lake build` -> pass (641 jobs)
 
 These green gates show that the checked packages and regression suite are
-internally consistent on the current baseline. They do not by themselves prove
-the abstract Lean model is realized by MoonBit, establish a concrete HOL model,
-or close every planned product capability.
+internally consistent on the current baseline. The Typed HOL line now includes
+constructed carriers, model-independent derivation soundness, typed definition /
+specification contracts, and old-language semantic transport. The gates do not by
+themselves prove that the abstract Lean model is realized by MoonBit, establish
+the distinct-state syntactic refinement, or close every planned product capability.
 
 ## Resolved since the previous audit
 

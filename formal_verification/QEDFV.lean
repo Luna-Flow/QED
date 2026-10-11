@@ -53,3 +53,9 @@ import QEDFV.HOL.Rules
 import QEDFV.HOL.Extensions
 import QEDFV.HOL.Instantiation
 import QEDFV.HOL.Derivation
+import QEDFV.HOL.Transport
+import QEDFV.HOL.Concrete
+import QEDFV.HOL.TypeDefinitions
+import QEDFV.HOL.Definitions
+import QEDFV.HOL.Specification
+import QEDFV.HOL.Conservativity

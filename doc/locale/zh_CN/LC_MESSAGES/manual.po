@@ -135,8 +135,8 @@ msgid "Exit status"
 msgstr "退出状态"
 
 #: manual/api/cmd.md:52
-#: manual/qed_formal_audit_matrices.md:22
-#: manual/qed_formal_audit_matrices.md:41
+#: manual/qed_formal_audit_matrices.md:24
+#: manual/qed_formal_audit_matrices.md:43
 msgid "Status"
 msgstr "状态"
 
@@ -3527,186 +3527,186 @@ msgid "`moon test` -> pass (`357/357`)"
 msgstr "`moon test` -> 通过（`357/357`）"
 
 #: manual/current_workspace_audit.md:22
-msgid "`formal_verification/lake build` -> pass (51 jobs)"
-msgstr "`formal_verification/lake build` -> 通过（51 个任务）"
+msgid "`formal_verification/lake build` -> pass (641 jobs)"
+msgstr "`formal_verification/lake build` -> 通过（641 个任务）"
 
 #: manual/current_workspace_audit.md:24
-msgid "These green gates show that the checked packages and regression suite are internally consistent on the current baseline. They do not by themselves prove the abstract Lean model is realized by MoonBit, establish a concrete HOL model, or close every planned product capability."
-msgstr "这些全绿的门禁表明已检查的软件包和回归测试套件在当前基线上保持内部一致；但它们本身不能证明抽象 Lean 模型已由 MoonBit 实现、不能建立具体的 HOL 模型，也不能关闭所有规划中的产品能力。"
+msgid "These green gates show that the checked packages and regression suite are internally consistent on the current baseline. The Typed HOL line now includes constructed carriers, model-independent derivation soundness, typed definition / specification contracts, and old-language semantic transport. The gates do not by themselves prove that the abstract Lean model is realized by MoonBit, establish the distinct-state syntactic refinement, or close every planned product capability."
+msgstr "这些全绿的门禁表明已检查的软件包和回归测试套件在当前基线上保持内部一致。Typed HOL 主线现在包含已构造的载体、与模型无关的推导健全性、类型化定义/规格契约以及旧语言语义传输。但这些门禁本身不能证明抽象 Lean 模型已由 MoonBit 实现、不能建立跨状态语法精化，也不能关闭所有规划中的产品能力。"
 
-#: manual/current_workspace_audit.md:29
+#: manual/current_workspace_audit.md:31
 msgid "Resolved since the previous audit"
 msgstr "自上次审计以来已解决"
 
-#: manual/current_workspace_audit.md:31
+#: manual/current_workspace_audit.md:33
 msgid "The following previously reported risks are no longer current findings:"
 msgstr "以下先前报告的风险已不再是当前发现："
 
-#: manual/current_workspace_audit.md:33
+#: manual/current_workspace_audit.md:35
 msgid "type-language admissibility is now enforced at trusted theorem / sentence boundaries;"
 msgstr "类型语言的可容许性现已在可信的定理 / 语句边界上强制执行；"
 
-#: manual/current_workspace_audit.md:35
+#: manual/current_workspace_audit.md:37
 msgid "connector recognition is now definition-theorem-backed rather than raw head-name acceptance;"
 msgstr "联结词识别现已基于定义定理，而不再是单纯接受原始头部名称；"
 
-#: manual/current_workspace_audit.md:37
+#: manual/current_workspace_audit.md:39
 msgid "non-`bool` surface connectors now fail closed with structured errors rather than crashing on user-reachable paths."
 msgstr "非 `bool` 的表层联结词现已以结构化错误失败即关闭 (fail closed)，而不再在用户可达路径上崩溃。"
 
-#: manual/current_workspace_audit.md:39
+#: manual/current_workspace_audit.md:41
 msgid "the theorem-name inventory, the `exact` / `apply` mode boundary, and the canonical positive / negative script corpus are now all explicit and have regression coverage."
 msgstr "theorem-name inventory、`exact` / `apply` mode boundary，以及 canonical positive / negative script corpus 现在都已显式化并有回归覆盖。"
 
-#: manual/current_workspace_audit.md:42
+#: manual/current_workspace_audit.md:44
 msgid "file-first `cmd` surface now exists, is covered by regression tests, and uses structured tactic-failure context instead of raw string-only reporting."
 msgstr "以文件为先的 `cmd` 界面现已存在，有回归测试覆盖，并使用结构化的策略 (tactic) 失败上下文，而不再只是原始字符串报告。"
 
-#: manual/current_workspace_audit.md:44
+#: manual/current_workspace_audit.md:46
 msgid "the current M4 slice is now integrated on the shipped path: theorem-header binders, sequential block-body theorem-script parsing, raw binder/goal/step spans, and structured frontend diagnostics all have regression coverage."
 msgstr "当前的 M4 切片现已集成到已发布路径上：定理头部绑定子、顺序块体定理脚本解析、原始的绑定子/目标/步骤跨度，以及结构化前端诊断均有回归覆盖。"
 
-#: manual/current_workspace_audit.md:48
+#: manual/current_workspace_audit.md:50
 msgid "`ProofState` final theorem validation is now tightened to strict normalized sequent matching, with regressions that reject the old wide-match behavior."
 msgstr "`ProofState` 的最终定理校验现已收紧为严格的规范化相继式匹配，并有回归测试拒绝旧的宽松匹配行为。"
 
-#: manual/current_workspace_audit.md:50
+#: manual/current_workspace_audit.md:52
 msgid "disjunction wrap replay now enforces the same explicit full-goal postcondition discipline as conjunction merge."
 msgstr "析取包装 (disjunction wrap) 重放现已强制执行与合取合并相同的、显式的完整目标后置条件规范。"
 
-#: manual/current_workspace_audit.md:52
+#: manual/current_workspace_audit.md:54
 msgid "local `exact` witnesses are now frozen to active hypothesis aliases only, and local shadowing no longer falls through to same-name theorem entries."
 msgstr "局部 `exact` 见证现已仅冻结到活动假设别名，局部遮蔽不再回落到同名的定理条目。"
 
-#: manual/current_workspace_audit.md:54
+#: manual/current_workspace_audit.md:56
 msgid "canonical prover corpus and mapping-matrix coverage are now aligned with the hardened replay/final-theorem contracts, so `H5` no longer depends on a stale wider corpus contract."
 msgstr "规范的 prover 语料与映射矩阵覆盖现已与加固后的重放/最终定理契约对齐，因此 `H5` 不再依赖过时的、更宽的语料契约。"
 
-#: manual/current_workspace_audit.md:57
+#: manual/current_workspace_audit.md:59
 msgid "minimal `M4b` is now shipped on the main theorem-script path: structured branch blocks for `split` / `left` / `right` are parsed, replayed, covered by parser/prover/cmd regressions, and diagnosed with stable branch paths."
 msgstr "最小化的 `M4b` 现已在主定理脚本路径上发布：`split` / `left` / `right` 的结构化分支块可被解析、重放，由 parser/prover/cmd 回归测试覆盖，并以稳定的分支路径给出诊断。"
 
-#: manual/current_workspace_audit.md:62
+#: manual/current_workspace_audit.md:64
 msgid "This audit therefore focuses only on the issues and gaps that still remain material today."
 msgstr "因此，本次审计只关注当前仍然重要的遗留问题和缺口。"
 
-#: manual/current_workspace_audit.md:65
+#: manual/current_workspace_audit.md:67
 msgid "Findings"
 msgstr "发现"
 
-#: manual/current_workspace_audit.md:67
+#: manual/current_workspace_audit.md:69
 msgid "[P2] The Lean line remains a paper/conformance pack, not a direct proof of the MoonBit implementation"
 msgstr "[P2] Lean 这条线仍是论文/符合性包，而不是对 MoonBit 实现的直接证明"
 
-#: manual/current_workspace_audit.md:69
+#: manual/current_workspace_audit.md:71
 msgid "**Why this matters**"
 msgstr "**为何重要**"
 
-#: manual/current_workspace_audit.md:71
+#: manual/current_workspace_audit.md:73
 msgid "This is not a bug in the MoonBit kernel, but it is an important status boundary for honest communication. `lake build` proves the paper model and abstract conformance obligations. It does not mechanically bind the current MoonBit source tree to the Lean `Realization`."
 msgstr "这不是 MoonBit 内核的缺陷，但它是诚实沟通时重要的状态边界。`lake build` 证明的是论文模型和抽象的符合性义务，并不会以机械方式把当前 MoonBit 源码树与 Lean 的 `Realization` 绑定起来。"
 
-#: manual/current_workspace_audit.md:76
+#: manual/current_workspace_audit.md:78
 msgid "**Evidence**"
 msgstr "**证据**"
 
-#: manual/current_workspace_audit.md:78
+#: manual/current_workspace_audit.md:80
 msgid "`formal_verification/QEDFV/Engineering/Conformance.lean` reasons about abstract realizations and obligations;"
 msgstr "`formal_verification/QEDFV/Engineering/Conformance.lean` 讨论的是抽象的实现 (realization) 与义务；"
 
-#: manual/current_workspace_audit.md:80
+#: manual/current_workspace_audit.md:82
 msgid "the traceability and rule-mapping files are paper/conformance artifacts, not a generated link to MoonBit symbols;"
 msgstr "可追溯性文件和规则映射文件是论文/符合性产物，而不是指向 MoonBit 符号的生成链接；"
 
-#: manual/current_workspace_audit.md:82
+#: manual/current_workspace_audit.md:84
 msgid "repository docs already treat the Lean line as paper-first rather than direct implementation verification."
 msgstr "仓库文档已将 Lean 这条线视为论文优先，而非对实现的直接验证。"
 
-#: manual/current_workspace_audit.md:85
+#: manual/current_workspace_audit.md:87
 msgid "**Impact**"
 msgstr "**影响**"
 
-#: manual/current_workspace_audit.md:87
+#: manual/current_workspace_audit.md:89
 msgid "public assurance language must stay precise;"
 msgstr "对外的保证性表述必须保持精确；"
 
-#: manual/current_workspace_audit.md:88
+#: manual/current_workspace_audit.md:90
 msgid "`lake build` should be read as “the stated Lean propositions and conformance pack compile”, not “the model is constructed”, “the pack is semantically closed”, or “the MoonBit program is machine-checked equivalent to Lean”."
 msgstr "`lake build` 应理解为“所声明的 Lean 命题和符合性包能够编译”，而不是“模型已经构造完成”“该包在语义上已经闭合”或“MoonBit 程序已通过机器检查证明与 Lean 等价”。"
 
-#: manual/current_workspace_audit.md:92
+#: manual/current_workspace_audit.md:94
 msgid "**Required follow-up**"
 msgstr "**所需后续工作**"
 
-#: manual/current_workspace_audit.md:94
+#: manual/current_workspace_audit.md:96
 msgid "keep docs precise on this boundary;"
 msgstr "在这一边界上保持文档精确；"
 
-#: manual/current_workspace_audit.md:95
+#: manual/current_workspace_audit.md:97
 msgid "only add a stronger claim later if a concrete MoonBit-to-Lean binding story is introduced as a new milestone."
 msgstr "仅当把具体的 MoonBit 到 Lean 的绑定方案作为新里程碑引入后，才增加更强的论断。"
 
-#: manual/current_workspace_audit.md:98
+#: manual/current_workspace_audit.md:100
 msgid "**Opened task(s)**"
 msgstr "**已开立的任务**"
 
-#: manual/current_workspace_audit.md:102
+#: manual/current_workspace_audit.md:104
 msgid "Testing gaps that still matter"
 msgstr "仍然重要的测试缺口"
 
-#: manual/current_workspace_audit.md:104
+#: manual/current_workspace_audit.md:106
 msgid "The current suite is strong, but the following gaps remain important for the next stages:"
 msgstr "当前测试套件很强，但以下缺口对后续阶段仍然重要："
 
-#: manual/current_workspace_audit.md:107
+#: manual/current_workspace_audit.md:109
 msgid "richer proof-block expansion beyond the current minimal branch-block slice;"
 msgstr "在当前最小分支块切片之外，更丰富的证明块展开；"
 
-#: manual/current_workspace_audit.md:108
+#: manual/current_workspace_audit.md:110
 msgid "richer hole / unfinished-proof reporting beyond the canonical unfinished case;"
 msgstr "在规范的未完成情形之外，更丰富的 hole / 未完成证明报告；"
 
-#: manual/current_workspace_audit.md:109
+#: manual/current_workspace_audit.md:111
 msgid "quantifier-facing frontend and its trust-relevant lowering contract;"
 msgstr "面向量词的前端及其与可信性相关的降级 (lowering) 契约；"
 
-#: manual/current_workspace_audit.md:110
+#: manual/current_workspace_audit.md:112
 msgid "any future CLI feature must continue to reuse the current positive / negative corpus instead of forking a second script matrix."
 msgstr "任何未来的 CLI 功能都必须继续复用当前的正/负语料，而不是另起第二套脚本矩阵。"
 
-#: manual/current_workspace_audit.md:113
+#: manual/current_workspace_audit.md:115
 msgid "Overall assessment"
 msgstr "总体评估"
 
-#: manual/current_workspace_audit.md:115
+#: manual/current_workspace_audit.md:117
 msgid "The kernel and the current theorem-producing propositional subset remain in a materially stronger state than the previous audit snapshot described."
 msgstr "内核以及当前产出定理的命题子集，所处状态明显强于上一次审计快照所描述的状态。"
 
-#: manual/current_workspace_audit.md:117
+#: manual/current_workspace_audit.md:119
 msgid "This review did not uncover a direct checked-kernel soundness break in the current shipped path."
 msgstr "本次评审未在当前已发布路径上发现对已检查内核可靠性的直接破坏。"
 
-#: manual/current_workspace_audit.md:119
+#: manual/current_workspace_audit.md:121
 msgid "The most important next work is now:"
 msgstr "现在最重要的后续工作是："
 
-#: manual/current_workspace_audit.md:120
+#: manual/current_workspace_audit.md:122
 msgid "keep the new structured branch-block surface on the same checked lowering / replay boundary;"
 msgstr "让新的结构化分支块界面保持在同一个经检查的降级 (lowering) / 重放边界上；"
 
-#: manual/current_workspace_audit.md:122
+#: manual/current_workspace_audit.md:124
 msgid "move the roadmap toward richer user-facing proof experience: script, goal, proof blocks, and quantifier frontend;"
 msgstr "让路线图转向更丰富的面向用户的证明体验：脚本、目标、证明块和量词前端；"
 
-#: manual/current_workspace_audit.md:124
+#: manual/current_workspace_audit.md:126
 msgid "continue corpus + docs + conformance maintenance as the frontend expands."
 msgstr "随着前端扩展，持续维护语料、文档和符合性。"
 
-#: manual/current_workspace_audit.md:125
+#: manual/current_workspace_audit.md:127
 msgid "The rewrite/simplify line remains research only."
 msgstr "rewrite/simplify 这条线仍然仅限研究。"
 
-#: manual/current_workspace_audit.md:126
+#: manual/current_workspace_audit.md:128
 msgid "The Lean line remains green and valuable, but it should continue to be described as a paper/conformance pack unless a stronger implementation binding is explicitly added later."
 msgstr "Lean 这条线保持全绿且有价值，但除非日后明确加入更强的实现绑定，否则应继续将其描述为论文/符合性包。"
 
@@ -7578,1438 +7578,1466 @@ msgid "2026-10-12 typed HOL core follow-up"
 msgstr "2026-10-12 类型化 HOL 核心后续"
 
 #: manual/qed_formal_audit_matrices.md:9
-msgid "`formal_verification/QEDFV/HOL` now contains an independent intrinsically typed HOL core. `Types.lean` constructs actual carriers (`Prop`, `Nat`, functions, and type variables) and proves non-emptiness. `Evaluation.lean` proves capture-avoiding renaming, substitution, and beta evaluation laws. `Extensions.lean` proves the predicate-subtype carrier and Abs/Rep laws used by a typedef witness. `Rules.lean` proves validity preservation for the typed forms of `REFL`, `ASSUME`, `TRANS`, `MK_COMB`, a closed-context `ABS`, `BETA`, `EQ_MP`, and the exact assumption-discharge `DEDUCT` rule, plus term-instantiation validity. These theorems do not yet prove the correspondence to the legacy `Lean.Expr`/MoonBit syntax, general open-context `ABS`, or polymorphic `INST_TYPE`; those remain conditional/open below."
-msgstr "`formal_verification/QEDFV/HOL` 现在包含独立的内在类型 HOL 核心。`Types.lean` 构造实际载体（`Prop`、`Nat`、函数和类型变量）并证明非空性。`Evaluation.lean` 证明避免捕获的重命名、替换和 beta 求值定律。`Extensions.lean` 证明 typedef 见证所需的谓词子类型载体及 Abs/Rep 定律。`Rules.lean` 证明类型化 `REFL`、`ASSUME`、`TRANS`、`MK_COMB`、闭合上下文 `ABS`、`BETA`、`EQ_MP` 和精确假设消去 `DEDUCT` 的有效性保持，以及项实例化有效性。这些定理尚未证明与旧 `Lean.Expr`/MoonBit 语法的一致性、一般开放上下文 `ABS` 或多态 `INST_TYPE`；这些内容仍是条件项或开放项。"
+msgid "`formal_verification/QEDFV/HOL` now contains the formal soundness mainline: an independently typed HOL core with constructed carriers, non-emptiness, typed renaming/substitution/beta laws, general open-context `ABS`, exact assumption discharge `DEDUCT`, typed term instantiation, and typed polymorphic `INST_TYPE`. `Derivation.lean` closes the corresponding inductive `derivation_sound` theorem. `Concrete.lean` supplies a closed non-triviality countermodel; `TypeDefinitions.lean`, `Definitions.lean`, and `Specification.lean` supply typed semantic contracts for the extension gates. `Transport.lean` proves validity transport and bidirectional old-language invariance; `Conservativity.lean` exposes the derivation-facing boundary. These results are the soundness mainline; they do not yet construct a distinct-state syntactic erasure simulation for the legacy `Lean.Expr`/MoonBit implementation."
+msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:20
+#: manual/qed_formal_audit_matrices.md:22
 msgid "Issue matrix"
 msgstr "问题矩阵"
 
-#: manual/qed_formal_audit_matrices.md:22
+#: manual/qed_formal_audit_matrices.md:24
 msgid "ID"
 msgstr "ID"
 
-#: manual/qed_formal_audit_matrices.md:22
+#: manual/qed_formal_audit_matrices.md:24
 msgid "Class"
 msgstr "类别"
 
-#: manual/qed_formal_audit_matrices.md:22
+#: manual/qed_formal_audit_matrices.md:24
 msgid "Observed evidence and cause"
 msgstr "观察到的证据和原因"
 
-#: manual/qed_formal_audit_matrices.md:22
+#: manual/qed_formal_audit_matrices.md:24
 msgid "Required contract / decision"
 msgstr "所需的契约/决策"
 
-#: manual/qed_formal_audit_matrices.md:22
+#: manual/qed_formal_audit_matrices.md:24
 msgid "Verification and acceptance"
 msgstr "验证验收"
 
-#: manual/qed_formal_audit_matrices.md:22
-#: manual/qed_formal_audit_matrices.md:41
+#: manual/qed_formal_audit_matrices.md:24
+#: manual/qed_formal_audit_matrices.md:43
 msgid "Issues"
 msgstr "问题"
 
-#: manual/qed_formal_audit_matrices.md:24
+#: manual/qed_formal_audit_matrices.md:26
 msgid "I1"
 msgstr "Ⅰ1"
 
-#: manual/qed_formal_audit_matrices.md:24
-#: manual/qed_formal_audit_matrices.md:25
 #: manual/qed_formal_audit_matrices.md:26
 #: manual/qed_formal_audit_matrices.md:27
+#: manual/qed_formal_audit_matrices.md:28
+#: manual/qed_formal_audit_matrices.md:29
 msgid "Semantic deviation"
 msgstr "语义偏差"
 
-#: manual/qed_formal_audit_matrices.md:24
+#: manual/qed_formal_audit_matrices.md:26
 msgid "`Conservativity/DerivationObject.lean` defines `Derives` with a `Derivable k s` premise at each `rule` node and `OldLang` ignores `t0`; `Erasure*.lean` retains the same `k`. `GlobalConservativity.lean` therefore proves same-state tree erasure, not `T₁ ⊢ s → T₀ ⊢ s`."
 msgstr "`Conservativity/DerivationObject.lean` 在每个 `rule` 节点处以 `Derivable k s` 为前提定义 `Derives`，而 `OldLang` 忽略 `t0`； `Erasure*.lean` 保留相同的 `k`​​。因此，`GlobalConservativity.lean` 证明了相同状态树擦除，而不是 `T₁ ⊢ s → T₀ ⊢ s`。"
 
-#: manual/qed_formal_audit_matrices.md:24
+#: manual/qed_formal_audit_matrices.md:26
 msgid "State cross-theory erasure as an explicit conditional obligation. Relabel the existing Lean theorem and manuscript proof status. A real proof needs rule-indexed derivations, old-language membership tied to `T₀`, and a gate-specific simulation into `T₀`."
 msgstr "将跨理论擦除列为一项明确的有条件义务。重新标记现有Lean定理和手稿证明状态。真正的证明需要规则索引的推导、与 `T₀` 相关的旧语言成员资格，以及对 `T₀` 的特定于门的模拟。"
 
-#: manual/qed_formal_audit_matrices.md:24
+#: manual/qed_formal_audit_matrices.md:26
 msgid "`lake build`; inspect theorem statements for distinct base/extended theories. Cross-theory conservativity remains open until the simulation is constructed."
-msgstr "ZX占位符0ZX；检查定理陈述是否有不同的基础/扩展理论。在构建模拟之前，跨理论保守性保持开放。"
+msgstr "`lake build`；检查定理陈述是否有不同的基础/扩展理论。在构建模拟之前，跨理论保守性保持开放。"
 
-#: manual/qed_formal_audit_matrices.md:24
-#: manual/qed_formal_audit_matrices.md:28
-#: manual/qed_formal_audit_matrices.md:29
-#: manual/qed_formal_audit_matrices.md:43
-#: manual/qed_formal_audit_matrices.md:44
-#: manual/qed_formal_audit_matrices.md:48
-#: manual/qed_formal_audit_matrices.md:49
+#: manual/qed_formal_audit_matrices.md:26
+#: manual/qed_formal_audit_matrices.md:30
+#: manual/qed_formal_audit_matrices.md:31
+#: manual/qed_formal_audit_matrices.md:35
+#: manual/qed_formal_audit_matrices.md:36
+#: manual/qed_formal_audit_matrices.md:45
+#: manual/qed_formal_audit_matrices.md:46
+#: manual/qed_formal_audit_matrices.md:50
+#: manual/qed_formal_audit_matrices.md:52
 msgid "conditional"
 msgstr "有条件的"
 
-#: manual/qed_formal_audit_matrices.md:25
+#: manual/qed_formal_audit_matrices.md:27
 msgid "I2"
 msgstr "I2"
 
-#: manual/qed_formal_audit_matrices.md:25
-msgid "`Signature/TypeDef.lean`'s `TypeDefOK` does not inspect `w.witnessThm`; `typedefProductContract` calls a free variable of `repTy` a surjectivity witness and its other two fields are implications from syntactic equality."
-msgstr "`Signature/TypeDef.lean`的`TypeDefOK`不检查`w.witnessThm`； `typedefProductContract` 将 `repTy` 的自由变量称为满射见证，其其他两个字段是句法相等的含义。"
-
-#: manual/qed_formal_audit_matrices.md:25
-msgid "Record `TypeDefOK` and the Abs/Rep laws as implementation/proof obligations, not established Lean theorems. A proof needs a certified witness theorem, a nonempty family for every parameter valuation, and semantic Abs/Rep equations."
-msgstr "将 `TypeDefOK` 和 Abs/Rep 法则记录为实现/证明义务，而不是建立Lean定理。证明需要经过认证的见证定理、每个参数评估的非空族以及语义 Abs/Rep 方程。"
-
-#: manual/qed_formal_audit_matrices.md:25
-msgid "Typst and Lean build; no claim that current Lean typedef lemmas establish nonemptiness or the product contract."
-msgstr "Typst 和Lean构建；没有声称当前的Lean typedef 引理建立了非空性或产品契约。"
-
-#: manual/qed_formal_audit_matrices.md:25
-#: manual/qed_formal_audit_matrices.md:26
 #: manual/qed_formal_audit_matrices.md:27
-#: manual/qed_formal_audit_matrices.md:30
-#: manual/qed_formal_audit_matrices.md:31
-#: manual/qed_formal_audit_matrices.md:45
-#: manual/qed_formal_audit_matrices.md:46
-#: manual/qed_formal_audit_matrices.md:47
-#: manual/qed_formal_audit_matrices.md:50
-#: manual/qed_formal_audit_matrices.md:51
-msgid "open"
-msgstr "打开"
-
-#: manual/qed_formal_audit_matrices.md:26
-msgid "I3"
-msgstr "Ⅰ3"
-
-#: manual/qed_formal_audit_matrices.md:26
-msgid "`Extension/DefOK.lean`: `acyclic` tests singleton membership of an exact `Term.const c (tyvar \"_\")`, not recursive occurrence. `definition_theorem_shape_from_defok` constructs an arbitrary `Thm` with a bare constant conclusion."
-msgstr "`Extension/DefOK.lean`：`acyclic` 测试精确 `Term.const c (tyvar \"_\")` 的单例成员资格，而不是递归发生。 `definition_theorem_shape_from_defok` 构造一个任意的 `Thm` 并具有简单的常量结论。"
-
-#: manual/qed_formal_audit_matrices.md:26
-msgid "Distinguish the executable definition gate from this weak Lean approximation; require a genuine equation theorem generated by a checked extension rule."
-msgstr "将可执行定义门与这种弱Lean近似区分开来；需要由检查的扩展规则生成的真正的方程定理。"
-
-#: manual/qed_formal_audit_matrices.md:26
-msgid "Audit `src/kernel/sig.mbt:ks_define_const` and `ks_define_const_thm`; classify Lean shape proof as insufficient."
-msgstr "审核`src/kernel/sig.mbt:ks_define_const`和`ks_define_const_thm`；将Lean形状证明归类为不足。"
+msgid "The legacy `TypeDefOK` executable gate remains weaker than the mathematical contract."
+msgstr ""
 
 #: manual/qed_formal_audit_matrices.md:27
-msgid "I4"
-msgstr "I4"
+msgid "The Typed HOL mainline now states the required predicate family, proves non-empty carriers for every admissible valuation, and proves semantic Abs/Rep equations. The legacy gate still needs a correspondence proof."
+msgstr ""
 
 #: manual/qed_formal_audit_matrices.md:27
-msgid "`Extension/SpecOK.lean`: `witnessShape` checks empty hypotheses only; `schemaLock` equates the witness conclusion with a constant named `c`; `spec_extension_conservative` proves freshness only. `src/kernel/sig.mbt:ks_specify_const` accepts a closed witness application and creates `P(c)` through a trusted constructor."
-msgstr "`Extension/SpecOK.lean`：`witnessShape` 仅检查空假设； `schemaLock` 将证人结论等同于名为 `c` 的常量； `spec_extension_conservative`仅证明新鲜度。 `src/kernel/sig.mbt:ks_specify_const`接受封闭见证申请，并通过可信构造函数创建`P(c)`。"
+msgid "`HOL/TypeDefinitions.lean`; legacy gate correspondence remains separate."
+msgstr ""
 
 #: manual/qed_formal_audit_matrices.md:27
-msgid "Model the exact witness shape and a checked derivation from Choice + definition before claiming derived-only specification admission or conservativity. Until then the gate is part of the trusted extension boundary."
-msgstr "在声明仅派生规范承认或保守性之前，对精确的见证形状和从选择+定义检查的派生进行建模。在此之前，该门是可信扩展边界的一部分。"
-
-#: manual/qed_formal_audit_matrices.md:27
-msgid "Source comparison and `moon test`; proof status is open."
-msgstr "源码与`moon test`对比；证明状态为开放。"
-
-#: manual/qed_formal_audit_matrices.md:28
-msgid "I5"
-msgstr "I5"
-
 #: manual/qed_formal_audit_matrices.md:28
 #: manual/qed_formal_audit_matrices.md:29
-#: manual/qed_formal_audit_matrices.md:31
-msgid "Proof/oracle gap"
-msgstr "证明/预言机差距"
-
-#: manual/qed_formal_audit_matrices.md:28
-msgid "`Boundary/Conversion.lean` takes lowering/lifting as arbitrary functions and puts round trip, typing, and “denotation” properties into `BoundaryLaws`; its `AlphaEq` is raw term equality and its denotation field repeats lift existence."
-msgstr "`Boundary/Conversion.lean`以下降/上升为任意功能，将往返、打字、“表示”属性放入`BoundaryLaws`中；其`AlphaEq`是原始项相等，其表示域重复存在。"
-
-#: manual/qed_formal_audit_matrices.md:28
-msgid "Treat named/De Bruijn typing, alpha, substitution, and denotation bridges as conditional. Prove them for the actual `src/kernel/terms.mbt` conversion if claiming unconditional transfer."
-msgstr "将命名/De Bruijn 类型、alpha、替换和表示桥视为条件。如果要求无条件转移，请证明它们的实际 `src/kernel/terms.mbt` 转换。"
-
-#: manual/qed_formal_audit_matrices.md:28
-msgid "`moon test`; `lake build`; theorem statement inspection."
-msgstr "ZX占位符0ZX； ZX占位符1ZX；定理陈述检查。"
-
-#: manual/qed_formal_audit_matrices.md:29
-msgid "I6"
-msgstr "I6"
-
-#: manual/qed_formal_audit_matrices.md:29
-msgid "The legacy `Semantics/Model.lean` still packages laws as fields, but `HOL/Types.lean` and `HOL/Evaluation.lean` now construct carriers, valuations, and evaluation laws independently."
-msgstr "旧版 `Semantics/Model.lean` 仍将定律打包为字段，但 `HOL/Types.lean` 和 `HOL/Evaluation.lean` 现在独立构造载体、赋值和求值定律。"
-
-#: manual/qed_formal_audit_matrices.md:29
-msgid "Keep the legacy law-bundle result conditional until correspondence is proved; use the typed core as the semantic witness for the core calculus."
-msgstr "在证明对应关系前，旧版定律包结果仍保持条件状态；将类型化核心作为核心演算的语义见证。"
-
-#: manual/qed_formal_audit_matrices.md:29
-msgid "`lake build QEDFV.HOL.Rules`; no custom model axiom; correspondence audit remains."
-msgstr "运行 `lake build QEDFV.HOL.Rules`；没有自定义模型公理；对应关系审计仍待完成。"
-
-#: manual/qed_formal_audit_matrices.md:30
-msgid "I7"
-msgstr "I7"
-
-#: manual/qed_formal_audit_matrices.md:30
-msgid "Integration issue"
-msgstr "整合问题"
-
-#: manual/qed_formal_audit_matrices.md:30
-msgid "Manuscript says `@` is outside the signature; `src/kernel/sig.mbt:initial_sig` inserts it as identity 0 while rejecting later user insertion. The manuscript describes `Thm` as a named boundary value, but `src/kernel/thm.mbt` stores De Bruijn terms."
-msgstr "手稿说 `@` 不在签名范围内； `src/kernel/sig.mbt:initial_sig` 将其作为身份 0 插入，同时拒绝以后的用户插入。手稿将 `Thm` 描述为命名边界值，但 `src/kernel/thm.mbt` 存储 De Bruijn 术语。"
-
-#: manual/qed_formal_audit_matrices.md:30
-msgid "Clarify reserved logical identity and presentation/core ownership in Part II without changing the intended logic."
-msgstr "澄清第二部分中保留的逻辑身份和表示/核心所有权，而不改变预期的逻辑。"
-
-#: manual/qed_formal_audit_matrices.md:30
-msgid "Compare concrete representations; Typst compile."
-msgstr "比较具体的表述；打字员编译。"
-
-#: manual/qed_formal_audit_matrices.md:31
-msgid "I8"
-msgstr "I8"
-
-#: manual/qed_formal_audit_matrices.md:31
-msgid "The legacy `Kernel/RuleSoundness.lean` still has the overly strong union side condition. The typed core now proves the exact discharge rule in `HOL/Rules.lean`, but only for typed terms and syntactic (De Bruijn) equality."
-msgstr "旧版 `Kernel/RuleSoundness.lean` 仍带有过强的并集侧条件。类型化核心现在在 `HOL/Rules.lean` 中证明了精确的消去规则，但目前只适用于类型化项和句法（De Bruijn）相等。"
-
-#: manual/qed_formal_audit_matrices.md:31
-msgid "Replace the legacy rule with the typed discharge theorem after the syntax correspondence is proved."
-msgstr "证明语法对应关系后，用类型化消去定理替换旧规则。"
-
-#: manual/qed_formal_audit_matrices.md:31
-msgid "`lake build QEDFV.HOL.Rules`; legacy cross-representation repair remains open."
-msgstr "运行 `lake build QEDFV.HOL.Rules`；旧表示之间的修复仍未完成。"
-
-#: manual/qed_formal_audit_matrices.md:32
-msgid "I9"
-msgstr "I9"
-
-#: manual/qed_formal_audit_matrices.md:32
-msgid "Documentation gap"
-msgstr "文档差距"
-
-#: manual/qed_formal_audit_matrices.md:32
-msgid "The old changelog's `[PASS]` and `Open items: None` predate this audit and claim full closure from compilation."
-msgstr "旧变更日志的 `[PASS]` 和 `Open items: None` 早于本次审计，并声称已完全关闭编译。"
-
-#: manual/qed_formal_audit_matrices.md:32
-msgid "Preserve history but append a dated correction and current proof-status ledger."
-msgstr "保留历史记录，但附加注明日期的更正和当前的证明状态分类帐。"
-
-#: manual/qed_formal_audit_matrices.md:32
-msgid "Typst build and audit matrix reconciliation."
-msgstr "Typst 构建和审核矩阵调节。"
-
-#: manual/qed_formal_audit_matrices.md:32
-#: manual/qed_formal_audit_matrices.md:33
 #: manual/qed_formal_audit_matrices.md:34
-#: manual/qed_formal_audit_matrices.md:35
-#: manual/qed_formal_audit_matrices.md:36
+#: manual/qed_formal_audit_matrices.md:37
+#: manual/qed_formal_audit_matrices.md:38
+#: manual/qed_formal_audit_matrices.md:47
+#: manual/qed_formal_audit_matrices.md:48
+#: manual/qed_formal_audit_matrices.md:49
+#: manual/qed_formal_audit_matrices.md:51
 msgid "proved"
 msgstr "证明了"
 
+#: manual/qed_formal_audit_matrices.md:28
+msgid "I3"
+msgstr "Ⅰ3"
+
+#: manual/qed_formal_audit_matrices.md:28
+msgid "The legacy `DefOK` executable gate and theorem-shape helper do not establish the full semantic equation contract."
+msgstr ""
+
+#: manual/qed_formal_audit_matrices.md:28
+msgid "The Typed HOL mainline supplies a fresh-constant interpretation, proves the definition equation, and proves bidirectional validity invariance for sequents excluding the fresh id. The implementation gate still needs a checked derivation and recursive occurrence correspondence."
+msgstr ""
+
+#: manual/qed_formal_audit_matrices.md:28
+msgid "`HOL/Definitions.lean:valid_definition_equation`, `valid_definition_old_language_iff`; source-level gate correspondence remains open."
+msgstr ""
+
+#: manual/qed_formal_audit_matrices.md:29
+msgid "I4"
+msgstr "I4"
+
+#: manual/qed_formal_audit_matrices.md:29
+msgid "The legacy `SpecOK` executable gate and trusted constructor do not by themselves establish the derived semantic theorem."
+msgstr ""
+
+#: manual/qed_formal_audit_matrices.md:29
+msgid "The Typed HOL mainline supplies a typed fresh-constant interpretation, proves the Choice-derived property, and proves bidirectional old-language validity invariance. The implementation path still needs a checked Choice + definition derivation."
+msgstr ""
+
+#: manual/qed_formal_audit_matrices.md:29
+msgid "`HOL/Specification.lean:SpecificationGate.valid_constant`, `valid_old_language_iff`; source comparison and refinement remain open."
+msgstr ""
+
+#: manual/qed_formal_audit_matrices.md:30
+msgid "I5"
+msgstr "I5"
+
+#: manual/qed_formal_audit_matrices.md:30
+#: manual/qed_formal_audit_matrices.md:31
 #: manual/qed_formal_audit_matrices.md:33
+msgid "Proof/oracle gap"
+msgstr "证明/预言机差距"
+
+#: manual/qed_formal_audit_matrices.md:30
+msgid "`Boundary/Conversion.lean` takes lowering/lifting as arbitrary functions and puts round trip, typing, and “denotation” properties into `BoundaryLaws`; its `AlphaEq` is raw term equality and its denotation field repeats lift existence."
+msgstr "`Boundary/Conversion.lean`以下降/上升为任意功能，将往返、打字、“表示”属性放入`BoundaryLaws`中；其`AlphaEq`是原始项相等，其表示域重复存在。"
+
+#: manual/qed_formal_audit_matrices.md:30
+msgid "Treat named/De Bruijn typing, alpha, substitution, and denotation bridges as conditional. Prove them for the actual `src/kernel/terms.mbt` conversion if claiming unconditional transfer."
+msgstr "将命名/De Bruijn 类型、alpha、替换和表示桥视为条件。如果要求无条件转移，请证明它们的实际 `src/kernel/terms.mbt` 转换。"
+
+#: manual/qed_formal_audit_matrices.md:30
+msgid "`moon test`; `lake build`; theorem statement inspection."
+msgstr "`moon test`；`lake build`；定理陈述检查。"
+
+#: manual/qed_formal_audit_matrices.md:31
+msgid "I6"
+msgstr "I6"
+
+#: manual/qed_formal_audit_matrices.md:31
+msgid "The legacy `Semantics/Model.lean` still packages laws as fields, but `HOL/Types.lean` and `HOL/Evaluation.lean` now construct carriers, valuations, and evaluation laws independently."
+msgstr "旧版 `Semantics/Model.lean` 仍将定律打包为字段，但 `HOL/Types.lean` 和 `HOL/Evaluation.lean` 现在独立构造载体、赋值和求值定律。"
+
+#: manual/qed_formal_audit_matrices.md:31
+msgid "Keep the legacy law-bundle result conditional until correspondence is proved; use the typed core as the semantic witness for the core calculus."
+msgstr "在证明对应关系前，旧版定律包结果仍保持条件状态；将类型化核心作为核心演算的语义见证。"
+
+#: manual/qed_formal_audit_matrices.md:31
+msgid "`lake build QEDFV.HOL.Rules`; no custom model axiom; correspondence audit remains."
+msgstr "运行 `lake build QEDFV.HOL.Rules`；没有自定义模型公理；对应关系审计仍待完成。"
+
+#: manual/qed_formal_audit_matrices.md:32
+msgid "I7"
+msgstr "I7"
+
+#: manual/qed_formal_audit_matrices.md:32
+msgid "Integration issue"
+msgstr "整合问题"
+
+#: manual/qed_formal_audit_matrices.md:32
+msgid "Manuscript says `@` is outside the signature; `src/kernel/sig.mbt:initial_sig` inserts it as identity 0 while rejecting later user insertion. The manuscript describes `Thm` as a named boundary value, but `src/kernel/thm.mbt` stores De Bruijn terms."
+msgstr "手稿说 `@` 不在签名范围内； `src/kernel/sig.mbt:initial_sig` 将其作为身份 0 插入，同时拒绝以后的用户插入。手稿将 `Thm` 描述为命名边界值，但 `src/kernel/thm.mbt` 存储 De Bruijn 术语。"
+
+#: manual/qed_formal_audit_matrices.md:32
+msgid "Clarify reserved logical identity and presentation/core ownership in Part II without changing the intended logic."
+msgstr "澄清第二部分中保留的逻辑身份和表示/核心所有权，而不改变预期的逻辑。"
+
+#: manual/qed_formal_audit_matrices.md:32
+msgid "Compare concrete representations; Typst compile."
+msgstr "比较具体的表述；打字员编译。"
+
+#: manual/qed_formal_audit_matrices.md:32
+#: manual/qed_formal_audit_matrices.md:33
+#: manual/qed_formal_audit_matrices.md:53
+msgid "open"
+msgstr "打开"
+
+#: manual/qed_formal_audit_matrices.md:33
+msgid "I8"
+msgstr "I8"
+
+#: manual/qed_formal_audit_matrices.md:33
+msgid "The legacy `Kernel/RuleSoundness.lean` still has the overly strong union side condition. The typed core now proves the exact discharge rule in `HOL/Rules.lean`, but only for typed terms and syntactic (De Bruijn) equality."
+msgstr "旧版 `Kernel/RuleSoundness.lean` 仍带有过强的并集侧条件。类型化核心现在在 `HOL/Rules.lean` 中证明了精确的消去规则，但目前只适用于类型化项和句法（De Bruijn）相等。"
+
+#: manual/qed_formal_audit_matrices.md:33
+msgid "Replace the legacy rule with the typed discharge theorem after the syntax correspondence is proved."
+msgstr "证明语法对应关系后，用类型化消去定理替换旧规则。"
+
+#: manual/qed_formal_audit_matrices.md:33
+msgid "`lake build QEDFV.HOL.Rules`; legacy cross-representation repair remains open."
+msgstr "运行 `lake build QEDFV.HOL.Rules`；旧表示之间的修复仍未完成。"
+
+#: manual/qed_formal_audit_matrices.md:34
+msgid "I9"
+msgstr "I9"
+
+#: manual/qed_formal_audit_matrices.md:34
+msgid "Documentation gap"
+msgstr "文档差距"
+
+#: manual/qed_formal_audit_matrices.md:34
+msgid "The old changelog's `[PASS]` and `Open items: None` predate this audit and claim full closure from compilation."
+msgstr "旧变更日志的 `[PASS]` 和 `Open items: None` 早于本次审计，并声称已完全关闭编译。"
+
+#: manual/qed_formal_audit_matrices.md:34
+msgid "Preserve history but append a dated correction and current proof-status ledger."
+msgstr "保留历史记录，但附加注明日期的更正和当前的证明状态分类帐。"
+
+#: manual/qed_formal_audit_matrices.md:34
+msgid "Typst build and audit matrix reconciliation."
+msgstr "Typst 构建和审核矩阵调节。"
+
+#: manual/qed_formal_audit_matrices.md:35
 msgid "I10"
 msgstr "I10"
 
-#: manual/qed_formal_audit_matrices.md:33
-#: manual/qed_formal_audit_matrices.md:34
 #: manual/qed_formal_audit_matrices.md:35
+#: manual/qed_formal_audit_matrices.md:36
+#: manual/qed_formal_audit_matrices.md:37
 msgid "Circularity"
 msgstr "圆"
 
-#: manual/qed_formal_audit_matrices.md:33
+#: manual/qed_formal_audit_matrices.md:35
 msgid "`GlobalAdmissibilityEnvelope` previously contained the soundness conclusion, so its theorem only returned the conclusion from the same hypothesis."
 msgstr "`GlobalAdmissibilityEnvelope` 先前包含了健全性结论，因此其定理仅返回来自相同假设的结论。"
 
-#: manual/qed_formal_audit_matrices.md:33
-msgid "Keep the envelope structural (`ScopedWF` plus theory well-formedness) and prove primitive soundness from the model law bundle."
-msgstr "保持包络结构（`ScopedWF` 加上理论格式良好）并证明模型定律束的原始健全性。"
+#: manual/qed_formal_audit_matrices.md:35
+msgid "Keep the envelope structural (`ScopedWF` plus theory well-formedness) and isolate the legacy primitive theorem behind its explicit model-law bundle."
+msgstr "保持包络结构（`ScopedWF` 加上理论格式良好），并将旧版原始定理隔离在其显式模型定律束之后。"
 
-#: manual/qed_formal_audit_matrices.md:33
-msgid "Lean build; envelope no longer mentions `primitive_sound_all`."
-msgstr "Lean构建；信封不再提及 `primitive_sound_all`。"
+#: manual/qed_formal_audit_matrices.md:35
+msgid "Lean build; envelope no longer mentions `primitive_sound_all`; theorem is named `global_admissibility_sound_legacy_from_model_laws`."
+msgstr "Lean 构建；包络不再提及 `primitive_sound_all`；定理名称为 `global_admissibility_sound_legacy_from_model_laws`。"
 
-#: manual/qed_formal_audit_matrices.md:34
+#: manual/qed_formal_audit_matrices.md:36
 msgid "I11"
 msgstr "I11"
 
-#: manual/qed_formal_audit_matrices.md:34
+#: manual/qed_formal_audit_matrices.md:36
 msgid "`AdmissibleModelClass` previously carried `soundKernel : Derivable -> Valid`, which made the semantic soundness theorem an assumption projection."
 msgstr "`AdmissibleModelClass`之前携带了`soundKernel : Derivable -> Valid`，这使得语义健全性定理成为假设投影。"
 
-#: manual/qed_formal_audit_matrices.md:34
+#: manual/qed_formal_audit_matrices.md:36
 msgid "Remove that field and prove `derivable_sound` by induction over `Derivable`; retain only primitive semantic laws and explicit substitution/alpha law bundles."
 msgstr "删除该字段并通​​过 `Derivable` 归纳证明 `derivable_sound`；仅保留原始语义定律和显式替换/阿尔法定律束。"
 
-#: manual/qed_formal_audit_matrices.md:34
-msgid "Lean build; no `soundKernel` field remains."
-msgstr "Lean构建；没有保留 `soundKernel` 字段。"
+#: manual/qed_formal_audit_matrices.md:36
+msgid "Lean build; no `soundKernel` field remains, but the legacy model laws remain premises."
+msgstr "Lean 构建；不再保留 `soundKernel` 字段，但旧版模型定律仍是前提。"
 
-#: manual/qed_formal_audit_matrices.md:35
+#: manual/qed_formal_audit_matrices.md:37
 msgid "I12"
 msgstr "I12"
 
-#: manual/qed_formal_audit_matrices.md:35
+#: manual/qed_formal_audit_matrices.md:37
 msgid "`FaithfulRealization` previously assumed `accepts -> Derivable` through `ruleFidelity`, then used that assumption as implementation transfer."
 msgstr "`FaithfulRealization` 先前假设 `accepts -> Derivable` 到 `ruleFidelity`，然后使用该假设作为实现传输。"
 
-#: manual/qed_formal_audit_matrices.md:35
-msgid "Require recursive `CheckedDerivation` evidence and reconstruct `Derivable` with `checked_derivation_sound`; legacy replay helpers are no longer release evidence."
-msgstr "需要递归`CheckedDerivation`证据并用`checked_derivation_sound`重建`Derivable`；旧版重播助手不再发布证据。"
+#: manual/qed_formal_audit_matrices.md:37
+msgid "Require recursive `CheckedDerivation` evidence and reconstruct `Derivable` with `checked_derivation_reconstructs_derivable`; legacy replay helpers are no longer release evidence."
+msgstr "需要递归`CheckedDerivation`证据并用`checked_derivation_reconstructs_derivable`重建`Derivable`；旧版重播助手不再发布证据。"
 
-#: manual/qed_formal_audit_matrices.md:35
+#: manual/qed_formal_audit_matrices.md:37
 msgid "Lean build; transfer uses `CheckedDerivation`."
 msgstr "Lean构建；传输使用`CheckedDerivation`。"
 
-#: manual/qed_formal_audit_matrices.md:36
+#: manual/qed_formal_audit_matrices.md:38
 msgid "I13"
 msgstr "I13"
 
-#: manual/qed_formal_audit_matrices.md:36
+#: manual/qed_formal_audit_matrices.md:38
 msgid "Semantic naming"
 msgstr "语义命名"
 
-#: manual/qed_formal_audit_matrices.md:36
+#: manual/qed_formal_audit_matrices.md:38
 msgid "The old release theorem called same-state gate-tag erasure “global conservativity”."
 msgstr "旧的发布定理将同状态门标签擦除称为“全局保守性”。"
 
-#: manual/qed_formal_audit_matrices.md:36
+#: manual/qed_formal_audit_matrices.md:38
 msgid "Rename the old result to `SEC15_SAME_STATE_ERASURE_FINITE`; make `SEC15_GLOBAL_CONSERVATIVITY_FINITE` conditional on an explicit distinct-state `CrossTheoryFiniteErasureObligation`."
 msgstr "将旧结果重命名为`SEC15_SAME_STATE_ERASURE_FINITE`；使 `SEC15_GLOBAL_CONSERVATIVITY_FINITE` 以显式不同状态 `CrossTheoryFiniteErasureObligation` 为条件。"
 
-#: manual/qed_formal_audit_matrices.md:36
+#: manual/qed_formal_audit_matrices.md:38
 msgid "Lean build; theorem has separate `base` and `extended` states and an explicit obligation premise."
 msgstr "Lean构建；定理具有单独的 `base` 和 `extended` 状态和明确的义务前提。"
 
-#: manual/qed_formal_audit_matrices.md:37
+#: manual/qed_formal_audit_matrices.md:39
 msgid "I14"
 msgstr "I14"
 
-#: manual/qed_formal_audit_matrices.md:37
+#: manual/qed_formal_audit_matrices.md:39
 msgid "Bug"
 msgstr "漏洞"
 
-#: manual/qed_formal_audit_matrices.md:37
+#: manual/qed_formal_audit_matrices.md:39
 msgid "The forked-state counterexample shows sibling `KernelState` values can allocate the same `ConstId`; `Thm` carries no state lineage and admissibility checks the name/id shape without checking the source definition body, allowing `"
 msgstr "分叉状态反例显示同级 `KernelState` 值可以分配相同的 `ConstId`； `Thm` 没有状态沿袭，并且可受理性检查名称/ID 形状，而不检查源定义主体，允许`"
 
-#: manual/qed_formal_audit_matrices.md:37
+#: manual/qed_formal_audit_matrices.md:39
 msgid "- c = T` from one fork to combine with `c := F` from another."
 msgstr "- c = T` from one fork to combine with `c := F` 来自另一个。"
 
-#: manual/qed_formal_audit_matrices.md:37
+#: manual/qed_formal_audit_matrices.md:39
 msgid "Treat theorem provenance as a kernel invariant: reject theorem values from sibling histories, or use globally unique identities. Add a regression reproducer before claiming implementation soundness."
 msgstr "将定理起源视为内核不变量：拒绝来自兄弟历史的定理值，或使用全局唯一的身份。在声明实现健全性之前添加回归再现器。"
 
-#: manual/qed_formal_audit_matrices.md:37
+#: manual/qed_formal_audit_matrices.md:39
 msgid "Issue #15 reproducer; current Lean abstract pack does not model MoonBit state lineage."
 msgstr "第 15 期复制者；当前的 Lean 抽象包并不对 MoonBit 状态谱系进行建模。"
 
-#: manual/qed_formal_audit_matrices.md:37
+#: manual/qed_formal_audit_matrices.md:39
 msgid "bug"
 msgstr "漏洞"
 
-#: manual/qed_formal_audit_matrices.md:39
+#: manual/qed_formal_audit_matrices.md:41
 msgid "Proof-obligation matrix"
 msgstr "证明义务矩阵"
 
-#: manual/qed_formal_audit_matrices.md:41
+#: manual/qed_formal_audit_matrices.md:43
 msgid "Obligation"
 msgstr "义务"
 
-#: manual/qed_formal_audit_matrices.md:41
+#: manual/qed_formal_audit_matrices.md:43
 msgid "Mathematical target"
 msgstr "数学目标"
 
-#: manual/qed_formal_audit_matrices.md:41
+#: manual/qed_formal_audit_matrices.md:43
 msgid "Current evidence"
 msgstr "目前的证据"
 
-#: manual/qed_formal_audit_matrices.md:41
+#: manual/qed_formal_audit_matrices.md:43
 msgid "Next witness"
 msgstr "下一个证人"
 
-#: manual/qed_formal_audit_matrices.md:43
+#: manual/qed_formal_audit_matrices.md:45
 msgid "P1 HOL/STT syntax and typing"
 msgstr "P1 HOL/STT 语法和打字"
 
-#: manual/qed_formal_audit_matrices.md:43
+#: manual/qed_formal_audit_matrices.md:45
 msgid "Every resolved term is well-typed over an admissible signature with nonempty type carriers."
 msgstr "每个解析的术语都通过带有非空类型载体的可接受签名进行​​了良好的类型化。"
 
-#: manual/qed_formal_audit_matrices.md:43
+#: manual/qed_formal_audit_matrices.md:45
 msgid "`Typing/Core.lean` and MoonBit `type_of`; Lean uses `Lean.Expr` for De Bruijn core."
 msgstr "`Typing/Core.lean` 和 MoonBit `type_of`； Lean 使用 `Lean.Expr` 作为 De Bruijn 核心。"
 
-#: manual/qed_formal_audit_matrices.md:43
+#: manual/qed_formal_audit_matrices.md:45
 msgid "A relation to MoonBit `DbTerm` and type-admissibility preservation."
 msgstr "与 MoonBit `DbTerm` 和类型允许性保存的关系。"
 
-#: manual/qed_formal_audit_matrices.md:44
+#: manual/qed_formal_audit_matrices.md:46
 msgid "P2 Scope/history"
 msgstr "P2 范围/历史"
 
-#: manual/qed_formal_audit_matrices.md:44
+#: manual/qed_formal_audit_matrices.md:46
 msgid "Pop changes only `S`; admitted heads persist in `T`; resolved identities remain stable."
 msgstr "Pop 仅更改 `S`；承认的头坚持在 `T` 中；已解析的身份保持稳定。"
 
-#: manual/qed_formal_audit_matrices.md:44
+#: manual/qed_formal_audit_matrices.md:46
 msgid "`Signature/GlobalLocalState.lean`; MoonBit `TheoryState` and `ConstId`."
-msgstr "ZX占位符0ZX； MoonBit `TheoryState` 和 `ConstId`。"
+msgstr "`Signature/GlobalLocalState.lean`；MoonBit `TheoryState` 和 `ConstId`。"
 
-#: manual/qed_formal_audit_matrices.md:44
+#: manual/qed_formal_audit_matrices.md:46
 msgid "Cross-layer correspondence and provenance invariant."
 msgstr "跨层对应和来源不变。"
 
-#: manual/qed_formal_audit_matrices.md:45
+#: manual/qed_formal_audit_matrices.md:47
 msgid "P3 Definition admission"
 msgstr "P3 定义 入学"
 
-#: manual/qed_formal_audit_matrices.md:45
+#: manual/qed_formal_audit_matrices.md:47
 msgid "Fresh, closed, typed, acyclic `c = r`, with `TVars(r) ⊆ TVars(τ)`; equation theorem is derivable."
 msgstr "新鲜、封闭、类型化、无环 `c = r`，与 `TVars(r) ⊆ TVars(τ)`；方程定理是可导的。"
 
-#: manual/qed_formal_audit_matrices.md:45
-msgid "MoonBit checks most gates; Lean `DefOK` and theorem shape are weak (I3)."
-msgstr "MoonBit 检查大多数门；Lean `DefOK` 和定理形状较弱 (I3)。"
+#: manual/qed_formal_audit_matrices.md:47
+msgid "Typed HOL `DefinitionGate` proves the fresh equation and old-language validity iff. Recursive syntax-gate and implementation correspondence remain separate."
+msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:45
-msgid "A checked equation theorem and recursive occurrence proof."
-msgstr "检查方程定理和递归发生证明。"
+#: manual/qed_formal_audit_matrices.md:47
+msgid "A checked equation theorem and recursive occurrence proof for the legacy gate."
+msgstr "旧版门禁的已检查方程定理和递归出现证明。"
 
-#: manual/qed_formal_audit_matrices.md:46
+#: manual/qed_formal_audit_matrices.md:48
 msgid "P4 Type definition"
 msgstr "P4 类型定义"
 
-#: manual/qed_formal_audit_matrices.md:46
+#: manual/qed_formal_audit_matrices.md:48
 msgid "Witnessed nonempty predicate family and Abs/Rep equations under all parameter interpretations."
 msgstr "见证了所有参数解释下的非空谓词族和 Abs/Rep 方程。"
 
-#: manual/qed_formal_audit_matrices.md:46
-msgid "MoonBit witness and contract checks; Lean contract is vacuous (I2)."
-msgstr "MoonBit 证人和合同检查；Lean合同是空洞的（I2）。"
+#: manual/qed_formal_audit_matrices.md:48
+msgid "`HOL/TypeDefinitions.lean` proves non-emptiness, `abs_rep`, range, and `rep_abs_of_pred` for every admissible valuation."
+msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:46
-msgid "A semantic witness family and Abs/Rep equations."
-msgstr "语义见证族和 Abs/Rep 方程。"
+#: manual/qed_formal_audit_matrices.md:48
+msgid "Prove correspondence from the legacy `TypeDefOK` gate and MoonBit witness object."
+msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:47
+#: manual/qed_formal_audit_matrices.md:49
 msgid "P5 Specification"
 msgstr "P5规格"
 
-#: manual/qed_formal_audit_matrices.md:47
+#: manual/qed_formal_audit_matrices.md:49
 msgid "Certified witness plus Choice derives `P(c)` through `DefOK`."
 msgstr "认证见证人+ Choice 通过 `DefOK` 派生 `P(c)`。"
 
-#: manual/qed_formal_audit_matrices.md:47
-msgid "MoonBit trusted `ks_specify_const`; Lean only proves freshness (I4)."
-msgstr "MoonBit信任`ks_specify_const`；Lean仅证明新鲜度（I4）。"
+#: manual/qed_formal_audit_matrices.md:49
+msgid "`HOL/Specification.lean` proves validity for an interpreted fresh constant and bidirectional old-language invariance."
+msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:47
-msgid "A checked Choice + definition derivation."
-msgstr "已检查的选择+定义推导。"
+#: manual/qed_formal_audit_matrices.md:49
+msgid "Bind the implementation admission path to a checked Choice + definition derivation."
+msgstr "将实现准入路径绑定到经过检查的 Choice + 定义推导。"
 
-#: manual/qed_formal_audit_matrices.md:48
+#: manual/qed_formal_audit_matrices.md:50
 msgid "P6 Boundary/substitution/beta"
 msgstr "P6 边界/替代/beta"
 
-#: manual/qed_formal_audit_matrices.md:48
+#: manual/qed_formal_audit_matrices.md:50
 msgid "Lower/lift, typed labels, alpha and capture avoidance commute and preserve denotation."
 msgstr "降低/提升、打印标签、Alpha 和捕获避免通勤并保留外延。"
 
-#: manual/qed_formal_audit_matrices.md:48
+#: manual/qed_formal_audit_matrices.md:50
 msgid "`HOL/Evaluation.lean` proves typed renaming, substitution and beta evaluation; the legacy boundary/MoonBit correspondence is still assumed."
 msgstr "`HOL/Evaluation.lean` 证明类型化重命名、替换和 beta 求值；旧边界与 MoonBit 的对应关系仍是假设。"
 
-#: manual/qed_formal_audit_matrices.md:48
+#: manual/qed_formal_audit_matrices.md:50
 msgid "Prove the named/De Bruijn correspondence and general alpha theorem."
 msgstr "证明命名语法与 De Bruijn 语法的对应关系以及一般 alpha 定理。"
 
-#: manual/qed_formal_audit_matrices.md:49
+#: manual/qed_formal_audit_matrices.md:51
 msgid "P7 Primitive soundness"
 msgstr "P7 原始健全性"
 
-#: manual/qed_formal_audit_matrices.md:49
-msgid "Ten exact paper rules preserve validity in a constructed HOL model."
-msgstr "十个精确的纸质规则在构建的 HOL 模型中保持有效性。"
+#: manual/qed_formal_audit_matrices.md:51
+msgid "Typed HOL derivations preserve validity in the constructed standard model."
+msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:49
-msgid "Typed carriers and eight core rule certificates are now constructed in `HOL/Rules.lean`; term instantiation is proved. General open-context ABS, polymorphic INST_TYPE, choice naturality, and legacy correspondence remain."
-msgstr "`HOL/Rules.lean` 现在构造了类型化载体和八个核心规则证书，并证明了项实例化。一般开放上下文 ABS、多态 INST_TYPE、选择自然性和旧版对应关系仍待完成。"
+#: manual/qed_formal_audit_matrices.md:51
+msgid "`HOL/Rules.lean` proves the ten typed rule capsules, including general open-context `ABS`, exact `DEDUCT`, typed `INST`, and typed `INST_TYPE`; `HOL/Derivation.lean` proves `derivation_sound` under the explicit `ChoiceNatural` premise."
+msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:49
-msgid "Complete the remaining typed rules, then prove representation correspondence."
-msgstr "完成剩余类型化规则后，再证明表示对应关系。"
+#: manual/qed_formal_audit_matrices.md:51
+msgid "Prove the syntax/refinement correspondence to the legacy implementation and discharge the choice-naturality interface."
+msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:50
+#: manual/qed_formal_audit_matrices.md:52
 msgid "P8 Conservativity"
 msgstr "P8 保守性"
 
-#: manual/qed_formal_audit_matrices.md:50
+#: manual/qed_formal_audit_matrices.md:52
 msgid "For old-language `s`, `T₁ ⊢ s → T₀ ⊢ s` for each gate and finite sequences."
 msgstr "对于旧语言 `s`，`T₁ ⊢ s → T₀ ⊢ s` 用于每个门和有限序列。"
 
-#: manual/qed_formal_audit_matrices.md:50
-msgid "Same-state erasure is separated from a conditional theorem whose premise is `CrossTheoryFiniteErasureObligation base extended steps`."
-msgstr "同状态擦除与前提是 `CrossTheoryFiniteErasureObligation base extended steps` 的条件定理分离。"
+#: manual/qed_formal_audit_matrices.md:52
+msgid "Typed HOL proves semantic old-language validity iff under definition/specification interpretation extensions. The legacy distinct-state syntactic simulation remains unconstructed."
+msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:50
-msgid "Construct concrete gate simulations."
-msgstr "构建混凝土门模拟。"
+#: manual/qed_formal_audit_matrices.md:52
+msgid "Construct concrete gate simulations and a base/extended derivation relation for the implementation layer."
+msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:51
+#: manual/qed_formal_audit_matrices.md:53
 msgid "P9 Implementation transfer"
 msgstr "P9 实施转移"
 
-#: manual/qed_formal_audit_matrices.md:51
+#: manual/qed_formal_audit_matrices.md:53
 msgid "Every exported MoonBit theorem path reconstructs a Part I derivation."
 msgstr "每个导出的 MoonBit 定理路径都会重建第 I 部分的推导。"
 
-#: manual/qed_formal_audit_matrices.md:51
+#: manual/qed_formal_audit_matrices.md:53
 msgid "Tests and source mapping only; no mechanized refinement."
 msgstr "仅测试和源映射；没有机械化精加工。"
 
-#: manual/qed_formal_audit_matrices.md:51
+#: manual/qed_formal_audit_matrices.md:53
 msgid "Bind MoonBit paths to `CheckedDerivation`."
 msgstr "将 MoonBit 路径绑定到 `CheckedDerivation`。"
 
-#: manual/qed_formal_audit_matrices.md:53
-msgid "Baseline commands in the independent worktree: `typst compile doc/attachments/qed_formal_spec.typ /tmp/qed-formal-baseline.pdf` passed; `moon check` passed; `moon test` passed (357/357); `lake build` passed (51 jobs). These checks establish the stated Lean and implementation-side contracts, not a direct MoonBit-to-Lean refinement."
-msgstr "独立工作树中的基线命令：`typst compile doc/attachments/qed_formal_spec.typ /tmp/qed-formal-baseline.pdf` 通过； `moon check`通过； `moon test` 通过（357/357）； `lake build` 通过（51 份工作）。这些检查建立了规定的Lean和实施方合同，而不是直接的 MoonBit-to-Lean 细化。"
+#: manual/qed_formal_audit_matrices.md:55
+msgid "Current verification in the independent worktree: `lake build` passed (641 jobs); `typst compile doc/attachments/qed_formal_spec.typ /tmp/qed-formal-audit.pdf`, `moon check`, `moon test` (357/357), and `lunadoc check . --compile` passed. These checks establish the stated Lean and implementation-side contracts, not a direct MoonBit-to-Lean refinement or a closed cross-theory conservativity proof."
+msgstr "独立工作树中的当前验证：`lake build` 通过（641 个作业）；`typst compile doc/attachments/qed_formal_spec.typ /tmp/qed-formal-audit.pdf`、`moon check`、`moon test`（357/357）和 `lunadoc check . --compile` 均通过。这些检查建立了规定的 Lean 和实现方契约，但不构成直接的 MoonBit 到 Lean 精化或闭合的跨理论保守性证明。"
 
 #: manual/qed_formal_spec_changelog.md:1
 msgid "Formal specification changelog"
 msgstr "形式规范变更日志"
 
 #: manual/qed_formal_spec_changelog.md:3
-msgid "2026-10-12 typed HOL semantic core follow-up"
-msgstr "2026-10-12 类型化 HOL 语义核心后续"
+msgid "2026-10-12 Typed HOL mainline and audit status"
+msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:5
+msgid "Integrated `HOL/Concrete.lean`, `HOL/TypeDefinitions.lean`, `HOL/Definitions.lean`, `HOL/Specification.lean`, `HOL/Transport.lean`, and `HOL/Conservativity.lean` into the aggregate Lean target."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:8
+msgid "Typed HOL now proves constructed carrier non-emptiness, the ten typed rule capsules, general open-context `ABS`, exact assumption discharge `DEDUCT`, typed `INST_TYPE` and `INST`, and indexed `derivation_sound` with no local `sorry`, `axiom`, or `admit` declarations. The polymorphic-instantiation theorem is parameterized by the explicit `ChoiceNatural` interface; no hidden choice naturality axiom is introduced."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:14
+msgid "Typed semantic contracts now cover typedef non-emptiness and Abs/Rep laws, fresh-constant definition equations, specification validity from a typed witness, bidirectional old-language validity invariance for definition/specification extensions, and validity transport for old-language sequents under constant agreement. `HOL/Transport.lean` contains the shared transport layer."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:19
+msgid "`HOL/Concrete.lean` proves a closed `succ 0 = 0` countermodel and non-derivability result, giving a typed non-triviality witness."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:21
+msgid "Verification: `lake build` passed with **641 jobs**. The standard Lean axiom scan for `derivation_sound`, `valid_inst_type`, and `Term.eval_instType` reports only `propext`, `Classical.choice`, and `Quot.sound`."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:24
+msgid "Remaining open items are the distinct-state syntactic cross-theory erasure simulation, the legacy `Lean.Expr`/MoonBit refinement and boundary correspondence, the #15 theorem-provenance implementation bug, and the #14/#16 audit follow-up around the legacy conditional layer. MoonBit refinement remains out of scope for this Typed HOL milestone."
+msgstr ""
+
+#: manual/qed_formal_spec_changelog.md:30
+msgid "2026-10-12 typed HOL semantic core follow-up (historical snapshot)"
+msgstr "2026-10-12 类型化 HOL 语义核心后续"
+
+#: manual/qed_formal_spec_changelog.md:32
 msgid "Added `formal_verification/QEDFV/HOL/Types.lean`, an intrinsically typed HOL type grammar with actual `Prop`, `Nat`, function and variable carriers, plus a structural non-emptiness theorem."
 msgstr "新增 `formal_verification/QEDFV/HOL/Types.lean`，提供内在类型化的 HOL 类型语法、实际的 `Prop`、`Nat`、函数和变量载体，以及结构性非空定理。"
 
-#: manual/qed_formal_spec_changelog.md:8
+#: manual/qed_formal_spec_changelog.md:35
 msgid "Added `HOL/Terms.lean` and `HOL/Evaluation.lean` for typed De Bruijn terms, capture-avoiding substitution, evaluation, and a machine-checked beta law."
 msgstr "新增 `HOL/Terms.lean` 和 `HOL/Evaluation.lean`，用于类型化 De Bruijn 项、避免捕获的替换、求值和机器检查的 beta 定律。"
 
-#: manual/qed_formal_spec_changelog.md:10
+#: manual/qed_formal_spec_changelog.md:37
 msgid "Added `HOL/Extensions.lean` with predicate-subtype carriers, non-emptiness, and the three semantic Abs/Rep witness equations used by a typedef contract."
 msgstr "新增 `HOL/Extensions.lean`，提供谓词子类型载体、非空性，以及 typedef 契约所需的三条语义 Abs/Rep 见证方程。"
 
-#: manual/qed_formal_spec_changelog.md:12
+#: manual/qed_formal_spec_changelog.md:39
 msgid "Added `HOL/Rules.lean` with direct validity-preservation certificates for the typed core rules, including the exact assumption-discharge form of DEDUCT and term-instantiation validity. The restricted closed-context ABS theorem is named accordingly."
 msgstr "新增 `HOL/Rules.lean`，为类型化核心规则提供直接的有效性保持证书，包括精确的 DEDUCT 假设消去形式和项实例化有效性。受限的闭合上下文 ABS 定理已明确命名。"
 
-#: manual/qed_formal_spec_changelog.md:16
-msgid "Kept polymorphic `INST_TYPE`, general open-context ABS, Choice naturality, and the legacy `Lean.Expr`/MoonBit correspondence explicitly open. The typed core is evidence for the semantic direction, not a claim that the implementation has already been refined to it."
-msgstr "明确保留多态 `INST_TYPE`、一般开放上下文 ABS、Choice 自然性以及旧 `Lean.Expr`/MoonBit 对应关系为开放项。类型化核心是语义方向的证据，不表示实现已经完成相应细化。"
+#: manual/qed_formal_spec_changelog.md:43
+msgid "At this earlier checkpoint, polymorphic `INST_TYPE` and general open-context ABS were still open. They are closed in the later Typed HOL mainline entry above; legacy `Lean.Expr`/MoonBit correspondence remains open."
+msgstr ""
 
-#: manual/qed_formal_spec_changelog.md:21
-msgid "Verification: `lake build` in `formal_verification` passed (633 jobs after adding the typed core). `HOL/Instantiation.lean` was intentionally not retained because an arbitrary Hilbert choice interpretation is not natural under type substitution; that missing law is now an explicit next obligation rather than an unsound proof."
-msgstr "验证：`formal_verification` 中的 `lake build` 通过（加入类型化核心后共 633 个 jobs）。有意未保留 `HOL/Instantiation.lean`，因为任意 Hilbert 选择解释在类型替换下不具自然性；该缺失定律现在被明确列为下一项义务，而不是用不 sound 的证明掩盖。"
+#: manual/qed_formal_spec_changelog.md:47
+msgid "Verification at that checkpoint: `lake build` passed (633 jobs). The current verification and axiom basis are recorded in the mainline entry above."
+msgstr ""
 
-#: manual/qed_formal_spec_changelog.md:26
+#: manual/qed_formal_spec_changelog.md:50
 msgid "2026-10-12 review follow-up (#14, #15, #16)"
 msgstr "2026-10-12 审核跟进（#14、#15、#16）"
 
-#: manual/qed_formal_spec_changelog.md:28
+#: manual/qed_formal_spec_changelog.md:52
 msgid "Closed the circularity reported in [#14](https://github.com/Luna-Flow/QED/issues/14): `GlobalAdmissibilityEnvelope` is now structural and no longer contains `primitive_sound_all`."
 msgstr "关闭 [#14](https://github.com/Luna-Flow/QED/issues/14) 中报告的循环：`GlobalAdmissibilityEnvelope` 现在是结构性的，不再包含 `primitive_sound_all`。"
 
-#: manual/qed_formal_spec_changelog.md:29
+#: manual/qed_formal_spec_changelog.md:53
 msgid "Recorded the [#15](https://github.com/Luna-Flow/QED/issues/15) forked-state provenance counterexample as an open implementation bug. The Lean pack does not model MoonBit state lineage, so it cannot close this defect by compilation alone."
 msgstr "将 [#15](https://github.com/Luna-Flow/QED/issues/15) 分叉状态出处反例记录为开放实现错误。 Lean 包不会对 MoonBit 状态谱系进行建模，因此它无法仅通过编译来弥补此缺陷。"
 
-#: manual/qed_formal_spec_changelog.md:30
+#: manual/qed_formal_spec_changelog.md:54
 msgid "Renamed the same-state erasure result to `SEC15_SAME_STATE_ERASURE_FINITE` and made `SEC15_GLOBAL_CONSERVATIVITY_FINITE` a conditional theorem over an explicit `CrossTheoryFiniteErasureObligation`. The obligation's `erases` field is a required simulation conclusion; no theorem in the pack constructs it."
 msgstr "将相同状态擦除结果重命名为 `SEC15_SAME_STATE_ERASURE_FINITE`，并使 `SEC15_GLOBAL_CONSERVATIVITY_FINITE` 成为显式 `CrossTheoryFiniteErasureObligation` 上的条件定理。义务的`erases`字段是必需的模拟结论；包中没有定理可以构造它。"
 
-#: manual/qed_formal_spec_changelog.md:31
+#: manual/qed_formal_spec_changelog.md:55
 msgid "Replaced the model-class `soundKernel` assumption with an inductive `derivable_sound` proof, and replaced direct implementation derivability assumptions with recursive `CheckedDerivation` evidence. Conditional claims now use `_conditional_proved` or `_structural_proved` theorem names."
 msgstr "将模型类 `soundKernel` 假设替换为归纳 `derivable_sound` 证明，并将直接实现推导性假设替换为递归 `CheckedDerivation` 证据。条件声明现在使用 `_conditional_proved` 或 `_structural_proved` 定理名称。"
 
-#: manual/qed_formal_spec_changelog.md:32
+#: manual/qed_formal_spec_changelog.md:56
 msgid "Added fixed matrix statuses (`proved`, `conditional`, `open`, `bug`) and GitHub issue references. The manuscript now labels Construction Invariant, Semantic Non-Triviality, Consistency Witness, and Implementation-to-Logic Transfer with their actual conditional status."
 msgstr "添加了固定矩阵状态（`proved`、`conditional`、`open`、`bug`）和 GitHub 问题参考。该手稿现在标记了构造不变性、语义非平凡性、一致性见证和实现到逻辑转移及其实际条件状态。"
 
-#: manual/qed_formal_spec_changelog.md:33
+#: manual/qed_formal_spec_changelog.md:57
 msgid "Corrected the workspace audit language: `lake build` validates the Lean specification/conformance pack, not the MoonBit implementation or a closed model. The current Lean build completes 51 jobs."
 msgstr "更正了工作区审核语言：`lake build` 验证Lean规范/一致性包，而不是 MoonBit 实施或封闭模型。当前的Lean构建完成了 51 项工作。"
 
-#: manual/qed_formal_spec_changelog.md:35
+#: manual/qed_formal_spec_changelog.md:59
 msgid "Verification for the review follow-up"
 msgstr "审核后续验证"
 
-#: manual/qed_formal_spec_changelog.md:37
-#: manual/qed_formal_spec_changelog.md:53
+#: manual/qed_formal_spec_changelog.md:61
+#: manual/qed_formal_spec_changelog.md:77
 msgid "`lake build` in `formal_verification`: passed, 51 jobs."
 msgstr "`formal_verification` 中的 `lake build`：通过，51 个工作。"
 
-#: manual/qed_formal_spec_changelog.md:38
-#: manual/qed_formal_spec_changelog.md:54
+#: manual/qed_formal_spec_changelog.md:62
+#: manual/qed_formal_spec_changelog.md:78
 msgid "`typst compile doc/attachments/qed_formal_spec.typ /tmp/qed-formal-audit.pdf`: passed."
 msgstr "`typst compile doc/attachments/qed_formal_spec.typ /tmp/qed-formal-audit.pdf`：通过。"
 
-#: manual/qed_formal_spec_changelog.md:39
-#: manual/qed_formal_spec_changelog.md:55
+#: manual/qed_formal_spec_changelog.md:63
+#: manual/qed_formal_spec_changelog.md:79
 msgid "`moon check`: passed."
 msgstr "`moon check`：通过。"
 
-#: manual/qed_formal_spec_changelog.md:40
-#: manual/qed_formal_spec_changelog.md:56
+#: manual/qed_formal_spec_changelog.md:64
+#: manual/qed_formal_spec_changelog.md:80
 msgid "`moon test`: passed, 357/357."
 msgstr "`moon test`：通过，357/357。"
 
-#: manual/qed_formal_spec_changelog.md:41
+#: manual/qed_formal_spec_changelog.md:65
 msgid "`lunadoc check . --compile`: passed, 0 errors and 0 warnings; `zh_CN` and `ja_JP` are each 2523/2523 translated."
 msgstr "`lunadoc check . --compile`：通过，0 个错误、0 个警告；`zh_CN` 和 `ja_JP` 均为 2523/2523 条已翻译。"
 
-#: manual/qed_formal_spec_changelog.md:43
+#: manual/qed_formal_spec_changelog.md:67
 msgid "2026-10-12 evidence-driven audit correction"
 msgstr "2026-10-12 证据驱动审计纠正"
 
-#: manual/qed_formal_spec_changelog.md:45
+#: manual/qed_formal_spec_changelog.md:69
 msgid "Added `doc/manual/qed_formal_audit_matrices.md` with an issue matrix and a proof-obligation matrix covering the manuscript, Lean formalization, and MoonBit realization."
 msgstr "添加了 `doc/manual/qed_formal_audit_matrices.md`，其中包含问题矩阵和证明义务矩阵，涵盖手稿、Lean形式化和 MoonBit 实现。"
 
-#: manual/qed_formal_spec_changelog.md:46
+#: manual/qed_formal_spec_changelog.md:70
 msgid "Added `formal_verification/QEDFV/Conservativity/CrossTheoryObligations.lean`. It records the missing cross-theory simulation explicitly; it does not assert a proof without that premise."
 msgstr "添加了 `formal_verification/QEDFV/Conservativity/CrossTheoryObligations.lean`。它明确记录了缺失的跨理论模拟；如果没有这个前提，它就不会断言证明。"
 
-#: manual/qed_formal_spec_changelog.md:47
+#: manual/qed_formal_spec_changelog.md:71
 msgid "Corrected the manuscript's proof-status language for definitional, specification, type-extension, and global conservativity. The previous erasure code keeps one `KernelState`, and its `OldLang` predicate does not inspect the base theory, so it proves same-state tree preservation rather than `T' ⊢ φ -> T ⊢ φ`."
 msgstr "更正了手稿的定义、规范、类型扩展和全局保守性的证明状态语言。之前的纠删码保留了一个`KernelState`，并且其`OldLang`谓词不检查基础理论，因此它证明了相同状态树的保存而不是`T' ⊢ φ -> T ⊢ φ`。"
 
-#: manual/qed_formal_spec_changelog.md:48
+#: manual/qed_formal_spec_changelog.md:72
 msgid "Marked the current Lean `TypeDefOK`/typedef product contract, `DefOK` theorem shape, `SpecOK` conservativity predicate, abstract boundary laws, and model-law bundles as approximations or conditional obligations. These declarations compile, but they do not by themselves establish the stronger HOL/STT claims in the article."
 msgstr "将当前 Lean `TypeDefOK`/typedef 产品合约、`DefOK` 定理形状、`SpecOK` 保守谓词、抽象边界定律和模型定律束标记为近似值或条件义务。这些声明可以编译，但它们本身并不能在文章中建立更强有力的 HOL/STT 声明。"
 
-#: manual/qed_formal_spec_changelog.md:49
+#: manual/qed_formal_spec_changelog.md:73
 msgid "Added conformance clarification for the reserved `@` identity and the fact that MoonBit `Thm` stores typed De Bruijn terms at the kernel boundary."
 msgstr "添加了对保留的 `@` 身份的一致性说明以及 MoonBit `Thm` 在内核边界存储键入的 De Bruijn 术语的事实。"
 
-#: manual/qed_formal_spec_changelog.md:51
+#: manual/qed_formal_spec_changelog.md:75
 msgid "Verification for this audit"
 msgstr "本次审核的验证"
 
-#: manual/qed_formal_spec_changelog.md:58
+#: manual/qed_formal_spec_changelog.md:82
 msgid "Remaining open obligations are listed explicitly in the matrices and in the manuscript's proof-status notes; `Open items: None` from earlier rounds no longer applies to the stronger cross-theory and semantic claims."
 msgstr "剩余的未决义务在矩阵和稿件的证明状态注释中明确列出；前几轮的 `Open items: None` 不再适用于更强的跨理论和语义主张。"
 
-#: manual/qed_formal_spec_changelog.md:60
+#: manual/qed_formal_spec_changelog.md:84
 msgid "Goals and scope of this round"
 msgstr "本轮目标与范围"
 
-#: manual/qed_formal_spec_changelog.md:62
+#: manual/qed_formal_spec_changelog.md:86
 msgid "Goal: finalize the specification so that the structural link between `INST_TYPE` and `DefOK`/`TypeDefOK` is explicit at the rule level, and reviewers do not need to read across several sections to see where soundness comes from."
 msgstr "目标：完成规范收口，确保 `INST_TYPE` 与 `DefOK`/`TypeDefOK` 的结构化连接在规则层显式可见，且审稿人不需要跨多个章节才能理解安全性来源。"
 
-#: manual/qed_formal_spec_changelog.md:65
+#: manual/qed_formal_spec_changelog.md:89
 msgid "Scope:"
 msgstr "范围："
 
-#: manual/qed_formal_spec_changelog.md:66
+#: manual/qed_formal_spec_changelog.md:90
 msgid "Consistency sweep of the manuscript (terminology, state model, non-empty type semantics);"
 msgstr "文稿一致性清扫（术语、状态模型、非空类型语义）；"
 
-#: manual/qed_formal_spec_changelog.md:67
+#: manual/qed_formal_spec_changelog.md:91
 msgid "Rewrite of the `INST_TYPE` rule (premises, failure classification, bridge note);"
 msgstr "`INST_TYPE` 规则重写（前提、失败分类、桥接说明）；"
 
-#: manual/qed_formal_spec_changelog.md:68
+#: manual/qed_formal_spec_changelog.md:92
 msgid "Production of the complete review package (main manuscript + PDF + this changelog)."
 msgstr "审稿完整包产出（主文稿 + PDF + 本变更日志）。"
 
-#: manual/qed_formal_spec_changelog.md:69
+#: manual/qed_formal_spec_changelog.md:93
 msgid "Out of scope: changes to the kernel implementation code."
 msgstr "不在范围：内核实现代码改动。"
 
-#: manual/qed_formal_spec_changelog.md:71
+#: manual/qed_formal_spec_changelog.md:95
 msgid "Section-by-section changes"
 msgstr "逐节变更（Section-by-Section）"
 
-#: manual/qed_formal_spec_changelog.md:74
+#: manual/qed_formal_spec_changelog.md:98
 msgid "Makes the two-layer state model `(T, S)` explicit: `T` is the global theory history, `S` is the local poppable visibility layer."
 msgstr "明确 `(T, S)` 双层状态模型：`T` 为全局理论历史，`S` 为局部可弹栈可见层。"
 
-#: manual/qed_formal_spec_changelog.md:76
+#: manual/qed_formal_spec_changelog.md:100
 msgid "Adds a proposition stating that `DefHeads(T)` is monotone and that pop does not roll back definition history."
 msgstr "新增 `DefHeads(T)` 单调性与 pop 不回滚定义历史的命题。"
 
-#: manual/qed_formal_spec_changelog.md:77
+#: manual/qed_formal_spec_changelog.md:101
 msgid "Adds an equivalent implementation view: \"can be realized as a tombstone registry\"."
 msgstr "增加“可实现为 tombstone registry”的等价实现视图。"
 
-#: manual/qed_formal_spec_changelog.md:80
+#: manual/qed_formal_spec_changelog.md:104
 msgid "Adds the `TypeDefOK` admission condition and rule step for type extensions."
 msgstr "新增 `TypeDefOK` 类型扩展准入条件与规则步。"
 
-#: manual/qed_formal_spec_changelog.md:81
+#: manual/qed_formal_spec_changelog.md:105
 msgid "Introduces the \"no empty-type escape\" construction invariant, which turns non-emptiness from a bare assumption into an auditable gate constraint."
 msgstr "引入“无空类型逃逸”构造不变式，将非空性从裸假设迁移为可审计门禁约束。"
 
-#: manual/qed_formal_spec_changelog.md:84
+#: manual/qed_formal_spec_changelog.md:108
 msgid "`= Definitional Extension Discipline` and `== Definition Admissibility Judgment` (`doc/attachments/qed_formal_spec.typ:694`, `doc/attachments/qed_formal_spec.typ:731`)"
 msgstr "`= Definitional Extension Discipline` 与 `== Definition Admissibility Judgment`（`doc/attachments/qed_formal_spec.typ:694`、`doc/attachments/qed_formal_spec.typ:731`）"
 
-#: manual/qed_formal_spec_changelog.md:86
+#: manual/qed_formal_spec_changelog.md:110
 msgid "Unifies definition-head novelty as `c ∉ DefHeads(T)` (replacing the ambiguous check against current visibility)."
 msgstr "将定义头新颖性统一为 `c ∉ DefHeads(T)`（替代易歧义的当前可见性检查）。"
 
-#: manual/qed_formal_spec_changelog.md:87
+#: manual/qed_formal_spec_changelog.md:111
 msgid "Keeps and strengthens `TVars(r) ⊆ TVars(tau)` as a normative condition, which continues to close the ghost-type loophole."
 msgstr "保留并强化 `TVars(r) ⊆ TVars(tau)` 作为规范性条件，持续封堵 ghost-type 漏洞。"
 
-#: manual/qed_formal_spec_changelog.md:91
+#: manual/qed_formal_spec_changelog.md:115
 msgid "Extends the envelope: in addition to `DefOK`, adds `TypeDefOK` as a required gate for type extensions."
 msgstr "扩展 envelope：除 `DefOK` 外，新增 `TypeDefOK` 作为类型扩展必要门禁。"
 
-#: manual/qed_formal_spec_changelog.md:94
+#: manual/qed_formal_spec_changelog.md:118
 msgid "Rewrites the generic `valid(theta)` into structured premises:"
 msgstr "从泛化 `valid(theta)` 重写为结构化前提："
 
-#: manual/qed_formal_spec_changelog.md:98
+#: manual/qed_formal_spec_changelog.md:122
 msgid "Extends the failure classification to 5 entries, each corresponding one-to-one to the premises above."
 msgstr "失败分类扩展到 5 条，并与上述前提一一对应。"
 
-#: manual/qed_formal_spec_changelog.md:99
+#: manual/qed_formal_spec_changelog.md:123
 msgid "Adds a Bridge Note that states explicitly how the rule closes the loop with `DefOK`/`TypeDefOK`/Global Envelope."
 msgstr "新增 Bridge Note，显式说明与 `DefOK`/`TypeDefOK`/Global Envelope 的闭环关系。"
 
-#: manual/qed_formal_spec_changelog.md:102
+#: manual/qed_formal_spec_changelog.md:126
 msgid "Introduces the principal type scheme of constants `kappa_c : tau_gen` and the instance relation `tau preceq tau_gen`."
 msgstr "引入常量主类型模式 `kappa_c : tau_gen` 与实例关系 `tau preceq tau_gen`。"
 
-#: manual/qed_formal_spec_changelog.md:104
+#: manual/qed_formal_spec_changelog.md:128
 msgid "States that constant instantiation is a first-class relation at the specification level; the \"type in the term == registered type\" literal identity is no longer required."
 msgstr "明确常量实例化是规范层一等关系，不再要求“项内类型 == 注册类型”逐字同一。"
 
-#: manual/qed_formal_spec_changelog.md:108
+#: manual/qed_formal_spec_changelog.md:132
 msgid "Changes the `RConst` rule from \"exact type equality\" matching to \"principal scheme + instance relation\" matching."
 msgstr "`RConst` 规则从“精确等型匹配”改为“主模式 + 实例关系”匹配。"
 
-#: manual/qed_formal_spec_changelog.md:110
+#: manual/qed_formal_spec_changelog.md:134
 msgid "Adds a lemma on the availability of polymorphic constant instantiation, stating that the system is not locked into monomorphism."
 msgstr "新增多态常量实例化可用性引理，明确系统不是单态锁死。"
 
-#: manual/qed_formal_spec_changelog.md:113
+#: manual/qed_formal_spec_changelog.md:137
 msgid "`= Soundness Strategy` and the dependency graph (`doc/attachments/qed_formal_spec.typ:1132`, `doc/attachments/qed_formal_spec.typ:1152`)"
 msgstr "`= Soundness Strategy` 与依赖图（`doc/attachments/qed_formal_spec.typ:1132`、`doc/attachments/qed_formal_spec.typ:1152`）"
 
-#: manual/qed_formal_spec_changelog.md:114
+#: manual/qed_formal_spec_changelog.md:138
 msgid "Extends the obligations from 4 to 5, with \"type-level non-emptiness preservation\" listed separately."
 msgstr "义务从 4 项扩展为 5 项，单列“类型层非空保持”。"
 
-#: manual/qed_formal_spec_changelog.md:115
+#: manual/qed_formal_spec_changelog.md:139
 msgid "Adds the nodes `Type Admissibility + TypeDefOK` and `Type Non-Emptiness Preservation` to the dependency graph."
 msgstr "依赖图新增 `Type Admissibility + TypeDefOK` 与 `Type Non-Emptiness Preservation` 节点。"
 
-#: manual/qed_formal_spec_changelog.md:118
+#: manual/qed_formal_spec_changelog.md:142
 msgid "Narrows \"all types are non-empty\" from a single global assumption to:"
 msgstr "将“所有类型非空”由单条全局假设收敛为："
 
-#: manual/qed_formal_spec_changelog.md:119
+#: manual/qed_formal_spec_changelog.md:143
 msgid "a non-emptiness assumption for the base prelude;"
 msgstr "基础 prelude 非空假设；"
 
-#: manual/qed_formal_spec_changelog.md:120
+#: manual/qed_formal_spec_changelog.md:144
 msgid "a global non-emptiness preservation theorem under the `TypeDefOK` premise."
 msgstr "在 `TypeDefOK` 前提下的全局非空保持定理。"
 
-#: manual/qed_formal_spec_changelog.md:122
+#: manual/qed_formal_spec_changelog.md:146
 msgid "Appendix updates (from `doc/attachments/qed_formal_spec.typ:1301` onward)"
 msgstr "附录更新（`doc/attachments/qed_formal_spec.typ:1301` 之后）"
 
-#: manual/qed_formal_spec_changelog.md:123
+#: manual/qed_formal_spec_changelog.md:147
 msgid "Appendix A: `INST_TYPE` dependencies now include `TypeDefOK` and definitional coherence."
 msgstr "Appendix A：`INST_TYPE` 依赖项增加 `TypeDefOK` 与 definitional coherence。"
 
-#: manual/qed_formal_spec_changelog.md:124
+#: manual/qed_formal_spec_changelog.md:148
 msgid "Appendix B: check items now cover the type gate and the separation of state history."
 msgstr "Appendix B：检查项补充 type gate 与 state history 分离。"
 
-#: manual/qed_formal_spec_changelog.md:125
+#: manual/qed_formal_spec_changelog.md:149
 msgid "Appendix C: extended to Definition + State scenarios, with a pop-then-redefine rejection case."
 msgstr "Appendix C：扩展为 Definition + State 场景并加入 pop-then-redefine 拒绝用例。"
 
-#: manual/qed_formal_spec_changelog.md:126
+#: manual/qed_formal_spec_changelog.md:150
 msgid "Appendix D: adds type soundness audit scenarios."
 msgstr "Appendix D：新增 type soundness 审计场景。"
 
-#: manual/qed_formal_spec_changelog.md:128
+#: manual/qed_formal_spec_changelog.md:152
 msgid "Audit issue matrix (Issue -> Fix -> Location -> Residual Risk)"
 msgstr "审计问题对照矩阵（Issue -> Fix -> Location -> Residual Risk）"
 
-#: manual/qed_formal_spec_changelog.md:130
+#: manual/qed_formal_spec_changelog.md:154
 msgid "Issue"
 msgstr "问题"
 
-#: manual/qed_formal_spec_changelog.md:130
+#: manual/qed_formal_spec_changelog.md:154
 msgid "Fix"
 msgstr "修复"
 
-#: manual/qed_formal_spec_changelog.md:130
+#: manual/qed_formal_spec_changelog.md:154
 msgid "Location"
 msgstr "位置"
 
-#: manual/qed_formal_spec_changelog.md:130
+#: manual/qed_formal_spec_changelog.md:154
 msgid "Residual Risk"
 msgstr "残余风险"
 
-#: manual/qed_formal_spec_changelog.md:132
+#: manual/qed_formal_spec_changelog.md:156
 msgid "Ghost Type Variable (free type variables escaping from a definition body)"
 msgstr "Ghost Type Variable（定义体自由类型变量逃逸）"
 
-#: manual/qed_formal_spec_changelog.md:132
+#: manual/qed_formal_spec_changelog.md:156
 msgid "Enforce `TVars(r) ⊆ TVars(tau)` + `INST_TYPE` Bridge Note + `def_inst_coherent` premise"
 msgstr "强制 `TVars(r) ⊆ TVars(tau)` + `INST_TYPE` Bridge Note + `def_inst_coherent` 前提"
 
-#: manual/qed_formal_spec_changelog.md:132
+#: manual/qed_formal_spec_changelog.md:156
 msgid "Low (the implementation must still enforce exactly the same condition)"
 msgstr "低（仍需实现层严格按同条件执行）"
 
-#: manual/qed_formal_spec_changelog.md:133
+#: manual/qed_formal_spec_changelog.md:157
 msgid "Empty Type Semantic Escape (semantic escape through empty types)"
 msgstr "Empty Type Semantic Escape（空类型语义逃逸）"
 
-#: manual/qed_formal_spec_changelog.md:133
+#: manual/qed_formal_spec_changelog.md:157
 msgid "Add `TypeDefOK` + non-emptiness witness gate + non-emptiness preservation theorem"
 msgstr "新增 `TypeDefOK` + 非空见证门禁 + 非空保持定理"
 
-#: manual/qed_formal_spec_changelog.md:133
+#: manual/qed_formal_spec_changelog.md:157
 msgid "Low to medium (future extensions of typedef syntax must keep the witness rule)"
 msgstr "低-中（若未来扩展 typedef 语法需保持见证规则）"
 
-#: manual/qed_formal_spec_changelog.md:134
+#: manual/qed_formal_spec_changelog.md:158
 msgid "Stack vs Theory inconsistency (ambiguous redefinition after pop)"
 msgstr "Stack vs Theory 不一致（pop 后重定义歧义）"
 
-#: manual/qed_formal_spec_changelog.md:134
+#: manual/qed_formal_spec_changelog.md:158
 msgid "Separate `(T,S)`; bind definition-head novelty to `DefHeads(T)`; pop does not roll back history"
 msgstr "分离 `(T,S)`；定义头新颖性绑定 `DefHeads(T)`；pop 不回滚历史"
 
-#: manual/qed_formal_spec_changelog.md:134
+#: manual/qed_formal_spec_changelog.md:158
 msgid "Low (the UI layer must still show kernel identities to avoid symbol confusion)"
 msgstr "低（UI 层仍需展示内核身份避免符号混淆）"
 
-#: manual/qed_formal_spec_changelog.md:135
+#: manual/qed_formal_spec_changelog.md:159
 msgid "`INST_TYPE` not traceable in review (requires guessing across chapters)"
 msgstr "`INST_TYPE` 审稿不可追踪（需跨章猜测）"
 
-#: manual/qed_formal_spec_changelog.md:135
+#: manual/qed_formal_spec_changelog.md:159
 msgid "Add explicit admissibility anchors and failure mapping inside the rule"
 msgstr "规则内显式加入 admissibility 锚点与失败映射"
 
-#: manual/qed_formal_spec_changelog.md:135
+#: manual/qed_formal_spec_changelog.md:159
 msgid "Low"
 msgstr "低"
 
-#: manual/qed_formal_spec_changelog.md:136
+#: manual/qed_formal_spec_changelog.md:160
 msgid "De Bruijn Type Erasure (type erasure at the kernel level)"
 msgstr "De Bruijn Type Erasure（内核层类型擦除）"
 
-#: manual/qed_formal_spec_changelog.md:136
+#: manual/qed_formal_spec_changelog.md:160
 msgid "Change the De Bruijn core syntax to carry explicit type labels (`DAbs(tau, ...)`, `DBound(..., tau)`), and change the `TRANS`/`BETA` matching conditions to typed-core guards"
 msgstr "将 De Bruijn 核心语法改为显式携带类型标签（`DAbs(tau, ...)`, `DBound(..., tau)`），并将 `TRANS`/`BETA` 匹配条件改为 typed-core guard"
 
-#: manual/qed_formal_spec_changelog.md:136
+#: manual/qed_formal_spec_changelog.md:160
 msgid "Low (the implementation must strictly preserve type labels during boundary lowering)"
 msgstr "低（要求实现严格保持边界 lowering 的类型标签）"
 
-#: manual/qed_formal_spec_changelog.md:137
+#: manual/qed_formal_spec_changelog.md:161
 msgid "Polymorphism Lockout (polymorphic constant instantiation locked out)"
 msgstr "Polymorphism Lockout（多态常量实例化锁死）"
 
-#: manual/qed_formal_spec_changelog.md:137
+#: manual/qed_formal_spec_changelog.md:161
 msgid "Introduce principal schemes for constants and the instance relation `tau ≼ tau_gen`, and add instance guards to elaboration, core typing and `INST_TYPE`"
 msgstr "引入常量主模式与实例关系 `tau ≼ tau_gen`，并在 elaboration/core typing/`INST_TYPE` 中加入实例守卫"
 
-#: manual/qed_formal_spec_changelog.md:137
+#: manual/qed_formal_spec_changelog.md:161
 msgid "Low (the implementation must use the same instance judgment)"
 msgstr "低（实现需按同一实例判定关系执行）"
 
-#: manual/qed_formal_spec_changelog.md:139
+#: manual/qed_formal_spec_changelog.md:163
 msgid "Incremental revision (De Bruijn type erasure audit)"
 msgstr "增量修订（De Bruijn 类型擦除审计）"
 
-#: manual/qed_formal_spec_changelog.md:142
+#: manual/qed_formal_spec_changelog.md:166
 msgid "Replaces the untyped constructors (`Abs(t)`, `BVar(k)`) with typed core constructors (`DAbs(tau, t)`, `DBound(k, tau)`)."
 msgstr "从无类型构造（`Abs(t)`, `BVar(k)`）改为 typed core 构造（`DAbs(tau, t)`, `DBound(k, tau)`）。"
 
-#: manual/qed_formal_spec_changelog.md:144
+#: manual/qed_formal_spec_changelog.md:168
 msgid "Adds a binder/argument type agreement side condition to the `beta` contraction rule."
 msgstr "`beta` 收缩规则补充 binder/argument 类型一致性侧条件。"
 
-#: manual/qed_formal_spec_changelog.md:145
+#: manual/qed_formal_spec_changelog.md:169
 msgid "Adds a typed-core injectivity invariant that prevents abstractions over different domain types from being structurally identified."
 msgstr "新增 typed-core injectivity 不变量，禁止跨域类型的抽象被结构等同。"
 
-#: manual/qed_formal_spec_changelog.md:149
+#: manual/qed_formal_spec_changelog.md:173
 msgid "Adds the Type-Sensitive Core Matching lemma, stating that boundary lowering does not erase binder-domain type labels."
 msgstr "新增 Type-Sensitive Core Matching 引理，明确 boundary lowering 不擦除 binder-domain 类型标签。"
 
-#: manual/qed_formal_spec_changelog.md:153
+#: manual/qed_formal_spec_changelog.md:177
 msgid "Adds a typed De Bruijn core matching premise and the corresponding failure entry, which prevents middle terms from being mismatched by their \"erased structure\"."
 msgstr "新增 typed De Bruijn core 匹配前提与对应失败项，防止中间项按“擦除后结构”误配。"
 
-#: manual/qed_formal_spec_changelog.md:157
+#: manual/qed_formal_spec_changelog.md:181
 msgid "Rewrites the redex shape into its typed version;"
 msgstr "redex 形状改写为 typed 版本；"
 
-#: manual/qed_formal_spec_changelog.md:158
+#: manual/qed_formal_spec_changelog.md:182
 msgid "Adds binder-domain label mismatch to the failure classification;"
 msgstr "失败分类新增 binder-domain label mismatch；"
 
-#: manual/qed_formal_spec_changelog.md:159
+#: manual/qed_formal_spec_changelog.md:183
 msgid "The antecedent form now explicitly includes `type_of(u) = tau`."
 msgstr "antecedent form 显式包含 `type_of(u) = tau`。"
 
-#: manual/qed_formal_spec_changelog.md:161
-#: manual/qed_formal_spec_changelog.md:182
+#: manual/qed_formal_spec_changelog.md:185
+#: manual/qed_formal_spec_changelog.md:206
 msgid "Appendix enhancements:"
 msgstr "附录增强："
 
-#: manual/qed_formal_spec_changelog.md:162
+#: manual/qed_formal_spec_changelog.md:186
 msgid "Appendix A adds the typed-core dependencies of `TRANS`/`BETA`;"
 msgstr "Appendix A 补充 `TRANS`/`BETA` 的 typed-core 依赖项；"
 
-#: manual/qed_formal_spec_changelog.md:163
+#: manual/qed_formal_spec_changelog.md:187
 msgid "Appendix B adds a check item for type-sensitive De Bruijn matching;"
 msgstr "Appendix B 增加 De Bruijn 类型敏感匹配检查项；"
 
-#: manual/qed_formal_spec_changelog.md:164
+#: manual/qed_formal_spec_changelog.md:188
 msgid "Adds Appendix E (Typed De Bruijn Core Audit Scenarios)."
 msgstr "新增 Appendix E（Typed De Bruijn Core Audit Scenarios）。"
 
-#: manual/qed_formal_spec_changelog.md:166
+#: manual/qed_formal_spec_changelog.md:190
 msgid "Incremental revision (Polymorphism Lockout audit)"
 msgstr "增量修订（Polymorphism Lockout 审计）"
 
-#: manual/qed_formal_spec_changelog.md:169
+#: manual/qed_formal_spec_changelog.md:193
 msgid "Adds the principal scheme of constants `kappa_c : tau_gen` and the instance relation `tau ≼ tau_gen`."
 msgstr "新增常量主模式 `kappa_c : tau_gen` 与实例关系 `tau ≼ tau_gen`。"
 
-#: manual/qed_formal_spec_changelog.md:170
+#: manual/qed_formal_spec_changelog.md:194
 msgid "States that a constant is valid in the core as \"principal scheme + instantiated type\"; literal type equality is no longer required."
 msgstr "明确常量在核心中以“主模式 + 实例化类型”合法，不再要求逐字等型。"
 
-#: manual/qed_formal_spec_changelog.md:173
+#: manual/qed_formal_spec_changelog.md:197
 msgid "`== Named Elaboration Judgment` and `== Core Typing over Resolved Terms`"
 msgstr "`== Named Elaboration Judgment` 与 `== Core Typing over Resolved Terms`"
 
-#: manual/qed_formal_spec_changelog.md:174
+#: manual/qed_formal_spec_changelog.md:198
 msgid "The elaboration and core typing premises of `RConst` both switch to the instance-relation judgment."
 msgstr "`RConst` 的 elaboration/core typing 前提都切换为实例关系判定。"
 
-#: manual/qed_formal_spec_changelog.md:175
+#: manual/qed_formal_spec_changelog.md:199
 msgid "Adds the \"Polymorphic Constant Instantiation Admissibility\" lemma and a \"No Monomorphic Lockout\" remark."
 msgstr "新增“Polymorphic Constant Instantiation Admissibility”引理与 “No Monomorphic Lockout” 说明。"
 
-#: manual/qed_formal_spec_changelog.md:178
+#: manual/qed_formal_spec_changelog.md:202
 msgid "Adds a constant-instance consistency side condition: `tau_i ≼ tau_gen(kappa_c)`."
 msgstr "新增常量实例一致性侧条件：`tau_i ≼ tau_gen(kappa_c)`。"
 
-#: manual/qed_formal_spec_changelog.md:179
+#: manual/qed_formal_spec_changelog.md:203
 msgid "Adds constant-instance mismatch to the failure classification."
 msgstr "失败分类补充 constant-instance mismatch。"
 
-#: manual/qed_formal_spec_changelog.md:180
+#: manual/qed_formal_spec_changelog.md:204
 msgid "The Bridge Note now covers the constant-instance guard and expressiveness."
 msgstr "Bridge Note 增加常量实例守卫与表达能力说明。"
 
-#: manual/qed_formal_spec_changelog.md:183
+#: manual/qed_formal_spec_changelog.md:207
 msgid "Appendix A adds the dependency of `INST_TYPE` on the constant instance relation;"
 msgstr "Appendix A 增加 `INST_TYPE` 对常量实例关系的依赖项；"
 
-#: manual/qed_formal_spec_changelog.md:184
+#: manual/qed_formal_spec_changelog.md:208
 msgid "Appendix B adds a `tau ≼ tau_gen` check item;"
 msgstr "Appendix B 增加 `tau ≼ tau_gen` 检查项；"
 
-#: manual/qed_formal_spec_changelog.md:185
+#: manual/qed_formal_spec_changelog.md:209
 msgid "Appendix D adds a polymorphic constant instantiation audit scenario (`id` usable at the `bool/int` instances)."
 msgstr "Appendix D 增加多态常量实例化审计场景（`id` 在 `bool/int` 实例下可用）。"
 
-#: manual/qed_formal_spec_changelog.md:187
+#: manual/qed_formal_spec_changelog.md:211
 msgid "Acceptance checklist (with pass/fail)"
 msgstr "验收清单（Checklist with pass/fail）"
 
-#: manual/qed_formal_spec_changelog.md:189
+#: manual/qed_formal_spec_changelog.md:213
 msgid "[PASS] The `INST_TYPE` section explicitly references `DefOK`, `TypeDefOK` and the Global Admissibility Envelope."
 msgstr "[PASS] `INST_TYPE` 小节显式引用 `DefOK`、`TypeDefOK`、Global Admissibility Envelope。"
 
-#: manual/qed_formal_spec_changelog.md:190
+#: manual/qed_formal_spec_changelog.md:214
 msgid "[PASS] Global history semantics is unified as `DefHeads(T)` and separated from local `pop` behavior."
 msgstr "[PASS] 全局历史语义统一为 `DefHeads(T)`，且与局部 `pop` 行为分离。"
 
-#: manual/qed_formal_spec_changelog.md:191
+#: manual/qed_formal_spec_changelog.md:215
 msgid "[PASS] Non-empty type semantics moves from a bare assumption to the `TypeDefOK` gate + preservation theorem narrative."
 msgstr "[PASS] 非空类型语义从裸假设迁移到 `TypeDefOK` 门禁 + 保持定理叙事。"
 
-#: manual/qed_formal_spec_changelog.md:193
+#: manual/qed_formal_spec_changelog.md:217
 msgid "[PASS] The manuscript appendices include Ghost/Empty/Pop-Redefine regression scenarios."
 msgstr "[PASS] 文稿附录包含 Ghost/Empty/Pop-Redefine 回归场景。"
 
-#: manual/qed_formal_spec_changelog.md:194
+#: manual/qed_formal_spec_changelog.md:218
 msgid "[PASS] The De Bruijn core carries explicit type annotations, and the `TRANS`/`BETA` rules enforce checks on them."
 msgstr "[PASS] De Bruijn 核心改为显式类型标注并在 `TRANS`/`BETA` 规则中被强制检查。"
 
-#: manual/qed_formal_spec_changelog.md:195
+#: manual/qed_formal_spec_changelog.md:219
 msgid "[PASS] Polymorphic constant use is enabled through the `tau preceq tau_gen` instance relation, avoiding monomorphic lockout."
 msgstr "[PASS] 多态常量使用通过 `tau preceq tau_gen` 实例关系开放，避免单态锁死。"
 
-#: manual/qed_formal_spec_changelog.md:197
+#: manual/qed_formal_spec_changelog.md:221
 msgid "[PASS] The compilation check passes:"
 msgstr "[PASS] 编译检查通过："
 
-#: manual/qed_formal_spec_changelog.md:198
+#: manual/qed_formal_spec_changelog.md:222
 msgid "Command: `typst compile doc/qed_formal_spec.typ doc/qed_formal_spec.pdf`"
 msgstr "命令：`typst compile doc/qed_formal_spec.typ doc/qed_formal_spec.pdf`"
 
-#: manual/qed_formal_spec_changelog.md:199
+#: manual/qed_formal_spec_changelog.md:223
 msgid "Result: [QED formal specification](../attachments/qed_formal_spec.typ) is generated successfully."
 msgstr "结果：成功生成 [QED 形式规范](../attachments/qed_formal_spec.typ)。"
 
-#: manual/qed_formal_spec_changelog.md:201
+#: manual/qed_formal_spec_changelog.md:225
 msgid "Open items (status at the time of that revision)"
 msgstr "未清项目（修订时的状态）"
 
-#: manual/qed_formal_spec_changelog.md:203
+#: manual/qed_formal_spec_changelog.md:227
 msgid "None was recorded for the manuscript-editing scope of that revision. The 2026-10-12 audit supersedes that status for proof claims: cross-theory conservativity, semantic model construction, concrete boundary refinement, and the exact typedef/specification obligations remain open as documented above."
 msgstr "该修订版的手稿编辑范围没有记录。 2026 年 10 月 12 日审计取代了证明声明的状态：跨理论保守性、语义模型构建、具体边界细化以及确切的 typedef/规范义务仍然开放，如上所述。"
 
-#: manual/qed_formal_spec_changelog.md:205
+#: manual/qed_formal_spec_changelog.md:229
 msgid "Incremental revision (constructive closure)"
 msgstr "增量修订（构造性闭包版）"
 
-#: manual/qed_formal_spec_changelog.md:207
+#: manual/qed_formal_spec_changelog.md:231
 msgid "Upgrades the *Theorem Goal* in the `SpecOK` section to a formal theorem, and adds a constructive proof method for \"single-step spec head elimination\":"
 msgstr "将 `SpecOK` 小节中的 *Theorem Goal* 升级为正式定理，并补入“单步 spec 头消去”的构造性证明法："
 
-#: manual/qed_formal_spec_changelog.md:209
+#: manual/qed_formal_spec_changelog.md:233
 msgid "defines the recursive eliminator `erase_spec` within the manuscript;"
 msgstr "在文稿内定义 `erase_spec` 递归消去器；"
 
-#: manual/qed_formal_spec_changelog.md:210
+#: manual/qed_formal_spec_changelog.md:234
 msgid "gives a well-founded induction invariant based on derivation tree size."
 msgstr "给出基于导出树大小的良基归纳不变式。"
 
-#: manual/qed_formal_spec_changelog.md:211
+#: manual/qed_formal_spec_changelog.md:235
 msgid "Adds the `Constructive Closure: Derivation Objects and Erasure Operators` section:"
 msgstr "新增 `Constructive Closure: Derivation Objects and Erasure Operators` 小节："
 
-#: manual/qed_formal_spec_changelog.md:212
+#: manual/qed_formal_spec_changelog.md:236
 msgid "introduces finite derivation objects `Derives(D, s)`;"
 msgstr "引入有限导出对象 `Derives(D, s)`；"
 
-#: manual/qed_formal_spec_changelog.md:213
+#: manual/qed_formal_spec_changelog.md:237
 msgid "defines three kinds of eliminators: `erase_def` / `erase_spec` / `erase_typedef`;"
 msgstr "明确 `erase_def` / `erase_spec` / `erase_typedef` 三类消去器；"
 
-#: manual/qed_formal_spec_changelog.md:214
+#: manual/qed_formal_spec_changelog.md:238
 msgid "gives three corresponding correctness theorems (preservation of old-language sentences)."
 msgstr "给出三条对应正确性定理（旧语言句子保持）。"
 
-#: manual/qed_formal_spec_changelog.md:215
+#: manual/qed_formal_spec_changelog.md:239
 msgid "Upgrades `Meta-Theorem Target` to a formal global conservativity meta-theorem:"
 msgstr "将 `Meta-Theorem Target` 升级为正式全局保守性元定理："
 
-#: manual/qed_formal_spec_changelog.md:216
+#: manual/qed_formal_spec_changelog.md:240
 msgid "writes out explicitly the compositional proof by step-by-step back-erasure over finite extension sequences;"
 msgstr "显式写出有限扩展序列上的逐步回擦组合证明；"
 
-#: manual/qed_formal_spec_changelog.md:217
+#: manual/qed_formal_spec_changelog.md:241
 msgid "derives the global `T' ⊢ φ => T ⊢ φ` from the correctness of each per-step gate elimination."
 msgstr "由每步 gate 消去正确性推出全局 `T' ⊢ φ => T ⊢ φ`。"
 
-#: manual/qed_formal_spec_changelog.md:218
+#: manual/qed_formal_spec_changelog.md:242
 msgid "Updates the document status and the P0 checklist accordingly:"
 msgstr "文档状态与 P0 checklist 同步更新："
 
-#: manual/qed_formal_spec_changelog.md:219
+#: manual/qed_formal_spec_changelog.md:243
 msgid "`Current Status` now reads \"constructive closure is given in the manuscript\";"
 msgstr "`Current Status` 改为“文稿内构造性闭包已给出”；"
 
-#: manual/qed_formal_spec_changelog.md:220
+#: manual/qed_formal_spec_changelog.md:244
 msgid "the checklist adds two items: \"derivation object system\" and \"per-gate elimination + composition theorem\"."
 msgstr "checklist 新增“导出对象系统”与“分 gate 消去 + 组合定理”两项。"
 
-#: manual/qed_formal_spec_changelog.md:222
+#: manual/qed_formal_spec_changelog.md:246
 msgid "Incremental revision (two-part split and authority boundary)"
 msgstr "增量修订（双分区与权威边界）"
 
-#: manual/qed_formal_spec_changelog.md:224
+#: manual/qed_formal_spec_changelog.md:248
 msgid "Adds `Part I: Logic Core (Normative)` and an *Authority Contract* at the front of the main manuscript:"
 msgstr "在主文稿前部新增 `Part I: Logic Core (Normative)` 与 *Authority Contract*："
 
-#: manual/qed_formal_spec_changelog.md:225
+#: manual/qed_formal_spec_changelog.md:249
 msgid "states that Part I is the sole normative source for the logic;"
 msgstr "明确 Part I 是唯一逻辑规范源；"
 
-#: manual/qed_formal_spec_changelog.md:226
+#: manual/qed_formal_spec_changelog.md:250
 msgid "states that De Bruijn and scope are mechanisms of logical correctness, not optional engineering details."
 msgstr "明确 De Bruijn 与 scope 属于逻辑正确性机制，不是可选工程细节。"
 
-#: manual/qed_formal_spec_changelog.md:227
+#: manual/qed_formal_spec_changelog.md:251
 msgid "Renames the entry of the engineering part to `Part II: Engineering Realization (Informative + Conformance)`:"
 msgstr "将工程段入口重命名为 `Part II: Engineering Realization (Informative + Conformance)`："
 
-#: manual/qed_formal_spec_changelog.md:229
+#: manual/qed_formal_spec_changelog.md:253
 msgid "declares explicitly that Part II is downstream of Part I and must not define the logic in reverse."
 msgstr "显式声明 Part II 下游于 Part I，不得反向定义逻辑。"
 
-#: manual/qed_formal_spec_changelog.md:230
+#: manual/qed_formal_spec_changelog.md:254
 msgid "Adds the `Conformance Obligations (Part I -> Part II)` subsection:"
 msgstr "新增 `Conformance Obligations (Part I -> Part II)` 子节："
 
-#: manual/qed_formal_spec_changelog.md:231
+#: manual/qed_formal_spec_changelog.md:255
 msgid "five implementation conformance obligations: rule fidelity, boundary fidelity, scope stability, gate fidelity and certificate non-authority."
 msgstr "规则一致性、边界一致性、scope 稳定性、gate 一致性、证书非权威性五条实现符合性义务。"
 
-#: manual/qed_formal_spec_changelog.md:233
+#: manual/qed_formal_spec_changelog.md:257
 msgid "Rewrites the first sentence of `Documentation Maintenance Notes` to reflect the two-part maintenance approach:"
 msgstr "`Documentation Maintenance Notes` 首句改写为双分区维护口径："
 
-#: manual/qed_formal_spec_changelog.md:234
+#: manual/qed_formal_spec_changelog.md:258
 msgid "Part I is maintained as the source of truth for the logic;"
 msgstr "Part I 作为逻辑真源维护；"
 
-#: manual/qed_formal_spec_changelog.md:235
+#: manual/qed_formal_spec_changelog.md:259
 msgid "Part II is maintained as the conformance-report layer for Part I."
 msgstr "Part II 作为对 Part I 的符合性报告层维护。"
 
-#: manual/qed_formal_spec_changelog.md:237
+#: manual/qed_formal_spec_changelog.md:261
 msgid "Incremental revision (strengthened De Bruijn / scope proofs)"
 msgstr "增量修订（De Bruijn / Scope 证明强化）"
 
-#: manual/qed_formal_spec_changelog.md:239
+#: manual/qed_formal_spec_changelog.md:263
 msgid "Adds three bridge theorems to the De Bruijn section:"
 msgstr "在 De Bruijn 小节新增三条桥接定理："
 
-#: manual/qed_formal_spec_changelog.md:243
+#: manual/qed_formal_spec_changelog.md:267
 msgid "Turns the three scoped shadowing propositions from proof sketches into full proofs (derived step by step from the definitions)."
 msgstr "将 scoped shadowing 三条命题由 proof sketch 改为完整证明文本（按定义逐步推出）。"
 
-#: manual/qed_formal_spec_changelog.md:245
+#: manual/qed_formal_spec_changelog.md:269
 msgid "Adds the `Resolution Freeze under Scope Mutation` theorem:"
 msgstr "新增 `Resolution Freeze under Scope Mutation` 定理："
 
-#: manual/qed_formal_spec_changelog.md:246
+#: manual/qed_formal_spec_changelog.md:270
 msgid "formally states that the premises of already-resolved terms are invariant under subsequent `push/add/pop` sequences;"
 msgstr "形式化声明已解析项在后续 `push/add/pop` 序列下的前提不变性；"
 
-#: manual/qed_formal_spec_changelog.md:248
+#: manual/qed_formal_spec_changelog.md:272
 msgid "states that scope only affects future name resolution and does not write back to existing resolved objects."
 msgstr "明确 scope 仅影响未来命名解析，不回写既有 resolved 对象。"
 
-#: manual/qed_formal_spec_changelog.md:250
+#: manual/qed_formal_spec_changelog.md:274
 msgid "Incremental revision (automatic phase advance: de-engineering Part I + converging Part II)"
 msgstr "增量修订（Phase 自动推进：Part I 去工程化 + Part II 收敛）"
 
-#: manual/qed_formal_spec_changelog.md:252
+#: manual/qed_formal_spec_changelog.md:276
 msgid "Removes engineering ties from the wording of Part I (without changing the logical content):"
 msgstr "Part I 文案去工程绑定化（不改逻辑内容）："
 
-#: manual/qed_formal_spec_changelog.md:253
+#: manual/qed_formal_spec_changelog.md:277
 msgid "the Abstract changes from \"implementation-aware specification\" to \"formal mathematical specification\";"
 msgstr "Abstract 从 “implementation-aware specification” 改为 “formal mathematical specification”；"
 
-#: manual/qed_formal_spec_changelog.md:254
+#: manual/qed_formal_spec_changelog.md:278
 msgid "\"In implementation terms\" in `Type Grammar` / `Term Grammar` is rewritten as \"One canonical concrete representation\";"
 msgstr "`Type Grammar` / `Term Grammar` 的 “In implementation terms” 改写为 “One canonical concrete representation”；"
 
-#: manual/qed_formal_spec_changelog.md:256
+#: manual/qed_formal_spec_changelog.md:280
 msgid "API/implementation wording in the boundary/scope paragraphs is rewritten as abstract semantic wording (still implementable, but not tied to any particular implementation)."
 msgstr "boundary/scope 段落中的 API/实现措辞改写为抽象语义措辞（保持可实现性但不依赖某一实现）。"
 
-#: manual/qed_formal_spec_changelog.md:258
+#: manual/qed_formal_spec_changelog.md:282
 msgid "Upgrades the `MK_COMB` section from `Type Preservation Sketch` to `Type Preservation Theorem`:"
 msgstr "`MK_COMB` 小节由 `Type Preservation Sketch` 升级为 `Type Preservation Theorem`："
 
-#: manual/qed_formal_spec_changelog.md:259
+#: manual/qed_formal_spec_changelog.md:283
 msgid "keeps the original derivation structure and completes it in the full \"Proof.\" closing style."
 msgstr "保留原推导结构并补为完整“Proof.”结尾样式。"
 
-#: manual/qed_formal_spec_changelog.md:260
+#: manual/qed_formal_spec_changelog.md:284
 msgid "Converges Part II to conformance semantics:"
 msgstr "Part II 收敛为符合性语义："
 
-#: manual/qed_formal_spec_changelog.md:261
+#: manual/qed_formal_spec_changelog.md:285
 msgid "the error taxonomy alignment paragraph changes from \"normative for final API\" to \"conformance target for engineering realizations\";"
 msgstr "error taxonomy 对齐段由 “normative for final API” 改为 “conformance target for engineering realizations”；"
 
-#: manual/qed_formal_spec_changelog.md:263
+#: manual/qed_formal_spec_changelog.md:287
 msgid "the closing sentence of Appendix B changes to \"logic-closure + conformance/regression gate\"."
 msgstr "Appendix B 尾句改为 “logic-closure + conformance/regression gate”。"
 
-#: manual/qed_formal_spec_changelog.md:265
+#: manual/qed_formal_spec_changelog.md:289
 msgid "Incremental revision (automatic phase advance: Part II conformance closure)"
 msgstr "增量修订（Phase 自动推进：Part II 符合性闭包）"
 
-#: manual/qed_formal_spec_changelog.md:267
+#: manual/qed_formal_spec_changelog.md:291
 msgid "Adds an \"informative only\" boundary statement to `Engineering Correspondence`:"
 msgstr "`Engineering Correspondence` 补充“informative only”边界声明："
 
-#: manual/qed_formal_spec_changelog.md:268
+#: manual/qed_formal_spec_changelog.md:292
 msgid "the module mapping serves only audit coverage and does not change any definition or theorem of Part I."
 msgstr "模块映射仅用于审计覆盖，不改变 Part I 的任何定义/定理。"
 
-#: manual/qed_formal_spec_changelog.md:269
+#: manual/qed_formal_spec_changelog.md:293
 msgid "Adds the `Conformance Transfer Theorem` section:"
 msgstr "新增 `Conformance Transfer Theorem` 小节："
 
-#: manual/qed_formal_spec_changelog.md:270
+#: manual/qed_formal_spec_changelog.md:294
 msgid "defines `Faithful Realization` (satisfying the five conformance obligations);"
 msgstr "定义 `Faithful Realization`（满足五条 conformance obligations）；"
 
-#: manual/qed_formal_spec_changelog.md:271
+#: manual/qed_formal_spec_changelog.md:295
 msgid "gives the transfer theorem from implementation to logic: if the implementation accepts sequent $s$, then $s$ is derivable in Part I;"
 msgstr "给出实现到逻辑的传递定理：若实现接受 sequent $s$，则 Part I 可导出 $s$；"
 
-#: manual/qed_formal_spec_changelog.md:273
+#: manual/qed_formal_spec_changelog.md:297
 msgid "the proof reconstructs the acceptance trace: rule mapping, substitution by boundary lemmas, erasure via scope stability, gate correspondence and discarding of certificate events."
 msgstr "证明法采用 acceptance trace 重建：规则映射、边界引理替换、scope 稳定性擦除、gate 对应、证书事件丢弃。"
 
-#: manual/qed_formal_spec_changelog.md:275
+#: manual/qed_formal_spec_changelog.md:299
 msgid "Removes implementation coupling from the introductory paragraph of Primitive Rules:"
 msgstr "Primitive Rules 引导段去实现耦合："
 
-#: manual/qed_formal_spec_changelog.md:276
+#: manual/qed_formal_spec_changelog.md:300
 msgid "changes \"parallel with implementation updates\" to \"Part I side conditions are authoritative\"."
 msgstr "将 “parallel with implementation updates” 改为 “Part I side conditions are authoritative”。"
 
-#: manual/qed_formal_spec_changelog.md:278
+#: manual/qed_formal_spec_changelog.md:302
 msgid "Incremental revision (automatic phase advance: strengthened constructive closure for Primitive Rules)"
 msgstr "增量修订（Phase 自动推进：Primitive Rules 构造性闭包增强）"
 
-#: manual/qed_formal_spec_changelog.md:280
+#: manual/qed_formal_spec_changelog.md:304
 msgid "Adds `Rule-Level Constructive Preservation Capsules` at the end of the `Rule Schema` chapter:"
 msgstr "在 `Rule Schema` 章节末新增 `Rule-Level Constructive Preservation Capsules`："
 
-#: manual/qed_formal_spec_changelog.md:281
+#: manual/qed_formal_spec_changelog.md:305
 msgid "gives a uniform constructive template `Preserve_R : valid(Premises_R) => valid(Conclusion_R)`;"
 msgstr "统一给出 `Preserve_R : valid(Premises_R) => valid(Conclusion_R)` 的构造性模板；"
 
-#: manual/qed_formal_spec_changelog.md:282
+#: manual/qed_formal_spec_changelog.md:306
 msgid "gives an encapsulated preservation statement for each of the 10 primitive rules (including the three constraints of `INST_TYPE`: gate, coherence and instance);"
 msgstr "为 10 条 primitive rules 分别给出胶囊化保持声明（含 `INST_TYPE` 的 gate/coherence/instance 三重约束）；"
 
-#: manual/qed_formal_spec_changelog.md:284
+#: manual/qed_formal_spec_changelog.md:308
 msgid "adds the summary theorem `Rule Capsule Closure`, stating that \"per-rule case analysis + capsule invocation\" is enough to close the P1 obligation."
 msgstr "新增 `Rule Capsule Closure` 汇总定理，明确“逐规则案例分析 + 胶囊调用”即可构成 P1 义务闭包。"
 
-#: manual/qed_formal_spec_changelog.md:287
+#: manual/qed_formal_spec_changelog.md:311
 msgid "Incremental revision (automatic phase advance: closing the two-part audit checklist)"
 msgstr "增量修订（Phase 自动推进：双分区审计清单闭环）"
 
-#: manual/qed_formal_spec_changelog.md:289
+#: manual/qed_formal_spec_changelog.md:313
 msgid "Extends Appendix B (P0 checklist) with Part II consistency items:"
 msgstr "Appendix B（P0 checklist）扩展 Part II 一致性项："
 
-#: manual/qed_formal_spec_changelog.md:290
+#: manual/qed_formal_spec_changelog.md:314
 msgid "adds items 24-28, covering the Part II downstream declaration, the five conformance obligations, the transfer theorem, the non-authoritative mapping and the conformance positioning of the error taxonomy."
 msgstr "新增 24-28 条，覆盖 Part II 下游声明、五项 conformance obligations、transfer theorem、非权威映射、error taxonomy 的 conformance 定位。"
 
-#: manual/qed_formal_spec_changelog.md:292
+#: manual/qed_formal_spec_changelog.md:316
 msgid "Adds Appendix G `Part II Conformance Audit Scenarios`:"
 msgstr "新增 Appendix G `Part II Conformance Audit Scenarios`："
 
-#: manual/qed_formal_spec_changelog.md:293
+#: manual/qed_formal_spec_changelog.md:317
 msgid "Rule-fidelity replay;"
 msgstr "规则保真重放；"
 
-#: manual/qed_formal_spec_changelog.md:294
+#: manual/qed_formal_spec_changelog.md:318
 msgid "Boundary-fidelity;"
 msgstr "边界保真；"
 
-#: manual/qed_formal_spec_changelog.md:295
+#: manual/qed_formal_spec_changelog.md:319
 msgid "Scope-fidelity stability;"
 msgstr "作用域保真的稳定性；"
 
-#: manual/qed_formal_spec_changelog.md:296
+#: manual/qed_formal_spec_changelog.md:320
 msgid "Gate-fidelity;"
 msgstr "闸门保真；"
 
-#: manual/qed_formal_spec_changelog.md:297
+#: manual/qed_formal_spec_changelog.md:321
 msgid "Certificate non-authority."
 msgstr "证书不具权威性。"
 
-#: manual/qed_formal_spec_changelog.md:298
+#: manual/qed_formal_spec_changelog.md:322
 msgid "This completes the two-level audit structure of \"Part I logic closure + Part II conformance closure\"."
 msgstr "至此形成 “Part I 逻辑闭包 + Part II 符合性闭包” 双审计结构。"
 
-#: manual/qed_formal_spec_changelog.md:300
+#: manual/qed_formal_spec_changelog.md:324
 msgid "Incremental revision (automatic phase advance: semantic assumption package and consistency layer)"
 msgstr "增量修订（Phase 自动推进：语义假设包与一致性层补强）"
 
-#: manual/qed_formal_spec_changelog.md:302
+#: manual/qed_formal_spec_changelog.md:326
 msgid "Adds a model-class wrapper under `Semantic Assumptions`:"
 msgstr "在 `Semantic Assumptions` 下补入模型类封装："
 
-#: manual/qed_formal_spec_changelog.md:303
+#: manual/qed_formal_spec_changelog.md:327
 msgid "adds the `Admissible Model Class` definition (typing/denotation + Choice + Infinity anchor + gate-admitted theorems)."
 msgstr "新增 `Admissible Model Class` 定义（typing/denotation + Choice + Infinity anchor + gate-admitted定理）。"
 
-#: manual/qed_formal_spec_changelog.md:305
+#: manual/qed_formal_spec_changelog.md:329
 msgid "adds the `Model-Class Non-Emptiness` assumption, making the \"a non-trivial model exists\" premise explicit."
 msgstr "新增 `Model-Class Non-Emptiness` 假设，显式化“非平凡模型存在”前提。"
 
-#: manual/qed_formal_spec_changelog.md:306
+#: manual/qed_formal_spec_changelog.md:330
 msgid "Adds consistency transfer results:"
 msgstr "新增一致性转移结论："
 
-#: manual/qed_formal_spec_changelog.md:307
+#: manual/qed_formal_spec_changelog.md:331
 msgid "`Semantic Non-Triviality Transfer` (a countermodel implies non-derivability);"
 msgstr "`Semantic Non-Triviality Transfer`（反模型推出不可导）；"
 
-#: manual/qed_formal_spec_changelog.md:308
+#: manual/qed_formal_spec_changelog.md:332
 msgid "`Consistency Witness Form` (under the semantics of the same model class, a sentence and its negation are not both derivable)."
 msgstr "`Consistency Witness Form`（在同一模型类语义下排除同句与其否定的同时可导）。"
 
-#: manual/qed_formal_spec_changelog.md:311
+#: manual/qed_formal_spec_changelog.md:335
 msgid "Incremental revision (automatic phase advance: claim-to-proof trace matrix)"
 msgstr "增量修订（Phase 自动推进：声明-证明追溯矩阵）"
 
-#: manual/qed_formal_spec_changelog.md:313
+#: manual/qed_formal_spec_changelog.md:337
 msgid "Adds Appendix H `Claim-to-Proof Trace Matrix`:"
 msgstr "新增 Appendix H `Claim-to-Proof Trace Matrix`："
 
-#: manual/qed_formal_spec_changelog.md:314
+#: manual/qed_formal_spec_changelog.md:338
 msgid "gives short-path mappings from ten high-level claims C1..C10 to \"definition anchor/proof anchor\";"
 msgstr "给出 C1..C10 十条高层主张到“定义锚点/证明锚点”的短路径映射；"
 
-#: manual/qed_formal_spec_changelog.md:315
+#: manual/qed_formal_spec_changelog.md:339
 msgid "covers rule soundness, conservativity of the three gate kinds, scope/boundary stability, global conservativity, conformance transfer, non-triviality and certificate non-authority."
 msgstr "覆盖 rule soundness、三类 gate conservativity、scope/boundary 稳定性、global conservativity、conformance transfer、non-triviality、certificate non-authority。"
 
-#: manual/qed_formal_spec_changelog.md:317
+#: manual/qed_formal_spec_changelog.md:341
 msgid "Adds a review rule at the end of the appendix:"
 msgstr "附录尾部新增 review rule："
 
-#: manual/qed_formal_spec_changelog.md:318
+#: manual/qed_formal_spec_changelog.md:342
 msgid "each claim aims to be reachable in three steps, \"claim -> definition -> theorem\", to ease review and cross-checking."
 msgstr "每条主张目标为 “claim -> definition -> theorem” 三步可达，便于审稿与交叉复核。"
 
-#: manual/qed_formal_spec_changelog.md:321
+#: manual/qed_formal_spec_changelog.md:345
 msgid "Incremental revision (automatic phase advance: terminology consistency refinement)"
 msgstr "增量修订（Phase 自动推进：术语一致性精修）"
 
-#: manual/qed_formal_spec_changelog.md:323
+#: manual/qed_formal_spec_changelog.md:347
 msgid "Further removes engineering terms from Part I and unifies them:"
 msgstr "Part I 术语进一步去工程化并统一："
 
-#: manual/qed_formal_spec_changelog.md:324
+#: manual/qed_formal_spec_changelog.md:348
 msgid "`external modules` becomes `external contexts`;"
 msgstr "`external modules` 改为 `external contexts`；"
 
-#: manual/qed_formal_spec_changelog.md:325
+#: manual/qed_formal_spec_changelog.md:349
 msgid "`implementation-level check` becomes `admission-procedure check`;"
 msgstr "`implementation-level check` 改为 `admission-procedure check`；"
 
-#: manual/qed_formal_spec_changelog.md:326
+#: manual/qed_formal_spec_changelog.md:350
 msgid "`module boundaries and test responsibilities` is rewritten from a proof-block perspective;"
 msgstr "`module boundaries and test responsibilities` 改为 proof-block 视角叙述；"
 
-#: manual/qed_formal_spec_changelog.md:327
+#: manual/qed_formal_spec_changelog.md:351
 msgid "the word `implementation` at the infinity anchor and the canonical theorems is replaced with realization/presentation semantics."
 msgstr "infinity-anchor 与 canonical-theorem 处的 `implementation` 用词替换为 realization/presentation 语义。"
 
-#: manual/qed_formal_spec_changelog.md:329
+#: manual/qed_formal_spec_changelog.md:353
 msgid "Unifies the wording of the maintenance notes and audit scenarios accordingly:"
 msgstr "维护说明与审计场景同步统一措辞："
 
-#: manual/qed_formal_spec_changelog.md:330
+#: manual/qed_formal_spec_changelog.md:354
 msgid "`APIs evolve` becomes `realization interfaces evolve`;"
 msgstr "`APIs evolve` 改为 `realization interfaces evolve`；"
 
-#: manual/qed_formal_spec_changelog.md:331
+#: manual/qed_formal_spec_changelog.md:355
 msgid "the schema widening scenario in Appendix F now uses admission-procedure semantics."
 msgstr "Appendix F 的 schema widening 场景改为 admission-procedure 语义。"
 
-#: manual/qed_formal_spec_changelog.md:332
+#: manual/qed_formal_spec_changelog.md:356
 msgid "Unifies notation:"
 msgstr "Notation 统一："
 
-#: manual/qed_formal_spec_changelog.md:333
+#: manual/qed_formal_spec_changelog.md:357
 msgid "the semantic interpretation notation is unified as `\"denote\"(t, rho, M)`, using the same parameter convention as the later boundary denotation lemmas."
 msgstr "语义解释记号统一为 `\"denote\"(t, rho, M)`，与后文 boundary denotation 引理保持同一参数约定。"
 
-#: manual/qed_formal_spec_changelog.md:336
+#: manual/qed_formal_spec_changelog.md:360
 msgid "Incremental revision (automatic phase advance: filling in closure anchors)"
 msgstr "增量修订（Phase 自动推进：闭环锚点补齐）"
 
-#: manual/qed_formal_spec_changelog.md:338
+#: manual/qed_formal_spec_changelog.md:362
 msgid "Adds the missing definition anchors to `Audit Certificates and Replay Interface` in Part II:"
 msgstr "在 Part II `Audit Certificates and Replay Interface` 补齐缺失定义锚点："
 
-#: manual/qed_formal_spec_changelog.md:339
+#: manual/qed_formal_spec_changelog.md:363
 msgid "adds the `Admissible(T, t_h)` definition (witnessed by Part I `Derives` objects and gate legality);"
 msgstr "新增 `Admissible(T, t_h)` 定义（由 Part I `Derives` 对象与 gate 合法性见证）；"
 
-#: manual/qed_formal_spec_changelog.md:340
+#: manual/qed_formal_spec_changelog.md:364
 msgid "adds the `SentenceInLanguage(T_0, t_h)` definition (closed sentence + base language symbol constraint)."
 msgstr "新增 `SentenceInLanguage(T_0, t_h)` 定义（闭句 + base language 符号约束）。"
 
-#: manual/qed_formal_spec_changelog.md:341
+#: manual/qed_formal_spec_changelog.md:365
 msgid "`ConservativeReplayOK` now uses explicitly defined predicates and no longer relies on implicit semantic premises."
 msgstr "`ConservativeReplayOK` 现在使用已显式定义的谓词，不再依赖隐式语义前提。"
 
-#: manual/qed_formal_spec_changelog.md:344
+#: manual/qed_formal_spec_changelog.md:368
 msgid "Incremental revision (notation consistency fix)"
 msgstr "增量修订（符号书写一致性修复）"
 
-#: manual/qed_formal_spec_changelog.md:346
+#: manual/qed_formal_spec_changelog.md:370
 msgid "Makes the slash notation in substitutions consistent:"
 msgstr "修复替换记号中的斜杠书写一致性："
 
-#: manual/qed_formal_spec_changelog.md:347
+#: manual/qed_formal_spec_changelog.md:371
 msgid "unifies `t[s/x]` as `t[s\\/x]`;"
 msgstr "将 `t[s/x]` 统一为 `t[s\\/x]`；"
 
-#: manual/qed_formal_spec_changelog.md:348
+#: manual/qed_formal_spec_changelog.md:372
 msgid "matches the existing `s[u\\/x]` notation in the text, avoiding ambiguity of the `[A/B]` form in review and rendering."
 msgstr "与文中既有 `s[u\\/x]` 记法保持一致，避免 `[A/B]` 形式在审阅与渲染中产生歧义。"
 
-#: manual/qed_formal_spec_changelog.md:351
+#: manual/qed_formal_spec_changelog.md:375
 msgid "Incremental revision (tone refinement)"
 msgstr "增量修订（语气优化）"
 
-#: manual/qed_formal_spec_changelog.md:353
+#: manual/qed_formal_spec_changelog.md:377
 msgid "Moves the tone of the whole text toward an academic paper style, without changing the logical content:"
 msgstr "全文语气向“论文叙述风格”收敛，保持逻辑内容不变："
 
-#: manual/qed_formal_spec_changelog.md:354
+#: manual/qed_formal_spec_changelog.md:378
 msgid "`Authority Contract` becomes `Normative Scope`, and some strongly imperative sentences are rewritten as academic expository sentences;"
 msgstr "`Authority Contract` 调整为 `Normative Scope`，并将部分强命令式句型改为学术叙述句型；"
 
-#: manual/qed_formal_spec_changelog.md:356
+#: manual/qed_formal_spec_changelog.md:380
 msgid "the opening of Part II shifts from \"implementation hooks\" framing to \"concrete realization and conformance record\" framing;"
 msgstr "Part II 开场从“实现钩子”口径改为“具体 realization 与 conformance 记录”口径；"
 
-#: manual/qed_formal_spec_changelog.md:358
+#: manual/qed_formal_spec_changelog.md:382
 msgid "`Documentation Maintenance Notes` becomes `Concluding Remarks`, and `Near-term maintenance focus` becomes `Future refinement directions`."
 msgstr "`Documentation Maintenance Notes` 改为 `Concluding Remarks`，`Near-term maintenance focus` 改为 `Future refinement directions`。"
 
-#: manual/qed_formal_spec_changelog.md:360
+#: manual/qed_formal_spec_changelog.md:384
 msgid "Unifies the tone of the appendices:"
 msgstr "附录语气统一："
 
-#: manual/qed_formal_spec_changelog.md:361
+#: manual/qed_formal_spec_changelog.md:385
 msgid "`Audit Scenarios` is uniformly renamed `Validation Scenarios`;"
 msgstr "`Audit Scenarios` 统一改为 `Validation Scenarios`；"
 
-#: manual/qed_formal_spec_changelog.md:362
+#: manual/qed_formal_spec_changelog.md:386
 msgid "the ending changes from \"required before claiming\" to \"provide structured evidence for ...\"."
 msgstr "末尾由 “required before claiming” 改为 “provide structured evidence for ...”。"
 
-#: manual/qed_formal_spec_changelog.md:363
+#: manual/qed_formal_spec_changelog.md:387
 msgid "Detailed semantic consistency:"
 msgstr "细节语义一致性："
 
-#: manual/qed_formal_spec_changelog.md:364
+#: manual/qed_formal_spec_changelog.md:388
 msgid "the semantic interpretation notation is unified as `\"denote\"(t, rho, M)` (consistent with the later denotation lemmas);"
 msgstr "语义解释记号统一为 `\"denote\"(t, rho, M)`（与后文 denotation 引理一致）；"
 
-#: manual/qed_formal_spec_changelog.md:366
+#: manual/qed_formal_spec_changelog.md:390
 msgid "the predicates related to `ConservativeReplayOK` are now defined by name in the text, reducing implicit terminology."
 msgstr "`ConservativeReplayOK` 相关谓词在文中具名定义，减少隐式术语。"
 
@@ -10451,6 +10479,69 @@ msgstr "[tactics 设计](../design/tactics.md)解释了论证 (justification)，
 msgid "The [prover tutorial](prover.md) runs the same proofs from scripts."
 msgstr "[prover 教程](prover.md)从脚本运行相同的证明。"
 
+#~ msgid "MoonBit checks most gates; Lean `DefOK` and theorem shape are weak (I3)."
+#~ msgstr "MoonBit 检查大多数门；Lean `DefOK` 和定理形状较弱 (I3)。"
+
+#~ msgid "Same-state erasure is separated from a conditional theorem whose premise is `CrossTheoryFiniteErasureObligation base extended steps`."
+#~ msgstr "同状态擦除与前提是 `CrossTheoryFiniteErasureObligation base extended steps` 的条件定理分离。"
+
+#~ msgid "Construct concrete gate simulations."
+#~ msgstr "构建混凝土门模拟。"
+
+#~ msgid "`formal_verification/QEDFV/HOL` now contains an independent intrinsically typed HOL core. `Types.lean` constructs actual carriers (`Prop`, `Nat`, functions, and type variables) and proves non-emptiness. `Evaluation.lean` proves capture-avoiding renaming, substitution, and beta evaluation laws. `Extensions.lean` proves the predicate-subtype carrier and Abs/Rep laws used by a typedef witness. `Rules.lean` proves validity preservation for the typed forms of `REFL`, `ASSUME`, `TRANS`, `MK_COMB`, a closed-context `ABS`, `BETA`, `EQ_MP`, and the exact assumption-discharge `DEDUCT` rule, plus term-instantiation validity. These theorems do not yet prove the correspondence to the legacy `Lean.Expr`/MoonBit syntax, general open-context `ABS`, or polymorphic `INST_TYPE`; those remain conditional/open below."
+#~ msgstr "`formal_verification/QEDFV/HOL` 现在包含独立的内在类型 HOL 核心。`Types.lean` 构造实际载体（`Prop`、`Nat`、函数和类型变量）并证明非空性。`Evaluation.lean` 证明避免捕获的重命名、替换和 beta 求值定律。`Extensions.lean` 证明 typedef 见证所需的谓词子类型载体及 Abs/Rep 定律。`Rules.lean` 证明类型化 `REFL`、`ASSUME`、`TRANS`、`MK_COMB`、闭合上下文 `ABS`、`BETA`、`EQ_MP` 和精确假设消去 `DEDUCT` 的有效性保持，以及项实例化有效性。这些定理尚未证明与旧 `Lean.Expr`/MoonBit 语法的一致性、一般开放上下文 `ABS` 或多态 `INST_TYPE`；这些内容仍是条件项或开放项。"
+
+#~ msgid "`Signature/TypeDef.lean`'s `TypeDefOK` does not inspect `w.witnessThm`; `typedefProductContract` calls a free variable of `repTy` a surjectivity witness and its other two fields are implications from syntactic equality."
+#~ msgstr "`Signature/TypeDef.lean`的`TypeDefOK`不检查`w.witnessThm`； `typedefProductContract` 将 `repTy` 的自由变量称为满射见证，其其他两个字段是句法相等的含义。"
+
+#~ msgid "Record `TypeDefOK` and the Abs/Rep laws as implementation/proof obligations, not established Lean theorems. A proof needs a certified witness theorem, a nonempty family for every parameter valuation, and semantic Abs/Rep equations."
+#~ msgstr "将 `TypeDefOK` 和 Abs/Rep 法则记录为实现/证明义务，而不是建立Lean定理。证明需要经过认证的见证定理、每个参数评估的非空族以及语义 Abs/Rep 方程。"
+
+#~ msgid "Typst and Lean build; no claim that current Lean typedef lemmas establish nonemptiness or the product contract."
+#~ msgstr "Typst 和Lean构建；没有声称当前的Lean typedef 引理建立了非空性或产品契约。"
+
+#~ msgid "`Extension/DefOK.lean`: `acyclic` tests singleton membership of an exact `Term.const c (tyvar \"_\")`, not recursive occurrence. `definition_theorem_shape_from_defok` constructs an arbitrary `Thm` with a bare constant conclusion."
+#~ msgstr "`Extension/DefOK.lean`：`acyclic` 测试精确 `Term.const c (tyvar \"_\")` 的单例成员资格，而不是递归发生。 `definition_theorem_shape_from_defok` 构造一个任意的 `Thm` 并具有简单的常量结论。"
+
+#~ msgid "Distinguish the executable definition gate from this weak Lean approximation; require a genuine equation theorem generated by a checked extension rule."
+#~ msgstr "将可执行定义门与这种弱Lean近似区分开来；需要由检查的扩展规则生成的真正的方程定理。"
+
+#~ msgid "Audit `src/kernel/sig.mbt:ks_define_const` and `ks_define_const_thm`; classify Lean shape proof as insufficient."
+#~ msgstr "审核`src/kernel/sig.mbt:ks_define_const`和`ks_define_const_thm`；将Lean形状证明归类为不足。"
+
+#~ msgid "`Extension/SpecOK.lean`: `witnessShape` checks empty hypotheses only; `schemaLock` equates the witness conclusion with a constant named `c`; `spec_extension_conservative` proves freshness only. `src/kernel/sig.mbt:ks_specify_const` accepts a closed witness application and creates `P(c)` through a trusted constructor."
+#~ msgstr "`Extension/SpecOK.lean`：`witnessShape` 仅检查空假设； `schemaLock` 将证人结论等同于名为 `c` 的常量； `spec_extension_conservative`仅证明新鲜度。 `src/kernel/sig.mbt:ks_specify_const`接受封闭见证申请，并通过可信构造函数创建`P(c)`。"
+
+#~ msgid "Model the exact witness shape and a checked derivation from Choice + definition before claiming derived-only specification admission or conservativity. Until then the gate is part of the trusted extension boundary."
+#~ msgstr "在声明仅派生规范承认或保守性之前，对精确的见证形状和从选择+定义检查的派生进行建模。在此之前，该门是可信扩展边界的一部分。"
+
+#~ msgid "Source comparison and `moon test`; proof status is open."
+#~ msgstr "源码与`moon test`对比；证明状态为开放。"
+
+#~ msgid "MoonBit witness and contract checks; Lean contract is vacuous (I2)."
+#~ msgstr "MoonBit 证人和合同检查；Lean合同是空洞的（I2）。"
+
+#~ msgid "A semantic witness family and Abs/Rep equations."
+#~ msgstr "语义见证族和 Abs/Rep 方程。"
+
+#~ msgid "MoonBit trusted `ks_specify_const`; Lean only proves freshness (I4)."
+#~ msgstr "MoonBit信任`ks_specify_const`；Lean仅证明新鲜度（I4）。"
+
+#~ msgid "Ten exact paper rules preserve validity in a constructed HOL model."
+#~ msgstr "十个精确的纸质规则在构建的 HOL 模型中保持有效性。"
+
+#~ msgid "Typed carriers and eight core rule certificates are now constructed in `HOL/Rules.lean`; term instantiation is proved. General open-context ABS, polymorphic INST_TYPE, choice naturality, and legacy correspondence remain."
+#~ msgstr "`HOL/Rules.lean` 现在构造了类型化载体和八个核心规则证书，并证明了项实例化。一般开放上下文 ABS、多态 INST_TYPE、选择自然性和旧版对应关系仍待完成。"
+
+#~ msgid "Complete the remaining typed rules, then prove representation correspondence."
+#~ msgstr "完成剩余类型化规则后，再证明表示对应关系。"
+
+#~ msgid "Kept polymorphic `INST_TYPE`, general open-context ABS, Choice naturality, and the legacy `Lean.Expr`/MoonBit correspondence explicitly open. The typed core is evidence for the semantic direction, not a claim that the implementation has already been refined to it."
+#~ msgstr "明确保留多态 `INST_TYPE`、一般开放上下文 ABS、Choice 自然性以及旧 `Lean.Expr`/MoonBit 对应关系为开放项。类型化核心是语义方向的证据，不表示实现已经完成相应细化。"
+
+#~ msgid "Verification: `lake build` in `formal_verification` passed (633 jobs after adding the typed core). `HOL/Instantiation.lean` was intentionally not retained because an arbitrary Hilbert choice interpretation is not natural under type substitution; that missing law is now an explicit next obligation rather than an unsound proof."
+#~ msgstr "验证：`formal_verification` 中的 `lake build` 通过（加入类型化核心后共 633 个 jobs）。有意未保留 `HOL/Instantiation.lean`，因为任意 Hilbert 选择解释在类型替换下不具自然性；该缺失定律现在被明确列为下一项义务，而不是用不 sound 的证明掩盖。"
+
 #~ msgid "`Semantics/Model.lean` packages equality, beta, and substitution preservation as `Model`/`ModelSubstLaws` fields; `RuleSoundness.lean` invokes those fields. No carrier interpretation, valuation, or model existence is constructed."
 #~ msgstr "`Semantics/Model.lean` 将相等、β 和替换保留封装为 `Model`/`ModelSubstLaws` 字段； `RuleSoundness.lean` 调用这些字段。没有构建承运商解释、评估或模型存在。"
 
@@ -10458,7 +10549,7 @@ msgstr "[prover 教程](prover.md)从脚本运行相同的证明。"
 #~ msgstr "国家规则相对于这些法律的健全性，并将其与模型构建和全球一致性证明区分开来。"
 
 #~ msgid "`lake build`; axiom/law dependency review."
-#~ msgstr "ZX占位符0ZX；公理/法律依赖性审查。"
+#~ msgstr "`lake build`；公理/法律依赖性审查。"
 
 #~ msgid "`Kernel/RuleSoundness.lean`'s `DEDUCT_ANTISYM_RULE` requires the removed-hypothesis union to be alpha-equivalent to the original union, a condition absent from the paper rule and usually false."
 #~ msgstr "`Kernel/RuleSoundness.lean` 的 `DEDUCT_ANTISYM_RULE` 要求删除的假设并集与原始并集 alpha 等价，这是纸质规则中不存在的条件，通常为假。"
@@ -10467,7 +10558,7 @@ msgstr "[prover 教程](prover.md)从脚本运行相同的证明。"
 #~ msgstr "不要将此视为一般规则的证明；从明确排除已删除结论的假设中得出正确的有效性证明。"
 
 #~ msgid "Review proposition and mark obligation open; `lake build`."
-#~ msgstr "审查提议并将义务标记为开放； ZX占位符0ZX。"
+#~ msgstr "审查提议并将义务标记为开放；`lake build`。"
 
 #~ msgid "Typed labels present in MoonBit; Lean boundary laws assumed (I5)."
 #~ msgstr "MoonBit 中存在键入的标签；假设Lean边界定律 (I5)。"

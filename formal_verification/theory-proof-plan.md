@@ -22,11 +22,11 @@ Typedef carriers must be witnessed predicate subtypes, uniformly in type paramet
 | --- | --- | --- | --- |
 | T1 / P1 | Legacy syntax does not enforce HOL typing. Add type-indexed syntax, typed variables and valuations. | Lean checks construction and carrier nonemptiness; explicitly track legacy correspondence. | typed core complete; correspondence active |
 | T2 / P6 | Substitution and beta laws are assumed. Prove renaming, capture-avoiding substitution and evaluation commutation. | Universal Lean theorems, including under binders. | typed core complete |
-| T3 / I8 / P7 | Legacy DEDUCT needs a false side condition. Prove the exact discharge rule from boolean equality. | Induction proves all primitive rules for the constructed semantics. | typed core complete |
-| T4 / I6 / P7 | No concrete model or nontriviality. Construct equality, Choice, infinite `ind`, and a false sentence. | Closed false sentence is not derivable; no custom axioms. | active |
-| T5 / I3 / P3 | Definition gate has a shallow occurrence check and no equation derivation. Add recursive support and fresh closed typed definitions. | Checked definition equation and cross-theory expansion. | active |
-| T6 / I2 / P4 | Typedef contract is syntactic/vacuous. Build witnessed predicate subtypes and Abs/Rep functions. | All three equations for every parameter valuation and actual nonempty carriers. | active |
-| T7 / I4 / P5 | Specification gate checks the wrong witness shape. Derive the property through Choice and definition. | Witness is a derivation; property and definition simulation checked. | active |
+| T3 / I8 / P7 | Legacy DEDUCT needs a false side condition. Prove the exact discharge rule from boolean equality. | Model-independent indexed derivations prove all primitive rules for every interpretation under `ChoiceNatural`. | typed core complete |
+| T4 / I6 / P7 | No concrete model or nontriviality. Construct equality, Choice, infinite `ind`, and a false sentence. | Closed false sentence is not derivable; no custom axioms. | typed model and non-derivability complete |
+| T5 / I3 / P3 | Definition gate has a shallow occurrence check and no equation derivation. Add recursive support and fresh closed typed definitions. | Typed fresh-constant equation and old-language validity iff. | typed semantic gate and equation complete; legacy erasure active |
+| T6 / I2 / P4 | Typedef contract is syntactic/vacuous. Build witnessed predicate subtypes and Abs/Rep functions. | All three equations for every parameter valuation and actual nonempty carriers. | typed parametric contract complete; signature bridge active |
+| T7 / I4 / P5 | Specification gate checks the wrong witness shape. Derive the property through Choice and definition. | Typed fresh-constant interpretation, Choice property, and old-language validity iff. | typed Choice derivation complete; legacy gate bridge active |
 | T8 / P8 | Same-state erasure is insufficient. Construct concrete cross-theory simulations and finite composition. | Distinct base/extended proof systems and preserved old-language root. | active |
 | T9 / P2 | Scope/history is partly structural. Preserve the proven structural results and track theory correspondence. | No state-lineage claim about MoonBit. | active |
 | T10 / P9 / #15 | MoonBit refinement / provenance bug. | Deferred by explicit user instruction. | out of scope |
