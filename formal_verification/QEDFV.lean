@@ -51,3 +51,5 @@ import QEDFV.HOL.Terms
 import QEDFV.HOL.Evaluation
 import QEDFV.HOL.Rules
 import QEDFV.HOL.Extensions
+import QEDFV.HOL.Instantiation
+import QEDFV.HOL.Derivation
