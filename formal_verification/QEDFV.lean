@@ -20,6 +20,7 @@ import QEDFV.Boundary.Conversion
 import QEDFV.Boundary.Shadowing
 import QEDFV.Kernel.ThmObject
 import QEDFV.Kernel.PrimitiveRules
+import QEDFV.Kernel.CheckedDerivation
 import QEDFV.Kernel.RuleSoundness
 import QEDFV.Extension.DefOK
 import QEDFV.Extension.SpecOK

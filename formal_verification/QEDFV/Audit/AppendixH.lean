@@ -15,13 +15,13 @@ def appendix_h_claim_trace_matrix : List ClaimTraceEntry :=
   , { claimId := "C4_SPEC_CONSERVATIVITY", definitionAnchor := "QEDFV.SpecOK", theoremAnchor := "QEDFV.spec_extension_conservative_proved" }
   , { claimId := "C5_SCOPE_STABILITY", definitionAnchor := "QEDFV.ScopeMutation", theoremAnchor := "QEDFV.resolved_theorem_stability_under_scope_mutation" }
   , { claimId := "C6_BOUNDARY_STABILITY", definitionAnchor := "QEDFV.BoundaryLaws", theoremAnchor := "QEDFV.SEC9_RULE_LIFT_SAFETY_proved" }
-  , { claimId := "C7_GLOBAL_CONSERVATIVITY", definitionAnchor := "QEDFV.eraseSequence", theoremAnchor := "QEDFV.global_conservativity_finite_step" }
+  , { claimId := "C7_GLOBAL_CONSERVATIVITY", definitionAnchor := "QEDFV.CrossTheoryFiniteErasureObligation", theoremAnchor := "QEDFV.SEC15_GLOBAL_CONSERVATIVITY_FINITE_conditional_proved" }
   , { claimId := "C8_CONFORMANCE_TRANSFER", definitionAnchor := "QEDFV.FaithfulRealization", theoremAnchor := "QEDFV.implementation_to_logic_transfer" }
   , { claimId := "C9_NON_TRIVIALITY", definitionAnchor := "QEDFV.AdmissibleModelClass", theoremAnchor := "QEDFV.semantic_non_triviality_transfer" }
-  , { claimId := "C10_CERT_NON_AUTHORITY", definitionAnchor := "QEDFV.certificateNonAuthority", theoremAnchor := "QEDFV.appendix_g_certificate_non_authority_proved" }
-  , { claimId := "C11_REPLAY_TRACE_TIGHTENING", definitionAnchor := "QEDFV.replayTraceFidelity", theoremAnchor := "QEDFV.appendix_g_replay_trace_fidelity_proved" }
-  , { claimId := "C12_PRIMITIVE_INSTANCE_REPLAY", definitionAnchor := "QEDFV.derivationPrimitiveInstances", theoremAnchor := "QEDFV.appendix_g_transfer_trace_alignment_proved" }
-  , { claimId := "C13_CONSERVATIVE_REPLAY", definitionAnchor := "QEDFV.conservativeReplayFidelity", theoremAnchor := "QEDFV.appendix_g_conservative_replay_fidelity_proved" }
+  , { claimId := "C10_CERT_NON_AUTHORITY", definitionAnchor := "QEDFV.certificateNonAuthority", theoremAnchor := "QEDFV.appendix_g_certificate_non_authority_conditional_proved" }
+  , { claimId := "C11_REPLAY_TRACE_TIGHTENING", definitionAnchor := "QEDFV.replayTraceFidelity", theoremAnchor := "QEDFV.appendix_g_replay_trace_fidelity_conditional_proved" }
+  , { claimId := "C12_PRIMITIVE_INSTANCE_REPLAY", definitionAnchor := "QEDFV.derivationPrimitiveInstances", theoremAnchor := "QEDFV.appendix_g_transfer_trace_alignment_conditional_proved" }
+  , { claimId := "C13_CONSERVATIVE_REPLAY", definitionAnchor := "QEDFV.conservativeReplayFidelity", theoremAnchor := "QEDFV.appendix_g_conservative_replay_fidelity_conditional_proved" }
   , { claimId := "C14_RELEASE_FREEZE_GATE", definitionAnchor := "QEDFV.Spec.Items.RELEASE_FREEZE_GATE", theoremAnchor := "QEDFV.Spec.Items.RELEASE_FREEZE_GATE_proved" }
   ]
 

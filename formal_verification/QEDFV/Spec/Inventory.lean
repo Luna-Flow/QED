@@ -126,7 +126,8 @@ def explicitItems : List SpecItem :=
   , { id := "SEC15_ERASE_DEF", kind := .theorem, sourceSection := "Constructive Closure", summary := "def-head erasure correctness" }
   , { id := "SEC15_ERASE_SPEC", kind := .theorem, sourceSection := "Constructive Closure", summary := "spec-head erasure correctness" }
   , { id := "SEC15_ERASE_TYPEDEF", kind := .theorem, sourceSection := "Constructive Closure", summary := "typedef erasure correctness" }
-  , { id := "SEC15_GLOBAL_CONSERVATIVITY_FINITE", kind := .theorem, sourceSection := "Constructive Closure", summary := "finite-step global conservativity by erasure composition" }
+  , { id := "SEC15_SAME_STATE_ERASURE_FINITE", kind := .theorem, sourceSection := "Constructive Closure", summary := "finite-step same-state derivation erasure" }
+  , { id := "SEC15_GLOBAL_CONSERVATIVITY_FINITE", kind := .theorem, sourceSection := "Constructive Closure", summary := "conditional cross-theory conservativity from an explicit simulation" }
   , { id := "SEC15_MODEL_CLASS", kind := .definition, sourceSection := "Semantic Assumptions", summary := "admissible model class" }
   , { id := "SEC15_MODELCLASS_NONEMPTY", kind := .axiomSchema, sourceSection := "Semantic Assumptions", summary := "model-class non-emptiness assumption" }
   , { id := "SEC15_NONTRIVIALITY_TRANSFER", kind := .theorem, sourceSection := "Semantic Assumptions", summary := "semantic non-triviality transfer" }

@@ -29,6 +29,7 @@ import QEDFV.Conservativity.ErasureDef
 import QEDFV.Conservativity.ErasureSpec
 import QEDFV.Conservativity.ErasureTypeDef
 import QEDFV.Conservativity.GlobalConservativity
+import QEDFV.Conservativity.CrossTheoryObligations
 import QEDFV.Audit.AppendixA
 import QEDFV.Audit.AppendixC
 import QEDFV.Audit.AppendixD
@@ -991,7 +992,7 @@ theorem SEC15_ERASE_TYPEDEF_proved : SEC15_ERASE_TYPEDEF := by
   intro ks t0 k d s hDerives hOld
   exact erase_typedef_correct ks t0 k d s hDerives hOld
 
-def SEC15_GLOBAL_CONSERVATIVITY_FINITE : Prop :=
+def SEC15_SAME_STATE_ERASURE_FINITE : Prop :=
   ∀ ks t0 stepsL stepsR d s,
     Derives ks d s ->
     OldLang t0 s ->
@@ -999,11 +1000,27 @@ def SEC15_GLOBAL_CONSERVATIVITY_FINITE : Prop :=
     eraseSequence (stepsL ++ stepsR) d =
       eraseSequence stepsR (eraseSequence stepsL d)
 
-theorem SEC15_GLOBAL_CONSERVATIVITY_FINITE_proved : SEC15_GLOBAL_CONSERVATIVITY_FINITE := by
+theorem SEC15_SAME_STATE_ERASURE_FINITE_structural_proved : SEC15_SAME_STATE_ERASURE_FINITE := by
   intro ks t0 stepsL stepsR d s hDerives hOld
   refine ⟨?_, ?_⟩
   · exact global_conservativity_finite_step_split ks t0 stepsL stepsR d s hDerives hOld
   · exact eraseSequence_append stepsL stepsR d
+
+/- The actual cross-theory claim is conditional on a simulation from the
+   extended state into the base state.  The simulation is intentionally an
+   explicit premise; it cannot be manufactured from the same-state erasure
+   lemmas above. -/
+def SEC15_GLOBAL_CONSERVATIVITY_FINITE : Prop :=
+  ∀ base extended steps d s
+    (obligation : CrossTheoryFiniteErasureObligation base extended steps),
+    Derives extended d s ->
+    obligation.oldLanguage s ->
+    Derivable base s
+
+theorem SEC15_GLOBAL_CONSERVATIVITY_FINITE_conditional_proved : SEC15_GLOBAL_CONSERVATIVITY_FINITE := by
+  intro base extended steps d s obligation hDerives hOld
+  exact derive_base_of_cross_theory_finite_erasure_obligation
+    base extended steps obligation d s hDerives hOld
 
 def SEC15_MODEL_CLASS : Prop :=
   ∀ t : TheoryState, modelClassNonempty t -> Nonempty (AdmissibleModelClass t)
@@ -1025,7 +1042,7 @@ def SEC15_NONTRIVIALITY_TRANSFER : Prop :=
     ¬ Valid mc.model s ->
     ¬ Derivable k s
 
-theorem SEC15_NONTRIVIALITY_TRANSFER_proved : SEC15_NONTRIVIALITY_TRANSFER := by
+theorem SEC15_NONTRIVIALITY_TRANSFER_conditional_proved : SEC15_NONTRIVIALITY_TRANSFER := by
   intro t mc k s hState hNotValid
   exact semantic_non_triviality_transfer t mc k s hState hNotValid
 
@@ -1037,7 +1054,7 @@ def SEC15_CONSISTENCY_WITNESS : Prop :=
     Derivable k { hyps := s.hyps, concl := mkEqExpr s.concl (Lean.Expr.const `False []) } ->
     False
 
-theorem SEC15_CONSISTENCY_WITNESS_proved : SEC15_CONSISTENCY_WITNESS := by
+theorem SEC15_CONSISTENCY_WITNESS_conditional_proved : SEC15_CONSISTENCY_WITNESS := by
   intro t hNonempty k s hState hClosed hDer hNeg
   exact consistency_witness_form t hNonempty k s hState hClosed hDer hNeg
 
@@ -1047,9 +1064,10 @@ def SEC16_CONFORMANCE_OBLIGATIONS : Prop :=
     replayTraceFidelity r ∧ gateFidelity r ∧ certificateNonAuthority r ∧
     conservativeReplayFidelity r
 
-theorem SEC16_CONFORMANCE_OBLIGATIONS_proved : SEC16_CONFORMANCE_OBLIGATIONS := by
+theorem SEC16_CONFORMANCE_OBLIGATIONS_conditional_proved : SEC16_CONFORMANCE_OBLIGATIONS := by
   intro r h
-  exact ⟨h.rule, h.boundary, h.scope, h.trace, h.gate, h.cert,
+  exact ⟨checked_rule_fidelity r h, h.boundary, h.scope, h.trace, h.gate,
+    checked_certificate_non_authority r h,
     faithful_realization_conservative_replay r h⟩
 
 def SEC16_TRANSFER_THEOREM : Prop :=
@@ -1061,7 +1079,7 @@ def SEC16_TRANSFER_THEOREM : Prop :=
       primitiveInstanceNames (r.replayPrimitiveInstances s) = r.replayPrimitiveTrace s ∧
       primitiveInstanceTrace (r.replayPrimitiveInstances s)
 
-theorem SEC16_TRANSFER_THEOREM_proved : SEC16_TRANSFER_THEOREM := by
+theorem SEC16_TRANSFER_THEOREM_conditional_proved : SEC16_TRANSFER_THEOREM := by
   intro r s hFaithful hAccept
   exact implementation_to_logic_transfer_with_trace r hFaithful s hAccept
 
@@ -1075,16 +1093,16 @@ def APPG_PARTII_CONFORMANCE : Prop :=
   appendix_g_transfer_trace_alignment ∧
   appendix_g_conservative_replay_fidelity
 
-theorem APPG_PARTII_CONFORMANCE_proved : APPG_PARTII_CONFORMANCE := by
+theorem APPG_PARTII_CONFORMANCE_conditional_proved : APPG_PARTII_CONFORMANCE := by
   exact ⟨
-    appendix_g_rule_fidelity_replay_proved,
-    appendix_g_boundary_fidelity_proved,
-    appendix_g_scope_fidelity_proved,
-    appendix_g_replay_trace_fidelity_proved,
-    appendix_g_gate_fidelity_proved,
-    appendix_g_certificate_non_authority_proved,
-    appendix_g_transfer_trace_alignment_proved,
-    appendix_g_conservative_replay_fidelity_proved
+    appendix_g_rule_fidelity_replay_conditional_proved,
+    appendix_g_boundary_fidelity_conditional_proved,
+    appendix_g_scope_fidelity_conditional_proved,
+    appendix_g_replay_trace_fidelity_conditional_proved,
+    appendix_g_gate_fidelity_conditional_proved,
+    appendix_g_certificate_non_authority_conditional_proved,
+    appendix_g_transfer_trace_alignment_conditional_proved,
+    appendix_g_conservative_replay_fidelity_conditional_proved
   ⟩
 
 def APPH_CLAIM_TRACE_MATRIX : Prop := appendix_h_matrix_complete
@@ -1119,10 +1137,10 @@ def RELEASE_FREEZE_GATE : Prop :=
 theorem RELEASE_FREEZE_GATE_proved : RELEASE_FREEZE_GATE := by
   exact ⟨
     allDeclared_proved,
-    SEC15_GLOBAL_CONSERVATIVITY_FINITE_proved,
-    SEC16_CONFORMANCE_OBLIGATIONS_proved,
-    SEC16_TRANSFER_THEOREM_proved,
-    APPG_PARTII_CONFORMANCE_proved,
+    SEC15_GLOBAL_CONSERVATIVITY_FINITE_conditional_proved,
+    SEC16_CONFORMANCE_OBLIGATIONS_conditional_proved,
+    SEC16_TRANSFER_THEOREM_conditional_proved,
+    APPG_PARTII_CONFORMANCE_conditional_proved,
     APPH_CLAIM_TRACE_MATRIX_proved
   ⟩
 

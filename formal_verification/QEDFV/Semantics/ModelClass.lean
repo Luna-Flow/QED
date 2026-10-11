@@ -12,11 +12,118 @@ structure AdmissibleModelClass (t : TheoryState) where
     ∀ e : DbExpr,
       model.ValidExpr (mkEqExpr e (Lean.Expr.const `False [])) ->
       ¬ model.ValidExpr e
-  soundKernel :
-    ∀ {k : KernelState} {s : Sequent},
-      k.T = t ->
-      Derivable k s ->
-      Valid model s
+
+private theorem valid_of_hyps_union_left
+    (m : Model)
+    (A B : Sequent)
+    (hA : Valid m A)
+    (hHyps : ∀ h, h ∈ alphaUnion A.hyps B.hyps -> m.ValidExpr h) :
+    m.ValidExpr A.concl := by
+  apply hA
+  intro h hh
+  apply hHyps h
+  exact List.mem_append_left B.hyps hh
+
+private theorem valid_of_hyps_union_right
+    (m : Model)
+    (A B : Sequent)
+    (hB : Valid m B)
+    (hHyps : ∀ h, h ∈ alphaUnion A.hyps B.hyps -> m.ValidExpr h) :
+    m.ValidExpr B.concl := by
+  apply hB
+  intro h hh
+  apply hHyps h
+  exact List.mem_append_right A.hyps hh
+
+theorem derivable_sound
+    (t : TheoryState)
+    (mc : AdmissibleModelClass t)
+    (k : KernelState)
+    (hState : k.T = t) :
+    ∀ {s : Sequent}, Derivable k s -> Valid mc.model s := by
+  cases hState
+  intro s hDerivable
+  induction hDerivable with
+  | refl t =>
+      intro _hHyps
+      exact mc.model.validEqRefl t
+  | assume p hBool hMember =>
+      intro hHyps
+      apply hHyps p
+      simp
+  | @trans A B x y y' z hEqA hEqB hMid hA hB ihA ihB =>
+      intro hHyps
+      have hAConcl : mc.model.ValidExpr A.concl :=
+        valid_of_hyps_union_left mc.model A B ihA hHyps
+      have hBConcl : mc.model.ValidExpr B.concl :=
+        valid_of_hyps_union_right mc.model A B ihB hHyps
+      have hEqXY : mc.model.ValidExpr (mkEqExpr x y) := by simpa [hEqA] using hAConcl
+      have hEqY'Z : mc.model.ValidExpr (mkEqExpr y' z) := by simpa [hEqB] using hBConcl
+      have hMidAlpha : AlphaEqExpr y y' := transMiddleTypedCoreGuard_alpha hMid
+      have hEqYZ : mc.model.ValidExpr (mkEqExpr y z) :=
+        mc.lawBundle.alpha.alphaRespect
+          (alphaEq_symm (alphaEq_mkEqExpr_left hMidAlpha)) hEqY'Z
+      exact mc.model.validEqTrans x y z hEqXY hEqYZ
+  | @mkComb A B f g x y hEqA hEqB hA hB ihA ihB =>
+      intro hHyps
+      have hAConcl : mc.model.ValidExpr A.concl :=
+        valid_of_hyps_union_left mc.model A B ihA hHyps
+      have hBConcl : mc.model.ValidExpr B.concl :=
+        valid_of_hyps_union_right mc.model A B ihB hHyps
+      have hEqFG : mc.model.ValidExpr (mkEqExpr f g) := by simpa [hEqA] using hAConcl
+      have hEqXY : mc.model.ValidExpr (mkEqExpr x y) := by simpa [hEqB] using hBConcl
+      exact mc.model.validEqCongrApp f g x y hEqFG hEqXY
+  | @abs A n ty s t hEq hNoLoose hA ihA =>
+      intro hHyps
+      have hAConcl : mc.model.ValidExpr A.concl := by
+        apply ihA
+        intro h hh
+        exact hHyps h (by simpa [hEq] using hh)
+      have hEqST : mc.model.ValidExpr (mkEqExpr s t) := by simpa [hEq] using hAConcl
+      exact mc.model.validEqCongrLam n ty s t hEqST
+  | beta r hGuard =>
+      intro _hHyps
+      exact mc.model.validBeta r hGuard.1
+  | @eqMp A B p q p' hEq hAlpha hPrem hBool hA hB ihA ihB =>
+      intro hHyps
+      have hAConcl : mc.model.ValidExpr A.concl :=
+        valid_of_hyps_union_left mc.model A B ihA hHyps
+      have hBConcl : mc.model.ValidExpr B.concl :=
+        valid_of_hyps_union_right mc.model A B ihB hHyps
+      have hEqPQ : mc.model.ValidExpr (mkEqExpr p q) := by simpa [hEq] using hAConcl
+      have hP' : mc.model.ValidExpr p' := by simpa [hPrem] using hBConcl
+      have hP : mc.model.ValidExpr p :=
+        mc.lawBundle.alpha.alphaRespect (alphaEq_symm hAlpha) hP'
+      exact mc.model.validEqMp p q hEqPQ hP
+  | @deductAntisym A B hAlpha hA hB ihA ihB =>
+      intro hHyps
+      have hUnion : ∀ h, h ∈ alphaUnion A.hyps B.hyps -> mc.model.ValidExpr h := by
+        intro h hhUnion
+        have hMemUnion : alphaMember h (alphaUnion A.hyps B.hyps) :=
+          ⟨h, hhUnion, alphaEq_refl h⟩
+        let remHyps := alphaUnion (alphaRemove A.hyps B.concl) (alphaRemove B.hyps A.concl)
+        have hMemRem : memAlpha h remHyps := (hAlpha h).2 hMemUnion
+        rcases hMemRem with ⟨h', hhRem, hAlphaHH'⟩
+        exact mc.lawBundle.alpha.alphaRespect (alphaEq_symm hAlphaHH') (hHyps h' hhRem)
+      have hAConcl : mc.model.ValidExpr A.concl := by
+        apply ihA
+        intro h hh
+        exact hUnion h (List.mem_append_left B.hyps hh)
+      have hBConcl : mc.model.ValidExpr B.concl := by
+        apply ihB
+        intro h hh
+        exact hUnion h (List.mem_append_right A.hyps hh)
+      exact mc.model.validEqIntro A.concl B.concl hAConcl hBConcl
+  | @instType theta A hSubst hImg hObj hTyping hDef hConst hStruct hA ihA =>
+      intro hHyps
+      have hValid : Valid mc.model A := ihA
+      have hSubstValid := mc.lawBundle.subst.typeSubstPreservesValid
+        k theta A hSubst hImg hObj hTyping hDef hConst hStruct hValid
+      exact hSubstValid hHyps
+  | @inst sigma A hSubst hObj hA ihA =>
+      intro hHyps
+      have hSubstValid := mc.lawBundle.subst.termSubstPreservesValid sigma A hSubst hObj ihA
+      exact hSubstValid hHyps
 
 theorem modelclass_inst_type_preserves_valid
     (t : TheoryState)
@@ -70,7 +177,7 @@ theorem semantic_non_triviality_transfer
     (hNotValid : ¬ Valid mc.model s) :
     ¬ Derivable k s := by
   intro hDerivable
-  exact hNotValid (mc.soundKernel hState hDerivable)
+  exact hNotValid (derivable_sound t mc k hState hDerivable)
 
 theorem consistency_witness_form
     (t : TheoryState)
@@ -83,9 +190,9 @@ theorem consistency_witness_form
     (hNegDerivable : Derivable k { hyps := s.hyps, concl := mkEqExpr s.concl (Lean.Expr.const `False []) }) :
     False := by
   rcases hNonempty with ⟨mc⟩
-  have hValid : Valid mc.model s := mc.soundKernel hState hDerivable
+  have hValid : Valid mc.model s := derivable_sound t mc k hState hDerivable
   have hNegValid : Valid mc.model { hyps := s.hyps, concl := mkEqExpr s.concl (Lean.Expr.const `False []) } :=
-    mc.soundKernel hState hNegDerivable
+    derivable_sound t mc k hState hNegDerivable
   have hConcl : mc.model.ValidExpr s.concl := by
     refine hValid ?_
     intro h hmem

@@ -1,5 +1,6 @@
 import QEDFV.Conservativity.GlobalConservativity
 import QEDFV.Engineering.RuleMapping
+import QEDFV.Kernel.CheckedDerivation
 
 namespace QEDFV
 
@@ -20,8 +21,11 @@ structure Realization where
 def ruleFidelity (r : Realization) : Prop :=
   ∀ s, r.accepts s -> Derivable r.kernel s
 
+/- Legacy tree replay is retained for audit tooling only.  Its proof-bearing
+   replacement is `CheckedDerivation`; this relation is no longer part of the
+   faithful-realization release gate. -/
 def replayFidelity (r : Realization) : Prop :=
-  ∀ s, r.accepts s -> Derives r.kernel (r.replayDerivation s) s
+  ∀ s, r.accepts s -> CheckedDerivation r.kernel s
 
 def boundaryFidelity (r : Realization) : Prop :=
   ∀ s, r.accepts s -> OldLang r.kernel.T s
@@ -240,49 +244,60 @@ theorem stripGateCertificates_preserves_derives
 
 def certificateNonAuthority (r : Realization) : Prop :=
   ∀ s, r.accepts s ->
-    Derives r.kernel (stripGateCertificates (r.replayDerivation s)) s
+    Derivable r.kernel s
 
 def conservativeReplayFidelity (r : Realization) : Prop :=
   ∀ s, r.accepts s ->
-    Derives r.kernel (eraseSequence (r.replayExtensionSteps s) (r.replayDerivation s)) s
+    Derivable r.kernel s
 
 theorem certificate_non_authority_from_replay
     (r : Realization)
     (hReplay : replayFidelity r) :
     certificateNonAuthority r := by
   intro s hAccept
-  exact stripGateCertificates_preserves_derives r.kernel (r.replayDerivation s) s
-    (hReplay s hAccept)
+  exact checked_derivation_sound r.kernel (hReplay s hAccept)
 
 theorem conservative_replay_from_replay_boundary
     (r : Realization)
     (hReplay : replayFidelity r)
-    (hBoundary : boundaryFidelity r) :
+    (_hBoundary : boundaryFidelity r) :
     conservativeReplayFidelity r := by
   intro s hAccept
-  exact global_conservativity_finite_step
-    r.kernel
-    r.kernel.T
-    (r.replayExtensionSteps s)
-    (r.replayDerivation s)
-    s
-    (hReplay s hAccept)
-    (hBoundary s hAccept)
+  exact checked_derivation_sound r.kernel (hReplay s hAccept)
 
 structure FaithfulRealization (r : Realization) : Prop where
-  rule : ruleFidelity r
-  replay : replayFidelity r
+  checked : ∀ s, r.accepts s -> CheckedDerivation r.kernel s
   boundary : boundaryFidelity r
   scope : scopeFidelity r
   trace : replayTraceFidelity r
   gate : gateFidelity r
-  cert : certificateNonAuthority r
+
+theorem checked_rule_fidelity
+    (r : Realization)
+    (hFaithful : FaithfulRealization r) :
+    ruleFidelity r := by
+  intro s hAccept
+  exact checked_derivation_sound r.kernel (hFaithful.checked s hAccept)
+
+theorem checked_certificate_non_authority
+    (r : Realization)
+    (hFaithful : FaithfulRealization r) :
+    certificateNonAuthority r := by
+  intro s hAccept
+  exact checked_derivation_sound r.kernel (hFaithful.checked s hAccept)
+
+theorem checked_conservative_replay
+    (r : Realization)
+    (hFaithful : FaithfulRealization r) :
+    conservativeReplayFidelity r := by
+  intro s hAccept
+  exact checked_derivation_sound r.kernel (hFaithful.checked s hAccept)
 
 theorem faithful_realization_conservative_replay
     (r : Realization)
     (hFaithful : FaithfulRealization r) :
     conservativeReplayFidelity r := by
-  exact conservative_replay_from_replay_boundary r hFaithful.replay hFaithful.boundary
+  exact checked_conservative_replay r hFaithful
 
 theorem implementation_to_logic_transfer_with_trace
     (r : Realization)
@@ -294,13 +309,9 @@ theorem implementation_to_logic_transfer_with_trace
       primitiveInstanceNames (r.replayPrimitiveInstances s) = r.replayPrimitiveTrace s ∧
       primitiveInstanceTrace (r.replayPrimitiveInstances s) := by
   rcases hFaithful.trace s hAccept with ⟨hInstEq, hNameEq, hPrimTrace⟩
-  have hCert : certificateNonAuthority r := by
-    exact certificate_non_authority_from_replay r hFaithful.replay
+  have hCert : certificateNonAuthority r := checked_certificate_non_authority r hFaithful
   refine ⟨r.kernel, ?_, hInstEq, hNameEq, hPrimTrace⟩
-  exact derives_implies_derivable r.kernel
-    (stripGateCertificates (r.replayDerivation s))
-    s
-    (hCert s hAccept)
+  exact hCert s hAccept
 
 theorem implementation_to_logic_transfer_with_rule_trace
     (r : Realization)

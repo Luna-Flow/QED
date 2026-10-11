@@ -30,6 +30,7 @@ structure PartIVerification where
   eraseDef : QEDFV.Spec.Items.SEC15_ERASE_DEF
   eraseSpec : QEDFV.Spec.Items.SEC15_ERASE_SPEC
   eraseTypeDef : QEDFV.Spec.Items.SEC15_ERASE_TYPEDEF
+  sameStateErasure : QEDFV.Spec.Items.SEC15_SAME_STATE_ERASURE_FINITE
   globalConservativity : QEDFV.Spec.Items.SEC15_GLOBAL_CONSERVATIVITY_FINITE
   soundnessStrategy : QEDFV.Spec.Items.SEC15_SOUNDNESS_STRATEGY
   soundnessDepMap : QEDFV.Spec.Items.SEC15_DEP_MAP
@@ -66,7 +67,8 @@ theorem partI_semantic_alignment_proved : partI_semantic_alignment := by
     eraseDef := QEDFV.Spec.Items.SEC15_ERASE_DEF_proved
     eraseSpec := QEDFV.Spec.Items.SEC15_ERASE_SPEC_proved
     eraseTypeDef := QEDFV.Spec.Items.SEC15_ERASE_TYPEDEF_proved
-    globalConservativity := QEDFV.Spec.Items.SEC15_GLOBAL_CONSERVATIVITY_FINITE_proved
+    sameStateErasure := QEDFV.Spec.Items.SEC15_SAME_STATE_ERASURE_FINITE_structural_proved
+    globalConservativity := QEDFV.Spec.Items.SEC15_GLOBAL_CONSERVATIVITY_FINITE_conditional_proved
     soundnessStrategy := QEDFV.Spec.Items.SEC15_SOUNDNESS_STRATEGY_proved
     soundnessDepMap := QEDFV.Spec.Items.SEC15_DEP_MAP_proved
     soundnessDepMapKernelTarget := QEDFV.Spec.Items.SEC15_DEP_MAP_kernel_target_proved
@@ -93,9 +95,9 @@ def final_verification_complete : Prop :=
 theorem final_verification_complete_proved : final_verification_complete := by
   refine ⟨{
     partI := partI_verification_complete_proved
-    sec16Conformance := QEDFV.Spec.Items.SEC16_CONFORMANCE_OBLIGATIONS_proved
-    sec16Transfer := QEDFV.Spec.Items.SEC16_TRANSFER_THEOREM_proved
-    appendixG := QEDFV.Spec.Items.APPG_PARTII_CONFORMANCE_proved
+    sec16Conformance := QEDFV.Spec.Items.SEC16_CONFORMANCE_OBLIGATIONS_conditional_proved
+    sec16Transfer := QEDFV.Spec.Items.SEC16_TRANSFER_THEOREM_conditional_proved
+    appendixG := QEDFV.Spec.Items.APPG_PARTII_CONFORMANCE_conditional_proved
     appendixH := QEDFV.Spec.Items.APPH_CLAIM_TRACE_MATRIX_proved
     releaseGate := QEDFV.Spec.Items.RELEASE_FREEZE_GATE_proved
     traceabilityGate := QEDFV.traceability_release_gate_proved

@@ -115,7 +115,7 @@ def global_conservativity_target : Prop :=
     OldLang t0 s ->
     Derives ks (eraseSequence steps d) s
 
-theorem global_conservativity_target_proved : global_conservativity_target := by
+theorem global_conservativity_same_state_structural_proved : global_conservativity_target := by
   intro ks t0 steps d s hDerives hOld
   exact global_conservativity_finite_step ks t0 steps d s hDerives hOld
 
