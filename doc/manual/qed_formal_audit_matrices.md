@@ -16,9 +16,11 @@ a closed non-triviality countermodel; `TypeDefinitions.lean`, `Definitions.lean`
 and `Specification.lean` supply typed semantic contracts for the extension gates.
 `Transport.lean` proves validity transport and bidirectional old-language
 invariance; `Conservativity.lean` proves finite extension composition; and
-`Soundness.lean` exposes the canonical model and theorem entry points. These
-results close the Typed HOL proof. Distinct-state syntactic erasure and other
-legacy boundary work are implementation-open only.
+`Soundness.lean` exposes the canonical model and theorem entry points. Its
+`typed_hol_proof_complete` theorem packages the complete mathematical result, and
+the default `QEDFV` target imports this Typed HOL entry point only. These results
+close the Typed HOL proof. Distinct-state syntactic erasure and other legacy
+boundary work are implementation-open only.
 
 ## Issue matrix
 

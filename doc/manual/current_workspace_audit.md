@@ -19,7 +19,7 @@ order:
 Validation baseline used during this audit:
 
 - `moon test` -> pass (`357/357`)
-- `formal_verification/lake build` -> pass (642 jobs)
+- `formal_verification/lake build` -> pass (594 jobs)
 
 These green gates show that the checked packages and regression suite are
 internally consistent on the current baseline. The Typed HOL line now includes
@@ -29,6 +29,11 @@ canonical model existence, and old-language semantic transport. The remaining
 formal gaps are confined to the excluded MoonBit/refinement boundary: concrete
 named/De Bruijn correspondence, distinct-state provenance, and implementation
 transfer.
+
+The default `QEDFV` library target now imports only `QEDFV.HOL.Soundness` and
+exports `QEDFV.HOL.typed_hol_proof_complete`. The former `Lean.Expr` proof pack
+remains in the tree as archival material and is not part of the Typed HOL release
+evidence.
 
 ## Resolved since the previous audit
 

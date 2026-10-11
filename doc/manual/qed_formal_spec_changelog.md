@@ -32,6 +32,19 @@
   this proof scope: distinct-state syntactic erasure, the legacy `Lean.Expr`/MoonBit
   boundary, concrete implementation transfer, and the #15 theorem-provenance bug.
 
+## 2026-10-12 Typed HOL release entry point
+
+- Added `HOL.Soundness.TypedHOLProofPackage`, a single Lean-checked package whose
+  fields are all constructed Typed HOL witnesses or theorems: carrier and model
+  non-emptiness, renaming/substitution/beta/type-instantiation evaluation laws,
+  Choice coherence, derivation soundness, definition/specification/typedef contracts,
+  finite semantic conservativity, and concrete consistency.
+- Changed the default `QEDFV` target to import only `QEDFV.HOL.Soundness`, so the
+  archival `Lean.Expr`/model-law/erasure modules cannot silently serve as proof
+  evidence for the Typed HOL mainline.
+- The package uses only the standard trusted basis reported by the axiom scan;
+  no local `sorry`, `admit`, or custom `axiom` was introduced.
+
 ## 2026-10-12 typed HOL semantic core follow-up (historical snapshot)
 
 - Added `formal_verification/QEDFV/HOL/Types.lean`, an intrinsically typed HOL type

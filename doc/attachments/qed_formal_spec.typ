@@ -54,7 +54,7 @@ QED is an interactive theorem prover in MoonBit, designed around an LCF-style tr
 = Part I: Logic Core (Normative)
 
 #keyblock("warning", [Proof Status], [
-  Part I states the intended HOL/STT contract. The Typed HOL mainline in `formal_verification/QEDFV/HOL` constructs the standard carriers and proves typed rule preservation, model-independent derivation soundness, natural choice coherence, typed definition and specification contracts, finite extension conservativity, and non-triviality. `HOL/Soundness.lean` is the public entry point for these results. The legacy `Lean.Expr`/MoonBit refinement, distinct-state syntactic conservativity simulations, and the #15 provenance fix remain implementation obligations. Sections marked *Implementation refinement* identify work outside the Typed HOL proof.
+  Part I states the intended HOL/STT contract. The Typed HOL mainline in `formal_verification/QEDFV/HOL` constructs the standard carriers and proves typed rule preservation, model-independent derivation soundness, natural choice coherence, typed definition and specification contracts, finite extension conservativity, and non-triviality. `HOL/Soundness.lean` is the public entry point, and `typed_hol_proof_complete` packages the complete mathematical result. The default `QEDFV` target imports this mainline only. The legacy `Lean.Expr`/MoonBit refinement, distinct-state syntactic conservativity simulations, and the #15 provenance fix remain implementation obligations. Sections marked *Implementation refinement* identify work outside the Typed HOL proof.
 ])
 
 *Normative Scope.*
