@@ -1,5 +1,32 @@
 # Formal specification changelog
 
+## 2026-10-13 Semantics of a type-definition gate
+
+- Added `TypeDefGate` (constructor id, arity with parameters by index, representation
+  type, closed predicate, Rep and Abs ids of the total signature) with the side
+  conditions `Term.annotVars`-closure over the parameters, `k` not occurring in the
+  predicate, `rep ≠ abs`, and `rep`, `abs` not occurring in the predicate. History
+  freshness of `k`, `rep` and `abs` is deliberately not a gate field.
+- Added the model step `TypeDefGate.interpret`: the new constructor interpretation
+  sends `(k, n, as)` to the predicate subtype of the representation type, evaluated in
+  the old model with the parameters at `as` and every other variable at `PUnit`, when
+  the predicate has a witness there, and to `PUnit` otherwise; the new constants
+  interpret `rep` by `Subtype.val` and `abs` by the abstraction of `PredicateWitness`.
+  Proved the new constructor interpretation admissible.
+- Proved the three laws as valid sequents about Rep and Abs terms in the new model:
+  `Abs (Rep a) = a` and `P r ⊢ Rep (Abs r) = r` unconditionally, and `P (Rep a)` under
+  the witness hypothesis `TypeDefGate.WitnessAt` (the semantic form of the kernel's
+  hypothesis-free witness theorem; `witnessAt_of_valid` discharges it from a valid
+  `P w`). A worked pair of gates shows the hypothesis cannot be dropped.
+- Proved old-language invariance of the step (`TypeDefGate.valid_iff_old`) for sequents
+  mentioning neither `k`, `rep` nor `abs`. It needs locality (`ConstVal.Local`) of the old
+  interpretation on the sequent's constants; the canonical interpretation is local.
+- Added `Model`, `ModelExtension` (definition, specification and type-definition
+  steps over model pairs), `ModelExtension.interpret` and `ModelExtension.valid_iff`
+  as a parallel version of `Extension` (the earlier `Extension` with `TypeDefContract`
+  is unchanged). The step is not yet a constructor of `ExtensionDerivation`, and
+  `interpretModels` has no sequence-level equivalence theorem: that needs locality to be
+  carried through definition steps.
 ## 2026-10-13 Congruence over constructor interpretations
 
 - Added `Ty.tyCons` and `Term.tyCons` (constructor ids occurring in types and in
