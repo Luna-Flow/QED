@@ -1,5 +1,146 @@
 # Formal specification changelog
 
+## 2026-10-12 Detailed mathematical exposition restored
+
+- Restored the original page design, callouts, diagrams, two-part structure,
+  named-boundary and scoped-signature discussion, dictionary-passing blueprint,
+  and detailed validation appendices. This revision supersedes the condensed
+  eight-page rewrite while retaining the Typed HOL-only proof policy.
+- Expanded the intrinsic calculus and gave direct mathematical proofs for
+  nonempty carriers, renaming, substitution, beta, type instantiation, selector
+  coherence, all ten primitive rules, inductive soundness, semantic extension
+  contracts, finite validity conservativity, and concrete non-derivability.
+- Following Krantz's mathematical-writing guidance, distinguished type contexts
+  from assumption lists and named contexts, object equality from meta equality,
+  derivability from validity, and semantic interpretations from frontend instance
+  stores. Defined type-variable support exactly as in Lean and replaced oversized
+  symbolic premises with explicit hypotheses and structured prose.
+- Added adjacent Lean source/declaration annotations and a proof trace matrix.
+  All 116 distinct referenced names pass Lean `#check`, and their annotated
+  source modules were checked. Typst produces a 40-page manuscript; every page
+  was rendered and reviewed, including the equations, diagrams, and tables.
+- Retained frontend results as explicit proof obligations. Dictionary realization
+  starts from schema typing and prerequisite law witnesses rather than assuming
+  its own acceptance checks; recursive resolution requires decrease after type
+  instantiation. No deleted approximation theorem is used as proof evidence.
+- The Lean theorem statements and MoonBit implementation are unchanged by this
+  exposition revision. MoonBit refinement, implementation repair for issue #15,
+  new type-constructor integration, and syntactic extension erasure remain open.
+
+## 2026-10-12 Typed HOL-only specification rewrite
+
+- Replaced the accumulated implementation-oriented manuscript with a concise
+  presentation of the typed calculus, semantics, primitive rules, proof
+  dependency, extension contracts, and exact proof boundary.
+- Removed all non-HOL Lean modules from `formal_verification/QEDFV`; the retained
+  library contains only `QEDFV/HOL` and its public soundness entry point.
+- Rewrote the proof plan, conformance guide, audit matrix, and current workspace
+  status around the Typed HOL mainline. Historical entries below record prior
+  states and are superseded where they describe retained approximate modules or
+  the former specification structure.
+- Verified the distinction between semantic validity conservativity and
+  syntactic derivation erasure; only the former is claimed by the current Lean
+  theorem.
+
+## 2026-10-12 Typed HOL mainline and audit status
+
+- Integrated `HOL/Concrete.lean`, `HOL/TypeDefinitions.lean`, `HOL/Definitions.lean`,
+  `HOL/Specification.lean`, `HOL/Transport.lean`, `HOL/Conservativity.lean`, and
+  the public `HOL/Soundness.lean` entry point into the aggregate Lean target.
+- Closed the remaining Typed HOL semantic layer: `HOL/Instantiation.lean` now
+  constructs `select_natural`, `HOL/Evaluation.lean` provides a canonical constant
+  valuation, and `HOL/Conservativity.lean` proves validity invariance for every
+  finite sequence of definition, specification, and typedef interpretations.
+  `HOL/Soundness.lean` exposes canonical model existence, extension soundness, and
+  the concrete consistency witness for every old-language finite extension.
+- Typed HOL now proves constructed carrier non-emptiness, the ten typed rule
+  capsules, general open-context `ABS`, exact assumption discharge `DEDUCT`, typed
+  `INST_TYPE` and `INST`, and indexed `derivation_sound` with no local `sorry`,
+  `axiom`, or `admit` declarations. `select_natural` constructs the required
+  choice coherence, and definition/specification gates explicitly record their
+  type-variable closure conditions.
+- Typed semantic contracts now cover typedef non-emptiness and Abs/Rep laws,
+  fresh-constant definition equations, specification validity from a typed witness,
+  bidirectional old-language validity invariance for definition/specification
+  extensions, finite extension composition, and validity transport for old-language
+  sequents under constant agreement. `HOL/Transport.lean` contains the shared
+  transport layer.
+- `HOL/Concrete.lean` proves a closed `succ 0 = 0` countermodel and non-derivability
+  result, giving a typed non-triviality witness.
+- Verification: `lake build` passed with **642 jobs**. The axiom scan for all public
+  Typed HOL entry points reports only `propext`, `Classical.choice`, and
+  `Quot.sound`; the Typed HOL tree contains no local `sorry`, `axiom`, or `admit`.
+- The Typed HOL semantic proof is complete. Remaining work is explicitly outside
+  this proof scope: distinct-state syntactic erasure, the legacy `Lean.Expr`/MoonBit
+  boundary, concrete implementation transfer, and the #15 theorem-provenance bug.
+
+## 2026-10-12 Typed HOL release entry point
+
+- Added `HOL.Soundness.TypedHOLProofPackage`, a single Lean-checked package whose
+  fields are all constructed Typed HOL witnesses or theorems: carrier and model
+  non-emptiness, renaming/substitution/beta/type-instantiation evaluation laws,
+  Choice coherence, derivation soundness, definition/specification/typedef contracts,
+  finite semantic conservativity, and concrete consistency.
+- Changed the default `QEDFV` target to import only `QEDFV.HOL.Soundness`, so the
+  archival `Lean.Expr`/model-law/erasure modules cannot silently serve as proof
+  evidence for the Typed HOL mainline.
+- The package uses only the standard trusted basis reported by the axiom scan;
+  no local `sorry`, `admit`, or custom `axiom` was introduced.
+
+## 2026-10-12 typed HOL semantic core follow-up (historical snapshot)
+
+- Added `formal_verification/QEDFV/HOL/Types.lean`, an intrinsically typed HOL type
+  grammar with actual `Prop`, `Nat`, function and variable carriers, plus a
+  structural non-emptiness theorem.
+- Added `HOL/Terms.lean` and `HOL/Evaluation.lean` for typed De Bruijn terms,
+  capture-avoiding substitution, evaluation, and a machine-checked beta law.
+- Added `HOL/Extensions.lean` with predicate-subtype carriers, non-emptiness, and
+  the three semantic Abs/Rep witness equations used by a typedef contract.
+- Added `HOL/Rules.lean` with direct validity-preservation certificates for the
+  typed core rules, including the exact assumption-discharge form of DEDUCT and
+  term-instantiation validity. The restricted closed-context ABS theorem is named
+  accordingly.
+- At this earlier checkpoint, polymorphic `INST_TYPE` and general open-context ABS
+  were still open. They are closed in the later Typed HOL mainline entry above;
+  legacy `Lean.Expr`/MoonBit correspondence remains open.
+
+Verification at that checkpoint: `lake build` passed (633 jobs). The current
+verification and axiom basis are recorded in the mainline entry above.
+
+## 2026-10-12 review follow-up (#14, #15, #16)
+
+- Closed the circularity reported in [#14](https://github.com/Luna-Flow/QED/issues/14): `GlobalAdmissibilityEnvelope` is now structural and no longer contains `primitive_sound_all`.
+- Recorded the [#15](https://github.com/Luna-Flow/QED/issues/15) forked-state provenance counterexample as an open implementation bug. The Lean pack does not model MoonBit state lineage, so it cannot close this defect by compilation alone.
+- Renamed the same-state erasure result to `SEC15_SAME_STATE_ERASURE_FINITE` and made `SEC15_GLOBAL_CONSERVATIVITY_FINITE` a conditional theorem over an explicit `CrossTheoryFiniteErasureObligation`. The obligation's `erases` field is a required simulation conclusion; no theorem in the pack constructs it.
+- Replaced the model-class `soundKernel` assumption with an inductive `derivable_sound` proof, and replaced direct implementation derivability assumptions with recursive `CheckedDerivation` evidence. Conditional claims now use `_conditional_proved` or `_structural_proved` theorem names.
+- Added fixed matrix statuses (`proved`, `conditional`, `open`, `bug`) and GitHub issue references. The manuscript now labels Construction Invariant, Semantic Non-Triviality, Consistency Witness, and Implementation-to-Logic Transfer with their actual conditional status.
+- Corrected the workspace audit language: `lake build` validates the Lean specification/conformance pack, not the MoonBit implementation or a closed model. The current Lean build completes 51 jobs.
+
+### Verification for the review follow-up
+
+- `lake build` in `formal_verification`: passed, 51 jobs.
+- `typst compile doc/attachments/qed_formal_spec.typ /tmp/qed-formal-audit.pdf`: passed.
+- `moon check`: passed.
+- `moon test`: passed, 357/357.
+- `lunadoc check . --compile`: passed, 0 errors and 0 warnings; `zh_CN` and `ja_JP` are each 2523/2523 translated.
+
+## 2026-10-12 evidence-driven audit correction
+
+- Added `doc/manual/qed_formal_audit_matrices.md` with an issue matrix and a proof-obligation matrix covering the manuscript, Lean formalization, and MoonBit realization.
+- Added `formal_verification/QEDFV/Conservativity/CrossTheoryObligations.lean`. It records the missing cross-theory simulation explicitly; it does not assert a proof without that premise.
+- Corrected the manuscript's proof-status language for definitional, specification, type-extension, and global conservativity. The previous erasure code keeps one `KernelState`, and its `OldLang` predicate does not inspect the base theory, so it proves same-state tree preservation rather than `T' ⊢ φ -> T ⊢ φ`.
+- Marked the current Lean `TypeDefOK`/typedef product contract, `DefOK` theorem shape, `SpecOK` conservativity predicate, abstract boundary laws, and model-law bundles as approximations or conditional obligations. These declarations compile, but they do not by themselves establish the stronger HOL/STT claims in the article.
+- Added conformance clarification for the reserved `@` identity and the fact that MoonBit `Thm` stores typed De Bruijn terms at the kernel boundary.
+
+### Verification for this audit
+
+- `lake build` in `formal_verification`: passed, 51 jobs.
+- `typst compile doc/attachments/qed_formal_spec.typ /tmp/qed-formal-audit.pdf`: passed.
+- `moon check`: passed.
+- `moon test`: passed, 357/357.
+
+Remaining open obligations are listed explicitly in the matrices and in the manuscript's proof-status notes; `Open items: None` from earlier rounds no longer applies to the stronger cross-theory and semantic claims.
+
 ## Goals and scope of this round
 
 - Goal: finalize the specification so that the structural link between `INST_TYPE` and `DefOK`/`TypeDefOK` is
@@ -141,9 +282,9 @@
   - Command: `typst compile doc/qed_formal_spec.typ doc/qed_formal_spec.pdf`
   - Result: [QED formal specification](../attachments/qed_formal_spec.typ) is generated successfully.
 
-## Open items (write None if there are none)
+## Open items (status at the time of that revision)
 
-None.
+None was recorded for the manuscript-editing scope of that revision. The 2026-10-12 audit supersedes that status for proof claims: cross-theory conservativity, semantic model construction, concrete boundary refinement, and the exact typedef/specification obligations remain open as documented above.
 
 ## Incremental revision (constructive closure)
 
