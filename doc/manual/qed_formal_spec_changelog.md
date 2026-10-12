@@ -1,5 +1,25 @@
 # Formal specification changelog
 
+## 2026-10-13 Congruence over constructor interpretations
+
+- Added `Ty.tyCons` and `Term.tyCons` (constructor ids occurring in types and in
+  binder, variable and constant-instance annotations), `Term.annotVars` (type
+  variables in every annotation, including an unused binder's domain), and their
+  behaviour under substitution and instantiation.
+- Proved `Ty.denote_congr`, `Ty.denote_congr_vars`, the general `Term.eval_congr`
+  and its specialisations `Term.eval_congr_κ` and `Term.eval_congr_vars`
+  (`HEq` statements). `Term.eval_agree` is now a corollary.
+- Added `valid_transport_κ` and `valid_iff_κ`: validity is invariant when the
+  constructor interpretation changes on ids the sequent does not mention.
+  `valid_transport`, `valid_old_language_iff` and
+  `valid_definition_old_language_iff` keep their statements and are derived from
+  the general lemmas. The statements need `Admissible` to coincide for the two
+  interpretations, and both the hypothesis on the sequent's constructor ids and
+  the admissibility hypothesis are shown necessary by an example.
+- `Term.typeVars` is unchanged and still omits an unused binder's domain;
+  `Term.annotVars` is the support on which evaluation depends. No typedef gate,
+  history-indexed interpretation or derivation constructor is added.
+
 ## 2026-10-13 Type-constructor nodes and constructor interpretations
 
 - Added `Ty.con k n args` and the constructor interpretation `TyConVal` (default:

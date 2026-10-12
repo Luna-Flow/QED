@@ -21,6 +21,19 @@ and derivations indexed by a finite constant-extension history.
 'QEDFV.HOL.extension_derivation_sound' depends on axioms: [propext, Classical.choice, Quot.sound]
 'QEDFV.HOL.typed_extension_derivation_sound' depends on axioms: [propext, Classical.choice, Quot.sound]
 'QEDFV.HOL.Ty.carrier_nonempty' does not depend on any axioms
+'QEDFV.HOL.Ty.denote_congr' depends on axioms: [propext, Quot.sound]
+'QEDFV.HOL.Ty.denote_congr_vars' depends on axioms: [propext, Quot.sound]
+'QEDFV.HOL.Ty.tyCons_subst' depends on axioms: [propext, Quot.sound]
+'QEDFV.HOL.Term.tyCons_instType' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.Term.eval_congr' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.Term.eval_congr_κ' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.Term.eval_congr_vars' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.valid_transport_κ' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.valid_iff_κ' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.valid_old_language_iff' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.valid_definition_old_language_iff' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.valid_allEq_one_unchanged' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.valid_allEq_zero_changes' depends on axioms: [propext, Classical.choice, Quot.sound]
 
 These are Lean/Mathlib foundation axioms, not project declarations:
 

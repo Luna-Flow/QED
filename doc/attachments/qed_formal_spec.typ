@@ -725,6 +725,26 @@ annotation. The later closure propositions refer to this defined support.
 #lean-def("Types", ("Ty.typeVars",))
 #lean-def("Terms", ("Term.typeVars",))
 
+*Definition (Annotation support and constructor support).* Evaluation depends on
+every type annotation of a term, including the domain of an unused binder, so two
+further functions are used by the congruence results below. $"AVars"(t)$ is
+defined like $"TVars"(t)$ except that
+$"AVars"(lambda_tau t) = "TVars"(tau) union "AVars"(t)$; it contains
+$"TVars"(t)$ and the variables of the type of $t$. The constructor support
+$"Cons"(tau)$ is the set of constructor identifiers occurring in a type, with
+$"Cons"(k(tau_1,...,tau_n)) = {k} union "Cons"(tau_1) union dots.c union "Cons"(tau_n)$.
+For terms, $"Cons"(t)$ is defined by the same clauses as $"AVars"$, collecting
+constructor identifiers from variable and binder types and from the schema
+instances of constants; it contains $"Cons"$ of the type of $t$. Type
+substitution acts on both supports by
+$"Cons"(tau[theta]) = "Cons"(tau) union union.big_(i in "TVars"(tau)) "Cons"(theta(i))$, and instantiation of a term acts on
+$"Cons"(t)$ in the same way over $"AVars"(t)$.
+
+#lean-def("Types", ("Ty.tyCons", "TyConVal.AgreeOn", "TyConVal.IsAdmissible"))
+#lean-def("Terms", ("Term.annotVars", "Term.tyCons"))
+#lean-proof("Types", ("Ty.tyCons_subst",))
+#lean-proof("Terms", ("Term.tyCons_instType", "Term.typeVars_subset_annotVars"))
+
 == Renaming and Weakening
 
 A renaming $r in "Ren"(Gamma,Delta)$ assigns to each variable in $Gamma$ a variable of
@@ -1241,6 +1261,89 @@ of ordinary constants. Apply this equality to each assumption and the conclusion
 The conditions defining validity become identical, in both directions.
 
 #lean-proof("Transport", ("Term.eval_agree", "valid_transport", "valid_old_language_iff"))
+
+== Congruence of Denotation and Evaluation
+
+The constant-agreement lemma fixes the constructor interpretation $kappa$ and the
+valuation $rho$. The next results vary them. Say that $kappa$ and $kappa'$
+*agree on* a set $C$ of constructor identifiers when
+$kappa(k,n,X_1,...,X_n) = kappa'(k,n,X_1,...,X_n)$ for every $k in C$, every arity
+and every tuple of carriers.
+
+*Lemma (Type congruence).* If $kappa$ and $kappa'$ agree on $"Cons"(tau)$ then
+$D_(kappa,rho)(tau) = D_(kappa',rho)(tau)$. If $rho$ and $rho'$ agree on
+$"TVars"(tau)$ then $D_(kappa,rho)(tau) = D_(kappa,rho')(tau)$.
+
+*Proof.* Induct on $tau$. A variable uses the hypothesis on $rho$; the base types
+and arrows are immediate. For $k(tau_1,...,tau_n)$ the induction hypotheses
+identify the argument carriers, so the two sides are $kappa(k,n,dots)$ and
+$kappa'(k,n,dots)$ applied to the same tuple, and $k in "Cons"(tau)$.
+
+#lean-proof("Types", ("Ty.denote_congr_gen", "Ty.denote_congr", "Ty.denote_congr_vars"))
+
+*Lemma (Evaluation congruence).* Let $kappa$, $kappa'$ agree on $"Cons"(t)$.
+Assume the constants of $t$ are interpreted compatibly: at every instance of a
+constant's schema whose constructors lie in $"Cons"(t)$, the values of $I$ under
+$kappa$ and of $J$ under $kappa'$ at the pulled-back valuations of one base
+valuation are equal, up to the identification of their carriers. Assume the two
+environments agree on every variable whose type lies in the agreement region.
+Then $E_(I,rho,eta)(t)$ and $E_(J,rho,eta')(t)$ are equal up to the same
+identification. For equal $kappa$ it reduces to the constant-agreement lemma.
+
+*Proof.* Induct on $t$ through the general statement in which $rho$, $rho'$,
+$kappa$, $kappa'$, $I$, $J$ and the environments all vary, with an agreement set
+for variables and one for constructors. Variables use the environment hypothesis.
+A constant occurrence uses the compatibility hypothesis at its instance; the two
+instance valuations agree on the schema variables by type congruence. An
+application, an abstraction and a quantifier transport the function, the argument
+or the bound value along the carrier equalities supplied by type congruence, using
+$"AVars"$ and $"Cons"$ to cover the domain of every binder and the type of every
+subterm. Equality and choice transport along one carrier equality. Lean states
+all of this with `HEq` since the two carriers are only propositionally equal.
+
+#lean-proof("Congruence", ("Term.eval_congr", "Term.eval_congr_κ", "Term.eval_congr_vars", "Term.eval_congr_vars_lt"))
+
+*Remark (locality of constants).* Dependence of evaluation on type variables alone
+is not a property of the term only: a constant's value $I_rho(c)$ may depend on all
+of $rho$. `Term.eval_congr_vars` therefore assumes that each constant occurring is
+interpreted locally, meaning that $I_rho(c)$ and $I_(rho')(c)$ are equal whenever
+$rho$ and $rho'$ agree on $"TVars"(Sigma(c))$. Definitions obtained from a
+closed right-hand side are local, which is where type-variable closure is used. The
+closure-gate support $"TVars"$ is not enough: $lambda x:alpha_5. "True"$ has empty
+$"TVars"$ but its value depends on the carrier of $alpha_5$, which is why the
+statement is in terms of $"AVars"$.
+
+*Proposition (Cross-model validity).* Let $kappa$, $kappa'$ be constructor
+interpretations that admit the same type valuations, let $(H,p)$ be a sequent, and
+let $kappa$, $kappa'$ agree on $"Cons"(H,p)$. If the constants of $(H,p)$ are
+interpreted compatibly by $I$ and $J$, then $H models_I p$ if and only if
+$H models_J p$. In particular a sequent that does not mention a constructor
+identifier $k$ keeps its validity when the carrier of $k$ changes, provided both
+interpretations are admissible.
+
+*Proof.* Transport the environment from $kappa'$ to $kappa$: variables whose types
+lie in the agreement region are cast along the carrier equality, the others (which
+no assumption or conclusion can mention) receive an arbitrary inhabitant, which
+exists by the nonempty-carrier proposition. Then apply evaluation congruence to
+each assumption and to the conclusion. The converse is the same argument with the
+roles exchanged. The old-language statements of the previous section are the case
+$kappa'=kappa$.
+
+#lean-proof("Transport", ("valid_transport_κ", "valid_iff_κ", "valid_old_language_iff_κ", "valid_old_language_iff"))
+#lean-proof("Definitions", ("valid_definition_old_language_iff_κ", "valid_definition_old_language_iff"))
+
+The admissibility hypothesis is necessary: a constructor interpretation that is not
+admissible makes every sequent vacuously valid. The hypothesis that $k$ does not
+occur is also necessary. Let $kappa$ send every constructor to a one-point carrier
+and $kappa'$ send constructor $0$ to the two-point carrier `Bool`. Then
+$forall x,y:0. x = y$ is valid under $kappa$ and not under $kappa'$, while
+$forall x,y:1. x = y$ is valid under both, as the proposition predicts.
+
+#lean-proof("TyConCongruence", ("valid_iff_of_tyCon_absent", "valid_allEq_one_unchanged", "valid_allEq_zero_changes"))
+
+These results change only the semantics. No gate yet allocates a constructor
+identifier, so the history-indexed interpretation and the type-definition step
+that use them are not part of this development.
 
 = Definitional Extension Discipline (Conservativity Gate)
 
@@ -3100,6 +3203,7 @@ derivations.
   [C9], [Finite old-language validity equivalence], [`Conservativity.lean`: `valid_interpretSequence_iff`],
   [C10], [Concrete non-derivability], [`Concrete.lean`: `falseSentence_not_derivable`],
   [C11], [Typed HOL core proof package], [`Soundness.lean`: `typed_hol_core_proof_complete`],
+  [C12], [Type, evaluation and cross-model validity congruence], [`Types.lean`: `Ty.denote_congr`; `Congruence.lean`: `Term.eval_congr_κ`, `Term.eval_congr_vars`; `Transport.lean`: `valid_transport_κ`, `valid_iff_κ`],
 )
 }
 
