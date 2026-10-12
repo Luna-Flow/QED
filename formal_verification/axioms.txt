@@ -9,11 +9,12 @@ Generated with:
 Output:
 
 The commands audited are the declarations in `QEDFV/HOL/AxiomAudit.lean`,
-including the soundness of derivations indexed by a finite constant-extension
-history.
+including derivation soundness, the all-model object-language infinity sentence,
+and derivations indexed by a finite constant-extension history.
 
 'QEDFV.HOL.typed_hol_core_proof_complete' depends on axioms: [propext, Classical.choice, Quot.sound]
 'QEDFV.HOL.derivation_sound' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.indInfinitySentence_valid' depends on axioms: [propext, Classical.choice, Quot.sound]
 'QEDFV.HOL.valid_definition_equation' depends on axioms: [propext, Classical.choice, Quot.sound]
 'QEDFV.HOL.typed_signature_generic_consistency' depends on axioms: [propext, Classical.choice, Quot.sound]
 'QEDFV.HOL.typed_signature_generic_nonvalid_in_extension' depends on axioms: [propext, Classical.choice, Quot.sound]
@@ -33,4 +34,4 @@ These are Lean/Mathlib foundation axioms, not project declarations:
 There is no project-defined axiom asserting primitive-rule soundness or
 constant-extension history soundness. This report does not certify a growing
 signature, MoonBit refinement, user type-constructor extensions, or the
-infinity-axiom admission gate.
+executable MoonBit infinity registration gate.

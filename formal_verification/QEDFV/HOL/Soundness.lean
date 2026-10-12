@@ -188,6 +188,9 @@ structure TypedHOLCoreProofPackage : Prop where
     ¬ Derivation standardSignature { hyps := [], concl := falseSentence }
   infinityAnchor :
     Function.Injective Nat.succ ∧ ¬ Function.Surjective Nat.succ
+  infinitySentenceValidity :
+    ∀ (S : Signature) (I : ConstVal S),
+      Valid I { hyps := [], concl := indInfinitySentence S }
   signatureGenericConsistency :
     ∀ (S : Signature),
       ¬ Derivation S { hyps := [], concl := signatureGenericFalseSentence S }
@@ -220,6 +223,7 @@ noncomputable def typedHOLCoreProofPackage : TypedHOLCoreProofPackage := by
     finiteExtensionConservativity := ?_
     concreteConsistency := typed_concrete_consistency
     infinityAnchor := standard_ind_infinity_anchor
+    infinitySentenceValidity := indInfinitySentence_valid
     signatureGenericConsistency := typed_signature_generic_consistency
     signatureGenericExtensionNonvalidity := typed_signature_generic_nonvalid_in_extension
   }
