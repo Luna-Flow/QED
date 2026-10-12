@@ -40,6 +40,111 @@ def Term.typeVars : Term S Γ a → Set Nat
   | .eq => a.typeVars
   | .choice => a.typeVars
 
+/-- Every type variable occurring in any type annotation of a term, including the domain of
+an unused lambda binder. Unlike `Term.typeVars` (which the closure gates use and which does
+not add an unused binder's domain), this is the support on which evaluation depends. -/
+def Term.annotVars : Term S Γ a → Set Nat
+  | .var _ => a.typeVars
+  | .const c σ => ((S c).subst σ).typeVars
+  | .app f x => f.annotVars ∪ x.annotVars
+  | @Term.lam _ a _ _ b => a.typeVars ∪ b.annotVars
+  | .truth => ∅
+  | .falsity => ∅
+  | .conj p q => p.annotVars ∪ q.annotVars
+  | .imp p q => p.annotVars ∪ q.annotVars
+  | @Term.all _ a Γ p => a.typeVars ∪ p.annotVars
+  | @Term.ex _ a Γ p => a.typeVars ∪ p.annotVars
+  | .eq => a.typeVars
+  | .choice => a.typeVars
+
+/-- Type-constructor ids occurring in the types of a term: variable and binder types and
+the schema instances of constants. Patterned on `Term.typeVars`. -/
+def Term.tyCons : Term S Γ a → Set Nat
+  | .var _ => a.tyCons
+  | .const c σ => ((S c).subst σ).tyCons
+  | .app f x => f.tyCons ∪ x.tyCons
+  | @Term.lam _ a _ _ b => a.tyCons ∪ b.tyCons
+  | .truth => ∅
+  | .falsity => ∅
+  | .conj p q => p.tyCons ∪ q.tyCons
+  | .imp p q => p.tyCons ∪ q.tyCons
+  | @Term.all _ a Γ p => a.tyCons ∪ p.tyCons
+  | @Term.ex _ a Γ p => a.tyCons ∪ p.tyCons
+  | .eq => a.tyCons
+  | .choice => a.tyCons
+
+/-- The annotation support contains the closure-gate support `Term.typeVars`. -/
+theorem Term.typeVars_subset_annotVars (t : Term S Γ a) : t.typeVars ⊆ t.annotVars := by
+  induction t with
+  | var v => exact fun _ h ↦ h
+  | const c σ => exact fun _ h ↦ h
+  | app f x ihf ihx => exact Set.union_subset_union ihf ihx
+  | lam b ih => exact fun i h ↦ Or.inr (ih h)
+  | truth => exact fun _ h ↦ h
+  | falsity => exact fun _ h ↦ h
+  | conj p q ihp ihq => exact Set.union_subset_union ihp ihq
+  | imp p q ihp ihq => exact Set.union_subset_union ihp ihq
+  | all p ih => exact Set.union_subset_union subset_rfl ih
+  | ex p ih => exact Set.union_subset_union subset_rfl ih
+  | eq => exact fun _ h ↦ h
+  | choice => exact fun _ h ↦ h
+
+/-- The annotation support of a term includes the type variables of its own type. -/
+theorem Term.ty_annotVars_subset (t : Term S Γ a) : a.typeVars ⊆ t.annotVars := by
+  induction t with
+  | var v => exact fun _ h ↦ h
+  | const c σ => exact fun _ h ↦ h
+  | app f x ihf ihx =>
+      intro i hi
+      exact Or.inl (ihf (Or.inr hi))
+  | lam b ih =>
+      intro i h
+      simp only [Term.annotVars, Ty.typeVars, Set.mem_union] at h ⊢
+      exact h.imp id fun h ↦ ih h
+  | truth => exact fun i hi ↦ by cases hi
+  | falsity => exact fun i hi ↦ by cases hi
+  | conj p q => exact fun i hi ↦ by cases hi
+  | imp p q => exact fun i hi ↦ by cases hi
+  | all p => exact fun i hi ↦ by cases hi
+  | ex p => exact fun i hi ↦ by cases hi
+  | eq => exact fun _ h ↦ h
+  | choice => exact fun _ h ↦ h
+
+/-- The type-constructor ids of a term include those of its own type. -/
+theorem Term.ty_tyCons_subset (t : Term S Γ a) : a.tyCons ⊆ t.tyCons := by
+  induction t with
+  | var v => exact fun _ h ↦ h
+  | const c σ => exact fun _ h ↦ h
+  | app f x ihf ihx =>
+      intro i hi
+      exact Or.inl (ihf (Or.inr hi))
+  | lam b ih =>
+      intro i h
+      simp only [Term.tyCons, Ty.tyCons, Set.mem_union] at h ⊢
+      exact h.imp id fun h ↦ ih h
+  | truth => exact fun i hi ↦ by cases hi
+  | falsity => exact fun i hi ↦ by cases hi
+  | conj p q => exact fun i hi ↦ by cases hi
+  | imp p q => exact fun i hi ↦ by cases hi
+  | all p => exact fun i hi ↦ by cases hi
+  | ex p => exact fun i hi ↦ by cases hi
+  | eq => exact fun _ h ↦ h
+  | choice => exact fun _ h ↦ h
+
+def Term.constIds : Term S Γ a → Finset Nat
+  | .var _ => ∅
+  | .const c _ => {c}
+  | .app f x => f.constIds ∪ x.constIds
+  | .lam b => b.constIds
+  | .truth => ∅
+  | .falsity => ∅
+  | .conj p q => p.constIds ∪ q.constIds
+  | .imp p q => p.constIds ∪ q.constIds
+  | .all p => p.constIds
+  | .ex p => p.constIds
+  | .eq => ∅
+  | .choice => ∅
+
 abbrev Ren (Γ Δ : List Ty) := ∀ {a}, Var Γ a → Var Δ a
 abbrev Sub (S : Signature) (Γ Δ : List Ty) := ∀ {a}, Var Γ a → Term S Δ a
 
@@ -145,5 +250,71 @@ theorem Term.typeVars_cast {h : a = b} (t : Term S Γ a) :
   | choice =>
       simp [Term.instType, Term.typeVars, Ty.typeVars, TypeSub.imageTypeVars,
         Ty.typeVars_subst]
+
+theorem Term.tyCons_cast {h : a = b} (t : Term S Γ a) :
+    (h ▸ t).tyCons = t.tyCons := by
+  cases h
+  rfl
+
+@[simp] theorem Term.tyCons_instType (t : Term S Γ a) (θ : TypeSub) :
+    (t.instType θ).tyCons = t.tyCons ∪ TypeSub.imageTyCons θ t.annotVars := by
+  induction t with
+  | var v =>
+      simp [Term.instType, Term.tyCons, Term.annotVars, Ty.tyCons_subst]
+  | const c σ =>
+      simp only [Term.instType]
+      rw [Term.tyCons_cast]
+      change ((S c).subst (θ.comp σ)).tyCons =
+        ((S c).subst σ).tyCons ∪ TypeSub.imageTyCons θ ((S c).subst σ).typeVars
+      rw [Ty.tyCons_subst, Ty.tyCons_subst, Ty.typeVars_subst]
+      change (S c).tyCons ∪ TypeSub.imageTyCons (fun i ↦ (σ i).subst θ) (S c).typeVars = _
+      rw [TypeSub.imageTyCons_comp]
+      ext k
+      simp only [Set.mem_union]
+      tauto
+  | app f x ihf ihx =>
+      simp only [Term.instType, Term.tyCons, Term.annotVars, ihf, ihx,
+        TypeSub.imageTyCons_union]
+      ext k
+      simp only [Set.mem_union]
+      tauto
+  | lam b ih =>
+      simp only [Term.instType, Term.tyCons, Term.annotVars, ih, Ty.tyCons_subst,
+        TypeSub.imageTyCons_union]
+      ext k
+      simp only [Set.mem_union]
+      tauto
+  | truth => simp [Term.instType, Term.tyCons, Term.annotVars, TypeSub.imageTyCons]
+  | falsity => simp [Term.instType, Term.tyCons, Term.annotVars, TypeSub.imageTyCons]
+  | conj p q ihp ihq =>
+      simp only [Term.instType, Term.tyCons, Term.annotVars, ihp, ihq,
+        TypeSub.imageTyCons_union]
+      ext k
+      simp only [Set.mem_union]
+      tauto
+  | imp p q ihp ihq =>
+      simp only [Term.instType, Term.tyCons, Term.annotVars, ihp, ihq,
+        TypeSub.imageTyCons_union]
+      ext k
+      simp only [Set.mem_union]
+      tauto
+  | all p ih =>
+      simp only [Term.instType, Term.tyCons, Term.annotVars, ih, Ty.tyCons_subst,
+        TypeSub.imageTyCons_union]
+      ext k
+      simp only [Set.mem_union]
+      tauto
+  | ex p ih =>
+      simp only [Term.instType, Term.tyCons, Term.annotVars, ih, Ty.tyCons_subst,
+        TypeSub.imageTyCons_union]
+      ext k
+      simp only [Set.mem_union]
+      tauto
+  | eq =>
+      simp only [Term.instType, Term.tyCons, Term.annotVars]
+      exact Ty.tyCons_subst (.arr _ (.arr _ .bool)) θ
+  | choice =>
+      simp only [Term.instType, Term.tyCons, Term.annotVars]
+      exact Ty.tyCons_subst (.arr (.arr _ .bool) _) θ
 
 end QEDFV.HOL

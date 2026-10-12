@@ -31,6 +31,23 @@ def Ty.typeVars : Ty → Set Nat
   | .arr a b => a.typeVars ∪ b.typeVars
   | .con _ _ args => {i | ∃ j, i ∈ (args j).typeVars}
 
+/-- Type-constructor ids occurring in a type. -/
+def Ty.tyCons : Ty → Set Nat
+  | .bool => ∅
+  | .ind => ∅
+  | .var _ => ∅
+  | .arr a b => a.tyCons ∪ b.tyCons
+  | .con k _ args => {k} ∪ {i | ∃ j, i ∈ (args j).tyCons}
+
+/-- Two constructor interpretations have equal carriers on every constructor id in `C`
+(at every arity and every tuple of argument carriers). -/
+def TyConVal.AgreeOn (κ : TyConVal) (C : Set Nat) (κ' : TyConVal) : Prop :=
+  ∀ k, k ∈ C → ∀ (n : Nat) (as : Fin n → Type), κ.carrier k n as = κ'.carrier k n as
+
+/-- Every constructor carrier is nonempty whenever its argument carriers are. -/
+def TyConVal.IsAdmissible (κ : TyConVal) : Prop :=
+  ∀ (k n : Nat) (as : Fin n → Type), (∀ j, Nonempty (as j)) → Nonempty (κ.carrier k n as)
+
 def TypeSub.imageTypeVars (θ : TypeSub) (vars : Set Nat) : Set Nat :=
   {i | ∃ j, j ∈ vars ∧ i ∈ (θ j).typeVars}
 
@@ -84,6 +101,71 @@ abbrev TypeSub.pull (θ : TypeSub) (κ : TyConVal) (ρ : TypeVal) : TypeVal :=
       · rintro ⟨l, ⟨j, hl⟩, hi⟩
         exact ⟨j, l, hl, hi⟩
 
+/-- Constructor ids occurring in the images of the variables in `vars`. -/
+def TypeSub.imageTyCons (θ : TypeSub) (vars : Set Nat) : Set Nat :=
+  {k | ∃ j, j ∈ vars ∧ k ∈ (θ j).tyCons}
+
+@[simp] theorem Ty.tyCons_subst (a : Ty) (θ : TypeSub) :
+    (a.subst θ).tyCons = a.tyCons ∪ TypeSub.imageTyCons θ a.typeVars := by
+  induction a with
+  | bool => ext i; simp [Ty.subst, Ty.tyCons, Ty.typeVars, TypeSub.imageTyCons]
+  | ind => ext i; simp [Ty.subst, Ty.tyCons, Ty.typeVars, TypeSub.imageTyCons]
+  | var i => ext j; simp [Ty.subst, Ty.tyCons, Ty.typeVars, TypeSub.imageTyCons]
+  | arr a b iha ihb =>
+      rw [Ty.subst, Ty.tyCons, iha, ihb]
+      ext i
+      simp only [Set.mem_union, TypeSub.imageTyCons, Ty.typeVars, Set.mem_setOf_eq]
+      constructor
+      · rintro ((h | ⟨j, hj, hi⟩) | (h | ⟨j, hj, hi⟩))
+        · exact Or.inl (Or.inl h)
+        · exact Or.inr ⟨j, Or.inl hj, hi⟩
+        · exact Or.inl (Or.inr h)
+        · exact Or.inr ⟨j, Or.inr hj, hi⟩
+      · rintro ((h | h) | ⟨j, (hj | hj), hi⟩)
+        · exact Or.inl (Or.inl h)
+        · exact Or.inr (Or.inl h)
+        · exact Or.inl (Or.inr ⟨j, hj, hi⟩)
+        · exact Or.inr (Or.inr ⟨j, hj, hi⟩)
+  | con k n args ih =>
+      ext i
+      simp only [Ty.subst, Ty.tyCons, ih, TypeSub.imageTyCons, Ty.typeVars, Set.mem_union,
+        Set.mem_singleton_iff, Set.mem_setOf_eq]
+      constructor
+      · rintro (h | ⟨j, h | ⟨l, hl, hi⟩⟩)
+        · exact Or.inl (Or.inl h)
+        · exact Or.inl (Or.inr ⟨j, h⟩)
+        · exact Or.inr ⟨l, ⟨j, hl⟩, hi⟩
+      · rintro ((h | ⟨j, hj⟩) | ⟨l, ⟨j, hl⟩, hi⟩)
+        · exact Or.inl h
+        · exact Or.inr ⟨j, Or.inl hj⟩
+        · exact Or.inr ⟨j, Or.inr ⟨l, hl, hi⟩⟩
+
+theorem TypeSub.imageTyCons_union (θ : TypeSub) (A B : Set Nat) :
+    TypeSub.imageTyCons θ (A ∪ B) =
+      TypeSub.imageTyCons θ A ∪ TypeSub.imageTyCons θ B := by
+  ext i
+  constructor
+  · rintro ⟨j, (hA | hB), hi⟩
+    · exact Or.inl ⟨j, hA, hi⟩
+    · exact Or.inr ⟨j, hB, hi⟩
+  · rintro (⟨j, hA, hi⟩ | ⟨j, hB, hi⟩)
+    · exact ⟨j, Or.inl hA, hi⟩
+    · exact ⟨j, Or.inr hB, hi⟩
+
+theorem TypeSub.imageTyCons_comp (θ σ : TypeSub) (A : Set Nat) :
+    TypeSub.imageTyCons (fun i ↦ (σ i).subst θ) A =
+      TypeSub.imageTyCons σ A ∪ TypeSub.imageTyCons θ (TypeSub.imageTypeVars σ A) := by
+  ext k
+  simp only [TypeSub.imageTyCons, TypeSub.imageTypeVars, Ty.tyCons_subst, Set.mem_union,
+    Set.mem_setOf_eq]
+  constructor
+  · rintro ⟨j, hj, (hk | ⟨l, hl, hk⟩)⟩
+    · exact Or.inl ⟨j, hj, hk⟩
+    · exact Or.inr ⟨l, ⟨j, hj, hl⟩, hk⟩
+  · rintro (⟨j, hj, hk⟩ | ⟨l, ⟨j, hj, hl⟩, hk⟩)
+    · exact ⟨j, hj, Or.inl hk⟩
+    · exact ⟨j, hj, Or.inr ⟨l, hl, hk⟩⟩
+
 theorem TypeSub.imageTypeVars_union (θ : TypeSub) (A B : Set Nat) :
     TypeSub.imageTypeVars θ (A ∪ B) =
       TypeSub.imageTypeVars θ A ∪ TypeSub.imageTypeVars θ B := by
@@ -121,6 +203,38 @@ theorem TypeSub.imageTypeVars_image (θ σ : TypeSub) (A : Set Nat) :
 @[simp] theorem Ty.denote_subst (a : Ty) (κ : TyConVal) (θ : TypeSub) (ρ : TypeVal) :
     (a.subst θ).denote κ ρ = a.denote κ (θ.pull κ ρ) := by
   induction a <;> simp_all [Ty.subst, Ty.denote, TypeSub.pull]
+
+/-- Denotation of a type depends only on the carriers of the type variables in `V` and of the
+constructors in `C` that occur in it. -/
+theorem Ty.denote_congr_gen (a : Ty) {κ κ' : TyConVal} {ρ ρ' : TypeVal} (V C : Set Nat)
+    (hV : ∀ i, i ∈ V → ρ i = ρ' i) (hC : κ.AgreeOn C κ')
+    (hv : a.typeVars ⊆ V) (hc : a.tyCons ⊆ C) : a.denote κ ρ = a.denote κ' ρ' := by
+  induction a with
+  | bool => rfl
+  | ind => rfl
+  | var i => exact hV i (hv (by simp [Ty.typeVars]))
+  | arr a b iha ihb =>
+      simp only [Ty.denote]
+      rw [iha (fun i hi ↦ hv (Or.inl hi)) (fun i hi ↦ hc (Or.inl hi)),
+        ihb (fun i hi ↦ hv (Or.inr hi)) (fun i hi ↦ hc (Or.inr hi))]
+  | con k n args ih =>
+      simp only [Ty.denote]
+      have hargs : (fun j ↦ (args j).denote κ ρ) = (fun j ↦ (args j).denote κ' ρ') :=
+        funext fun j ↦ ih j (fun i hi ↦ hv ⟨j, hi⟩) (fun i hi ↦ hc (Or.inr ⟨j, hi⟩))
+      rw [hargs]
+      exact hC k (hc (Or.inl rfl)) n _
+
+/-- Denotation depends only on the carriers of the constructors occurring in the type. -/
+theorem Ty.denote_congr (a : Ty) {κ κ' : TyConVal} (ρ : TypeVal)
+    (hC : κ.AgreeOn a.tyCons κ') : a.denote κ ρ = a.denote κ' ρ :=
+  a.denote_congr_gen (ρ := ρ) (ρ' := ρ) Set.univ a.tyCons (fun _ _ ↦ rfl) hC
+    (Set.subset_univ _) subset_rfl
+
+/-- Denotation depends only on the type variables occurring in the type. -/
+theorem Ty.denote_congr_vars (a : Ty) (κ : TyConVal) {ρ ρ' : TypeVal}
+    (h : ∀ i, i ∈ a.typeVars → ρ i = ρ' i) : a.denote κ ρ = a.denote κ ρ' :=
+  a.denote_congr_gen (κ := κ) (κ' := κ) a.typeVars Set.univ h (fun _ _ _ _ ↦ rfl)
+    subset_rfl (Set.subset_univ _)
 
 /-- Admissible interpretations: nonempty carriers for type variables, and constructor
 carriers that are nonempty whenever all their argument carriers are. A constructor

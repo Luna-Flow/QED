@@ -77,21 +77,23 @@ theorem DefinitionGate.withDefinition_agree (D : DefinitionGate S)
   intro ρ hρ
   simp [ConstVal.withDefinition, hc]
 
+/-- Old-language invariance of a definition step across a change of model. -/
+theorem valid_definition_old_language_iff_κ {κ' : TyConVal}
+    (D : DefinitionGate S) (I : ConstVal κ S) (J : ConstVal κ' S) (s : Sequent S Γ)
+    (hOld : D.id ∉ s.constIds) (hAdm : ∀ ρ, Admissible κ ρ ↔ Admissible κ' ρ)
+    (hC : κ.AgreeOn s.tyCons κ')
+    (hAgree : ∀ c, c ∈ s.constIds → I.AgreeAt J s.tyCons c) :
+    Valid (I.withDefinition D) s ↔ Valid J s :=
+  valid_iff_κ (I.withDefinition D) J hAdm hC fun c hc ↦
+    ConstVal.AgreeAt.congr_left
+      (fun ρ hρ ↦ D.withDefinition_agree I (fun h ↦ hOld (h ▸ hc)) ρ hρ) (hAgree c hc)
+
 theorem valid_definition_old_language_iff
     (D : DefinitionGate S) (I : ConstVal κ S) (s : Sequent S Γ)
     (hOld : D.id ∉ s.constIds) :
-    Valid (I.withDefinition D) s ↔ Valid I s := by
-  constructor
-  · intro hValid
-    apply valid_transport (I.withDefinition D) I
-    · intro c hc ρ hρ
-      exact D.withDefinition_agree I (fun h ↦ hOld (h ▸ hc)) ρ hρ
-    · exact hValid
-  · intro hValid
-    apply valid_transport I (I.withDefinition D)
-    · intro c hc ρ hρ
-      exact (D.withDefinition_agree I (fun h ↦ hOld (h ▸ hc)) ρ hρ).symm
-    · exact hValid
+    Valid (I.withDefinition D) s ↔ Valid I s :=
+  valid_definition_old_language_iff_κ D I I s hOld (fun _ ↦ Iff.rfl)
+    (TyConVal.AgreeOn.refl κ _) fun _ _ ↦ ConstVal.AgreeAt.of_eq fun _ _ ↦ rfl
 
 theorem valid_definition_equation (D : DefinitionGate S) (I : ConstVal κ S) :
     Valid (I.withDefinition D)

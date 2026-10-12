@@ -3,6 +3,7 @@ import QEDFV.HOL.ExtensionDerivation
 import QEDFV.HOL.Specification
 import QEDFV.HOL.TypeDefinitions
 import QEDFV.HOL.Concrete
+import QEDFV.HOL.TyConCongruence
 
 namespace QEDFV.HOL
 
