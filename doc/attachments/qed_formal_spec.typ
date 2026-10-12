@@ -1833,6 +1833,20 @@ sentence. The Lean proof certifies the mathematical rule because its conclusion
 is valid in every interpretation of the fixed type grammar; it does not certify
 the executable gate's term construction or theorem provenance (issue #7).
 
+*Implementation refinement contract for connectives and infinity.* The Typed HOL
+term grammar treats truth, falsity, conjunction, implication, universal
+quantification, and existential quantification as primitive constructors. The
+kernel frontend currently builds these connectives as defined constants, and
+`IND_INFINITY_AXIOM` builds a term using those definitions. A refinement proof
+must therefore provide a translation from each kernel definition to the
+corresponding Typed HOL constructor, prove its defining equation is preserved by
+lowering, evaluation, substitution, and type instantiation, and show that the
+infinity registration lowers to the exact `indInfinitySentence` above. Merely
+matching the type of the theorem or finding an occurrence of `ind` is not enough.
+The all-model validity proof depends on the fixed semantic clause
+`Ty.ind.denote ρ = Nat`; it does not apply to an arbitrary carrier selected for
+`ind`.
+
 *Theorem (Concrete non-derivability).* For the signature assigning identifier
 zero type $"ind"$ and identifier one type $"ind" -> "ind"$, the closed
 sentence formed by applying the second constant to the first and equating the

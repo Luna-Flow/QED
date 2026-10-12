@@ -39,6 +39,22 @@
     the checked core and its semantic results. It is not a completeness theorem
     or a full growing-theory development.
 
+## Connective and Infinity Refinement Contract
+
+The Lean `Term` grammar gives truth, falsity, conjunction, implication, universal
+quantification, and existential quantification primitive constructors. The
+kernel frontend currently represents these forms through defined constants, so
+the eventual MoonBit-to-Lean refinement must map each definition to its Typed HOL
+constructor and prove the defining equation through lowering, evaluation,
+substitution, and type instantiation. The infinity registration must lower to
+the exact `indInfinitySentence`; a type match or an occurrence of `ind` alone is
+not evidence of that correspondence.
+
+The validity theorem for this sentence uses the fixed interpretation
+`Ty.ind.denote ρ = Nat` and the witness `Nat.succ`. It is therefore a theorem
+about the present fixed type grammar, not about every possible carrier for an
+abstract type named `ind`.
+
 ## Kernel-to-Lean Map
 
 | Kernel primitive or extension | Lean representation | What is proved | Boundary |
@@ -66,7 +82,7 @@
 | Typed core syntax and non-empty carriers | `HOL/Types.lean`, `HOL/Terms.lean` | proved |
 | Renaming, substitution, beta | `HOL/Evaluation.lean` | proved |
 | Type instantiation and selector coherence | `HOL/Instantiation.lean` | proved |
-| Twelve core rule preservation cases and object-language infinity admission | `HOL/Rules.lean`, `HOL/Derivation.lean`, `HOL/Infinity.lean` | proved |
+| Thirteen derivation-constructor preservation cases, including object-language infinity admission | `HOL/Rules.lean`, `HOL/Derivation.lean`, `HOL/Infinity.lean` | proved |
 | Arbitrary-signature non-triviality | `signatureGenericFalseSentence_not_derivable` | proved |
 | Definition equation under its model override | `valid_definition_equation` | proved semantically |
 | Specification from a closed typed witness | `valid_choose_from_witness`, `SpecificationGate.valid_constant_from_typed_derivation` | proved semantically |
