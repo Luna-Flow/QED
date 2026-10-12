@@ -86,11 +86,13 @@ a separate refinement proof.
   `QEDFV` module imports `HOL/Soundness.lean`. The public result is
   `typed_hol_core_proof_complete`. It proves the typed core, including
   `ADD_ASSUM` and witness-based choice, plus the stated fixed-signature semantic
-  extension results and the object-language infinity rule. It does not yet prove
-  a derivability-preserving calculus for growing theories, a history-indexed
-  derivation rule that allocates a user type constructor (only the semantics of the
-  type-definition step is proved), or refinement of the MoonBit implementation. The removed
-  approximation modules are not proof evidence.
+  extension results and the object-language infinity rule, and a history-indexed
+  derivation rule for a type definition (allocating a user type constructor, with
+  soundness at the history's model pair). It does not yet prove a
+  derivability-preserving calculus for growing theories, syntactic erasure, a
+  history-indexed full calculus that chains typedef theorems with core rules, or
+  refinement of the MoonBit implementation. The removed approximation modules are
+  not proof evidence.
 ])
 
 The normative mathematical core consists of indexed types and terms, typed
@@ -475,11 +477,15 @@ mathematics; it does not prove that this registration procedure is correct.
   legacy `Extension.typeDefinition` leaves the constant interpretation unchanged;
   neither allocates a type constructor. The gate `TypeDefGate` and the model step
   `TypeDefGate.interpret` (section on type-definition gate semantics) allocate a
-  constructor and define the new model, over model pairs `(κ, I)`; they are not yet
-  a constructor of `ExtensionDerivation`, so no Abs/Rep theorem is derivable in a
-  history, and the laws are proved only under the explicit hypotheses stated there.
-  The carrier proof must not be cited as a proof of the kernel's registration
-  procedure.
+  constructor and define the new model, over model pairs `(κ, I)`. They are the
+  `typedef` constructor of `ExtensionDerivation` (section on history-indexed
+  derivations), so the three Abs/Rep laws are derivable at the extended history from a
+  hypothesis-free witness derivation; histories are interpreted over model pairs.
+  History freshness of `k`, Rep and Abs is a carried side condition that soundness
+  does not use, the signature stays total, and consequences that chain the derived
+  laws with core rules, syntactic erasure of a type definition, and the kernel's
+  string-name lowering are not provided. The carrier proof must not be cited as a
+  proof of the kernel's registration procedure.
 ])
 
 == Term Grammar
@@ -1355,9 +1361,10 @@ This section connects the semantic subtype construction to syntax. A gate alloca
 a constructor identifier and two constants of the total signature and changes the
 constructor interpretation. It models the semantic content of
 `ks_register_type_definition`: the closed predicate over the declared parameters, the
-Rep and Abs constants and the three laws. The derivation constructors that make the
-laws derivable in a declaration history, and the freshness of $k$, Rep and Abs with
-respect to that history, are a separate step; they are not part of this section.
+Rep and Abs constants and the three laws. The derivation constructor that makes the
+laws derivable in a declaration history, with the freshness of $k$, Rep and Abs with
+respect to that history, is introduced in the section on history-indexed extension
+derivations; this section proves the semantics it relies on.
 
 *Definition (Type-definition gate).* A gate over a signature $Sigma$ consists of
 
@@ -1455,9 +1462,9 @@ branch is taken.
 *Remark (the witness hypothesis).* The kernel requires a hypothesis-free theorem
 $tack.r P(w)$ with closed $w$. That derivation yields the witness hypothesis: by
 soundness, $P(w)$ is valid in the old model, so $E_(I,rho,[])(P)(w)$ holds for every
-admissible $rho$ (`TypeDefGate.witnessAt_of_valid`). The derivation constructor of the next step
-supplies $P(w)$ at the history preceding the gate and applies `extension_derivation_sound`
-there. The hypothesis cannot be dropped: for the gate with representation type `bool`
+admissible $rho$ (`TypeDefGate.witnessAt_of_valid`). The `typedef` derivation constructor
+carries a derivation of $P(w)$ at the history preceding the gate, and the soundness
+theorem applies its induction hypothesis to it. The hypothesis cannot be dropped: for the gate with representation type `bool`
 and predicate $lambda x. "False"$, $P("Rep"(x))$ is not valid in the new model, although the other
 two laws are.
 
@@ -1475,17 +1482,30 @@ valuation. For a constant $c$ of $s$, $I'(c)$ is $I(c)$ at the pull-back along
 $kappa'$, which differs from the pull-back along $kappa$ in the variables that the schema of $c$ does not
 use; those are exactly the variables on which locality asserts independence.
 
-#lean-proof("TypeDefGate", ("TypeDefGate.valid_iff_old", "TypeDefGate.valid_iff_old_canonical", "TypeDefGate.newTyCon_isAdmissible"))
-#lean-proof("ModelExtension", ("ModelExtension.valid_iff", "canonicalConstVal_local"))
+#lean-proof("TypeDefGate", ("TypeDefGate.valid_iff_old", "TypeDefGate.newTyCon_isAdmissible"))
+#lean-proof("ModelExtension", ("ModelExtension.valid_iff", "canonicalConstVal_local", "TypeDefGate.valid_iff_old_canonical"))
+
+*Proposition (A type-definition step preserves locality).* If $I$ is local on every
+constant, so is $I'$.
+
+*Proof.* The new values of $r$ and $a$ depend on $rho$ only through the parameters
+$rho|_n$ (the carrier of $k$ at $rho$ and the value of the predicate at $rho_0$ do), and
+$"TVars"(Sigma(r)) = "TVars"(Sigma(a)) = {0,...,n-1}$. For the other constants, $I'(c)$ is
+either $I(c)$ transported along a type equality, which is local if $I(c)$ is, or a canonical
+element of a carrier that depends only on $"TVars"(Sigma(c))$.
+
+#lean-proof("TypeDefLocal", ("TypeDefGate.repVal_heq", "TypeDefGate.absVal_heq", "TypeDefGate.newConst_local"))
 
 *Remark (locality is a model invariant).* Locality is not implied by the type of a constant
 interpretation, and it is needed for old-language invariance across a change of $kappa$: two
 valuations that differ in a variable the schema of $c$ does not use may be distinguished by a
-non-local $I(c)$. The canonical interpretation is local. A definition step preserves locality
-only if the right-hand side satisfies the annotation closure of the gate above; the present
-`DefinitionGate` states closure for $"TVars"$, so threading locality through histories is
-part of the integration step. The step-by-step statement is given for
-a single model; `interpretModels` composes steps but no sequence-level equivalence is claimed here.
+non-local $I(c)$. The canonical interpretation is local. A definition or specification step
+preserves locality only if the right-hand side (resp. predicate) satisfies the annotation
+closure $"AVars" subset.eq "TVars"(tau)$; the definition and specification gates state their
+closure fields for $"AVars"$, matching the kernel's `term_tyvars`, which counts the domain of
+every binder. A type-definition step preserves locality (below). Locality is therefore a
+model invariant carried along histories, and old-language invariance holds along a whole
+history (section on history-indexed extension derivations).
 
 = Definitional Extension Discipline (Conservativity Gate)
 
@@ -1493,8 +1513,11 @@ a single model; `interpretModels` composes steps but no sequence-level equivalen
 
 *Definition (Definition gate).* A gate consists of an identifier $c$ and a
 closed term $r in "Tm"_(Sigma)([],Sigma(c))$, with
-$c$ absent from $r$ and $"TVars"(r) subset.eq "TVars"(Sigma(c))$.
-The latter condition records type-variable closure. Local freshness here means
+$c$ absent from $r$ and $"AVars"(r) subset.eq "TVars"(Sigma(c))$.
+The latter condition records type-variable closure. It is stated for the annotation
+support, as the kernel's `term_tyvars` counts the domain of every binder; this makes a
+definition step preserve locality of the constant interpretation
+(`DefinitionGate.withDefinition_local`). Local freshness here means
 absence from the right-hand side; it does not assert absence from a global
 history of previous declarations.
 
@@ -1509,6 +1532,7 @@ Here $eta_0$ is the unique environment of the empty context.
 The signature is total, so the gate overrides an existing schema slot.
 
 #lean-def("Definitions", ("DefinitionGate", "ConstVal.withDefinition"))
+#lean-proof("Definitions", ("DefinitionGate.withDefinition_local",))
 
 *Proposition (Defining equation).* The equation $c[iota] =_(Sigma(c)) r$
 is valid with empty assumptions under $I^c$.
@@ -1548,7 +1572,8 @@ a later override from changing a constant on which an earlier defining equation
 depends. These history requirements are not fields of `DefinitionGate`.
 
 *Proposition (Type-variable closure after instantiation).* If
-$"TVars"(r) subset.eq "TVars"(tau)$, then
+$"TVars"(r) subset.eq "TVars"(tau)$ (which follows from the gate's $"AVars"$
+closure), then
 $"TVars"(r[theta]) subset.eq "TVars"(tau[theta])$.
 
 *Proof.* Every variable occurring after substitution comes from $theta(i)$
@@ -1568,7 +1593,8 @@ definition theorems are accepted safely by the implementation.
 *Definition (Specification gate).* Fix an identifier $c$, a type $tau$ with
 $Sigma(c)=tau$, a predicate term $P in "Tm"_(Sigma)([tau],"bool")$, and a
 closed witness term $w in "Tm"_(Sigma)([],tau)$. Require $c$ to occur in
-neither $P$ nor $w$, and require $"TVars"(P) subset.eq "TVars"(tau)$.
+neither $P$ nor $w$, and require $"AVars"(P) subset.eq "TVars"(tau)$ (the annotation
+support, as for definitions).
 The witness obligation is a typed derivation $[] tack.r P[w]$.
 
 The type-variable restriction is a field on the predicate; the current gate
@@ -1578,6 +1604,7 @@ of $v$, leaving other constants unchanged; call the resulting interpretation
 $J$.
 
 #lean-def("Specification", ("SpecificationGate", "specificationTerm", "ConstVal.withSpecification"))
+#lean-proof("Specification", ("SpecificationGate.withSpecification_local",))
 
 *Proposition (Specification validity).* If $[] tack.r P[w]$, then
 $[] models_J P[c[iota]]$.
@@ -2146,7 +2173,9 @@ $I_([])=I$ and $I_(e :: "es")=I_e(I_("es"))$.
 
 A sequent is _unaffected_ by the list if it mentions none of the identifiers
 overridden by a definition or specification in the list. Every sequent is
-unaffected by a type-definition step as currently interpreted.
+unaffected by a type-definition step as interpreted here; histories with real
+type-definition steps (which change the constructor interpretation) are treated over
+model pairs in the section on history-indexed extension derivations.
 
 #lean-def("Conservativity", ("Extension", "Extension.oldLanguage", "Extension.interpret", "interpretSequence", "oldLanguageSequence"))
 
@@ -2195,13 +2224,13 @@ The current theorem supplies neither that transformation nor a completeness
 argument from semantic validity to derivability.
 
 #keyblock("warning", [Exact Extension Claim], [
-  History-indexed derivation soundness is proved for definition and witnessed
-  specification steps over the fixed type grammar, with explicit freshness and
-  old-language side conditions. The semantics of a type-definition step is proved
-  on model pairs, but it is not a derivation constructor. This is not a
-  growing-signature construction: globally compatible allocation, derivable
-  type-definition theorems, and derivation erasure remain open. The former approximation sketches are not referenced as
-  their proofs.
+  History-indexed derivation soundness is proved for definition, witnessed
+  specification and witnessed type-definition steps over the fixed type grammar,
+  with explicit freshness and old-language side conditions, at the history's model
+  pair. This is not a growing-signature construction: globally compatible
+  allocation, chaining the derived type-definition theorems with core rules, and
+  derivation erasure (for a type definition, a relativisation translation) remain
+  open. The former approximation sketches are not referenced as their proofs.
 ])
 
 == Kernel Extension Mapping and Open Gates
@@ -2224,13 +2253,14 @@ complete row-by-row mapping is recorded in
   constant theorem. `Derivation.chooseWitness` remains a distinct Hilbert-choice
   inference rule. The proof does not certify the MoonBit witness representation
   (issue #8).
-- `ks_register_type_definition` maps to `TypeDefGate` and its model step
-  `TypeDefGate.interpret`: closed predicate over the declared parameters, fresh
-  constructor and Rep/Abs constants, and the three laws as valid sequents about Rep and
-  Abs terms in the new model (the second under the witness hypothesis). The
-  carrier-level `TypeDefContract` is the family obtained at the old model. No
-  derivation constructor yet admits the laws in a history, history freshness of $k$, Rep
-  and Abs is not modelled, and the MoonBit gate itself is not verified.
+- `ks_register_type_definition` maps to `TypeDefGate`, its model step
+  `TypeDefGate.interpret` and the `typedef` constructor of `ExtensionDerivation`: closed
+  predicate over the declared parameters, fresh constructor and Rep/Abs constants, a
+  hypothesis-free witness derivation $tack.r P(w)$ at the preceding history, and the three
+  laws as derivation conclusions (selector `TypeDefLaw`), valid at the history's model pair.
+  History freshness of $k$, Rep and Abs is a carried side condition (unused by soundness);
+  the carrier-level `TypeDefContract` is the family obtained at the old model. The kernel's
+  string-name lowering and the MoonBit gate itself are not verified.
 - `ks_ind_infinity_axiom` maps mathematically to `Derivation.indInfinity`,
   whose conclusion is the explicitly encoded `indInfinitySentence`. Its
   soundness case uses `indInfinitySentence_valid`, proved for every
@@ -2243,16 +2273,22 @@ added to the typed judgment and receive its own semantic preservation case.
 
 == History-Indexed Extension Derivations
 
-A history $"es"$ is listed newest declaration first. Its interpretation is
-defined recursively by
-$I_([])=I$ and $I_(e :: "es")=I_e(I_("es"))$, where $I_e$ is the interpretation
-update for extension $e$. Thus every new declaration
-extends the interpretation of its preceding history. For constant extensions,
-`extensionHistoryIds(es)` records the declaration IDs already used.
+A history $"es"$ is listed newest declaration first and consists of declaration steps
+(`ModelExtension`): a definition, a specification or a type definition. A type-definition
+step changes the constructor interpretation, so histories are interpreted over model pairs
+$M=(kappa,I)$ (`Model`, with $kappa$ admissible): $M_([])=M$ and
+$M_(e :: "es")=e(M_("es"))$, where a definition or specification step overrides a constant and
+keeps $kappa$, and a type-definition step is the model step of the type-definition gate.
+(The earlier `Extension` and `interpretSequence` are indexed by one fixed $kappa$ and remain
+for the type-definition-free finite statement above.) For each step the constants and
+constructor identifiers it introduces are `ModelExtension.constantIds` and
+`ModelExtension.tyConIds`; `modelHistoryIds(es)` and `modelHistoryTyCons(es)` collect the
+identifiers already used in a history. A sequent is in the old language of a step if it
+mentions none of the constants and none of the type constructors the step introduces.
 
 Write $"ExtDerivation"("es",H,p)$ for the history-indexed judgment. Every core derivation is
-available at every history; an old derivation can be lifted across a new
-extension only when that step does not alter any constant in its sequent:
+available at every history; an old derivation can be lifted across a new step only when the
+sequent is in the old language of that step:
 
 $$
   frac(Derivation_S(H,p), "ExtDerivation"("es",H,p))
@@ -2260,42 +2296,106 @@ $$
   frac("ExtDerivation"("es",H,p), e.oldLanguage(H,p), "ExtDerivation"(e :: "es",H,p)).
 $$
 
-A fresh definition adds its defining equation. A specification step must carry
-a derivation of its witness body at the preceding history, so the theorem's
-proof dependency is reflected in the index. Write $e_D$ for
-`Extension.definition D` and $e_G$ for `Extension.specification G`:
+A fresh definition adds its defining equation. A specification step must carry a derivation
+of its witness body at the preceding history, so the theorem's proof dependency is reflected
+in the index. A type definition carries, in the same way, the witness derivation of the
+kernel's hypothesis-free theorem $tack.r P(w)$, and one constructor with a three-valued
+selector $l$ concludes the law it names (`TypeDefLaw`):
+$l = "absRep"$ gives $tack.r "Abs"("Rep"(a)) = a$, $l = "repRange"$ gives
+$tack.r P("Rep"(a))$, and $l = "repAbs"$ gives $P(r) tack.r "Rep"("Abs"(r)) = r$. Write
+$e_D$, $e_G$ and $e_T$ for the definition, specification and type-definition steps:
 
 $$
   frac(D : DefinitionGate(S),
-    D.id notin extensionHistoryIds("es"),
+    D.id notin "modelHistoryIds"("es"),
     "ExtDerivation"(e_D :: "es",[],c_D = rhs_D))
   quad
   frac("ExtDerivation"("es",[],body_G),
     G : SpecificationExtension(S),
-    G.gate.id notin extensionHistoryIds("es"),
+    G.gate.id notin "modelHistoryIds"("es"),
     "ExtDerivation"(e_G :: "es",[],P_G(c_G))).
 $$
 
-The history interpretation soundness theorem is proved by induction on this
-judgment. The core case invokes `derivation_sound` in the final interpretation.
-The lifting case uses the two-way old-language validity theorem for the newly
-added step. Definition uses the locally proved equation in the interpretation
-of the preceding history. Specification first applies the induction
-hypothesis to its witness derivation, then uses the witness-based gate theorem
-to validate the constant theorem in the extended interpretation.
+$$
+  frac(T : "TypeDefGate"(S) quad k notin "modelHistoryTyCons"("es") quad "rep","abs" notin "modelHistoryIds"("es") quad "ExtDerivation"("es",[],P(w)),
+    "ExtDerivation"(e_T :: "es", "ctx"(l), "law"(l))).
+$$
 
-The freshness premises in these two inference clauses serve a separate
-well-formedness condition: they require each declared constant ID to be absent
-from the earlier extension history. The induction proving
-`extension_derivation_sound` does not use these history-freshness premises.
-Its definition case uses `valid_definition_equation`, whose proof does use the
-local condition `DefinitionGate.fresh` that the right-hand side omit its own
-head. Its specification case uses `SpecificationExtension.valid_gate`, whose
-proof uses `SpecificationGate.fresh` to keep the new constant out of the
-predicate and witness. Thus local non-self-reference is part of product
-soundness, while history ID uniqueness is a judgment side condition; this
-theorem alone does not prove global consistency or preservation of every prior
-declaration equation.
+The soundness theorem is stated at the history's model pair: if the base model $M$ is local
+(every constant interpreted locally; the canonical models are), then every derivation at
+$"es"$ is valid in $M_("es")$, constructor interpretation included.
+
+*Lemma (Every step preserves locality).* If $M$ is local so is $e(M)$.
+
+*Proof.* A definition or specification step overrides one constant by the value of a term
+whose annotation support lies in the type variables of that constant's schema (the
+$"AVars"$ closure of the gates), so by `Term.eval_congr_vars` the new value depends only
+on those variables. A type-definition step is the preceding proposition.
+
+#lean-proof("Definitions", ("DefinitionGate.withDefinition_local",))
+#lean-proof("Specification", ("SpecificationGate.withSpecification_local",))
+#lean-proof("ModelExtension", ("Model.IsLocal", "ModelExtension.interpret_isLocal", "interpretModels_isLocal"))
+
+*Theorem (Old-language invariance along a history).* Let $M$ be local and let a sequent
+$(H,p)$ be in the old language of every step of $"es"$. Then $H models_(M_("es")) p$ if and
+only if $H models_M p$. Over the canonical model of an admissible $kappa$ no locality
+hypothesis remains.
+
+*Proof.* Induct on $"es"$, applying the one-step theorem to the head step in the model of
+the tail: old-language invariance of definition and specification steps, and the
+type-definition proposition above, whose locality premise holds by the previous lemma.
+
+#lean-def("ModelExtension", ("ModelExtension", "ModelExtension.interpret", "interpretModels", "modelHistoryIds", "modelHistoryTyCons", "oldLanguageModels", "Model.canonical", "Model.default"))
+#lean-proof("ModelExtension", ("valid_interpretModels_iff", "typed_global_semantic_conservativity_models"))
+
+*Theorem (Soundness of history-indexed derivations).* If $M$ is local, every derivation
+$"ExtDerivation"("es",H,p)$ satisfies $H models_(M_("es")) p$.
+
+*Proof.* By induction on the derivation. The core case invokes `derivation_sound` in the
+final model pair. The lifting case uses the old-language theorem for the newly added step,
+with its locality hypothesis supplied by the locality lemma. Definition uses the locally
+proved equation in the model of the preceding history. Specification first applies the
+induction hypothesis to its witness derivation and then the witness-based gate theorem. For
+a type definition the induction hypothesis for the witness derivation gives $P(w)$ valid in
+$M_("es")$, so the predicate has a witness at every admissible valuation
+(`TypeDefGate.witnessAt_of_valid`); the type-definition laws theorem then validates the
+selected law in the model after the step. The predicate's constants are local by the
+locality lemma.
+
+#lean-def("ExtensionDerivation", ("TypeDefLaw", "TypeDefLaw.ctx", "TypeDefLaw.sequent", "ExtensionDerivation"))
+#lean-proof("ExtensionDerivation", ("TypeDefGate.valid_law", "extension_derivation_sound", "typed_extension_derivation_sound", "typed_extension_derivation_sound_default"))
+
+*Corollary (Derivation-level conservativity).* A sequent in the old language of every step of
+$"es"$ that is derivable at $"es"$ is valid in the canonical base model.
+
+#lean-proof("ExtensionDerivation", ("extension_derivation_old_language_valid",))
+
+The freshness premises of the three introduction clauses serve a separate well-formedness
+condition: they require each declared constant identifier, and for a type definition the
+constructor identifier, to be absent from the earlier history. The induction proving
+`extension_derivation_sound` does not use these premises. Its definition case uses
+`valid_definition_equation`, whose proof uses the local condition `DefinitionGate.fresh`.
+Its specification case uses `SpecificationExtension.valid_gate`, whose proof uses
+`SpecificationGate.fresh`. Its type-definition case uses the gate fields (`k_fresh`,
+`rep_fresh`, `abs_fresh`), which keep the predicate independent of the new constructor and
+constants. Thus local non-self-reference is part of product soundness, while history
+uniqueness is a judgment side condition; this theorem alone does not prove global
+consistency or preservation of every prior declaration equation. The side condition of the
+lifting clause is necessary: dropping the clause for the type-definition step makes
+the old-language invariance of that step, on which the lifting case relies, unprovable
+(the sentence $forall x,y:k. x = y$ is valid or not depending on the carrier of $k$).
+
+*Example.* Over a signature with $"Rep" : k -> "bool"$ and $"Abs" : "bool" -> k$, let
+$P = lambda x:"bool". x = "True"$, so that $k$ is a one-element type. The witness derivation
+$tack.r P("True")$ at the empty history uses `beta`, `refl` and the derived symmetry step
+(`Derivation.of_eq_left`). The three laws are then derivation conclusions at the history
+$[e_T]$, hence valid at its model pair; the old-language theorem $tack.r "True" = "True"$
+lifts across the step with the lifting clause and is valid at the canonical base model; and
+the generic false sentence is not valid at the extended model pair, so non-triviality
+survives the type definition.
+
+#lean-def("TypeDefDerivationExamples", ("unitGate", "unitHistory", "unitModel"))
+#lean-proof("TypeDefDerivationExamples", ("Derivation.of_eq_left", "unitGate_witness_derivation", "unit_absRep_derivation", "unit_repRange_derivation", "unit_repAbs_derivation", "unit_laws_valid", "unit_old_language_derivation", "unit_old_language_valid", "unit_model_nontrivial", "typed_signature_generic_nonvalid_in_history"))
 
 In this specification, the word `SPECIFY` can denote the internal Hilbert
 choice inference only when explicitly qualified as the witness rule. It is
@@ -2304,15 +2404,16 @@ fresh named constant. The Lean judgments are `Derivation.chooseWitness` for
 the former and `ExtensionDerivation.specification` for the latter.
 
 #lean-def("Conservativity", ("Extension", "interpretSequence", "extensionHistoryIds"))
-#lean-def("ExtensionDerivation", ("ExtensionDerivation",))
-#lean-proof("ExtensionDerivation", ("extension_derivation_sound", "typed_extension_derivation_sound"))
 
-This judgment composes constant extension proofs through finite histories but
-still uses one fixed `Signature` and one fixed constructor interpretation. The
-type-definition step changes the constructor interpretation and is modelled on
-model pairs (`ModelExtension`), not yet by a constructor of this judgment;
-syntactic conservativity and erasure to a growing-signature core derivation are
-not claimed.
+*Limits.* The judgment composes definition, specification and type-definition proofs through
+finite histories over one fixed total `Signature`. Core rules cannot be applied to the
+theorems of a declaration step inside the judgment: a consequence that uses a derived law
+together with core rules would need a history-indexed full calculus. Syntactic
+conservativity and erasure to a growing-signature core derivation are not claimed; for a
+type definition they would need a relativisation translation (the new type has no definable
+replacement in the base grammar), and semantic validity does not imply derivability. The
+kernel's string names, the reservation of builtin constructor names and the MoonBit gate
+are outside this model.
 
 == Type Preservation for Application Congruence
 

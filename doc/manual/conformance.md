@@ -32,15 +32,18 @@ the Lean calculus.
 | Derivation soundness for all constructors, including infinity | `HOL/Derivation.lean` | proved |
 | Object-language connectives and quantifiers | `HOL/Terms.lean`, `HOL/Evaluation.lean` | semantic clauses and substitution/type-instantiation laws proved |
 | Infinity sentence and admission rule | `HOL/Infinity.lean`, `HOL/Derivation.lean` | exact sentence valid in all models; soundness case proved |
-| History-indexed definition and specification derivations | `HOL/ExtensionDerivation.lean` | proved for fresh constant IDs over a fixed signature |
+| History-indexed definition, specification and type-definition derivations | `HOL/ExtensionDerivation.lean` | proved at the history's model pair over a fixed total signature; history freshness is carried, not used |
 | Type-definition carrier laws | `HOL/TypeDefinitions.lean` | proved |
 | Type-definition gate semantics: new model, Abs/Rep laws, old-language invariance | `HOL/TypeDefGate.lean`, `HOL/ModelExtension.lean` | proved over model pairs |
+| Locality of the constant interpretation preserved by every declaration step; old-language invariance along a history | `HOL/Definitions.lean`, `HOL/Specification.lean`, `HOL/TypeDefLocal.lean`, `HOL/ModelExtension.lean` | proved for a local base model (the canonical ones are) |
+| Worked typedef derivation (one-element subtype of `bool`) | `HOL/TypeDefDerivationExamples.lean` | proved |
 | Finite semantic conservativity | `HOL/Conservativity.lean` | proved |
 | Concrete and signature-generic non-triviality | `HOL/Concrete.lean` | proved |
 | Typed HOL core proof package | `HOL/Soundness.lean` | proved |
 
 The public entry point is `QEDFV.HOL.typed_hol_core_proof_complete`. It covers
-the typed core and history-indexed constant extensions over a fixed signature.
+the typed core and history-indexed definition, specification and type-definition
+extensions over a fixed total signature.
 It does not certify growing-signature syntax or a MoonBit refinement. The default
 `QEDFV` target imports `QEDFV.HOL.Soundness` only.
 
@@ -48,10 +51,13 @@ It does not certify growing-signature syntax or a MoonBit refinement. The defaul
 
 The Typed HOL theorem has a neutral type-constructor node `Ty.con` with an explicit
 constructor interpretation, and it models the semantics of a type-definition step over
-model pairs, but it has no derivation constructor for a type definition and no history
-freshness for the new constructor, constants or Abs/Rep theorems. It does not
-establish the MoonBit infinity registration gate, syntactic derivation erasure,
-or a MoonBit-to-Lean refinement. It also does not certify the parser, elaborator,
+model pairs and as a history-indexed derivation constructor whose three laws are
+sound at the history's model pair. History freshness of the new constructor and constants
+is carried as a side condition that soundness does not use; consequences that chain the derived
+laws with core rules would need a history-indexed full calculus, which is not provided. It
+does not establish the MoonBit infinity registration gate, syntactic derivation erasure
+(for a type definition this would need a relativisation translation),
+the kernel's string-name lowering, or a MoonBit-to-Lean refinement. It also does not certify the parser, elaborator,
 tactics, theorem replay, or mutable scope history. MoonBit theorem provenance is
 covered separately by the issue #15 implementation invariant and regression
 tests; it must not be presented as evidence for the Lean theorem.
