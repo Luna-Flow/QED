@@ -1,5 +1,32 @@
 # Formal specification changelog
 
+## 2026-10-12 Detailed mathematical exposition restored
+
+- Restored the original page design, callouts, diagrams, two-part structure,
+  named-boundary and scoped-signature discussion, dictionary-passing blueprint,
+  and detailed validation appendices. This revision supersedes the condensed
+  eight-page rewrite while retaining the Typed HOL-only proof policy.
+- Expanded the intrinsic calculus and gave direct mathematical proofs for
+  nonempty carriers, renaming, substitution, beta, type instantiation, selector
+  coherence, all ten primitive rules, inductive soundness, semantic extension
+  contracts, finite validity conservativity, and concrete non-derivability.
+- Following Krantz's mathematical-writing guidance, distinguished type contexts
+  from assumption lists and named contexts, object equality from meta equality,
+  derivability from validity, and semantic interpretations from frontend instance
+  stores. Defined type-variable support exactly as in Lean and replaced oversized
+  symbolic premises with explicit hypotheses and structured prose.
+- Added adjacent Lean source/declaration annotations and a proof trace matrix.
+  All 116 distinct referenced names pass Lean `#check`, and their annotated
+  source modules were checked. Typst produces a 40-page manuscript; every page
+  was rendered and reviewed, including the equations, diagrams, and tables.
+- Retained frontend results as explicit proof obligations. Dictionary realization
+  starts from schema typing and prerequisite law witnesses rather than assuming
+  its own acceptance checks; recursive resolution requires decrease after type
+  instantiation. No deleted approximation theorem is used as proof evidence.
+- The Lean theorem statements and MoonBit implementation are unchanged by this
+  exposition revision. MoonBit refinement, implementation repair for issue #15,
+  new type-constructor integration, and syntactic extension erasure remain open.
+
 ## 2026-10-12 Typed HOL-only specification rewrite
 
 - Replaced the accumulated implementation-oriented manuscript with a concise

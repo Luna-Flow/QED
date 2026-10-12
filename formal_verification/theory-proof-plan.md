@@ -54,9 +54,9 @@ no custom axiom asserting soundness.
 | Item | Observed problem | Change | Acceptance evidence | Status |
 | --- | --- | --- | --- | --- |
 | Parallel approximation tree | 48 non-HOL Lean modules remained as obsolete evidence | Remove all 48 sources and their project build artifacts | 14 HOL sources plus the root entry; every project import stays within HOL | verified |
-| Specification readability and scope | Accumulated manuscript mixed implementation contracts and mathematical claims | Rewrite around typed syntax, ten rules, evaluation, soundness, and scoped extension results | Typst compiles; all eight pages visually inspected; definitions checked against Lean | verified |
+| Detailed mathematical exposition | The condensed rewrite omitted the original presentation and detailed calculus | Restore the page design, core calculus, design discussion, and appendices; add direct mathematical proofs with adjacent Typed HOL anchors | 40-page Typst output rendered and reviewed; 116 distinct Lean names pass `#check`; annotated modules checked | verified |
 | Current audit accuracy | Older audit omitted a reported implementation defect and overstated scope | Preserve implementation mappings and explicitly retain issue #15 | Open issue independently inspected; implementation repair remains deferred | verified within documentation scope |
-| Translation consistency | Changed pages left catalogs stale | Regenerate template and translate changed Chinese/Japanese messages | Both catalogs: 2361/2361 translated, zero fuzzy; lunadoc check reports zero errors/warnings | verified |
+| Translation consistency | Changed pages left catalogs stale | Regenerate template and translate changed Chinese/Japanese messages | Both catalogs: 2368/2368 translated, zero fuzzy; lunadoc check reports zero errors/warnings | verified |
 
 Verification commands and results:
 
@@ -68,8 +68,11 @@ Verification commands and results:
   and `Quot.sound`.
 - Retained source scan: no `sorry`, `admit`, or custom `axiom`; only HOL and
   Mathlib imports.
-- `typst compile doc/attachments/qed_formal_spec.typ /tmp/qed-typed-hol-spec.pdf`:
-  success; eight-page output inspected.
+- `typst compile -j 1 doc/attachments/qed_formal_spec.typ doc/attachments/qed_formal_spec.pdf`:
+  success; 40-page output rendered and reviewed. The condensed eight-page output
+  is superseded.
+- Lean anchor check: all 116 distinct manuscript declaration names are accepted
+  by `lake env lean`; every annotation names the matching source module.
 - `lunadoc check . --compile`: zero errors and zero warnings.
 - `moon info`, `moon fmt`, and `moon check --target all -j 1`: success, with no
   MoonBit source or generated-interface changes.
@@ -81,3 +84,10 @@ The formal extension results concern pointwise interpretation overrides on a
 fixed signature. They do not prove globally fresh declaration allocation,
 preservation of earlier gate equations under later overrides, or allocation of
 new type constructors. Those limits are explicit in the rewritten specification.
+
+The restored manuscript separates named contexts, typed contexts, and assumption
+lists; it defines the exact Lean type-variable support and carrier identifications.
+It preserves the dictionary-passing blueprint as frontend obligations. Its
+realization argument must start from schema typing and prerequisite witnesses;
+termination uses the instantiated prerequisite metric. These are design
+requirements, not additional checked frontend theorems.
