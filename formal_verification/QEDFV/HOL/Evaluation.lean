@@ -33,10 +33,44 @@ noncomputable def Term.eval (I : ConstVal S) (ρ : TypeVal) (hρ : Admissible ρ
       cast ((S c).denote_subst σ ρ).symm (I (σ.pull ρ) (σ.pull_admissible ρ hρ) c)
   | .app f x => f.eval I ρ hρ η (x.eval I ρ hρ η)
   | .lam b => fun x ↦ b.eval I ρ hρ (η.extend x)
+  | .truth => True
+  | .falsity => False
+  | .conj p q => p.eval I ρ hρ η ∧ q.eval I ρ hρ η
+  | .imp p q => p.eval I ρ hρ η → q.eval I ρ hρ η
+  | .all p => ∀ x, p.eval I ρ hρ (η.extend x)
+  | .ex p => ∃ x, p.eval I ρ hρ (η.extend x)
   | .eq => fun x y ↦ x = y
   | @Term.choice _ _ a =>
       have : Nonempty (Ty.denote ρ a) := a.carrier_nonempty ρ hρ
       select (Ty.denote ρ a)
+
+@[simp] theorem Term.eval_truth (I : ConstVal S) (ρ : TypeVal)
+    (hρ : Admissible ρ) (η : Env ρ Γ) :
+    (Term.truth : Term S Γ .bool).eval I ρ hρ η = True := rfl
+
+@[simp] theorem Term.eval_falsity (I : ConstVal S) (ρ : TypeVal)
+    (hρ : Admissible ρ) (η : Env ρ Γ) :
+    (Term.falsity : Term S Γ .bool).eval I ρ hρ η = False := rfl
+
+@[simp] theorem Term.eval_conj (I : ConstVal S) (ρ : TypeVal)
+    (hρ : Admissible ρ) (η : Env ρ Γ) (p q : Term S Γ .bool) :
+    (Term.conj p q).eval I ρ hρ η =
+      (p.eval I ρ hρ η ∧ q.eval I ρ hρ η) := rfl
+
+@[simp] theorem Term.eval_imp (I : ConstVal S) (ρ : TypeVal)
+    (hρ : Admissible ρ) (η : Env ρ Γ) (p q : Term S Γ .bool) :
+    (Term.imp p q).eval I ρ hρ η =
+      (p.eval I ρ hρ η → q.eval I ρ hρ η) := rfl
+
+@[simp] theorem Term.eval_all (I : ConstVal S) (ρ : TypeVal)
+    (hρ : Admissible ρ) (η : Env ρ Γ) (p : Term S (a :: Γ) .bool) :
+    (Term.all p).eval I ρ hρ η =
+      (∀ x, p.eval I ρ hρ (η.extend x)) := rfl
+
+@[simp] theorem Term.eval_ex (I : ConstVal S) (ρ : TypeVal)
+    (hρ : Admissible ρ) (η : Env ρ Γ) (p : Term S (a :: Γ) .bool) :
+    (Term.ex p).eval I ρ hρ η =
+      (∃ x, p.eval I ρ hρ (η.extend x)) := rfl
 
 @[simp] theorem Term.eval_equal (I : ConstVal S) (ρ : TypeVal) (hρ : Admissible ρ)
     (η : Env ρ Γ) (s t : Term S Γ a) :
@@ -57,6 +91,34 @@ theorem Term.eval_rename (I : ConstVal S) (ρ : TypeVal) (hρ : Admissible ρ)
   | lam b ih =>
       funext x
       simpa only [rename, eval, Env.pull_extend] using ih r.lift (Env.extend η x)
+  | truth => rfl
+  | falsity => rfl
+  | conj p q ihp ihq => simp only [rename, eval, ihp, ihq]
+  | imp p q ihp ihq => simp only [rename, eval, ihp, ihq]
+  | all p ih =>
+      simp only [rename, eval]
+      apply propext
+      constructor
+      · intro h x
+        have hi := ih r.lift (Env.extend η x)
+        rw [Env.pull_extend] at hi
+        exact hi.mp (h x)
+      · intro h x
+        have ihx := ih r.lift (Env.extend η x)
+        rw [Env.pull_extend] at ihx
+        exact ihx.mpr (h x)
+  | ex p ih =>
+      simp only [rename, eval]
+      apply propext
+      constructor
+      · rintro ⟨x, hx⟩
+        have hi := ih r.lift (Env.extend η x)
+        rw [Env.pull_extend] at hi
+        exact ⟨x, hi.mp hx⟩
+      · rintro ⟨x, hx⟩
+        have hi := ih r.lift (Env.extend η x)
+        rw [Env.pull_extend] at hi
+        exact ⟨x, hi.mpr hx⟩
   | eq => rfl
   | choice => rfl
 
@@ -84,6 +146,34 @@ theorem Term.eval_substitute (I : ConstVal S) (ρ : TypeVal) (hρ : Admissible �
   | lam b ih =>
       funext x
       simpa only [substitute, eval, Sub.eval_lift] using ih σ.lift (Env.extend η x)
+  | truth => rfl
+  | falsity => rfl
+  | conj p q ihp ihq => simp only [substitute, eval, ihp, ihq]
+  | imp p q ihp ihq => simp only [substitute, eval, ihp, ihq]
+  | all p ih =>
+      simp only [substitute, eval]
+      apply propext
+      constructor
+      · intro h x
+        have hi := ih σ.lift (Env.extend η x)
+        rw [Sub.eval_lift] at hi
+        exact hi.mp (h x)
+      · intro h x
+        have ihx := ih σ.lift (Env.extend η x)
+        rw [Sub.eval_lift] at ihx
+        exact ihx.mpr (h x)
+  | ex p ih =>
+      simp only [substitute, eval]
+      apply propext
+      constructor
+      · rintro ⟨x, hx⟩
+        have hi := ih σ.lift (Env.extend η x)
+        rw [Sub.eval_lift] at hi
+        exact ⟨x, hi.mp hx⟩
+      · rintro ⟨x, hx⟩
+        have hi := ih σ.lift (Env.extend η x)
+        rw [Sub.eval_lift] at hi
+        exact ⟨x, hi.mpr hx⟩
   | eq => rfl
   | choice => rfl
 

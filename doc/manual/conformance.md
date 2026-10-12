@@ -29,7 +29,9 @@ the Lean calculus.
 | Evaluation and beta | `HOL/Evaluation.lean` | proved |
 | Type instantiation and choice coherence | `HOL/Instantiation.lean` | proved |
 | Primitive rule validity, including `ADD_ASSUM` and witness `SPECIFY` | `HOL/Rules.lean` | proved |
-| Derivation soundness | `HOL/Derivation.lean` | proved |
+| Derivation soundness for all constructors, including infinity | `HOL/Derivation.lean` | proved |
+| Object-language connectives and quantifiers | `HOL/Terms.lean`, `HOL/Evaluation.lean` | semantic clauses and substitution/type-instantiation laws proved |
+| Infinity sentence and admission rule | `HOL/Infinity.lean`, `HOL/Derivation.lean` | exact sentence valid in all models; soundness case proved |
 | History-indexed definition and specification derivations | `HOL/ExtensionDerivation.lean` | proved for fresh constant IDs over a fixed signature |
 | Type-definition carrier laws | `HOL/TypeDefinitions.lean` | proved |
 | Finite semantic conservativity | `HOL/Conservativity.lean` | proved |
@@ -44,8 +46,8 @@ It does not certify growing-signature syntax or a MoonBit refinement. The defaul
 ## Explicit limits
 
 The Typed HOL theorem does not establish user type-constructor syntax and
-semantics, the infinity-axiom admission rule, syntactic derivation erasure, or a
-MoonBit-to-Lean refinement. It also does not certify the parser, elaborator,
+semantics, the MoonBit infinity registration gate, syntactic derivation erasure,
+or a MoonBit-to-Lean refinement. It also does not certify the parser, elaborator,
 tactics, theorem replay, mutable scope history, or
 provenance behavior. Those are implementation work and must not be presented as
 evidence for the Lean theorem.

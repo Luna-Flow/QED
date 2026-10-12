@@ -109,6 +109,49 @@ theorem Term.eval_instType
       have hb := ih (Env.extend η x)
       rw [Env.instPull_extend] at hb
       exact hb
+  | truth => exact heq_of_eq rfl
+  | falsity => exact heq_of_eq rfl
+  | conj p q ihp ihq =>
+      simp only [Term.instType, Term.eval]
+      have hp := ihp η
+      have hq := ihq η
+      rw [eq_of_heq hp, eq_of_heq hq]
+  | imp p q ihp ihq =>
+      simp only [Term.instType, Term.eval]
+      have hp := ihp η
+      have hq := ihq η
+      rw [eq_of_heq hp, eq_of_heq hq]
+  | @all a Γ p ih =>
+      simp only [Term.instType, Term.eval]
+      apply heq_of_eq
+      apply propext
+      constructor
+      · intro h x
+        let x' : Ty.denote ρ (a.subst θ) :=
+          cast (Ty.denote_subst a θ ρ).symm x
+        have hb := ih (Env.extend η x')
+        rw [Env.instPull_extend] at hb
+        simpa [x'] using (eq_of_heq hb).mp (h x')
+      · intro h x
+        let x' : Ty.denote ρ (a.subst θ) := x
+        have hb := ih (Env.extend η x')
+        rw [Env.instPull_extend] at hb
+        simpa [x'] using (eq_of_heq hb).mpr (h (cast (Ty.denote_subst a θ ρ) x'))
+  | @ex a Γ p ih =>
+      simp only [Term.instType, Term.eval]
+      apply heq_of_eq
+      apply propext
+      constructor
+      · rintro ⟨x, hx⟩
+        have hb := ih (Env.extend η x)
+        rw [Env.instPull_extend] at hb
+        exact ⟨cast (Ty.denote_subst a θ ρ) x, (eq_of_heq hb).mp hx⟩
+      · rintro ⟨x, hx⟩
+        let x' : Ty.denote ρ (a.subst θ) :=
+          cast (Ty.denote_subst a θ ρ).symm x
+        have hb := ih (Env.extend η x')
+        rw [Env.instPull_extend] at hb
+        exact ⟨x', (eq_of_heq hb).mpr (by simpa [x'] using hx)⟩
   | @eq Γ a =>
       simpa only [Term.instType, Term.eval] using eq_natural (a.denote_subst θ ρ)
   | @choice Γ a =>

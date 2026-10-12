@@ -2947,7 +2947,7 @@ msgid "Typed HOL evidence"
 msgstr "Typed HOL の検証根拠"
 
 #: manual/conformance.md:25
-#: manual/conformance.md:63
+#: manual/conformance.md:65
 msgid "Area"
 msgstr "領域"
 
@@ -2965,10 +2965,10 @@ msgstr "型と非空の台集合"
 #: manual/conformance.md:30
 #: manual/conformance.md:31
 #: manual/conformance.md:32
-#: manual/conformance.md:34
-#: manual/conformance.md:35
 #: manual/conformance.md:36
 #: manual/conformance.md:37
+#: manual/conformance.md:38
+#: manual/conformance.md:39
 #: manual/qed_formal_audit_matrices.md:11
 #: manual/qed_formal_audit_matrices.md:12
 #: manual/qed_formal_audit_matrices.md:13
@@ -3001,263 +3001,279 @@ msgid "Primitive rule validity, including `ADD_ASSUM` and witness `SPECIFY`"
 msgstr "`ADD_ASSUM` と証人に基づく `SPECIFY` を含む基本規則の妥当性"
 
 #: manual/conformance.md:32
-msgid "Derivation soundness"
-msgstr "導出の健全性"
+msgid "Derivation soundness for all constructors, including infinity"
+msgstr "無限規則を含む全推導構成子の健全性"
 
 #: manual/conformance.md:33
+msgid "Object-language connectives and quantifiers"
+msgstr "オブジェクト言語の論理結合子と量化子"
+
+#: manual/conformance.md:33
+msgid "semantic clauses and substitution/type-instantiation laws proved"
+msgstr "意味論的節と置換・型インスタンス化の法則を証明済み"
+
+#: manual/conformance.md:34
+msgid "Infinity sentence and admission rule"
+msgstr "無限公理文と導入規則"
+
+#: manual/conformance.md:34
+msgid "exact sentence valid in all models; soundness case proved"
+msgstr "この公理文はすべてのモデルで妥当であり、健全性のケースも証明済み"
+
+#: manual/conformance.md:35
 msgid "History-indexed definition and specification derivations"
 msgstr "履歴で添字付けられた定義および仕様指定の導出"
 
-#: manual/conformance.md:33
+#: manual/conformance.md:35
 msgid "proved for fresh constant IDs over a fixed signature"
 msgstr "固定シグネチャ上の新しい定数 ID について証明済み"
 
-#: manual/conformance.md:34
+#: manual/conformance.md:36
 msgid "Type-definition carrier laws"
 msgstr "型定義の台集合に関する法則"
 
-#: manual/conformance.md:35
+#: manual/conformance.md:37
 #: manual/qed_formal_audit_matrices.md:19
 msgid "Finite semantic conservativity"
 msgstr "有限列の意味論的保守性"
 
-#: manual/conformance.md:36
+#: manual/conformance.md:38
 msgid "Concrete and signature-generic non-triviality"
 msgstr "具体的および任意のシグネチャにおける非自明性"
 
-#: manual/conformance.md:37
+#: manual/conformance.md:39
 msgid "Typed HOL core proof package"
 msgstr "Typed HOL コア証明パッケージ"
 
-#: manual/conformance.md:39
+#: manual/conformance.md:41
 msgid "The public entry point is `QEDFV.HOL.typed_hol_core_proof_complete`. It covers the typed core and history-indexed constant extensions over a fixed signature. It does not certify growing-signature syntax or a MoonBit refinement. The default `QEDFV` target imports `QEDFV.HOL.Soundness` only."
 msgstr "公開エントリーポイントは `QEDFV.HOL.typed_hol_core_proof_complete` です。この定理は型付きコアと、固定シグネチャ上で履歴により添字付けられた定数拡張を扱います。成長するシグネチャの構文や MoonBit の精緻化は認証しません。既定の `QEDFV` ターゲットがインポートするのは `QEDFV.HOL.Soundness` だけです。"
 
-#: manual/conformance.md:44
+#: manual/conformance.md:46
 msgid "Explicit limits"
 msgstr "明示的な限界"
 
-#: manual/conformance.md:46
-msgid "The Typed HOL theorem does not establish user type-constructor syntax and semantics, the infinity-axiom admission rule, syntactic derivation erasure, or a MoonBit-to-Lean refinement. It also does not certify the parser, elaborator, tactics, theorem replay, mutable scope history, or provenance behavior. Those are implementation work and must not be presented as evidence for the Lean theorem."
-msgstr "Typed HOL 定理は、ユーザー型構成子の構文と意味論、無限公理の導入規則、拡張導出の構文的消去、または MoonBit から Lean への精緻化を確立していません。また、パーサー、エラボレーター、タクティク、定理のリプレイ、可変スコープ履歴、出自管理の動作も認証しません。これらは実装上の課題であり、Lean 定理の根拠として提示してはなりません。"
+#: manual/conformance.md:48
+msgid "The Typed HOL theorem does not establish user type-constructor syntax and semantics, the MoonBit infinity registration gate, syntactic derivation erasure, or a MoonBit-to-Lean refinement. It also does not certify the parser, elaborator, tactics, theorem replay, mutable scope history, or provenance behavior. Those are implementation work and must not be presented as evidence for the Lean theorem."
+msgstr "Typed HOL 定理は、ユーザー型構成子の構文と意味論、MoonBit の無限公理登録ゲート、拡張導出の構文的消去、または MoonBit から Lean への精緻化を確立していません。また、パーサー、エラボレーター、タクティク、定理のリプレイ、可変スコープ履歴、出自管理の動作も認証しません。これらは実装上の課題であり、Lean 定理の根拠として提示してはなりません。"
 
-#: manual/conformance.md:53
+#: manual/conformance.md:55
 msgid "Implementation evidence"
 msgstr "実装の検証根拠"
 
-#: manual/conformance.md:55
+#: manual/conformance.md:57
 msgid "The following mappings and contributor rules remain implementation evidence, not a checked refinement theorem. Existing tests do not cover every trust-boundary case: [issue #15](https://github.com/Luna-Flow/QED/issues/15) reports that sibling `KernelState` histories can accept each other's theorems and derive `T = F`. Its repair is deferred with the MoonBit work."
 msgstr "以下の対応表と貢献規則は実装の根拠であり、検証済みの精緻化定理ではありません。既存のテストは信頼境界の全事例を網羅していません。[issue #15](https://github.com/Luna-Flow/QED/issues/15) は、兄弟関係の `KernelState` 履歴が互いの定理を受け入れ、`T = F` を導出できると報告しています。修正は MoonBit の作業とともに延期しています。"
 
-#: manual/conformance.md:61
+#: manual/conformance.md:63
 msgid "Code and test mapping"
 msgstr "コードとテストの対応"
 
-#: manual/conformance.md:63
+#: manual/conformance.md:65
 msgid "Current implementation"
 msgstr "現在の実装"
 
-#: manual/conformance.md:63
+#: manual/conformance.md:65
 msgid "Regression coverage"
 msgstr "回帰テストのカバー範囲"
 
-#: manual/conformance.md:65
+#: manual/conformance.md:67
 msgid "Typed core + boundary conversion"
 msgstr "型付きコア + 境界変換"
 
-#: manual/conformance.md:66
+#: manual/conformance.md:68
 msgid "Scoped state + extension gates"
 msgstr "スコープ付き状態 + 拡張ゲート"
 
-#: manual/conformance.md:67
+#: manual/conformance.md:69
 msgid "Primitive rules + admissibility"
 msgstr "基本規則 + 許容性"
 
-#: manual/conformance.md:68
+#: manual/conformance.md:70
 msgid "Resolved elaboration boundary"
 msgstr "解決済みエラボレーション境界"
 
-#: manual/conformance.md:69
+#: manual/conformance.md:71
 msgid "Parser bridge + normalize/raw-offset contract"
 msgstr "parser ブリッジ + 正規化/raw-offset 契約"
 
-#: manual/conformance.md:70
+#: manual/conformance.md:72
 msgid "Parser-to-tactics explicit goal bridge"
 msgstr "parser からタクティクへの明示的なゴールブリッジ"
 
-#: manual/conformance.md:71
+#: manual/conformance.md:73
 msgid "Surface connector basis expansion"
 msgstr "表層結合子の基底展開"
 
-#: manual/conformance.md:72
+#: manual/conformance.md:74
 msgid "Proposition theorem replay/catalog seeds"
 msgstr "命題定理のリプレイ/カタログの種"
 
-#: manual/conformance.md:73
+#: manual/conformance.md:75
 msgid "Operational proof scripting + M1 subset replay"
 msgstr "運用上の証明スクリプト + M1 サブセットのリプレイ"
 
-#: manual/conformance.md:74
+#: manual/conformance.md:76
 msgid "File-first `cmd` integration surface"
 msgstr "ファイル優先の `cmd` 統合サーフェス"
 
-#: manual/conformance.md:75
+#: manual/conformance.md:77
 msgid "Quantifier-facing binder / raw-`forall` corpus + CLI contract"
 msgstr "量化子向け束縛子 / 生の `forall` のコーパス + CLI 契約"
 
-#: manual/conformance.md:77
+#: manual/conformance.md:79
 msgid "Regression points that deserve particular attention:"
 msgstr "特に注意すべき回帰ポイント:"
 
-#: manual/conformance.md:79
+#: manual/conformance.md:81
 msgid "`src/kernel/kernel_audit_test.mbt` already covers high-risk scenarios such as def-head monotonicity, typedef witness validity, const-id drift, typed beta/trans guards, and conservative replay."
 msgstr "`src/kernel/kernel_audit_test.mbt` は、def ヘッドの単調性、typedef ウィットネスの妥当性、const-id のずれ、型付き beta/trans のガード、保守的リプレイといった高リスクのシナリオをすでにカバーしている。"
 
-#: manual/conformance.md:82
+#: manual/conformance.md:84
 msgid "`src/parser/parser_test.mbt` already covers the normalize/raw-offset contract and the fail-closed rejection of non-`bool` connectors."
 msgstr "`src/parser/parser_test.mbt` は、正規化/raw-offset 契約と、`bool` でない結合子のフェイルクローズによる拒否をすでにカバーしている。"
 
-#: manual/conformance.md:84
+#: manual/conformance.md:86
 msgid "`src/parser/parser_test.mbt` currently also covers theorem-header binders, structured branch block parsing, and raw-span regressions."
 msgstr "`src/parser/parser_test.mbt` は現在、定理ヘッダの束縛子、構造化分岐ブロックの解析、raw スパンの回帰もカバーしている。"
 
-#: manual/conformance.md:86
+#: manual/conformance.md:88
 msgid "`src/parser/parser_test.mbt` and `src/prover/prover_positive_corpus_test.mbt` together currently pin down the contract for parser-owned goal lowering and the explicit upper-layer bridge to `tactics.Goal`."
 msgstr "`src/parser/parser_test.mbt` と `src/prover/prover_positive_corpus_test.mbt` は合わせて、parser 所有のゴールローワリングと、`tactics.Goal` への上位層による明示的ブリッジの契約を現在固定している。"
 
-#: manual/conformance.md:89
+#: manual/conformance.md:91
 msgid "`src/prover/prover_test.mbt` currently pins down script scheduling, branch path attribution, and the step blame convention for structured branch blocks."
 msgstr "`src/prover/prover_test.mbt` は、スクリプトのスケジューリング、分岐パスの帰属、構造化分岐ブロックにおけるステップ責任の規約を現在固定している。"
 
-#: manual/conformance.md:91
+#: manual/conformance.md:93
 msgid "`src/prover/prover_test.mbt` currently covers positive `Ok((KernelState, Thm))` cases for the supported M1 subset, as well as several direct-close / implication-backed theorem-name paths."
 msgstr "`src/prover/prover_test.mbt` は、サポート対象の M1 サブセットに対する `Ok((KernelState, Thm))` の正例と、直接クローズ / 含意に裏付けられたいくつかの定理名経路をカバーしている。"
 
-#: manual/conformance.md:93
+#: manual/conformance.md:95
 msgid "`src/prover/prover_positive_corpus_test.mbt` / `src/prover/prover_negative_corpus_test.mbt` currently hold the canonical script corpus for the shipped subset, used to pin down capability coverage and the honest failure convention."
 msgstr "`src/prover/prover_positive_corpus_test.mbt` / `src/prover/prover_negative_corpus_test.mbt` は、出荷済みサブセットの正準スクリプトコーパスを保持しており、機能のカバー範囲と正直な失敗の規約を固定するために使われる。"
 
-#: manual/conformance.md:96
+#: manual/conformance.md:98
 msgid "`src/prover/prover_test.mbt`, `src/prover/prover_mapping_matrix_test.mbt`, and `src/cmd/cmd_corpus_wbtest.mbt` currently also cover the structured contract for unfinished-proof / hole reporting and the canonical unfinished corpus anchors."
 msgstr "`src/prover/prover_test.mbt`、`src/prover/prover_mapping_matrix_test.mbt`、`src/cmd/cmd_corpus_wbtest.mbt` は、未完了の証明 / hole 報告の構造化契約と、正準な未完了コーパスのアンカーも現在カバーしている。"
 
-#: manual/conformance.md:99
+#: manual/conformance.md:101
 msgid "`src/prover/prover_mapping_matrix_test.mbt` and `src/cmd/cmd_corpus_wbtest.mbt` currently also cover the nested branch unfinished path and stable empty-marker rendering."
 msgstr "`src/prover/prover_mapping_matrix_test.mbt` と `src/cmd/cmd_corpus_wbtest.mbt` は、ネストした分岐の未完了経路と、安定した空マーカーのレンダリングも現在カバーしている。"
 
-#: manual/conformance.md:101
+#: manual/conformance.md:103
 msgid "`src/cmd/cmd_corpus_wbtest.mbt` and `src/cmd/cmd_wbtest.mbt` currently also pin down the success / failure / unfinished CLI contract for shipped quantifier-facing binder / raw-`forall` scripts, including goal, locals, branch path, and step blame."
 msgstr "`src/cmd/cmd_corpus_wbtest.mbt` と `src/cmd/cmd_wbtest.mbt` は、出荷済みの量化子向け束縛子 / 生の `forall` スクリプトに対する成功 / 失敗 / 未完了の CLI 契約を、ゴール、ローカル、分岐パス、ステップ責任を含めて現在固定している。"
 
-#: manual/conformance.md:104
+#: manual/conformance.md:106
 msgid "`src/prover/prover_mapping_matrix_test.mbt` currently binds the positive / negative / unfinished canonical case ids, the quantifier binder / raw-`forall` case ids, the capability tags, and the public example anchors in [User manual](manual.md) into a single set of regression constraints."
 msgstr "`src/prover/prover_mapping_matrix_test.mbt` は、正例 / 負例 / 未完了の正準ケース id、量化子束縛子 / 生の `forall` のケース id、機能タグ、[ユーザーマニュアル](manual.md)の公開サンプルのアンカーを、一組の回帰制約に現在束ねている。"
 
-#: manual/conformance.md:107
+#: manual/conformance.md:109
 msgid "`src/cmd/cmd_wbtest.mbt` currently covers success rendering, parse/io/usage failures, tactic failure context rendering, branch-path rendering, and the file-first argv workflow."
 msgstr "`src/cmd/cmd_wbtest.mbt` は、成功時のレンダリング、parse/io/usage の失敗、タクティク失敗コンテキストのレンダリング、分岐パスのレンダリング、ファイル優先の argv ワークフローを現在カバーしている。"
 
-#: manual/conformance.md:111
+#: manual/conformance.md:113
 msgid "Documentation example source contract"
 msgstr "ドキュメントの例のソース契約"
 
-#: manual/conformance.md:113
+#: manual/conformance.md:115
 msgid "To keep the documentation from presenting planned capabilities as delivered ones, documentation examples must currently follow these source constraints:"
 msgstr "ドキュメントが計画中の機能を出荷済みであるかのように提示することを防ぐため、ドキュメントの例は現在、次のソース制約に従わなければならない。"
 
-#: manual/conformance.md:116
+#: manual/conformance.md:118
 msgid "`README.md` only publishes a summary of the current shipped subset and does not invent new example semantics on its own."
 msgstr "`README.md` は現在出荷されているサブセットの要約のみを公開し、独自に新たな例の意味論を創作しない。"
 
-#: manual/conformance.md:118
+#: manual/conformance.md:120
 msgid "Runnable theorem-script examples in [User manual](manual.md) must come from existing regression test coverage."
 msgstr "[ユーザーマニュアル](manual.md)の実行可能な定理スクリプトの例は、既存の回帰テストのカバー範囲に由来していなければならない。"
 
-#: manual/conformance.md:120
+#: manual/conformance.md:122
 msgid "Theorem-producing positive example scripts currently use `src/prover/prover_test.mbt` and `src/prover/prover_positive_corpus_test.mbt` as their primary anchors."
 msgstr "定理を生成する正例スクリプトは、現在 `src/prover/prover_test.mbt` と `src/prover/prover_positive_corpus_test.mbt` を主なアンカーとしている。"
 
-#: manual/conformance.md:123
+#: manual/conformance.md:125
 msgid "Negative / honest failure examples for the shipped subset currently use `src/prover/prover_negative_corpus_test.mbt` as their primary anchor."
 msgstr "出荷済みサブセットの負例 / 正直な失敗の例は、現在 `src/prover/prover_negative_corpus_test.mbt` を主なアンカーとしている。"
 
-#: manual/conformance.md:125
+#: manual/conformance.md:127
 msgid "Canonical unfinished-proof examples currently use `src/prover/prover_test.mbt`, `src/prover/prover_mapping_matrix_test.mbt`, and `src/cmd/cmd_corpus_wbtest.mbt` as their primary anchors; both root-level unfinished and nested branch unfinished samples must be kept in sync."
 msgstr "正準な未完了証明の例は、現在 `src/prover/prover_test.mbt`、`src/prover/prover_mapping_matrix_test.mbt`、`src/cmd/cmd_corpus_wbtest.mbt` を主なアンカーとしている。ルートレベルの未完了と、ネストした分岐の未完了の両方のサンプルを同期させておかなければならない。"
 
-#: manual/conformance.md:129
+#: manual/conformance.md:131
 msgid "Quantifier-facing binder / raw-`forall` examples currently also use `src/prover/corpus.mbt`, `src/prover/prover_mapping_matrix_test.mbt`, and `src/cmd/cmd_corpus_wbtest.mbt` as their primary anchors; public documentation may only cite these canonical case ids."
 msgstr "量化子向け束縛子 / 生の `forall` の例も現在、`src/prover/corpus.mbt`、`src/prover/prover_mapping_matrix_test.mbt`、`src/cmd/cmd_corpus_wbtest.mbt` を主なアンカーとしており、公開ドキュメントはこれらの正準ケース id のみを引用できる。"
 
-#: manual/conformance.md:133
+#: manual/conformance.md:135
 msgid "The mapping from case ids to example anchors in public documentation currently uses `src/prover/prover_mapping_matrix_test.mbt` as its primary anchor."
 msgstr "公開ドキュメントにおけるケース id から例のアンカーへの対応は、現在 `src/prover/prover_mapping_matrix_test.mbt` を主なアンカーとしている。"
 
-#: manual/conformance.md:135
+#: manual/conformance.md:137
 msgid "Tactic-level examples, local-over-name conflicts, and wrong-mode honest failures currently use `src/tactics/proof_state_test.mbt` as their primary anchor."
 msgstr "タクティクレベルの例、ローカルが名前に優先する衝突、誤ったモードによる正直な失敗は、現在 `src/tactics/proof_state_test.mbt` を主なアンカーとしている。"
 
-#: manual/conformance.md:137
+#: manual/conformance.md:139
 msgid "Theorem scripts quoted on the package pages (`api/`, `design/`, `tutorial/`) reuse scripts from the anchors above; they do not introduce new script semantics."
 msgstr "パッケージページ(`api/`、`design/`、`tutorial/`)に引用される定理スクリプトは上記のアンカーのスクリプトを再利用しており、新たなスクリプトの意味論を導入しない。"
 
-#: manual/conformance.md:139
+#: manual/conformance.md:141
 msgid "MoonBit API examples on the package pages are complete programs that call the public functions of the current code and record their results with `assert_eq`, `assert_true` or `inspect` snapshots. Every such block is compiled and run against the current code before the page changes; a block that is not meant to run is fenced `moonbit nocheck`."
 msgstr "パッケージページの MoonBit API の例は、現在のコードの公開関数を呼び出し、結果を `assert_eq`、`assert_true`、または `inspect` スナップショットで記録する完全なプログラムである。そのようなブロックはすべて、ページを変更する前に現在のコードに対してコンパイルされ実行される。実行を意図しないブロックは `moonbit nocheck` でフェンスされる。"
 
-#: manual/conformance.md:143
+#: manual/conformance.md:145
 msgid "If the documentation adds, modifies, or removes a public example, the corresponding regression test must be added, modified, or removed at the same time."
 msgstr "ドキュメントが公開サンプルを追加、変更、削除する場合は、対応する回帰テストも同時に追加、変更、削除しなければならない。"
 
-#: manual/conformance.md:147
+#: manual/conformance.md:149
 msgid "Contributor checklist"
 msgstr "コントリビュータチェックリスト"
 
-#: manual/conformance.md:149
+#: manual/conformance.md:151
 msgid "`logic` may only provide checked wrappers, definition/unfold helpers, replay helpers, and organization of non-authoritative theorem references; it must not bypass the kernel to invent new rules."
 msgstr "`logic` が提供してよいのは、検査済みラッパー、定義/展開ヘルパー、リプレイヘルパー、非権威的な定理参照の整理のみであり、カーネルを迂回して新たな規則を作ってはならない。"
 
-#: manual/conformance.md:152
+#: manual/conformance.md:154
 msgid "`parser` must preserve `local > const` and the normalize + raw-offset contract, and must share the same connector contract with `logic`."
 msgstr "`parser` は `local > const` と正規化 + raw-offset 契約を保持し、`logic` と同じ結合子契約を共有しなければならない。"
 
-#: manual/conformance.md:154
+#: manual/conformance.md:156
 msgid "`elab` must freeze resolved identity; when later typing encounters const-id or schema drift, it must fail closed."
 msgstr "`elab` は解決済みの同一性を凍結しなければならず、後の型付けで const-id やスキーマのずれに遭遇した場合は、フェイルクローズしなければならない。"
 
-#: manual/conformance.md:156
+#: manual/conformance.md:158
 msgid "`tactics` may hand out a theorem through `ps_qed` only when replay through `logic` constructs a `Thm` consistent with the sequent; otherwise it must fail closed."
 msgstr "`tactics` が `ps_qed` を通じて定理を渡してよいのは、`logic` を経由したリプレイがシーケントと整合する `Thm` を構築した場合のみであり、そうでなければフェイルクローズしなければならない。"
 
-#: manual/conformance.md:158
+#: manual/conformance.md:160
 msgid "Final acceptance in `ps_qed` must currently use strict normalized sequent equality; the old boundary that admitted results based only on shape-aware compatibility must not be kept."
 msgstr "`ps_qed` における最終受理は、現在は厳密に正規化されたシーケントの等価性を用いなければならず、形状を考慮した互換性のみに基づいて結果を受理していた古い境界を残してはならない。"
 
-#: manual/conformance.md:160
+#: manual/conformance.md:162
 msgid "`prover` returns `Ok` and a `Thm` only when replay succeeds; otherwise it keeps returning honest errors."
 msgstr "`prover` が `Ok` と `Thm` を返すのはリプレイが成功した場合のみであり、それ以外は正直なエラーを返し続ける。"
 
-#: manual/conformance.md:162
+#: manual/conformance.md:164
 msgid "`cmd` may only be a new non-authoritative integration layer and must not become a second proof kernel."
 msgstr "`cmd` は新たな非権威的な統合層にしかなってはならず、第二の証明カーネルになってはならない。"
 
-#: manual/conformance.md:164
+#: manual/conformance.md:166
 msgid "Extension certificates may only be audit artifacts; they must not be treated as a substitute for theorem acceptance."
 msgstr "拡張証明書は監査成果物にしかなってはならず、定理受理の代替として扱ってはならない。"
 
-#: manual/conformance.md:167
+#: manual/conformance.md:169
 msgid "Verification"
 msgstr "検証"
 
-#: manual/conformance.md:169
+#: manual/conformance.md:171
 msgid "Run the checks serially from the repository root:"
 msgstr "リポジトリのルートから検証を直列に実行してください。"
 
-#: manual/conformance.md:181
+#: manual/conformance.md:183
 msgid "The public package reports only the Lean/Mathlib foundations `propext`, `Classical.choice`, and `Quot.sound` under `#print axioms`. The exact audited output and its role are recorded in `formal_verification/axioms.txt`. Typst compilation is:"
 msgstr "公開パッケージの `#print axioms` は Lean/Mathlib の基礎公理 `propext`、`Classical.choice`、`Quot.sound` のみを報告します。監査済みの出力とその位置付けは `formal_verification/axioms.txt` に記録されています。Typst のコンパイルコマンドは次のとおりです。"
 
-#: manual/conformance.md:190
+#: manual/conformance.md:192
 msgid "MoonBit tests remain useful evidence for the realization, but they do not enlarge the Typed HOL proof boundary."
 msgstr "MoonBit のテストは実装の有用な根拠ですが、Typed HOL の証明範囲を広げるものではありません。"
 
@@ -3294,34 +3310,42 @@ msgid "Intrinsic simple types and De Bruijn terms, with typed renaming, substitu
 msgstr "内在的に型付けされた単純型と De Bruijn 項、および型付き変数名変更、代入、beta、型の具体化に関する評価法則。"
 
 #: manual/current_workspace_audit.md:17
-msgid "Semantic validity preservation for all twelve typed core derivation constructors, including `ADD_ASSUM` and witness-based `SPECIFY`."
-msgstr "`ADD_ASSUM` と証人に基づく `SPECIFY` を含む、型付きコア導出の全 12 コンストラクタについて意味論的妥当性が保存されます。"
+msgid "Semantic validity preservation for all thirteen derivation constructors, including `ADD_ASSUM`, witness-based `SPECIFY`, and infinity admission."
+msgstr "`ADD_ASSUM`、証人に基づく `SPECIFY`、無限公理導入を含む全 13 個の推導構成子について、意味論的妥当性が保存されます。"
 
 #: manual/current_workspace_audit.md:19
+msgid "Object-language truth, falsity, conjunction, implication, universal and existential quantification with proved evaluation characterizations."
+msgstr "対象言語の真、偽、連言、含意、全称量化、存在量化には、それぞれ証明済みの評価特性があります。"
+
+#: manual/current_workspace_audit.md:21
+msgid "The closed infinity sentence is valid in every model; its derivation constructor has a direct soundness case."
+msgstr "閉じた無限公理文はすべてのモデルで妥当であり、その導出構成子には直接の健全性証明があります。"
+
+#: manual/current_workspace_audit.md:23
 msgid "Derivation soundness by induction, for every constant interpretation."
 msgstr "任意の定数解釈について、帰納法による導出の健全性。"
 
-#: manual/current_workspace_audit.md:20
+#: manual/current_workspace_audit.md:24
 msgid "History-indexed definition and specification derivations. A specification witness is derived at the preceding history; soundness composes over fresh constant IDs in the fixed signature."
 msgstr "履歴で添字付けられた定義および仕様指定の導出。仕様指定の証人は直前の履歴で導出されます。固定シグネチャ内の新しい定数 ID について、健全性は履歴に沿って合成されます。"
 
-#: manual/current_workspace_audit.md:23
+#: manual/current_workspace_audit.md:27
 msgid "Semantic extension contracts and witnessed predicate subtype carrier laws."
 msgstr "意味論的な拡張契約と、証人を持つ述語部分型の台集合に関する法則。"
 
-#: manual/current_workspace_audit.md:24
+#: manual/current_workspace_audit.md:28
 msgid "Old-language semantic validity equivalence over finite modeled extension sequences."
 msgstr "モデル化された有限拡張列における旧言語の意味論的妥当性の同値。"
 
-#: manual/current_workspace_audit.md:26
+#: manual/current_workspace_audit.md:30
 msgid "A concrete interpretation in which `succ(0) = 0` is false and therefore underivable."
 msgstr "`succ(0) = 0` が偽となり、したがって導出不能である具体的解釈。"
 
-#: manual/current_workspace_audit.md:29
+#: manual/current_workspace_audit.md:33
 msgid "The public theorem is `QEDFV.HOL.typed_hol_core_proof_complete`. Audited `#print axioms` output is `propext`, `Classical.choice`, and `Quot.sound`. There are no project-defined axioms, `sorry`, or `admit` in the retained Lean tree."
 msgstr "公開定理は `QEDFV.HOL.typed_hol_core_proof_complete` です。監査済みの `#print axioms` 出力は `propext`、`Classical.choice`、`Quot.sound` です。保持する Lean ツリーにはプロジェクト独自の公理、`sorry`、`admit` はありません。"
 
-#: manual/current_workspace_audit.md:34
+#: manual/current_workspace_audit.md:38
 #: manual/design/cmd.md:70
 #: manual/design/elab.md:74
 #: manual/design/kernel.md:286
@@ -3333,47 +3357,47 @@ msgstr "公開定理は `QEDFV.HOL.typed_hol_core_proof_complete` です。監�
 msgid "Boundaries"
 msgstr "境界"
 
-#: manual/current_workspace_audit.md:36
-msgid "The proof does not establish growing-signature derivations, user type-constructor syntax or semantics, object-language infinity admission, syntactic derivation erasure for extensions, a MoonBit-to-Lean refinement, or correctness of MoonBit parsing, elaboration, tactics, replay, mutable signature history, or theorem provenance. Tests and engineering audits remain separate evidence for those implementation properties."
-msgstr "この証明は、成長するシグネチャ上の導出、ユーザー型構成子の構文と意味論、オブジェクト言語の無限公理導入、拡張導出の構文的消去、MoonBit から Lean への精緻化、および MoonBit の解析、エラボレーション、タクティク、リプレイ、可変シグネチャ履歴、定理の出自管理の正しさを確立していません。テストと工学的監査は、これらの実装特性に関する別の根拠です。"
+#: manual/current_workspace_audit.md:40
+msgid "The proof does not establish growing-signature derivations, user type-constructor syntax or semantics, the MoonBit infinity registration gate, syntactic derivation erasure for extensions, a MoonBit-to-Lean refinement, or correctness of MoonBit parsing, elaboration, tactics, replay, mutable signature history, or theorem provenance. Tests and engineering audits remain separate evidence for those implementation properties."
+msgstr "この証明は、成長するシグネチャ上の導出、ユーザー型構成子の構文と意味論、MoonBit の無限公理登録ゲート、拡張導出の構文的消去、MoonBit から Lean への精緻化、および MoonBit の解析、エラボレーション、タクティク、リプレイ、可変シグネチャ履歴、定理の出自管理の正しさを確立していません。テストと工学的監査は、これらの実装特性に関する別の根拠です。"
 
-#: manual/current_workspace_audit.md:43
+#: manual/current_workspace_audit.md:47
 msgid "This status supersedes older audit claims about conditional proof packs or MoonBit conformance being part of the formal target."
 msgstr "この状況は、条件付き証明パッケージや MoonBit の適合性が形式化ターゲットに含まれるとする過去の監査記述に優先します。"
 
-#: manual/current_workspace_audit.md:46
+#: manual/current_workspace_audit.md:50
 msgid "Open implementation soundness defect"
 msgstr "未解決の実装健全性の欠陥"
 
-#: manual/current_workspace_audit.md:48
+#: manual/current_workspace_audit.md:52
 msgid "[Issue #15](https://github.com/Luna-Flow/QED/issues/15) remains open. The reported public-API reproduction reuses a theorem across sibling `KernelState` histories whose independently allocated constant identifiers collide, deriving `|- T = F`. `Thm` does not track state lineage, and the current admissibility checks do not establish that the theorem belongs to the receiving declaration history."
 msgstr "[issue #15](https://github.com/Luna-Flow/QED/issues/15) は未解決です。報告された公開 API による再現では、兄弟関係の `KernelState` 履歴間で定理を再利用します。各履歴が独立に割り当てた定数識別子が衝突し、`|- T = F` が導出されます。`Thm` は状態の系譜を追跡せず、現在の受理チェックも、その定理が受け取り側の宣言履歴に属することを確立していません。"
 
-#: manual/current_workspace_audit.md:54
+#: manual/current_workspace_audit.md:58
 msgid "This is a material implementation soundness defect, not just a missing proof. The existing 357-test baseline did not cover this scenario. A green Lean build proves the Typed HOL calculus; it cannot establish correctness of this MoonBit behavior. Repair and implementation refinement are deferred at the user's request. Acceptance requires rejecting the first incompatible cross-state step, covering related registration paths, and preserving valid linear-history use."
 msgstr "これは重要な実装健全性の欠陥であり、単に証明が不足しているという問題ではありません。既存の 357 テストの基準には、この事例が含まれていません。Lean ビルドの成功は Typed HOL 計算体系を証明しますが、この MoonBit の動作の正しさは確立しません。ユーザーの指示により、修正と実装精緻化は延期しています。受け入れには、最初の不適合な状態間ステップの拒否、関連する登録経路の網羅、正当な線形履歴での利用の維持が必要です。"
 
-#: manual/current_workspace_audit.md:61
+#: manual/current_workspace_audit.md:65
 msgid "Remaining engineering follow-up"
 msgstr "残る実装上の作業"
 
-#: manual/current_workspace_audit.md:63
+#: manual/current_workspace_audit.md:67
 msgid "Maintain checked lowering and replay as structured proof blocks expand."
 msgstr "構造化証明ブロックを拡張する際にも、検査済みの lowering とリプレイを維持してください。"
 
-#: manual/current_workspace_audit.md:64
+#: manual/current_workspace_audit.md:68
 msgid "Keep hole and unfinished-proof diagnostics aligned with the canonical corpus."
 msgstr "穴と未完成証明の診断を標準コーパスと一致させてください。"
 
-#: manual/current_workspace_audit.md:65
+#: manual/current_workspace_audit.md:69
 msgid "Keep quantifier-facing frontend lowering and CLI diagnostics covered."
 msgstr "量化子向けフロントエンドの lowering と CLI 診断のテスト範囲を維持してください。"
 
-#: manual/current_workspace_audit.md:66
+#: manual/current_workspace_audit.md:70
 msgid "Keep the research rewrite/simplify path outside theorem authority."
 msgstr "研究用の rewrite/simplify 経路を定理の権限境界の外に置いてください。"
 
-#: manual/current_workspace_audit.md:68
+#: manual/current_workspace_audit.md:72
 msgid "These are implementation tasks, not additional assumptions of the Typed HOL proof. The current cleanup changes no MoonBit implementation."
 msgstr "これらは実装の作業であり、Typed HOL 証明の追加仮定ではありません。今回の整理で MoonBit 実装は変更していません。"
 
@@ -9796,6 +9820,9 @@ msgstr "[tactics 設計](../design/tactics.md)は、正当化と、不正なス�
 #: manual/tutorial/tactics.md:179
 msgid "The [prover tutorial](prover.md) runs the same proofs from scripts."
 msgstr "[prover チュートリアル](prover.md)は、同じ証明をスクリプトから実行する。"
+
+#~ msgid "Derivation soundness"
+#~ msgstr "導出の健全性"
 
 #~ msgid "proved for fixed signatures"
 #~ msgstr "固定シグネチャについて証明済み"

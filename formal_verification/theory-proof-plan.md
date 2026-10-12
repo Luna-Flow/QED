@@ -19,7 +19,8 @@
    instantiation.
 5. `HOL/Rules.lean` proves direct preservation for the core rules, including
    `valid_add_assum` and witness-based `valid_choose_from_witness`.
-6. `HOL/Derivation.lean` has twelve constructors. `derivation_sound` proves
+6. `HOL/Derivation.lean` has thirteen constructors, including object-language
+   infinity admission. `derivation_sound` proves
    soundness by induction, with a case for every constructor.
 7. `HOL/Definitions.lean`, `HOL/Specification.lean`, and
    `HOL/TypeDefinitions.lean` prove local semantic extension contracts.
@@ -38,6 +39,22 @@
     the checked core and its semantic results. It is not a completeness theorem
     or a full growing-theory development.
 
+## Connective and Infinity Refinement Contract
+
+The Lean `Term` grammar gives truth, falsity, conjunction, implication, universal
+quantification, and existential quantification primitive constructors. The
+kernel frontend currently represents these forms through defined constants, so
+the eventual MoonBit-to-Lean refinement must map each definition to its Typed HOL
+constructor and prove the defining equation through lowering, evaluation,
+substitution, and type instantiation. The infinity registration must lower to
+the exact `indInfinitySentence`; a type match or an occurrence of `ind` alone is
+not evidence of that correspondence.
+
+The validity theorem for this sentence uses the fixed interpretation
+`Ty.ind.denote ρ = Nat` and the witness `Nat.succ`. It is therefore a theorem
+about the present fixed type grammar, not about every possible carrier for an
+abstract type named `ind`.
+
 ## Kernel-to-Lean Map
 
 | Kernel primitive or extension | Lean representation | What is proved | Boundary |
@@ -55,7 +72,7 @@
 | `ks_define_const`, `ks_define_const_thm` | `DefinitionGate`, `ExtensionDerivation.definition`; `extension_derivation_sound` | Defining equation; local RHS freshness is used, history-ID freshness is carried but unused by soundness | Fixed signature; name audit remains an implementation boundary |
 | `ks_specify_const` | `SpecificationExtension`, `ExtensionDerivation.specification`; `extension_derivation_sound` | Named constant theorem from a witness derivation in the preceding history; local gate freshness is used, history-ID freshness is carried but unused by soundness | Fixed signature; MoonBit certificate remains an implementation boundary |
 | `ks_register_type_definition` | `TypeDefContract` | Nonempty predicate subtype and Abs/Rep laws | No user type-constructor node in `Ty`; interpretation update is not modeled |
-| `ks_ind_infinity_axiom` | `ind_infinity_anchor` only | `Nat.succ` is injective and not surjective | No object-language axiom admission rule; see issue #7 |
+| `ks_ind_infinity_axiom` | `Derivation.indInfinity`; `indInfinitySentence` | Exact infinity sentence is valid in every model, witnessed by `Nat.succ` | MoonBit registration gate is not verified; see issue #7 |
 | eta | no kernel primitive found | Not applicable | Not a primitive of the current kernel calculus |
 
 ## Acceptance Matrix
@@ -65,14 +82,14 @@
 | Typed core syntax and non-empty carriers | `HOL/Types.lean`, `HOL/Terms.lean` | proved |
 | Renaming, substitution, beta | `HOL/Evaluation.lean` | proved |
 | Type instantiation and selector coherence | `HOL/Instantiation.lean` | proved |
-| Twelve core rule preservation cases | `HOL/Rules.lean`, `HOL/Derivation.lean` | proved |
+| Thirteen derivation-constructor preservation cases, including object-language infinity admission | `HOL/Rules.lean`, `HOL/Derivation.lean`, `HOL/Infinity.lean` | proved |
 | Arbitrary-signature non-triviality | `signatureGenericFalseSentence_not_derivable` | proved |
 | Definition equation under its model override | `valid_definition_equation` | proved semantically |
 | Specification from a closed typed witness | `valid_choose_from_witness`, `SpecificationGate.valid_constant_from_typed_derivation` | proved semantically |
 | Type-variable closure under instantiation | `DefinitionGate.instType_type_vars_closed`, `SpecificationGate.instType_type_vars_closed` | proved |
 | Predicate-subtype type-definition laws | `HOL/TypeDefinitions.lean` | proved at carrier level |
 | Finite old-language validity equivalence | `valid_interpretSequence_iff` | proved for fixed-signature overrides |
-| Object-language infinity admission | no derivation constructor | open |
+| Object-language infinity admission | `Derivation.indInfinity`, `indInfinitySentence_valid` | proved for the exact sentence in all models |
 | History-indexed definition/specification derivations | `extension_derivation_sound` | proved for fresh constant IDs over a fixed signature |
 | Growing-signature syntax and semantic interpretation | no history-indexed `Signature` or type constructors | open |
 | User type-constructor syntax and semantics | no constructor in `Ty` | open |
@@ -86,9 +103,9 @@ proves the first two where listed; it does not identify them with the latter two
 
 ## Open Kernel/Specification Issues
 
-- [Issue #7](https://github.com/Luna-Flow/QED/issues/7): the infinity anchor
-  gate accepts a theorem that merely mentions `ind`; Lean currently proves only
-  the carrier-level property of natural successor.
+- [Issue #7](https://github.com/Luna-Flow/QED/issues/7): the MoonBit infinity
+  anchor gate accepts a theorem that merely mentions `ind`; Lean proves the
+  exact object-language sentence but does not certify that executable gate.
 - [Issue #8](https://github.com/Luna-Flow/QED/issues/8): the specification gate
   witness certificate differs from the mathematical witness contract. The Lean
   `SpecificationGate` is a semantic object, not a proof of MoonBit certificate
