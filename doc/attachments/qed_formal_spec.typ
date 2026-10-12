@@ -56,7 +56,7 @@
 QED is a theorem prover built around a small LCF-style kernel. Its mathematical
 core is a simply typed higher-order language with polymorphic constant schemas,
 equality, and Hilbert choice. This specification develops the language, its
-substitution operations, its semantics, and its ten primitive inference rules.
+substitution operations, its semantics, and its twelve primitive inference rules.
 It proves soundness by induction on typed derivations, then gives direct
 constructions for definition and specification interpretations and witnessed
 subtype carriers. The proof order makes the semantic premises explicit and
@@ -84,14 +84,16 @@ a separate refinement proof.
 #keyblock("warning", [Proof Scope], [
   The sole formal proof line is `formal_verification/QEDFV/HOL`; the root
   `QEDFV` module imports `HOL/Soundness.lean`. The public result is
-  `typed_hol_proof_complete`. It proves the stated typed calculus and semantic
-  extension results. It does not prove completeness, syntactic conservativity of
-  growing theories, allocation of new type constructors, or refinement of the
-  MoonBit implementation. The removed approximation modules are not proof evidence.
+  `typed_hol_core_proof_complete`. It proves the typed core, including
+  `ADD_ASSUM` and witness-based choice, plus the stated fixed-signature semantic
+  extension results. It does not yet prove a derivability-preserving calculus
+  for growing theories, the infinity anchor rule, allocation of user type
+  constructors, or refinement of the MoonBit implementation. The removed
+  approximation modules are not proof evidence.
 ])
 
 The normative mathematical core consists of indexed types and terms, typed
-substitutions, the ten-constructor derivation relation, and the interpretation
+substitutions, the twelve-constructor derivation relation, and the interpretation
 specified below. The signature is fixed throughout each derivation. Extension
 contracts change an interpretation of that signature; their precise scope is
 stated separately from derivability.
@@ -116,7 +118,7 @@ schema is $Sigma(c)$. The identifier is not its user-visible name.
   columns: (1fr, 3fr), inset: 6pt, align: left,
   [*Notation*], [*Meaning*],
   [$Gamma tack.r_Sigma t : tau$], [A term in the indexed family $"Tm"_(Sigma)(Gamma,tau)$.],
-  [$H tack.r_(Sigma,Gamma) p$], [Derivability by the ten primitive constructors.],
+  [$H tack.r_(Sigma,Gamma) p$], [Derivability by the twelve primitive constructors.],
   [$H models_I p$], [Validity for the fixed signature and context under interpretation $I$.],
   [$D_(rho)(tau)$], [The carrier interpreting type $tau$ under type valuation $rho$.],
   [$E_(I,rho,eta)(t)$], [The value of term $t$ under constant interpretation $I$ and environment $eta$.],
@@ -243,11 +245,8 @@ case cannot occur under the displayed hypothesis.
 #lean-def("Evaluation", ("select",))
 #lean-proof("Evaluation", ("select_spec",))
 
-The displayed implication is a statement in the metatheory. It is not an
-additional axiom constructor in `Derivation`. The core's ten primitive rules do
-not by themselves include an object-language choice theorem or an axiom-admission
-rule. The specification contract later uses this semantic choice property
-explicitly.
+The displayed implication is a statement in the metatheory. It justifies the
+witness-based `SPECIFY` rule below; it is not an arbitrary axiom-admission rule.
 
 *Equality formation.* If $Gamma tack.r_Sigma s:tau$ and
 $Gamma tack.r_Sigma t:tau$, then $Gamma tack.r_Sigma (s =_tau t):"bool"$.
@@ -978,7 +977,7 @@ unproved exchange or contraction constructor in the derivation datatype.
 A named implementation may normalize assumptions modulo alpha-equivalence.
 Its normalization and theorem-acceptance rules must be related to the typed
 list representation in a refinement proof. No finite-set law is assumed by
-the ten-rule soundness argument below.
+the twelve-rule soundness argument below.
 
 == The LCF Boundary
 
@@ -1194,7 +1193,7 @@ the constant-agreement lemma in both directions.
 This is a semantic statement about a fixed sequent. It neither creates a
 `Derivation` of the defining equation nor translates an extended-theory
 `Derivation` into a base-theory one. There is no defining-equation admission
-constructor among the ten primitive rules.
+constructor among the twelve primitive rules.
 
 == Definition Admissibility Judgment for an Implementation
 
@@ -1264,10 +1263,45 @@ constant-agreement lemma applies in both directions.
 
 *Implementation contract (SpecOK).* A registration procedure must additionally
 check global declaration freshness and exact schema agreement. It must justify
-the produced theorem $P(c)$ through its explicit extension contract. The current
-semantic theorem does not produce that theorem in the base `Derivation`
-relation; a choice axiom, its derivation, or a formally checked theory-extension
-calculus would need to be added to justify a syntactic admission route.
+the produced theorem $P(c)$ through its explicit extension contract. The
+kernel's theorem is represented mathematically by the `SPECIFY` rule below,
+which concludes $P(epsilon P)$ from a derivation of $P(w)$. The current Lean
+gate proves that the selected interpretation satisfies $P(c)$, but does not
+connect the updated signature and theorem handle to a growing-theory
+derivation. The exact witness certificate expected by the MoonBit gate also
+remains an implementation boundary (issue #8).
+
+== Rule Schema: `SPECIFY`
+
+Fix a type context $Gamma$ and a type $tau$. Let
+$P in "Tm"_(Sigma)(tau :: Gamma,"bool")$ be a predicate body whose first
+variable is the distinguished argument, and let
+$w in "Tm"_(Sigma)(Gamma,tau)$ be a witness term. Define the choice term in
+the ambient context by
+$c_P := epsilon_(tau)(lambda_tau P) in "Tm"_(Sigma)(Gamma,tau)$. A derivation with no
+propositional assumptions of the substituted witness instance permits the
+corresponding choice instance:
+
+$$
+  frac([] tack.r P[w], [] tack.r P[c_P]).
+$$
+
+Here $P[w]$ and $P[c_P]$ are capture-avoiding substitutions for the
+distinguished variable. The context $Gamma$ is the ambient type context; it is
+not a list of propositional assumptions.
+
+*Proof of preservation.* Fix an admissible valuation and an environment for
+$Gamma$. The premise supplies an element satisfying the predicate obtained by
+extending that environment with the value of $w$. The semantic choice property
+then says that the selected element satisfies the same predicate. The choice
+term evaluates to that selected element, and the substitution evaluation lemma
+identifies this with the displayed conclusion.
+
+#lean-proof("Rules", ("valid_choose_from_witness",))
+#lean-def("Derivation", ("Derivation.specify",))
+
+This is a witness-based rule, not unrestricted axiom admission. It supplies the
+logical step inside `ks_specify_const`.
 
 = Global Admissibility and Proof Discipline
 
@@ -1296,7 +1330,8 @@ The intended implementation must enforce additional admission duties:
 
 = Primitive Inference Rules
 
-The ten rules below define the derivation relation. Fix a signature $Sigma$.
+The twelve constructors collected in this section and the preceding
+`SPECIFY` section define the derivation relation. Fix a signature $Sigma$.
 Terms in each rule share its displayed type context, except where abstraction
 or instantiation changes that context explicitly. Each rule is followed by a
 proof that it preserves validity. A hypothesis saying a premise is valid is
@@ -1343,6 +1378,26 @@ not permission to assert $p$ without its assumption.
 #lean-def("Derivation", ("Derivation.assume",))
 
 *Interface rejection conditions.* An implementation rejects a non-boolean input. It must preserve the introduced assumption rather than silently return an unconditional theorem.
+
+== Rule Schema: `ADD_ASSUM`
+
+Given a derivation of $H tack.r p$ and a boolean term $q$, the rule adds $q$ to
+the assumption list:
+
+$$
+  frac(H tack.r p, H ++ [q] tack.r p).
+$$
+
+*Proof of preservation.* Any environment satisfying $H ++ [q]$ satisfies every
+member of $H$. The induction hypothesis therefore yields $p$; the extra
+assumption is unused by the conclusion.
+
+#lean-proof("Rules", ("valid_add_assum",))
+#lean-def("Derivation", ("Derivation.addAssum",))
+
+This constructor formalizes kernel `add_assum_checked` (issue #10). The Lean
+representation places the new assumption at the head of a list; validity is
+invariant under that ordering because hypotheses are interpreted pointwise.
 
 == Rule Schema: `TRANS`
 
@@ -1549,23 +1604,24 @@ is therefore a parallel exchange rather than a sequential rewrite.
 
 == Rule-Level Constructive Preservation
 
-*Proposition (Primitive preservation).* Every instance of one of the ten
+*Proposition (Primitive preservation).* Every instance of one of the twelve
 constructors preserves validity from its premise sequents to its conclusion.
 
 *Proof.* Use the corresponding direct argument just given. Reflexivity and
-assumption have no theorem premises. Transitivity and application use equality
-laws; abstraction uses weakening and extensionality; beta uses substitution;
+assumption have no theorem premises; `ADD_ASSUM` weakens the assumptions, and
+`SPECIFY` uses its witness and the semantic choice property. Transitivity and
+application use equality laws; abstraction uses weakening and extensionality; beta uses substitution;
 boolean elimination and deduction use proposition equality; the two
 instantiation rules use their evaluation lemmas. These arguments depend only
 on the type carriers, evaluator, and premise validity.
 
-The next theorem lifts these ten local arguments to every finite typed derivation.
+The next theorem lifts these twelve local arguments to every finite typed derivation.
 
 
 
 = Soundness Strategy
 
-The main theorem concerns the derivation relation defined by the ten rules.
+The main theorem concerns the derivation relation defined by the twelve rules.
 The proof proceeds from constructed semantics to local preservation and then to
 induction on a derivation. It does not require a named converter, mutable scope,
 or executable theorem handle.
@@ -1580,7 +1636,7 @@ primitive soundness.
   #diagram(
     node((0, 0), [Typed syntax and nonempty carriers]),
     node((0, 1), [Recursive evaluation and substitution lemmas]),
-    node((0, 2), [Ten direct rule-preservation proofs]),
+    node((0, 2), [Twelve direct rule-preservation proofs]),
     node((0, 3), [Induction on typed derivations]),
     node((0, 4), [Extension validity and countermodel consequences]),
     edge((0, 0), (0, 1), "->"),
@@ -1598,7 +1654,7 @@ from carrier equality.
 == Typed Derivations and Inductive Closure
 
 *Definition (Derivation).* The judgment $H tack.r_(Sigma,Gamma) p$ holds exactly
-when it is generated by the ten indexed constructors in the preceding section.
+when it is generated by the twelve indexed constructors in the preceding section.
 Every premise is itself a derivation of its stated sequent. No leaf admits an
 arbitrary boolean term, and no extension-gate node is added to this relation.
 
@@ -1612,7 +1668,8 @@ is valid: $H models_I p$.
 case, the direct preservation proof establishes validity without an induction
 hypothesis. In each other case, the induction hypotheses give validity of its
 premise derivations. Apply the corresponding preservation proposition to obtain
-validity of the conclusion. `ABS` changes the environment by adding an arbitrary
+validity of the conclusion. `ADD_ASSUM` weakens the assumptions, and `SPECIFY`
+applies semantic choice to its witness. `ABS` changes the environment by adding an arbitrary
 argument; `INST` changes it by evaluating the typed substitution; `INST_TYPE`
 changes the valuation and transports the environment. Their evaluation lemmas
 justify those changes. There are no further cases.
@@ -1623,6 +1680,23 @@ justify those changes. There are no further cases.
 The foundational `derivation_sound` declaration takes selector coherence as an
 explicit argument. The public package supplies it with `select_natural`, so the
 stated theorem for all $I$ has no unproved selector or model-law premise.
+
+== Signature-Generic Non-Triviality
+
+For every signature $Sigma$, the closed typed sentence
+$
+  (lambda x:"bool". x) =_("bool" -> "bool")
+    (lambda x:"bool". x =_"bool" x)
+$
+is not valid in the standard interpretation of booleans, and hence has no
+derivation. Both sides have type `bool -> bool`; the signature contributes no
+constant occurrences. Evaluating the alleged equality at `False` would equate
+`False` with `True`, which is impossible. Soundness therefore gives
+non-derivability for every signature, including every fixed-signature constant
+override sequence.
+
+#lean-proof("Concrete", ("signatureGenericFalseSentence_not_valid", "signatureGenericFalseSentence_not_derivable"))
+#lean-proof("Soundness", ("typed_signature_generic_consistency", "typed_signature_generic_nonvalid_in_extension"))
 
 == Existence of Interpretations and Non-Triviality
 
@@ -1735,6 +1809,32 @@ argument from semantic validity to derivability.
   The former approximation sketches are not referenced as their proofs.
 ])
 
+== Kernel Extension Mapping and Open Gates
+
+The core kernel rules map to the indexed constructors in `Derivation`; the
+complete row-by-row mapping is recorded in
+`formal_verification/theory-proof-plan.md`. The extension boundary is:
+
+- `add_assum_checked` maps to `Derivation.addAssum` and its direct preservation
+  theorem `valid_add_assum` (issue #10).
+- `ks_define_const` and `ks_define_const_thm` map to `DefinitionGate` and
+  `valid_definition_equation`. This proves validity under one interpretation
+  override, not a derivation in a growing theory. The name-based dependency
+  check is an implementation boundary (issue #9).
+- `ks_specify_const` maps to `SpecificationGate` and the witness-based
+  `Derivation.specify` rule. The Lean gate proves the semantic result but does
+  not certify the MoonBit witness representation (issue #8).
+- `ks_register_type_definition` maps to the carrier-level
+  `TypeDefContract` Abs/Rep laws. The checked type grammar has no user type
+  constructor, so registration does not yet extend Lean's object language.
+- `ks_ind_infinity_axiom` has no derivation constructor. Lean proves only that
+  successor on `Nat` is injective and non-surjective; it does not verify the
+  kernel's anchor gate, which currently accepts any theorem mentioning `ind`
+  (issue #7).
+
+The kernel has no eta inference primitive. A future extension rule must be
+added to the typed judgment and receive its own semantic preservation case.
+
 == Type Preservation for Application Congruence
 
 *Proposition.* The `MK_COMB` conclusion is a boolean term in the same context as
@@ -1751,13 +1851,14 @@ in the rule section.
 
 == Public Proof Package and Trust Basis
 
-`TypedHOLProofPackage` collects the constructed carrier, evaluation, derivation,
-extension, and countermodel results. Its public theorem is
-`QEDFV.HOL.typed_hol_proof_complete`. The word “complete” in this declaration
-names the delivery package, not logical completeness of the calculus.
+`TypedHOLCoreProofPackage` collects the checked core, semantic extension
+lemmas, and countermodels. Its public theorem is
+`QEDFV.HOL.typed_hol_core_proof_complete`. The word “complete” names the
+assembled core proof package; it does not claim completeness of HOL or a full
+growing-theory calculus.
 
-#lean-def("Soundness", ("TypedHOLProofPackage", "typedHOLProofPackage"))
-#lean-proof("Soundness", ("typed_hol_proof_complete",))
+#lean-def("Soundness", ("TypedHOLCoreProofPackage", "typedHOLCoreProofPackage"))
+#lean-proof("Soundness", ("typed_hol_core_proof_complete",))
 
 The audited public results depend only on `propext`, `Classical.choice`, and
 `Quot.sound`. The retained development adds no custom axiom and contains no
@@ -2480,7 +2581,7 @@ Audit certificates may expose evidence but may not substitute for it.
 
 #keyblock("info", [Established Results], [
   The checked core has nonempty carriers, a coherent selector, recursive
-  evaluation, substitution laws, preservation of all ten primitive rules, and
+  evaluation, substitution laws, preservation of all twelve primitive rules, and
   derivation soundness. Definition and specification overrides preserve validity
   of unaffected sequents; witnessed subtypes satisfy the Abs/Rep laws. The
   concrete natural-number interpretation provides a non-derivability witness.
@@ -2530,7 +2631,7 @@ It is a review index, not an independent proof.
 5. Evaluation of terms commutes with renaming, term substitution, and type instantiation.
 6. Equality denotes actual carrier equality; the selector property and coherence are proved.
 7. Sequents use finite assumption lists; deletion removes every exact matching term.
-8. Each of the ten rules has a direct preservation proof and a precise Lean annotation.
+8. Each of the twelve rules has a direct preservation proof and a precise Lean annotation.
 9. Derivation soundness follows by induction without a model field assuming it.
 10. A canonical interpretation exists, and a concrete false sentence is not derivable.
 11. Definition and specification overrides validate their products under the stated gates.
@@ -2544,7 +2645,7 @@ It is a review index, not an independent proof.
 3. Theorem reuse must enforce compatible declaration lineage; issue #15 remains open.
 4. Global admission must enforce freshness and preserve previous declaration commitments.
 5. Type-constructor registration must integrate carrier and type-substitution semantics.
-6. Extension products require explicit justification beyond the base ten constructors.
+6. Extension products require explicit justification beyond the twelve core constructors.
 7. A syntactic conservativity claim needs a genuine growing-theory derivation transformation.
 8. Audit certificates must remain non-authoritative.
 9. Dictionary resolution, laws, coherence, and termination remain design proof obligations.
@@ -2654,7 +2755,7 @@ Validation scenarios for derived specification-admission discipline:
   attempt to admit specification constant without explicit Choice + `DefOK` derivation trace;
   expected target behavior: the product carries its checked admission
   justification; reconstruction through an explicit choice axiom and definition
-  is one future syntactic route, not a theorem of the base ten-rule calculus.
+  is one future syntactic route, not a theorem of the base twelve-rule calculus.
 5. *Old-Language Conservativity Scenario*:
   after admissible specification extension, prove a sentence not mentioning the new symbol;
   expected semantic result: validity is unchanged for the unaffected sequent;
@@ -2733,6 +2834,19 @@ Each row names the exact checked result and its source module. The namespace is
 `QEDFV.HOL`; module names are source locations. Requirements below the table
 have no retained approximation theorem standing in for their proof.
 
+Kernel primitive names follow the checked MoonBit entry points:
+`refl_checked` maps to `Derivation.refl`; `assume_checked` to
+`Derivation.assume`; `add_assum_checked` to `Derivation.addAssum`;
+`trans_checked` to `Derivation.trans`; `mk_comb_rule_checked` to
+`Derivation.mkComb`; `abs_rule_checked` to `Derivation.abs`;
+`beta_rule_checked` to `Derivation.beta`; `eq_mp_checked` to
+`Derivation.eqMp`; `deduct_antisym_rule_checked` to `Derivation.deduct`;
+`inst_type` to `Derivation.instType`; and `inst_checked` to
+`Derivation.instTerm`. Each constructor is covered by the corresponding case
+of `derivation_sound`. Extension operations are mapped separately above because
+their current Lean results are semantic contracts, not evolving-theory
+derivations.
+
 #context {
   set text(size: 9.3pt)
   show raw: set text(size: 8pt)
@@ -2749,7 +2863,7 @@ have no retained approximation theorem standing in for their proof.
   [C8], [Subtype nonemptiness and Abs/Rep laws], [`TypeDefinitions.lean`: `TypeDefContract.nonempty`, `abs_rep`, `rep_in_range`, `rep_abs_of_pred`],
   [C9], [Finite old-language validity equivalence], [`Conservativity.lean`: `valid_interpretSequence_iff`],
   [C10], [Concrete non-derivability], [`Concrete.lean`: `falseSentence_not_derivable`],
-  [C11], [Public proof package], [`Soundness.lean`: `typed_hol_proof_complete`],
+  [C11], [Typed HOL core proof package], [`Soundness.lean`: `typed_hol_core_proof_complete`],
 )
 }
 

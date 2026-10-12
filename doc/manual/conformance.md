@@ -28,21 +28,24 @@ the Lean calculus.
 | Intrinsic terms, renaming, substitution | `HOL/Terms.lean` | proved |
 | Evaluation and beta | `HOL/Evaluation.lean` | proved |
 | Type instantiation and choice coherence | `HOL/Instantiation.lean` | proved |
-| Primitive rule validity | `HOL/Rules.lean` | proved |
+| Primitive rule validity, including `ADD_ASSUM` and witness `SPECIFY` | `HOL/Rules.lean` | proved |
 | Derivation soundness | `HOL/Derivation.lean` | proved |
 | Definition and specification contracts | `HOL/Definitions.lean`, `HOL/Specification.lean` | proved |
 | Type-definition carrier laws | `HOL/TypeDefinitions.lean` | proved |
 | Finite semantic conservativity | `HOL/Conservativity.lean` | proved |
-| Concrete non-triviality | `HOL/Concrete.lean` | proved |
-| Public theorem package | `HOL/Soundness.lean` | proved |
+| Concrete and signature-generic non-triviality | `HOL/Concrete.lean` | proved |
+| Typed HOL core proof package | `HOL/Soundness.lean` | proved |
 
-The public entry point is `QEDFV.HOL.typed_hol_proof_complete`. The default
+The public entry point is `QEDFV.HOL.typed_hol_core_proof_complete`. It covers
+the typed core and fixed-signature semantic extension results. It does not
+certify a growing-theory calculus. The default
 `QEDFV` target imports `QEDFV.HOL.Soundness` only.
 
 ## Explicit limits
 
-The Typed HOL theorem does not establish completeness, syntactic derivation
-erasure for extensions, or a MoonBit-to-Lean refinement. It also does not certify
+The Typed HOL theorem does not establish the infinity-axiom admission rule,
+derivations for definitions and type-constructor extensions in a growing
+theory, syntactic derivation erasure, or a MoonBit-to-Lean refinement. It also does not certify
 the parser, elaborator, tactics, theorem replay, mutable scope history, or
 provenance behavior. Those are implementation work and must not be presented as
 evidence for the Lean theorem.
@@ -170,13 +173,15 @@ cd formal_verification
 lake build
 lake env lean --stdin <<'LEAN'
 import QEDFV
-#print axioms QEDFV.HOL.typed_hol_proof_complete
+#print axioms QEDFV.HOL.typed_hol_core_proof_complete
 LEAN
 cd ..
 ```
 
-The public package currently reports only `propext`, `Classical.choice`, and
-`Quot.sound` under `#print axioms`. Typst compilation is:
+The public package reports only the Lean/Mathlib foundations `propext`,
+`Classical.choice`, and `Quot.sound` under `#print axioms`. The exact audited
+output and its role are recorded in `formal_verification/axioms.txt`. Typst
+compilation is:
 
 ```text
 typst compile doc/attachments/qed_formal_spec.typ /tmp/qed-typed-hol-spec.pdf

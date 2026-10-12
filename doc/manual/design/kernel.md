@@ -151,7 +151,7 @@ One deviation: QED's BETA accepts any redex $(\lambda x.\,t)\,u$, whereas HOL Li
 
 ### Weakening is provided natively
 
-`add_assum_checked` implements weakening: for a proposition $q$, $\Gamma \vdash p$ gives $\Gamma \cup \{q\} \vdash p$. It is not one of the ten rules and the specification does not list it, but it is a derived rule, so it adds no theorems. Both $p$ and $q$ have type $\mathit{bool}$ (every conclusion does, and the rule checks $q$), so the two rules below apply:
+`add_assum_checked` implements weakening: for a proposition $q$, $\Gamma \vdash p$ gives $\Gamma \cup \{q\} \vdash p$. The classical HOL basis has ten rules; weakening is derivable from that basis and therefore adds no theorems. QED exposes it as a native checked rule, and the Typed HOL calculus represents it explicitly and proves its semantic preservation. Both $p$ and $q$ have type $\mathit{bool}$ (every conclusion does, and the rule checks $q$), so the two rules below apply:
 
 $$
 \begin{aligned}
