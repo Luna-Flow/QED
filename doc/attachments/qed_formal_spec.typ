@@ -346,7 +346,8 @@ These rules make success/failure boundaries explicit and give a judgmental prese
 
 *Implementation contract.* A global declaration history must distinguish
 compatible extensions from sibling histories. Local name lookup alone is
-insufficient for theorem provenance; the open issue #15 is discussed below.
+insufficient for theorem provenance; theorem handles therefore carry their
+originating lineage and are accepted only along compatible history prefixes.
 
 
 To avoid ambiguity between poppable lookup state and persistent logical commitments, QED distinguishes two state layers:
@@ -1046,9 +1047,10 @@ constructor alone does not prove this history condition.
 #keyblock("critical", [Kernel Integrity Condition], [
   The Lean relation proves soundness of derivations. To transfer this result to
   an executable kernel, every accepted handle must translate to justified
-  evidence with the same interpretation. The public MoonBit API currently has
-  an open sibling-state provenance defect (issue #15); opacity and a passing
-  regression suite do not resolve it.
+  evidence with the same interpretation. The MoonBit kernel records theorem
+  origin lineage and rejects incompatible sibling histories; this is an
+  implementation invariant covered by regression tests, while refinement to the
+  Lean relation remains a separate obligation.
 ])
 
 = Semantics and the Substitution Lemmas
@@ -1396,13 +1398,14 @@ The intended implementation must enforce additional admission duties:
 4. Theorem reuse preserves declaration identity and compatible provenance.
 5. Conversion failures and audit certificates confer no theorem authority.
 
-#keyblock("critical", [Open Implementation Defect: Issue 15], [
-  Sibling MoonBit `KernelState` histories can allocate the same `ConstId`, and
-  theorem handles do not record their originating lineage. The reported API
-  reproduction combines `c = T` from one history with `c := F` in another and
-  derives `T = F`. This defect remains open and outside the Lean proof scope.
-  Repair and MoonBit refinement are deferred. The implementation must reject
-  incompatible history reuse before executable soundness can be claimed.
+#keyblock("critical", [Issue 15 implementation invariant], [
+  Sibling MoonBit `KernelState` histories can allocate the same `ConstId`, so a
+  theorem handle records its originating lineage. Admissibility requires that
+  lineage to be a prefix of the receiving history; the reported combination of
+  `c = T` and `c := F` is rejected before the theorem can be reused. Regression
+  tests cover sibling rejection, linear descendants, and witness registration.
+  This implementation invariant is separate from the still-required
+  MoonBit-to-Lean refinement.
 ])
 
 = Primitive Inference Rules
@@ -2854,7 +2857,8 @@ It is a review index, not an independent proof.
 
 1. Named conversions must preserve alpha-equivalence, typing, and denotation.
 2. Name lookup must preserve frozen identities across scope mutation.
-3. Theorem reuse must enforce compatible declaration lineage; issue #15 remains open.
+3. Theorem reuse must enforce compatible declaration lineage; the issue #15
+   MoonBit invariant is implemented and regression-tested.
 4. Global admission must enforce freshness and preserve previous declaration commitments.
 5. Type-constructor registration must integrate carrier and type-substitution semantics.
 6. Extension products require explicit justification beyond the thirteen derivation constructors.

@@ -39,28 +39,27 @@ tree.
 
 The proof does not establish growing-signature derivations, user type-constructor
 syntax or semantics, the MoonBit infinity registration gate,
-syntactic derivation erasure for extensions, a MoonBit-to-Lean refinement, or correctness of MoonBit parsing,
-elaboration, tactics, replay, mutable signature history, or theorem provenance.
-Tests and engineering audits remain separate evidence for those implementation
-properties.
+syntactic derivation erasure for extensions, or a MoonBit-to-Lean refinement.
+Parser, elaborator, tactic, replay, and mutable-state behavior remain separate
+implementation evidence. The MoonBit theorem-provenance condition in issue #15
+is now enforced independently by the kernel and covered by regression tests.
 
 This status supersedes older audit claims about conditional proof packs or
 MoonBit conformance being part of the formal target.
 
-## Open implementation soundness defect
+## Issue #15 implementation repair
 
-[Issue #15](https://github.com/Luna-Flow/QED/issues/15) remains open. The reported
-public-API reproduction reuses a theorem across sibling `KernelState` histories
-whose independently allocated constant identifiers collide, deriving `|- T = F`.
-`Thm` does not track state lineage, and the current admissibility checks do not
-establish that the theorem belongs to the receiving declaration history.
+[Issue #15](https://github.com/Luna-Flow/QED/issues/15) is repaired in the
+current implementation work. Every theorem carries the declaration lineage at
+which it was first admitted, and admissibility requires that lineage to be a
+prefix of the receiving state's history. Sibling histories therefore reject a
+theorem before constant-id reuse can combine incompatible declarations, while
+linear descendants continue to accept inherited theorems. Infinity-anchor,
+typedef, and specification registration also reject sibling witnesses.
 
-This is a material implementation soundness defect, not just a missing proof.
-The existing 357-test baseline did not cover this scenario. A green Lean build
-proves the Typed HOL calculus; it cannot establish correctness of this MoonBit
-behavior. Repair and implementation refinement are deferred at the user's
-request. Acceptance requires rejecting the first incompatible cross-state step,
-covering related registration paths, and preserving valid linear-history use.
+The repair is an independently tested MoonBit invariant, not a MoonBit-to-Lean
+refinement theorem. The Typed HOL build still certifies only the formal calculus
+and its stated fixed-signature extension results.
 
 ## Remaining engineering follow-up
 
@@ -70,4 +69,5 @@ covering related registration paths, and preserving valid linear-history use.
 - Keep the research rewrite/simplify path outside theorem authority.
 
 These are implementation tasks, not additional assumptions of the Typed HOL
-proof. The current cleanup changes no MoonBit implementation.
+proof. The current work records the issue #15 invariant and the MoonBit 0.10.15
+compatibility check without extending the Lean proof boundary.

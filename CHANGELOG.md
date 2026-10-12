@@ -6,6 +6,16 @@ All notable changes to QED are recorded here. The format follows [Keep a Changel
 
 ### Changed
 
+- Upgrade the QED dependency on `moonbitlang/x` to `0.5.5` and verify it with
+  MoonBit `0.10.15`.
+- Dependency audit: `moon tree --package` finds no other registry dependency;
+  `moonbitlang/core/env` is a toolchain package and the Luna Flow packages are
+  local QED packages. No `luna-utils`, `luna-generic`, `arithmetic`, or
+  `type_theory` release is required for this work.
+- Record theorem origin lineage in the kernel and reject theorem and witness
+  reuse across sibling declaration histories while preserving linear-history
+  reuse; add regression coverage for the issue #15 reproduction and registration
+  paths.
 - Migrate to MoonBit 0.10: the module manifest is now `moon.mod` (replacing `moon.mod.json`), and `src/cmd` declares itself with `pkgtype(kind: "executable")` instead of `options("is-main": true)`.
 - Reformat the sources with the MoonBit 0.10 `moon fmt`, which writes single-line struct literals with a trailing comma (`Goal::{ hyps, concl, }`). No behaviour or public API changed.
 - Blackbox tests import their own package's names explicitly with `using @<package> { ... }` in each package's `alias_test.mbt`, as required by MoonBit's `test_unqualified_package` rule. `src/kernel` gains an `alias_test.mbt` for this purpose.

@@ -64,6 +64,7 @@ priv struct TheoryState {
   extension_certs : Array[ExtensionCert]
   ind_infinity_axiom : Thm?
   next_const_id : ConstId
+  lineage : Array[String]
 }
 
 ///|
@@ -91,6 +92,45 @@ fn choice_schema_ty() -> HolType {
 }
 
 ///|
+fn lineage_event(tag : String, parts : Array[String]) -> String {
+  tag.length().to_string() +
+  ":" +
+  tag +
+  parts.map(fn(part) { part.length().to_string() + ":" + part }).join("")
+}
+
+///|
+fn extension_gate_name(gate : ExtensionGate) -> String {
+  match gate {
+    DefOK => "definition"
+    TypeDefOK => "type_definition"
+    SpecOK => "specification"
+  }
+}
+
+///|
+fn advance_lineage(state : KernelState, event : String) -> KernelState {
+  let lineage = state.theory.lineage.copy()
+  lineage.push(event)
+  KernelState::{
+    sig: state.sig,
+    theory: TheoryState::{
+      def_heads: state.theory.def_heads,
+      def_const_deps: state.theory.def_const_deps,
+      def_theorems: state.theory.def_theorems,
+      witnessed_tycons: state.theory.witnessed_tycons,
+      type_rep_heads: state.theory.type_rep_heads,
+      type_abs_heads: state.theory.type_abs_heads,
+      typedef_contracts: state.theory.typedef_contracts,
+      extension_certs: state.theory.extension_certs,
+      ind_infinity_axiom: state.theory.ind_infinity_axiom,
+      next_const_id: state.theory.next_const_id,
+      lineage,
+    },
+  }
+}
+
+///|
 fn initial_sig() -> GlobalSig {
   Sig([[("@", 0, choice_schema_ty())]])
 }
@@ -104,7 +144,7 @@ fn append_extension_cert(
 ) -> KernelState {
   let certs = state.theory.extension_certs.copy()
   certs.push((gate, heads, witness_digest))
-  KernelState::{
+  let next = KernelState::{
     sig: state.sig,
     theory: TheoryState::{
       def_heads: state.theory.def_heads,
@@ -117,8 +157,18 @@ fn append_extension_cert(
       extension_certs: certs,
       ind_infinity_axiom: state.theory.ind_infinity_axiom,
       next_const_id: state.theory.next_const_id,
+      lineage: state.theory.lineage,
     },
   }
+  let parts : Array[String] = [
+    extension_gate_name(gate),
+    heads.length().to_string(),
+  ]
+  for head in heads {
+    parts.push(head)
+  }
+  parts.push(witness_digest)
+  advance_lineage(next, lineage_event("extension_certificate", parts))
 }
 
 ///|
@@ -394,6 +444,7 @@ pub fn empty_kernel_state() -> KernelState {
       extension_certs: [],
       ind_infinity_axiom: None,
       next_const_id: 1,
+      lineage: [lineage_event("root", [])],
     },
   }
 }
@@ -405,13 +456,22 @@ pub fn ks_sig(state : KernelState) -> GlobalSig {
 
 ///|
 pub fn ks_push_scope(state : KernelState) -> KernelState {
-  KernelState::{ sig: sig_push_scope(state.sig), theory: state.theory, }
+  advance_lineage(
+    KernelState::{ sig: sig_push_scope(state.sig), theory: state.theory, },
+    lineage_event("push_scope", []),
+  )
 }
 
 ///|
 pub fn ks_pop_scope(state : KernelState) -> Result[KernelState, SigError] {
   match sig_pop_scope(state.sig) {
-    Some(sig2) => Ok(KernelState::{ sig: sig2, theory: state.theory, })
+    Some(sig2) =>
+      Ok(
+        advance_lineage(
+          KernelState::{ sig: sig2, theory: state.theory, },
+          lineage_event("pop_scope", []),
+        ),
+      )
     None => Err(ScopeUnderflow)
   }
 }
@@ -472,8 +532,8 @@ pub fn ks_add_const(
     None =>
       match
         sig_add_const_with_id(state.sig, name, ty, state.theory.next_const_id) {
-        Ok(sig2) =>
-          Ok(KernelState::{
+        Ok(sig2) => {
+          let next = KernelState::{
             sig: sig2,
             theory: TheoryState::{
               def_heads: state.theory.def_heads,
@@ -486,8 +546,16 @@ pub fn ks_add_const(
               extension_certs: state.theory.extension_certs,
               ind_infinity_axiom: state.theory.ind_infinity_axiom,
               next_const_id: state.theory.next_const_id + 1,
+              lineage: state.theory.lineage,
             },
-          })
+          }
+          Ok(
+            advance_lineage(
+              next,
+              lineage_event("add_const", [name, hol_type_to_string(ty)]),
+            ),
+          )
+        }
         Err(e) => Err(e)
       }
   }
@@ -801,7 +869,7 @@ pub fn ks_register_ind_infinity_axiom(
           if !is_bool_ty(ty) || !term_mentions_tycon(concl, "ind") {
             Err(InvalidInfinityAnchor)
           } else {
-            Ok(KernelState::{
+            let next = KernelState::{
               sig: state.sig,
               theory: TheoryState::{
                 def_heads: state.theory.def_heads,
@@ -814,8 +882,15 @@ pub fn ks_register_ind_infinity_axiom(
                 extension_certs: state.theory.extension_certs,
                 ind_infinity_axiom: Some(anchor),
                 next_const_id: state.theory.next_const_id,
+                lineage: state.theory.lineage,
               },
-            })
+            }
+            Ok(
+              advance_lineage(
+                next,
+                lineage_event("ind_infinity_anchor", [thm_to_string(anchor)]),
+              ),
+            )
           }
         None => Err(InvalidInfinityAnchor)
       }
@@ -1180,19 +1255,31 @@ pub fn ks_register_type_definition(
   reps.push(rep_name)
   let abses = state.theory.type_abs_heads.copy()
   abses.push(abs_name)
+  let typedef_parts : Array[String] = [tycon, params.length().to_string()]
+  for param in params {
+    typedef_parts.push(param)
+  }
+  typedef_parts.push(rep_name)
+  typedef_parts.push(term_to_string(predicate))
+  typedef_parts.push(thm_to_string(witness))
+  let typedef_lineage = advance_lineage(
+    state,
+    lineage_event("type_definition", typedef_parts),
+  )
   let state1 = KernelState::{
     sig: sig2,
     theory: TheoryState::{
-      def_heads: state.theory.def_heads,
-      def_const_deps: state.theory.def_const_deps,
-      def_theorems: state.theory.def_theorems,
+      def_heads: typedef_lineage.theory.def_heads,
+      def_const_deps: typedef_lineage.theory.def_const_deps,
+      def_theorems: typedef_lineage.theory.def_theorems,
       witnessed_tycons: witnessed,
       type_rep_heads: reps,
       type_abs_heads: abses,
-      typedef_contracts: state.theory.typedef_contracts,
-      extension_certs: state.theory.extension_certs,
-      ind_infinity_axiom: state.theory.ind_infinity_axiom,
-      next_const_id: state.theory.next_const_id + 2,
+      typedef_contracts: typedef_lineage.theory.typedef_contracts,
+      extension_certs: typedef_lineage.theory.extension_certs,
+      ind_infinity_axiom: typedef_lineage.theory.ind_infinity_axiom,
+      next_const_id: typedef_lineage.theory.next_const_id + 2,
+      lineage: typedef_lineage.theory.lineage,
     },
   }
 
@@ -1247,6 +1334,7 @@ pub fn ks_register_type_definition(
       extension_certs: state1.theory.extension_certs,
       ind_infinity_axiom: state1.theory.ind_infinity_axiom,
       next_const_id: state1.theory.next_const_id,
+      lineage: state1.theory.lineage,
     },
   }
   Ok(
@@ -1332,8 +1420,17 @@ pub fn ks_define_const(
                       extension_certs: state.theory.extension_certs,
                       ind_infinity_axiom: state.theory.ind_infinity_axiom,
                       next_const_id: state.theory.next_const_id + 1,
+                      lineage: state.theory.lineage,
                     },
                   }
+                  let state2 = advance_lineage(
+                    state2,
+                    lineage_event("definition", [
+                      name,
+                      hol_type_to_string(decl_ty),
+                      term_to_string(rhs),
+                    ]),
+                  )
                   let digest = match to_db_term(def_eq) {
                     Some(eq_db) =>
                       match
@@ -1359,6 +1456,7 @@ pub fn ks_define_const(
                       extension_certs: state2.theory.extension_certs,
                       ind_infinity_axiom: state2.theory.ind_infinity_axiom,
                       next_const_id: state2.theory.next_const_id,
+                      lineage: state2.theory.lineage,
                     },
                   }
                   let state3 = append_extension_cert(

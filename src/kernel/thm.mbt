@@ -20,6 +20,7 @@ struct Thm {
   concl : DbTerm
   def_origin : String?
   const_ids : Array[(String, ConstId)]
+  origin_lineage : Array[String]
 }
 
 ///|
@@ -28,7 +29,13 @@ fn mk_thm_with_origin(
   concl : DbTerm,
   def_origin : String?,
 ) -> Thm {
-  Thm::{ hyps: db_hyps_dedup(hyps), concl, def_origin, const_ids: [], }
+  Thm::{
+    hyps: db_hyps_dedup(hyps),
+    concl,
+    def_origin,
+    const_ids: [],
+    origin_lineage: [],
+  }
 }
 
 ///|
@@ -43,7 +50,24 @@ fn mk_def_thm(def_head : String, concl : DbTerm) -> Thm {
 
 ///|
 fn thm_with_const_ids(th : Thm, const_ids : Array[(String, ConstId)]) -> Thm {
-  Thm::{ hyps: th.hyps, concl: th.concl, def_origin: th.def_origin, const_ids, }
+  Thm::{
+    hyps: th.hyps,
+    concl: th.concl,
+    def_origin: th.def_origin,
+    const_ids,
+    origin_lineage: th.origin_lineage,
+  }
+}
+
+///|
+fn thm_with_origin_lineage(th : Thm, origin_lineage : Array[String]) -> Thm {
+  Thm::{
+    hyps: th.hyps,
+    concl: th.concl,
+    def_origin: th.def_origin,
+    const_ids: th.const_ids,
+    origin_lineage: origin_lineage.copy(),
+  }
 }
 
 ///|
@@ -615,9 +639,36 @@ fn thm_stamp_const_ids(
   th : Thm,
 ) -> Result[Thm, LogicError] {
   match resolve_thm_const_ids(state, th) {
-    Ok(ids) => Ok(thm_with_const_ids(th, ids))
+    Ok(ids) => {
+      let stamped = thm_with_const_ids(th, ids)
+      if stamped.origin_lineage.length() == 0 {
+        Ok(thm_with_origin_lineage(stamped, state.theory.lineage))
+      } else {
+        Ok(stamped)
+      }
+    }
     Err(e) => Err(e)
   }
+}
+
+///|
+fn lineage_is_prefix(origin : Array[String], current : Array[String]) -> Bool {
+  if origin.length() == 0 || origin.length() > current.length() {
+    return false
+  }
+  let mut i = 0
+  while i < origin.length() {
+    if origin[i] != current[i] {
+      return false
+    }
+    i = i + 1
+  }
+  true
+}
+
+///|
+fn theorem_origin_is_admissible(state : KernelState, th : Thm) -> Bool {
+  lineage_is_prefix(th.origin_lineage, state.theory.lineage)
 }
 
 ///|
@@ -728,6 +779,9 @@ fn ensure_thm_admissible(
   state : KernelState,
   th : Thm,
 ) -> Result[Unit, LogicError] {
+  if !theorem_origin_is_admissible(state, th) {
+    return Err(InvalidInstantiation)
+  }
   let names = theorem_const_names(th)
   match resolve_thm_const_ids(state, th) {
     Ok(resolved_ids) => {
