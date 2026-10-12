@@ -76,7 +76,7 @@ test "checked trans rejects theorem under wrong kernel state" {
   let u = mk_const("U", bool)
   let th = expect_ok(assume_checked(st1, expect_ok(mk_eq(u, u))))
 
-  assert_true(trans_checked(st0, th, th) is Err(TypeMismatch))
+  assert_true(trans_checked(st0, th, th) is Err(InvalidInstantiation))
 
   let st2 = ks_push_scope(st1)
   let st3 = expect_ok_sig_for_thm(ks_add_const(st2, "U", bool))
@@ -374,7 +374,7 @@ test "inst_type enforces constant schema instances and theorem identity" {
     ks_add_const(empty_kernel_state(), "u", bool),
   )
   let th_unknown = expect_ok(refl_checked(st_u, mk_const("u", bool)))
-  assert_true(inst_type(st1, [], th_unknown) is Err(TypeMismatch))
+  assert_true(inst_type(st1, [], th_unknown) is Err(InvalidInstantiation))
 }
 
 ///|

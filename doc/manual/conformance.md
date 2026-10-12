@@ -48,17 +48,17 @@ It does not certify growing-signature syntax or a MoonBit refinement. The defaul
 The Typed HOL theorem does not establish user type-constructor syntax and
 semantics, the MoonBit infinity registration gate, syntactic derivation erasure,
 or a MoonBit-to-Lean refinement. It also does not certify the parser, elaborator,
-tactics, theorem replay, mutable scope history, or
-provenance behavior. Those are implementation work and must not be presented as
-evidence for the Lean theorem.
+tactics, theorem replay, or mutable scope history. MoonBit theorem provenance is
+covered separately by the issue #15 implementation invariant and regression
+tests; it must not be presented as evidence for the Lean theorem.
 
 ## Implementation evidence
 
 The following mappings and contributor rules remain implementation evidence,
-not a checked refinement theorem. Existing tests do not cover every trust-boundary
-case: [issue #15](https://github.com/Luna-Flow/QED/issues/15) reports that
-sibling `KernelState` histories can accept each other's theorems and derive
-`T = F`. Its repair is deferred with the MoonBit work.
+not a checked refinement theorem. Issue #15 is covered by lineage-prefix
+admissibility in `src/kernel/thm.mbt` and sibling-state regression tests in
+`src/kernel/kernel_audit_test.mbt`; the implementation repair does not enlarge
+the Typed HOL theorem.
 
 ## Code and test mapping
 

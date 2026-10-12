@@ -180,7 +180,7 @@ test "audit conservativity replay for old-language sentence" {
     ks_specify_const(st2, "c_audit", bool, spec_pred, spec_witness),
   )
 
-  let th_old = expect_ok_audit(refl_checked(st3, p))
+  let th_old = expect_ok_audit(refl_checked(st0, p))
   assert_true(ks_thm_is_sentence_in_language(st0, th_old))
   assert_true(ks_conservative_replay_ok(st0, st3, th_old))
 }
@@ -213,4 +213,69 @@ test "audit conservativity replay rejects non-old or non-sentence theorems" {
   let th_open = expect_ok_audit(refl_checked(st1, v_open))
   assert_false(ks_thm_is_sentence_in_language(st0, th_open))
   assert_false(ks_conservative_replay_ok(st0, st1, th_open))
+}
+
+///|
+test "audit theorem lineage rejects sibling states and accepts descendants" {
+  let bool = bool_ty()
+  let st0 = expect_ok_sig_audit(
+    ks_add_const(empty_kernel_state(), "T_lineage", bool),
+  )
+  let st0 = expect_ok_sig_audit(ks_add_const(st0, "F_lineage", bool))
+  let t = mk_const("T_lineage", bool)
+  let f = mk_const("F_lineage", bool)
+
+  let st_a = ks_push_scope(st0)
+  let (st_a, def_a) = expect_ok_sig_audit(
+    ks_define_const_thm(st_a, "c_lineage", bool, t),
+  )
+  let th_a = expect_ok_audit(
+    trans_checked(st_a, def_a, expect_ok_audit(refl_checked(st_a, t))),
+  )
+
+  let st_b = ks_push_scope(st0)
+  let (st_b, _) = expect_ok_sig_audit(
+    ks_define_const_thm(st_b, "c_lineage", bool, f),
+  )
+  assert_true(inst_checked(st_b, [], th_a) is Err(InvalidInstantiation))
+
+  let st_a_child = ks_push_scope(st_a)
+  assert_true(inst_checked(st_a_child, [], th_a) is Ok(_))
+}
+
+///|
+test "audit registration rejects witnesses from sibling histories" {
+  let bool = bool_ty()
+  let st0 = expect_ok_sig_audit(
+    ks_add_const(empty_kernel_state(), "T_registration", bool),
+  )
+  let st_a = ks_push_scope(st0)
+  let st_a = expect_ok_sig_audit(ks_add_const(st_a, "A_registration", bool))
+  let n = mk_var("n_registration", ind_ty())
+  let infinity_anchor = expect_ok_audit(refl_checked(st_a, n))
+  assert_true(
+    ks_register_ind_infinity_axiom(st0, infinity_anchor)
+    is Err(InvalidInfinityAnchor),
+  )
+
+  let x = mk_var("x_registration", bool)
+  let predicate = mk_abs(x, expect_ok_audit(mk_eq(x, x)))
+  let witness = expect_ok_audit(
+    refl_checked(st_a, closed_eq_witness_term_audit(bool)),
+  )
+  assert_true(
+    ks_register_type_definition(
+      st0,
+      "lineage_type",
+      [],
+      "RepLineageType",
+      predicate,
+      witness,
+    )
+    is Err(InvalidTypeWitness),
+  )
+  assert_true(
+    ks_specify_const(st0, "lineage_spec", bool, predicate, witness)
+    is Err(InvalidSpecificationWitness),
+  )
 }

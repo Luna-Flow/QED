@@ -93,7 +93,7 @@ abstract type named `ind`.
 | History-indexed definition/specification derivations | `extension_derivation_sound` | proved for fresh constant IDs over a fixed signature |
 | Growing-signature syntax and semantic interpretation | no history-indexed `Signature` or type constructors | open |
 | User type-constructor syntax and semantics | no constructor in `Ty` | open |
-| MoonBit-to-Lean refinement and theorem provenance | no Typed HOL theorem | excluded; issue #15 remains open |
+| MoonBit-to-Lean refinement and theorem provenance | no Typed HOL theorem | refinement excluded; MoonBit lineage invariant is tested separately |
 | Syntactic conservativity/derivation erasure | no growing-theory derivation | open |
 
 The levels of extension evidence must remain distinct: local semantic laws,

@@ -117,7 +117,7 @@ test "logic infinity anchor and conservativity replay wrappers work" {
   assert_true(logic_ind_infinity_anchor(st1) is Ok(_))
 
   let p = mk_const("P", bool)
-  let th_old = expect_ok_logic(logic_refl(st1, p))
+  let th_old = expect_ok_logic(logic_refl(st0, p))
   assert_true(logic_conservative_replay_ok(st0, st1, th_old))
 }
 
@@ -247,7 +247,7 @@ test "logic conservative replay rejects new-language theorems" {
 
   let p0 = mk_const("P0", bool)
   let c0 = mk_const("c_cons_guard", bool)
-  let th_old = expect_ok_logic(logic_refl(st1, p0))
+  let th_old = expect_ok_logic(logic_refl(st0, p0))
   let th_new = expect_ok_logic(logic_refl(st1, c0))
   assert_true(logic_conservative_replay_ok(st0, st1, th_old))
   assert_false(logic_conservative_replay_ok(st0, st1, th_new))

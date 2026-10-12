@@ -3054,7 +3054,7 @@ msgid "Explicit limits"
 msgstr "明示的な限界"
 
 #: manual/conformance.md:48
-msgid "The Typed HOL theorem does not establish user type-constructor syntax and semantics, the MoonBit infinity registration gate, syntactic derivation erasure, or a MoonBit-to-Lean refinement. It also does not certify the parser, elaborator, tactics, theorem replay, mutable scope history, or provenance behavior. Those are implementation work and must not be presented as evidence for the Lean theorem."
+msgid "The Typed HOL theorem does not establish user type-constructor syntax and semantics, the MoonBit infinity registration gate, syntactic derivation erasure, or a MoonBit-to-Lean refinement. It also does not certify the parser, elaborator, tactics, theorem replay, or mutable scope history. MoonBit theorem provenance is covered separately by the issue #15 implementation invariant and regression tests; it must not be presented as evidence for the Lean theorem."
 msgstr "Typed HOL 定理は、ユーザー型構成子の構文と意味論、MoonBit の無限公理登録ゲート、拡張導出の構文的消去、または MoonBit から Lean への精緻化を確立していません。また、パーサー、エラボレーター、タクティク、定理のリプレイ、可変スコープ履歴、出自管理の動作も認証しません。これらは実装上の課題であり、Lean 定理の根拠として提示してはなりません。"
 
 #: manual/conformance.md:55
@@ -3062,8 +3062,8 @@ msgid "Implementation evidence"
 msgstr "実装の検証根拠"
 
 #: manual/conformance.md:57
-msgid "The following mappings and contributor rules remain implementation evidence, not a checked refinement theorem. Existing tests do not cover every trust-boundary case: [issue #15](https://github.com/Luna-Flow/QED/issues/15) reports that sibling `KernelState` histories can accept each other's theorems and derive `T = F`. Its repair is deferred with the MoonBit work."
-msgstr "以下の対応表と貢献規則は実装の根拠であり、検証済みの精緻化定理ではありません。既存のテストは信頼境界の全事例を網羅していません。[issue #15](https://github.com/Luna-Flow/QED/issues/15) は、兄弟関係の `KernelState` 履歴が互いの定理を受け入れ、`T = F` を導出できると報告しています。修正は MoonBit の作業とともに延期しています。"
+msgid "The following mappings and contributor rules remain implementation evidence, not a checked refinement theorem. Issue #15 is covered by lineage-prefix admissibility in `src/kernel/thm.mbt` and sibling-state regression tests in `src/kernel/kernel_audit_test.mbt`; the implementation repair does not enlarge the Typed HOL theorem."
+msgstr ""
 
 #: manual/conformance.md:63
 msgid "Code and test mapping"
@@ -3358,7 +3358,7 @@ msgid "Boundaries"
 msgstr "境界"
 
 #: manual/current_workspace_audit.md:40
-msgid "The proof does not establish growing-signature derivations, user type-constructor syntax or semantics, the MoonBit infinity registration gate, syntactic derivation erasure for extensions, a MoonBit-to-Lean refinement, or correctness of MoonBit parsing, elaboration, tactics, replay, mutable signature history, or theorem provenance. Tests and engineering audits remain separate evidence for those implementation properties."
+msgid "The proof does not establish growing-signature derivations, user type-constructor syntax or semantics, the MoonBit infinity registration gate, syntactic derivation erasure for extensions, or a MoonBit-to-Lean refinement. Parser, elaborator, tactic, replay, and mutable-state behavior remain separate implementation evidence. The MoonBit theorem-provenance condition in issue #15 is now enforced independently by the kernel and covered by regression tests."
 msgstr "この証明は、成長するシグネチャ上の導出、ユーザー型構成子の構文と意味論、MoonBit の無限公理登録ゲート、拡張導出の構文的消去、MoonBit から Lean への精緻化、および MoonBit の解析、エラボレーション、タクティク、リプレイ、可変シグネチャ履歴、定理の出自管理の正しさを確立していません。テストと工学的監査は、これらの実装特性に関する別の根拠です。"
 
 #: manual/current_workspace_audit.md:47
@@ -3366,40 +3366,40 @@ msgid "This status supersedes older audit claims about conditional proof packs o
 msgstr "この状況は、条件付き証明パッケージや MoonBit の適合性が形式化ターゲットに含まれるとする過去の監査記述に優先します。"
 
 #: manual/current_workspace_audit.md:50
-msgid "Open implementation soundness defect"
-msgstr "未解決の実装健全性の欠陥"
+msgid "Issue #15 implementation repair"
+msgstr ""
 
 #: manual/current_workspace_audit.md:52
-msgid "[Issue #15](https://github.com/Luna-Flow/QED/issues/15) remains open. The reported public-API reproduction reuses a theorem across sibling `KernelState` histories whose independently allocated constant identifiers collide, deriving `|- T = F`. `Thm` does not track state lineage, and the current admissibility checks do not establish that the theorem belongs to the receiving declaration history."
-msgstr "[issue #15](https://github.com/Luna-Flow/QED/issues/15) は未解決です。報告された公開 API による再現では、兄弟関係の `KernelState` 履歴間で定理を再利用します。各履歴が独立に割り当てた定数識別子が衝突し、`|- T = F` が導出されます。`Thm` は状態の系譜を追跡せず、現在の受理チェックも、その定理が受け取り側の宣言履歴に属することを確立していません。"
+msgid "[Issue #15](https://github.com/Luna-Flow/QED/issues/15) is repaired in the current implementation work. Every theorem carries the declaration lineage at which it was first admitted, and admissibility requires that lineage to be a prefix of the receiving state's history. Sibling histories therefore reject a theorem before constant-id reuse can combine incompatible declarations, while linear descendants continue to accept inherited theorems. Infinity-anchor, typedef, and specification registration also reject sibling witnesses."
+msgstr ""
 
-#: manual/current_workspace_audit.md:58
-msgid "This is a material implementation soundness defect, not just a missing proof. The existing 357-test baseline did not cover this scenario. A green Lean build proves the Typed HOL calculus; it cannot establish correctness of this MoonBit behavior. Repair and implementation refinement are deferred at the user's request. Acceptance requires rejecting the first incompatible cross-state step, covering related registration paths, and preserving valid linear-history use."
-msgstr "これは重要な実装健全性の欠陥であり、単に証明が不足しているという問題ではありません。既存の 357 テストの基準には、この事例が含まれていません。Lean ビルドの成功は Typed HOL 計算体系を証明しますが、この MoonBit の動作の正しさは確立しません。ユーザーの指示により、修正と実装精緻化は延期しています。受け入れには、最初の不適合な状態間ステップの拒否、関連する登録経路の網羅、正当な線形履歴での利用の維持が必要です。"
+#: manual/current_workspace_audit.md:60
+msgid "The repair is an independently tested MoonBit invariant, not a MoonBit-to-Lean refinement theorem. The Typed HOL build still certifies only the formal calculus and its stated fixed-signature extension results."
+msgstr ""
 
-#: manual/current_workspace_audit.md:65
+#: manual/current_workspace_audit.md:64
 msgid "Remaining engineering follow-up"
 msgstr "残る実装上の作業"
 
-#: manual/current_workspace_audit.md:67
+#: manual/current_workspace_audit.md:66
 msgid "Maintain checked lowering and replay as structured proof blocks expand."
 msgstr "構造化証明ブロックを拡張する際にも、検査済みの lowering とリプレイを維持してください。"
 
-#: manual/current_workspace_audit.md:68
+#: manual/current_workspace_audit.md:67
 msgid "Keep hole and unfinished-proof diagnostics aligned with the canonical corpus."
 msgstr "穴と未完成証明の診断を標準コーパスと一致させてください。"
 
-#: manual/current_workspace_audit.md:69
+#: manual/current_workspace_audit.md:68
 msgid "Keep quantifier-facing frontend lowering and CLI diagnostics covered."
 msgstr "量化子向けフロントエンドの lowering と CLI 診断のテスト範囲を維持してください。"
 
-#: manual/current_workspace_audit.md:70
+#: manual/current_workspace_audit.md:69
 msgid "Keep the research rewrite/simplify path outside theorem authority."
 msgstr "研究用の rewrite/simplify 経路を定理の権限境界の外に置いてください。"
 
-#: manual/current_workspace_audit.md:72
-msgid "These are implementation tasks, not additional assumptions of the Typed HOL proof. The current cleanup changes no MoonBit implementation."
-msgstr "これらは実装の作業であり、Typed HOL 証明の追加仮定ではありません。今回の整理で MoonBit 実装は変更していません。"
+#: manual/current_workspace_audit.md:71
+msgid "These are implementation tasks, not additional assumptions of the Typed HOL proof. The current work records the issue #15 invariant and the MoonBit 0.10.15 compatibility check without extending the Lean proof boundary."
+msgstr ""
 
 #: manual/design/cmd.md:1
 msgid "cmd design"
@@ -9821,6 +9821,21 @@ msgstr "[tactics 設計](../design/tactics.md)は、正当化と、不正なス�
 msgid "The [prover tutorial](prover.md) runs the same proofs from scripts."
 msgstr "[prover チュートリアル](prover.md)は、同じ証明をスクリプトから実行する。"
 
+#~ msgid "The following mappings and contributor rules remain implementation evidence, not a checked refinement theorem. Existing tests do not cover every trust-boundary case: [issue #15](https://github.com/Luna-Flow/QED/issues/15) reports that sibling `KernelState` histories can accept each other's theorems and derive `T = F`. Its repair is deferred with the MoonBit work."
+#~ msgstr "以下の対応表と貢献規則は実装の根拠であり、検証済みの精緻化定理ではありません。既存のテストは信頼境界の全事例を網羅していません。[issue #15](https://github.com/Luna-Flow/QED/issues/15) は、兄弟関係の `KernelState` 履歴が互いの定理を受け入れ、`T = F` を導出できると報告しています。修正は MoonBit の作業とともに延期しています。"
+
+#~ msgid "Open implementation soundness defect"
+#~ msgstr "未解決の実装健全性の欠陥"
+
+#~ msgid "[Issue #15](https://github.com/Luna-Flow/QED/issues/15) remains open. The reported public-API reproduction reuses a theorem across sibling `KernelState` histories whose independently allocated constant identifiers collide, deriving `|- T = F`. `Thm` does not track state lineage, and the current admissibility checks do not establish that the theorem belongs to the receiving declaration history."
+#~ msgstr "[issue #15](https://github.com/Luna-Flow/QED/issues/15) は未解決です。報告された公開 API による再現では、兄弟関係の `KernelState` 履歴間で定理を再利用します。各履歴が独立に割り当てた定数識別子が衝突し、`|- T = F` が導出されます。`Thm` は状態の系譜を追跡せず、現在の受理チェックも、その定理が受け取り側の宣言履歴に属することを確立していません。"
+
+#~ msgid "This is a material implementation soundness defect, not just a missing proof. The existing 357-test baseline did not cover this scenario. A green Lean build proves the Typed HOL calculus; it cannot establish correctness of this MoonBit behavior. Repair and implementation refinement are deferred at the user's request. Acceptance requires rejecting the first incompatible cross-state step, covering related registration paths, and preserving valid linear-history use."
+#~ msgstr "これは重要な実装健全性の欠陥であり、単に証明が不足しているという問題ではありません。既存の 357 テストの基準には、この事例が含まれていません。Lean ビルドの成功は Typed HOL 計算体系を証明しますが、この MoonBit の動作の正しさは確立しません。ユーザーの指示により、修正と実装精緻化は延期しています。受け入れには、最初の不適合な状態間ステップの拒否、関連する登録経路の網羅、正当な線形履歴での利用の維持が必要です。"
+
+#~ msgid "These are implementation tasks, not additional assumptions of the Typed HOL proof. The current cleanup changes no MoonBit implementation."
+#~ msgstr "これらは実装の作業であり、Typed HOL 証明の追加仮定ではありません。今回の整理で MoonBit 実装は変更していません。"
+
 #~ msgid "Derivation soundness"
 #~ msgstr "導出の健全性"
 
@@ -10133,11 +10148,9 @@ msgstr "[prover チュートリアル](prover.md)は、同じ証明をスクリ�
 #~ msgid "`moon test` -> pass (`357/357`)"
 #~ msgstr "`moon test` -> 通過（`357/357`）"
 
-#, fuzzy
 #~ msgid "`formal_verification/lake build` -> pass (594 jobs)"
 #~ msgstr "`formal_verification/lake build` -> 合格（642 ジョブ）"
 
-#, fuzzy
 #~ msgid "These green gates show that the checked packages and regression suite are internally consistent on the current baseline. The Typed HOL line now includes constructed carriers, natural choice coherence, model-independent derivation soundness, typed definition/specification contracts, finite extension composition, canonical model existence, and old-language semantic transport. The remaining formal gaps are confined to the excluded MoonBit/refinement boundary: concrete named/De Bruijn correspondence, distinct-state provenance, and implementation transfer."
 #~ msgstr "これらのグリーンゲートは、検査済みパッケージと回帰テストスイートが現在のベースラインで内部的に整合していることを示します。Typed HOL の主線には、構成されたキャリア、モデルに依存しない導出の健全性、型付き定義/仕様契約、旧言語の意味論的な移送が含まれます。ただし、これらのゲートだけでは抽象 Lean モデルが MoonBit に実現されていること、異なる状態間の構文的精密化、計画されたすべての製品機能の完了を証明しません。"
 
@@ -10273,7 +10286,6 @@ msgstr "[prover チュートリアル](prover.md)は、同じ証明をスクリ�
 #~ msgid "QED formal specification audit matrices"
 #~ msgstr "QED 正式仕様監査マトリックス"
 
-#, fuzzy
 #~ msgid "Status vocabulary is fixed: `proved` means the stated proposition is independently established; `conditional` means it is established only under explicit law/simulation premises; `implementation-open` means the remaining work is the excluded MoonBit/refinement layer; `open` means an in-scope proof is missing; `bug` means a concrete defect has a reproducer. GitHub references use the repository issues cited below."
 #~ msgstr "ステータスの語彙は固定されています: `proved` は、記載された命題が独立して確立されていることを意味します。 `conditional` は、明示的な法則/シミュレーション前提の下でのみ確立されることを意味します。 `open` は、必要な証明または精密化が欠落していることを意味します。 `bug` は、具体的な欠陥に再現性があることを意味します。 GitHub リファレンスでは、以下に挙げるリポジトリの問題が使用されています。"
 
@@ -10451,11 +10463,9 @@ msgstr "[prover チュートリアル](prover.md)は、同じ証明をスクリ�
 #~ msgid "Every exported MoonBit theorem path reconstructs a Part I derivation."
 #~ msgstr "エクスポートされたすべての MoonBit 定理パスは、パート I の導出を再構築します。"
 
-#, fuzzy
 #~ msgid "Bind MoonBit paths to `CheckedDerivation` later."
 #~ msgstr "MoonBit パスを `CheckedDerivation` にバインドします。"
 
-#, fuzzy
 #~ msgid "Current verification in the independent worktree: `lake build` passed (642 jobs); `typst compile doc/attachments/qed_formal_spec.typ /tmp/qed-formal-audit.pdf`, `moon check`, `moon test` (357/357), and `lunadoc check . --compile` passed. These checks establish the Typed HOL semantic proof and the current implementation regression suite. They do not claim the excluded MoonBit-to-Lean refinement, distinct-state provenance repair, or concrete boundary correspondence."
 #~ msgstr "独立したワークツリーでの現在の検証: `lake build` は 642 ジョブで合格し、`typst compile doc/attachments/qed_formal_spec.typ /tmp/qed-formal-audit.pdf`、`moon check`、`moon test` (357/357)、`lunadoc check . --compile` も合格しました。これらのチェックは、MoonBit から Lean への直接的な精密化や閉じた理論間保守性証明ではなく、記述された Lean および実装側の契約を検証します。"
 
