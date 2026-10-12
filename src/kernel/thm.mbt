@@ -191,7 +191,7 @@ pub fn dest_eq(term : Term) -> Result[(Term, Term), LogicError] {
 }
 
 ///|
-pub fn thm_hyp_count(th : Thm) -> Int {
+pub fn thm_hyp_count(th : Thm) -> Int32 {
   th.hyps.length()
 }
 
@@ -300,7 +300,7 @@ fn mk_comb_rule(th_fg : Thm, th_xy : Thm) -> Result[Thm, LogicError] {
 
 ///|
 /// Lift de Bruijn indices `>= cutoff` by `delta` (standard binder introduction).
-fn db_lift_bvars(term : DbTerm, cutoff : Int, delta : Int) -> DbTerm {
+fn db_lift_bvars(term : DbTerm, cutoff : Int32, delta : Int32) -> DbTerm {
   match term {
     DbBound(i, t) =>
       if i >= cutoff {
@@ -323,7 +323,7 @@ fn db_subst_free_with_bvar(
   term : DbTerm,
   name : String,
   fty : HolType,
-  depth : Int,
+  depth : Int32,
 ) -> DbTerm {
   match term {
     DbBound(i, t) => DbBound(i, t)

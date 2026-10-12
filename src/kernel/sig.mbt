@@ -40,7 +40,7 @@ pub suberror SigError {
 }
 
 ///|
-pub type ConstId = Int
+pub type ConstId = Int32
 
 ///|
 pub enum ExtensionGate {
@@ -57,7 +57,7 @@ priv struct TheoryState {
   def_heads : Array[String]
   def_const_deps : Array[(String, Array[String])]
   def_theorems : Array[(String, Thm)]
-  witnessed_tycons : Array[(String, Int)]
+  witnessed_tycons : Array[(String, Int32)]
   type_rep_heads : Array[String]
   type_abs_heads : Array[String]
   typedef_contracts : Array[(String, Thm, Thm, Thm)]
@@ -79,7 +79,7 @@ fn is_reserved_symbol(name : String) -> Bool {
 }
 
 ///|
-fn is_builtin_tycon(name : String, arity : Int) -> Bool {
+fn is_builtin_tycon(name : String, arity : Int32) -> Bool {
   (name == "bool" && arity == 0) ||
   (name == "fun" && arity == 2) ||
   (name == "ind" && arity == 0)
@@ -595,7 +595,7 @@ pub fn ks_definition_theorem(
 pub fn ks_has_type_witness(
   state : KernelState,
   tycon : String,
-  arity : Int,
+  arity : Int32,
 ) -> Bool {
   state.theory.witnessed_tycons.any(fn(pair) {
     let (name, a) = pair
@@ -644,12 +644,12 @@ pub fn ks_typedef_contract(
 }
 
 ///|
-pub fn ks_extension_cert_count(state : KernelState) -> Int {
+pub fn ks_extension_cert_count(state : KernelState) -> Int32 {
   state.theory.extension_certs.length()
 }
 
 ///|
-pub fn ks_extension_cert_at(state : KernelState, idx : Int) -> ExtensionCert? {
+pub fn ks_extension_cert_at(state : KernelState, idx : Int32) -> ExtensionCert? {
   if idx < 0 || idx >= state.theory.extension_certs.length() {
     None
   } else {
@@ -725,7 +725,7 @@ fn apply_unary_predicate(predicate : Term, arg : Term) -> Term? {
 fn match_predicate_instance_db(
   pattern : DbTerm,
   target : DbTerm,
-  binder_depth : Int,
+  binder_depth : Int32,
   binder_ty : HolType,
   witness : DbTerm?,
   used_outer : Bool,

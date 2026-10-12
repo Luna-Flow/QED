@@ -8,7 +8,7 @@ pub enum PropTheoremClass {
 ///|
 pub struct PropTheoremEntry {
   name : String
-  premise_count : Int
+  premise_count : Int32
   exact_class : PropTheoremClass?
   apply_class : PropTheoremClass?
 }
@@ -98,12 +98,12 @@ fn prop_theorem_entries() -> Array[PropTheoremEntry] {
 }
 
 ///|
-pub fn logic_prop_theorem_count() -> Int {
+pub fn logic_prop_theorem_count() -> Int32 {
   prop_theorem_entries().length()
 }
 
 ///|
-pub fn logic_prop_theorem_at(idx : Int) -> PropTheoremEntry? {
+pub fn logic_prop_theorem_at(idx : Int32) -> PropTheoremEntry? {
   let entries = prop_theorem_entries()
   if idx < 0 || idx >= entries.length() {
     None

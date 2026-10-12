@@ -67,7 +67,7 @@ pub enum RewriteResult {
 
 ///|
 pub struct SimplifyConfig {
-  step_limit : Int
+  step_limit : Int32
   allow_unfold : Bool
   allow_beta : Bool
   rewrite_requests : Array[RewriteRequest]
@@ -163,7 +163,7 @@ pub fn research_replay_obligation(
 
 ///|
 pub fn research_simplify_config(
-  step_limit : Int,
+  step_limit : Int32,
   allow_unfold : Bool,
   allow_beta : Bool,
   rewrite_requests : Array[RewriteRequest],
@@ -431,7 +431,7 @@ fn explicit_witness_theorem(
 }
 
 ///|
-fn connector_arity(kind : ConnectorKind) -> Int {
+fn connector_arity(kind : ConnectorKind) -> Int32 {
   match kind {
     Not => 1
     Imp => 2
@@ -840,9 +840,9 @@ fn attempt_auto_beta(
 fn push_segment_with_limit(
   segments : Array[ReplaySegment],
   seg : ReplaySegment,
-  used : Int,
-  limit : Int,
-) -> Result[(Array[ReplaySegment], Int), RewriteBuildError] {
+  used : Int32,
+  limit : Int32,
+) -> Result[(Array[ReplaySegment], Int32), RewriteBuildError] {
   if used >= limit {
     Err(Honest("step limit exceeded"))
   } else {
