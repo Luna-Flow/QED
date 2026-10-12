@@ -24,3 +24,17 @@ import QEDFV.HOL.Soundness
 #print axioms QEDFV.HOL.valid_definition_old_language_iff
 #print axioms QEDFV.HOL.valid_allEq_one_unchanged
 #print axioms QEDFV.HOL.valid_allEq_zero_changes
+#print axioms QEDFV.HOL.TypeDefGate.newTyCon_isAdmissible
+#print axioms QEDFV.HOL.TypeDefGate.valid_absRep
+#print axioms QEDFV.HOL.TypeDefGate.valid_repRange
+#print axioms QEDFV.HOL.TypeDefGate.valid_repAbs
+#print axioms QEDFV.HOL.TypeDefGate.laws
+#print axioms QEDFV.HOL.TypeDefGate.laws_of_witness_valid
+#print axioms QEDFV.HOL.TypeDefGate.valid_iff_old
+#print axioms QEDFV.HOL.TypeDefGate.valid_iff_old_canonical
+#print axioms QEDFV.HOL.TypeDefGate.holdsAny_iff
+#print axioms QEDFV.HOL.TypeDefGate.repVal_eq_val
+#print axioms QEDFV.HOL.ModelExtension.valid_iff
+#print axioms QEDFV.HOL.canonicalConstVal_local
+#print axioms QEDFV.HOL.trueGate_laws
+#print axioms QEDFV.HOL.falseGate_repRange_not_valid

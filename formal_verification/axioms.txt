@@ -34,6 +34,20 @@ and derivations indexed by a finite constant-extension history.
 'QEDFV.HOL.valid_definition_old_language_iff' depends on axioms: [propext, Classical.choice, Quot.sound]
 'QEDFV.HOL.valid_allEq_one_unchanged' depends on axioms: [propext, Classical.choice, Quot.sound]
 'QEDFV.HOL.valid_allEq_zero_changes' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.TypeDefGate.newTyCon_isAdmissible' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.TypeDefGate.valid_absRep' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.TypeDefGate.valid_repRange' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.TypeDefGate.valid_repAbs' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.TypeDefGate.laws' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.TypeDefGate.laws_of_witness_valid' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.TypeDefGate.valid_iff_old' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.TypeDefGate.valid_iff_old_canonical' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.TypeDefGate.holdsAny_iff' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.TypeDefGate.repVal_eq_val' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.ModelExtension.valid_iff' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.canonicalConstVal_local' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.trueGate_laws' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.falseGate_repRange_not_valid' depends on axioms: [propext, Classical.choice, Quot.sound]
 
 These are Lean/Mathlib foundation axioms, not project declarations:
 
@@ -47,5 +61,5 @@ These are Lean/Mathlib foundation axioms, not project declarations:
 
 There is no project-defined axiom asserting primitive-rule soundness or
 constant-extension history soundness. This report does not certify a growing
-signature, MoonBit refinement, user type-constructor extensions, or the
-executable MoonBit infinity registration gate.
+signature, MoonBit refinement, derivation constructors for user type-constructor
+extensions, or the executable MoonBit infinity registration gate.
