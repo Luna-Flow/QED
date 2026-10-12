@@ -49,4 +49,25 @@ theorem standard_ind_infinity_anchor :
     Function.Injective Nat.succ ∧ ¬ Function.Surjective Nat.succ :=
   ind_infinity_anchor
 
+def signatureGenericFalseSentence (S : Signature) : Term S [] .bool :=
+  (Term.lam (Term.var Var.zero)).equal
+    (Term.lam ((Term.var Var.zero).equal (Term.var Var.zero)))
+
+theorem signatureGenericFalseSentence_not_valid (S : Signature) (I : ConstVal S) :
+    ¬ Valid I { hyps := [], concl := signatureGenericFalseSentence S } := by
+  intro hValid
+  have h := hValid baseTypeVal baseTypeVal_admissible emptyEnv (by
+    intro h hh
+    cases hh)
+  change (fun x : Prop => x) = (fun x : Prop => x = x) at h
+  have hFalse := congrFun h False
+  exact hFalse.symm ▸ (show False = False from rfl)
+
+theorem signatureGenericFalseSentence_not_derivable (S : Signature)
+    (hChoice : ChoiceNatural) :
+    ¬ Derivation S { hyps := [], concl := signatureGenericFalseSentence S } := by
+  intro d
+  exact signatureGenericFalseSentence_not_valid S (canonicalConstVal S)
+    (derivation_sound hChoice (canonicalConstVal S) d)
+
 end QEDFV.HOL

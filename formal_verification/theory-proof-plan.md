@@ -1,93 +1,118 @@
-# Typed HOL proof plan
+# Typed HOL Proof Plan
 
-- Status: Typed HOL is the only formal proof line.
+- Status: Typed HOL is the sole formal proof line.
 - Authority: [QED Typed HOL Core](../doc/attachments/qed_formal_spec.typ).
-- Scope: the Lean mathematical calculus and its proved semantic metatheory.
+- Scope: intrinsically typed core derivations, rule soundness, fixed-signature
+  semantic extension lemmas, and non-triviality witnesses.
 - Excluded: MoonBit refinement, parser/tactic correctness, mutable signature
-  provenance, and syntactic derivation erasure for extensions.
+  provenance, and derivation erasure for a growing theory.
 
-## Proof dependency
+## Proof Dependency
 
-1. `HOL/Types.lean` defines types, substitutions, denotations, admissibility, and
-   proves non-empty carriers.
+1. `HOL/Types.lean` defines the four core types, substitutions, denotations,
+   admissibility, and non-empty carriers.
 2. `HOL/Terms.lean` defines intrinsically typed De Bruijn terms, renaming,
    capture-avoiding substitution, and type instantiation.
 3. `HOL/Evaluation.lean` defines environments and interpretations and proves
    renaming, substitution, and beta evaluation laws.
 4. `HOL/Instantiation.lean` proves choice coherence and semantic type
    instantiation.
-5. `HOL/Rules.lean` proves validity preservation for all primitive rules.
-6. `HOL/Derivation.lean` proves `derivation_sound` by induction on typed
-   derivations.
+5. `HOL/Rules.lean` proves direct preservation for the core rules, including
+   `valid_add_assum` and witness-based `valid_choose_from_witness`.
+6. `HOL/Derivation.lean` has twelve constructors. `derivation_sound` proves
+   soundness by induction, with a case for every constructor.
 7. `HOL/Definitions.lean`, `HOL/Specification.lean`, and
-   `HOL/TypeDefinitions.lean` prove the semantic extension contracts.
-8. `HOL/Conservativity.lean` composes finite semantic extension invariance.
-9. `HOL/Concrete.lean` supplies a non-triviality countermodel.
-10. `HOL/Soundness.lean` exposes the public package theorem
-    `typed_hol_proof_complete`.
+   `HOL/TypeDefinitions.lean` prove local semantic extension contracts.
+8. `HOL/Conservativity.lean` composes finite, old-language validity equivalence
+   for pointwise constant overrides on one fixed signature.
+9. `HOL/Concrete.lean` proves concrete and signature-generic non-derivability.
+10. `HOL/Soundness.lean` exports `typed_hol_core_proof_complete`, a package for
+    the checked core and its semantic results. It is not a completeness theorem
+    or a full growing-theory development.
 
-## Acceptance matrix
+## Kernel-to-Lean Map
+
+| Kernel primitive or extension | Lean representation | What is proved | Boundary |
+| --- | --- | --- | --- |
+| `refl_checked` | `Derivation.refl`; `valid_refl` | Equality reflexivity | Checked |
+| `assume_checked` | `Derivation.assume`; `valid_assume` | Singleton-hypothesis validity | Checked |
+| `add_assum_checked` (#10) | `Derivation.addAssum`; `valid_add_assum` | Weakening by an added boolean assumption | Checked in core calculus |
+| `trans_checked` | `Derivation.trans`; `valid_trans` | Equality transitivity | Checked |
+| `mk_comb_rule_checked` | `Derivation.mkComb`; `valid_mkComb` | Function and argument congruence | Checked |
+| `abs_rule_checked` | `Derivation.abs`; `valid_abs` | Extensionality under a binder | Checked |
+| `beta_rule_checked` | `Derivation.beta`; `valid_beta` | Beta equation | Checked |
+| `eq_mp_checked` | `Derivation.eqMp`; `valid_eqMp` | Boolean equality elimination | Checked |
+| `deduct_antisym_rule_checked` | `Derivation.deduct`; `valid_deduct` | Deduction antisymmetry | Checked |
+| type and term instantiation | `Derivation.instType`, `.instTerm`; `valid_inst_type`, `valid_inst_term` | Typed substitution preservation | Checked |
+| `ks_define_const`, `ks_define_const_thm` | `DefinitionGate`; `valid_definition_equation` | Equation valid in a pointwise overridden interpretation; old-language validity equivalence | No growing-theory derivation constructor |
+| `ks_specify_const` | `SpecificationGate`, `Derivation.specify`; `valid_constant_from_typed_derivation` | Witness-based choice and validity in the specified interpretation | Gate result is not threaded through an evolving signature derivation |
+| `ks_register_type_definition` | `TypeDefContract` | Nonempty predicate subtype and Abs/Rep laws | No user type-constructor node in `Ty`; interpretation update is not modeled |
+| `ks_ind_infinity_axiom` | `ind_infinity_anchor` only | `Nat.succ` is injective and not surjective | No object-language axiom admission rule; see issue #7 |
+| eta | no kernel primitive found | Not applicable | Not a primitive of the current kernel calculus |
+
+## Acceptance Matrix
 
 | Obligation | Lean evidence | Status |
 | --- | --- | --- |
-| Typed syntax and non-empty carriers | `HOL/Types.lean`, `HOL/Terms.lean` | proved |
+| Typed core syntax and non-empty carriers | `HOL/Types.lean`, `HOL/Terms.lean` | proved |
 | Renaming, substitution, beta | `HOL/Evaluation.lean` | proved |
-| Type instantiation and choice coherence | `HOL/Instantiation.lean` | proved |
-| Primitive rule preservation | `HOL/Rules.lean` | proved |
-| Inductive derivation soundness | `HOL/Derivation.lean` | proved |
-| Definition semantic equation and old-language invariance | `HOL/Definitions.lean` | proved |
-| Specification validity and old-language invariance | `HOL/Specification.lean` | proved |
-| Predicate-subtype type-definition laws | `HOL/TypeDefinitions.lean` | proved |
-| Finite semantic conservativity | `HOL/Conservativity.lean` | proved |
-| Concrete non-triviality | `HOL/Concrete.lean` | proved |
-| MoonBit-to-Lean refinement | no Typed HOL theorem | excluded |
-| Syntactic derivation erasure | no Typed HOL theorem | excluded |
+| Type instantiation and selector coherence | `HOL/Instantiation.lean` | proved |
+| Twelve core rule preservation cases | `HOL/Rules.lean`, `HOL/Derivation.lean` | proved |
+| Arbitrary-signature non-triviality | `signatureGenericFalseSentence_not_derivable` | proved |
+| Definition equation under its model override | `valid_definition_equation` | proved semantically |
+| Specification from a closed typed witness | `valid_choose_from_witness`, `SpecificationGate.valid_constant_from_typed_derivation` | proved semantically |
+| Type-variable closure under instantiation | `DefinitionGate.instType_type_vars_closed`, `SpecificationGate.instType_type_vars_closed` | proved |
+| Predicate-subtype type-definition laws | `HOL/TypeDefinitions.lean` | proved at carrier level |
+| Finite old-language validity equivalence | `valid_interpretSequence_iff` | proved for fixed-signature overrides |
+| Object-language infinity admission | no derivation constructor | open |
+| Growing-theory definition/specification derivations | no indexed theory judgment | open |
+| User type-constructor syntax and semantics | no constructor in `Ty` | open |
+| MoonBit-to-Lean refinement and theorem provenance | no Typed HOL theorem | excluded; issue #15 remains open |
+| Syntactic conservativity/derivation erasure | no growing-theory derivation | open |
 
-## Trust basis
+The four-way scope must remain visible in claims: a local semantic equation,
+validity under an override, a derivation in an evolving theory, and syntactic
+conservativity are different results. This development proves the first two
+where listed; it does not identify them with the latter two.
 
-The public Typed HOL theorem depends only on Lean/mathlib foundations reported by
-`#print axioms`: `propext`, `Classical.choice`, and `Quot.sound`. The project adds
-no custom axiom asserting soundness.
+## Open Kernel/Specification Issues
 
-## Cleanup and specification acceptance (2026-10-12)
+- [Issue #7](https://github.com/Luna-Flow/QED/issues/7): the infinity anchor
+  gate accepts a theorem that merely mentions `ind`; Lean currently proves only
+  the carrier-level property of natural successor.
+- [Issue #8](https://github.com/Luna-Flow/QED/issues/8): the specification gate
+  witness certificate differs from the mathematical witness contract. The Lean
+  `SpecificationGate` is a semantic object, not a proof of MoonBit certificate
+  validation.
+- [Issue #9](https://github.com/Luna-Flow/QED/issues/9): definition
+  non-circularity is checked by constant name. Lean proves the local equation
+  from `fresh`, but does not prove the global dependency audit.
+- [Issue #10](https://github.com/Luna-Flow/QED/issues/10): `add_assum_checked`
+  was absent from the mapping. It now maps to `Derivation.addAssum` and has a
+  direct semantic preservation proof.
+- [Issue #13](https://github.com/Luna-Flow/QED/issues/13): PR CI should validate
+  MoonBit and Lean. This work adds the cached Lean job; MoonBit refinement is
+  still a separate soundness obligation.
 
-| Item | Observed problem | Change | Acceptance evidence | Status |
-| --- | --- | --- | --- | --- |
-| Parallel approximation tree | 48 non-HOL Lean modules remained as obsolete evidence | Remove all 48 sources and their project build artifacts | 14 HOL sources plus the root entry; every project import stays within HOL | verified |
-| Detailed mathematical exposition | The condensed rewrite omitted the original presentation and detailed calculus | Restore the page design, core calculus, design discussion, and appendices; add direct mathematical proofs with adjacent Typed HOL anchors | 40-page Typst output rendered and reviewed; 116 distinct Lean names pass `#check`; annotated modules checked | verified |
-| Current audit accuracy | Older audit omitted a reported implementation defect and overstated scope | Preserve implementation mappings and explicitly retain issue #15 | Open issue independently inspected; implementation repair remains deferred | verified within documentation scope |
-| Translation consistency | Changed pages left catalogs stale | Regenerate template and translate changed Chinese/Japanese messages | Both catalogs: 2368/2368 translated, zero fuzzy; lunadoc check reports zero errors/warnings | verified |
+## Trust Basis
 
-Verification commands and results:
+`formal_verification/axioms.txt` records the `#print axioms` output for the
+public core proof and representative metatheorems. No project-defined axiom is
+used to assert soundness. The Lean/mathlib foundations reported by the audit are
+`propext`, `Classical.choice`, and `Quot.sound`.
 
-- `lake build`: success (594 dependency/build jobs); retained theorem signatures
-  and proofs are unchanged by this cleanup.
-- `#print axioms` for `typed_hol_proof_complete`,
-  `typed_canonical_derivation_sound`, `typed_global_semantic_conservativity`,
-  and `typed_concrete_consistency`: only `propext`, `Classical.choice`,
-  and `Quot.sound`.
-- Retained source scan: no `sorry`, `admit`, or custom `axiom`; only HOL and
-  Mathlib imports.
-- `typst compile -j 1 doc/attachments/qed_formal_spec.typ doc/attachments/qed_formal_spec.pdf`:
-  success; 40-page output rendered and reviewed. The condensed eight-page output
-  is superseded.
-- Lean anchor check: all 116 distinct manuscript declaration names are accepted
-  by `lake env lean`; every annotation names the matching source module.
-- `lunadoc check . --compile`: zero errors and zero warnings.
-- `moon info`, `moon fmt`, and `moon check --target all -j 1`: success, with no
-  MoonBit source or generated-interface changes.
-- `moon test --target <backend> -j 1 --no-parallelize`, run serially for
-  `wasm`, `wasm-gc`, `js`, and `native`: 357/357 on each backend. These existing
-  tests do not close the known issue #15 coverage gap.
+## Verification
 
-The formal extension results concern pointwise interpretation overrides on a
-fixed signature. They do not prove globally fresh declaration allocation,
-preservation of earlier gate equations under later overrides, or allocation of
-new type constructors. Those limits are explicit in the rewritten specification.
+- `lake build`: all targets in `formal_verification` build.
+- Axioms are captured by the checked-in `HOL/AxiomAudit.lean` declarations and
+  recorded in `axioms.txt`.
+- Manuscript anchors are compiled against the named Lean modules.
+- `typst compile` and `lunadoc check . --compile` validate the normative
+  specification and its references.
 
-The restored manuscript separates named contexts, typed contexts, and assumption
-lists; it defines the exact Lean type-variable support and carrier identifications.
-It preserves the dictionary-passing blueprint as frontend obligations. Its
-realization argument must start from schema typing and prerequisite witnesses;
-termination uses the instantiated prerequisite metric. These are design
-requirements, not additional checked frontend theorems.
+The extension interpretation is still over a fixed `Signature`; its
+`typeDefinition` case is the identity. A full theory calculus requires a
+separate design change that indexes judgments by declaration history and makes
+user type constructors part of both syntax and carrier interpretation. This
+limitation is intentional in the current theorem statements and is not hidden
+behind the package name.

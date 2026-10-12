@@ -822,8 +822,8 @@ msgid "`add_assum_checked(state, q, th)` adds the proposition `q` to the hypothe
 msgstr "`add_assum_checked(state, q, th)` 把命题 `q` 加入 `th` 的假设（弱化）。"
 
 #: manual/api/kernel.md:483
-msgid "Weakening is not among the ten rules of the specification; it is derivable from ASSUME, DEDUCT_ANTISYM_RULE and EQ_MP, and the [kernel design](../design/kernel.md) gives the derivation. Fails with `NotBoolTerm` when `q` is not a proposition."
-msgstr "弱化不在规范的十条规则之内；它可由 ASSUME、DEDUCT_ANTISYM_RULE 和 EQ_MP 推导出来，推导见[内核设计说明](../design/kernel.md)。当 `q` 不是命题时，以 `NotBoolTerm` 失败。"
+msgid "Weakening is derivable from the ten classical HOL rules ASSUME, DEDUCT_ANTISYM_RULE and EQ_MP. QED also exposes it as an explicit checked rule; the Typed HOL formal calculus includes and proves this rule sound. The [kernel design](../design/kernel.md) gives the classical derivation. Fails with `NotBoolTerm` when `q` is not a proposition."
+msgstr "弱化可由经典 HOL 十条规则中的 ASSUME、DEDUCT_ANTISYM_RULE 和 EQ_MP 推导。QED 也将其作为显式检查的规则提供；Typed HOL 形式演算包含此规则，并已证明其可靠性。[内核设计说明](../design/kernel.md)给出了经典推导。当 `q` 不是命题时，以 `NotBoolTerm` 失败。"
 
 #: manual/api/kernel.md:487
 msgid "`trans_checked` is TRANS: it chains two equations."
@@ -2947,7 +2947,7 @@ msgid "Typed HOL evidence"
 msgstr "Typed HOL 证据"
 
 #: manual/conformance.md:25
-#: manual/conformance.md:60
+#: manual/conformance.md:63
 msgid "Area"
 msgstr "领域"
 
@@ -2998,8 +2998,8 @@ msgid "Type instantiation and choice coherence"
 msgstr "类型实例化与选择一致性"
 
 #: manual/conformance.md:31
-msgid "Primitive rule validity"
-msgstr "原始规则的有效性"
+msgid "Primitive rule validity, including `ADD_ASSUM` and witness `SPECIFY`"
+msgstr "原始规则可靠性，包括 `ADD_ASSUM` 和基于见证的 `SPECIFY`"
 
 #: manual/conformance.md:32
 msgid "Derivation soundness"
@@ -3019,243 +3019,242 @@ msgid "Finite semantic conservativity"
 msgstr "有限语义保守性"
 
 #: manual/conformance.md:36
-#: manual/qed_formal_audit_matrices.md:20
-msgid "Concrete non-triviality"
-msgstr "具体非平凡性"
+msgid "Concrete and signature-generic non-triviality"
+msgstr "具体及任意签名下的非平凡性"
 
 #: manual/conformance.md:37
-msgid "Public theorem package"
-msgstr "公开定理包"
+msgid "Typed HOL core proof package"
+msgstr "Typed HOL 核心证明包"
 
 #: manual/conformance.md:39
-msgid "The public entry point is `QEDFV.HOL.typed_hol_proof_complete`. The default `QEDFV` target imports `QEDFV.HOL.Soundness` only."
-msgstr "公开入口是 `QEDFV.HOL.typed_hol_proof_complete`。默认 `QEDFV` 目标仅导入 `QEDFV.HOL.Soundness`。"
+msgid "The public entry point is `QEDFV.HOL.typed_hol_core_proof_complete`. It covers the typed core and fixed-signature semantic extension results. It does not certify a growing-theory calculus. The default `QEDFV` target imports `QEDFV.HOL.Soundness` only."
+msgstr "公开入口是 `QEDFV.HOL.typed_hol_core_proof_complete`。它覆盖类型化核心及固定签名的语义扩展结果，不认证增长理论演算。默认 `QEDFV` 目标仅导入 `QEDFV.HOL.Soundness`。"
 
-#: manual/conformance.md:42
+#: manual/conformance.md:44
 msgid "Explicit limits"
 msgstr "明确的限制"
 
-#: manual/conformance.md:44
-msgid "The Typed HOL theorem does not establish completeness, syntactic derivation erasure for extensions, or a MoonBit-to-Lean refinement. It also does not certify the parser, elaborator, tactics, theorem replay, mutable scope history, or provenance behavior. Those are implementation work and must not be presented as evidence for the Lean theorem."
-msgstr "Typed HOL 定理没有证明完备性、扩展推导的语法擦除或 MoonBit 到 Lean 的精化。它也不认证解析器、精化器、策略、定理重放、可变作用域历史或来源追踪行为。这些属于实现工作，不得作为 Lean 定理的证据。"
+#: manual/conformance.md:46
+msgid "The Typed HOL theorem does not establish the infinity-axiom admission rule, derivations for definitions and type-constructor extensions in a growing theory, syntactic derivation erasure, or a MoonBit-to-Lean refinement. It also does not certify the parser, elaborator, tactics, theorem replay, mutable scope history, or provenance behavior. Those are implementation work and must not be presented as evidence for the Lean theorem."
+msgstr "Typed HOL 定理尚未建立无穷公理准入规则、增长理论中定义和类型构造器扩展的推导、语法推导擦除或 MoonBit 到 Lean 的精化。它也不认证解析器、精化器、策略、定理重放、可变作用域历史或来源追踪行为。这些属于实现工作，不得作为 Lean 定理的证据。"
 
-#: manual/conformance.md:50
+#: manual/conformance.md:53
 msgid "Implementation evidence"
 msgstr "实现证据"
 
-#: manual/conformance.md:52
+#: manual/conformance.md:55
 msgid "The following mappings and contributor rules remain implementation evidence, not a checked refinement theorem. Existing tests do not cover every trust-boundary case: [issue #15](https://github.com/Luna-Flow/QED/issues/15) reports that sibling `KernelState` histories can accept each other's theorems and derive `T = F`. Its repair is deferred with the MoonBit work."
 msgstr "以下映射和贡献规则仍是实现证据，并非经检查的精化定理。现有测试没有覆盖所有信任边界情形：[问题 #15](https://github.com/Luna-Flow/QED/issues/15) 报告兄弟 `KernelState` 历史可以接受彼此的定理并推出 `T = F`。其修复随 MoonBit 工作一同暂缓。"
 
-#: manual/conformance.md:58
+#: manual/conformance.md:61
 msgid "Code and test mapping"
 msgstr "代码与测试映射"
 
-#: manual/conformance.md:60
+#: manual/conformance.md:63
 msgid "Current implementation"
 msgstr "当前实现"
 
-#: manual/conformance.md:60
+#: manual/conformance.md:63
 msgid "Regression coverage"
 msgstr "回归覆盖"
 
-#: manual/conformance.md:62
+#: manual/conformance.md:65
 msgid "Typed core + boundary conversion"
 msgstr "带类型核心 + 边界转换"
 
-#: manual/conformance.md:63
+#: manual/conformance.md:66
 msgid "Scoped state + extension gates"
 msgstr "带作用域的状态 + 扩展闸门"
 
-#: manual/conformance.md:64
+#: manual/conformance.md:67
 msgid "Primitive rules + admissibility"
 msgstr "原始规则 + 可容许性"
 
-#: manual/conformance.md:65
+#: manual/conformance.md:68
 msgid "Resolved elaboration boundary"
 msgstr "已解析的精化边界"
 
-#: manual/conformance.md:66
+#: manual/conformance.md:69
 msgid "Parser bridge + normalize/raw-offset contract"
 msgstr "解析器桥接 + 规范化/原始偏移契约"
 
-#: manual/conformance.md:67
+#: manual/conformance.md:70
 msgid "Parser-to-tactics explicit goal bridge"
 msgstr "解析器到 tactics 的显式目标桥接"
 
-#: manual/conformance.md:68
+#: manual/conformance.md:71
 msgid "Surface connector basis expansion"
 msgstr "表层联结词基的展开"
 
-#: manual/conformance.md:69
+#: manual/conformance.md:72
 msgid "Proposition theorem replay/catalog seeds"
 msgstr "命题定理重放/目录种子"
 
-#: manual/conformance.md:70
+#: manual/conformance.md:73
 msgid "Operational proof scripting + M1 subset replay"
 msgstr "可操作的证明脚本 + M1 子集重放"
 
-#: manual/conformance.md:71
+#: manual/conformance.md:74
 msgid "File-first `cmd` integration surface"
 msgstr "以文件为先的 `cmd` 集成界面"
 
-#: manual/conformance.md:72
+#: manual/conformance.md:75
 msgid "Quantifier-facing binder / raw-`forall` corpus + CLI contract"
 msgstr "面向量词的绑定子 (binder) / 原始 `forall` 语料 + CLI 契约"
 
-#: manual/conformance.md:74
+#: manual/conformance.md:77
 msgid "Regression points that deserve particular attention:"
 msgstr "值得特别注意的回归点："
 
-#: manual/conformance.md:76
+#: manual/conformance.md:79
 msgid "`src/kernel/kernel_audit_test.mbt` already covers high-risk scenarios such as def-head monotonicity, typedef witness validity, const-id drift, typed beta/trans guards, and conservative replay."
 msgstr "`src/kernel/kernel_audit_test.mbt` 已覆盖 def-head monotonicity、typedef witness validity、const-id drift、typed beta/trans guard、conservative replay 等高风险场景。"
 
-#: manual/conformance.md:79
+#: manual/conformance.md:82
 msgid "`src/parser/parser_test.mbt` already covers the normalize/raw-offset contract and the fail-closed rejection of non-`bool` connectors."
 msgstr "`src/parser/parser_test.mbt` 已覆盖 normalize/raw-offset contract 与非 `bool` connector 的 fail-closed rejection。"
 
-#: manual/conformance.md:81
+#: manual/conformance.md:84
 msgid "`src/parser/parser_test.mbt` currently also covers theorem-header binders, structured branch block parsing, and raw-span regressions."
 msgstr "`src/parser/parser_test.mbt` 当前也覆盖 theorem-header binder、structured branch block 解析，以及 raw-span 回归。"
 
-#: manual/conformance.md:83
+#: manual/conformance.md:86
 msgid "`src/parser/parser_test.mbt` and `src/prover/prover_positive_corpus_test.mbt` together currently pin down the contract for parser-owned goal lowering and the explicit upper-layer bridge to `tactics.Goal`."
 msgstr "`src/parser/parser_test.mbt` 与 `src/prover/prover_positive_corpus_test.mbt` 当前共同固定 parser-owned goal lowering 与上层显式 bridge 到 `tactics.Goal` 的合同。"
 
-#: manual/conformance.md:86
+#: manual/conformance.md:89
 msgid "`src/prover/prover_test.mbt` currently pins down script scheduling, branch path attribution, and the step blame convention for structured branch blocks."
 msgstr "`src/prover/prover_test.mbt` 当前固定 structured branch block 的脚本调度、branch path 归因与 step blame 口径。"
 
-#: manual/conformance.md:88
+#: manual/conformance.md:91
 msgid "`src/prover/prover_test.mbt` currently covers positive `Ok((KernelState, Thm))` cases for the supported M1 subset, as well as several direct-close / implication-backed theorem-name paths."
 msgstr "`src/prover/prover_test.mbt` 当前覆盖了 M1 已支持子集的 `Ok((KernelState, Thm))` 正例，以及若干 direct-close / implication-backed theorem-name path。"
 
-#: manual/conformance.md:90
+#: manual/conformance.md:93
 msgid "`src/prover/prover_positive_corpus_test.mbt` / `src/prover/prover_negative_corpus_test.mbt` currently hold the canonical script corpus for the shipped subset, used to pin down capability coverage and the honest failure convention."
 msgstr "`src/prover/prover_positive_corpus_test.mbt` / `src/prover/prover_negative_corpus_test.mbt` 当前承载 shipped subset 的 canonical script corpus，用于固定 capability 覆盖与 honest failure 口径。"
 
-#: manual/conformance.md:93
+#: manual/conformance.md:96
 msgid "`src/prover/prover_test.mbt`, `src/prover/prover_mapping_matrix_test.mbt`, and `src/cmd/cmd_corpus_wbtest.mbt` currently also cover the structured contract for unfinished-proof / hole reporting and the canonical unfinished corpus anchors."
 msgstr "`src/prover/prover_test.mbt`、`src/prover/prover_mapping_matrix_test.mbt` 与 `src/cmd/cmd_corpus_wbtest.mbt` 当前也覆盖了 unfinished-proof / hole reporting 的结构化合同与 canonical unfinished corpus 锚点。"
 
-#: manual/conformance.md:96
+#: manual/conformance.md:99
 msgid "`src/prover/prover_mapping_matrix_test.mbt` and `src/cmd/cmd_corpus_wbtest.mbt` currently also cover the nested branch unfinished path and stable empty-marker rendering."
 msgstr "`src/prover/prover_mapping_matrix_test.mbt` 与 `src/cmd/cmd_corpus_wbtest.mbt` 当前也覆盖了 nested branch unfinished path 与 stable empty-marker rendering。"
 
-#: manual/conformance.md:98
+#: manual/conformance.md:101
 msgid "`src/cmd/cmd_corpus_wbtest.mbt` and `src/cmd/cmd_wbtest.mbt` currently also pin down the success / failure / unfinished CLI contract for shipped quantifier-facing binder / raw-`forall` scripts, including goal, locals, branch path, and step blame."
 msgstr "`src/cmd/cmd_corpus_wbtest.mbt` 与 `src/cmd/cmd_wbtest.mbt` 当前也固定了 shipped quantifier-facing binder / raw-`forall` scripts 的 success / failure / unfinished CLI contract，包括 goal、locals、branch path 与 step blame。"
 
-#: manual/conformance.md:101
+#: manual/conformance.md:104
 msgid "`src/prover/prover_mapping_matrix_test.mbt` currently binds the positive / negative / unfinished canonical case ids, the quantifier binder / raw-`forall` case ids, the capability tags, and the public example anchors in [User manual](manual.md) into a single set of regression constraints."
 msgstr "`src/prover/prover_mapping_matrix_test.mbt` 当前把 positive / negative / unfinished 三类 canonical case id、量词 binder / raw-`forall` case id、能力标签与 [用户手册](manual.md) 的公开示例锚点绑定在同一份回归约束里。"
 
-#: manual/conformance.md:104
+#: manual/conformance.md:107
 msgid "`src/cmd/cmd_wbtest.mbt` currently covers success rendering, parse/io/usage failures, tactic failure context rendering, branch-path rendering, and the file-first argv workflow."
 msgstr "`src/cmd/cmd_wbtest.mbt` 当前覆盖 success rendering、parse/io/usage failure、 tactic failure context rendering、branch-path rendering，以及 file-first argv workflow。"
 
-#: manual/conformance.md:108
+#: manual/conformance.md:111
 msgid "Documentation example source contract"
 msgstr "文档示例来源契约"
 
-#: manual/conformance.md:110
+#: manual/conformance.md:113
 msgid "To keep the documentation from presenting planned capabilities as delivered ones, documentation examples must currently follow these source constraints:"
 msgstr "为避免文档把规划能力写成已交付能力，当前文档示例必须遵守以下来源约束："
 
-#: manual/conformance.md:113
+#: manual/conformance.md:116
 msgid "`README.md` only publishes a summary of the current shipped subset and does not invent new example semantics on its own."
 msgstr "`README.md` 只发布当前 shipped subset 的摘要，不单独发明新示例语义。"
 
-#: manual/conformance.md:115
+#: manual/conformance.md:118
 msgid "Runnable theorem-script examples in [User manual](manual.md) must come from existing regression test coverage."
 msgstr "[用户手册](manual.md) 中的 runnable theorem-script examples 必须来自现有回归测试覆盖。"
 
-#: manual/conformance.md:117
+#: manual/conformance.md:120
 msgid "Theorem-producing positive example scripts currently use `src/prover/prover_test.mbt` and `src/prover/prover_positive_corpus_test.mbt` as their primary anchors."
 msgstr "theorem-producing 正例脚本当前以 `src/prover/prover_test.mbt` 与 `src/prover/prover_positive_corpus_test.mbt` 为主锚点。"
 
-#: manual/conformance.md:120
+#: manual/conformance.md:123
 msgid "Negative / honest failure examples for the shipped subset currently use `src/prover/prover_negative_corpus_test.mbt` as their primary anchor."
 msgstr "shipped subset 的负例 / honest failure 示例当前以 `src/prover/prover_negative_corpus_test.mbt` 为主锚点。"
 
-#: manual/conformance.md:122
+#: manual/conformance.md:125
 msgid "Canonical unfinished-proof examples currently use `src/prover/prover_test.mbt`, `src/prover/prover_mapping_matrix_test.mbt`, and `src/cmd/cmd_corpus_wbtest.mbt` as their primary anchors; both root-level unfinished and nested branch unfinished samples must be kept in sync."
 msgstr "canonical unfinished-proof 示例当前以 `src/prover/prover_test.mbt`、`src/prover/prover_mapping_matrix_test.mbt` 与 `src/cmd/cmd_corpus_wbtest.mbt` 为主锚点；root-level unfinished 与 nested branch unfinished 两类样例都要保持同步。"
 
-#: manual/conformance.md:126
+#: manual/conformance.md:129
 msgid "Quantifier-facing binder / raw-`forall` examples currently also use `src/prover/corpus.mbt`, `src/prover/prover_mapping_matrix_test.mbt`, and `src/cmd/cmd_corpus_wbtest.mbt` as their primary anchors; public documentation may only cite these canonical case ids."
 msgstr "quantifier-facing binder / raw-`forall` 示例当前也以 `src/prover/corpus.mbt`、`src/prover/prover_mapping_matrix_test.mbt` 与 `src/cmd/cmd_corpus_wbtest.mbt` 为主锚点；公开文档只允许引用这些 canonical case id。"
 
-#: manual/conformance.md:130
+#: manual/conformance.md:133
 msgid "The mapping from case ids to example anchors in public documentation currently uses `src/prover/prover_mapping_matrix_test.mbt` as its primary anchor."
 msgstr "公开文档中的 case-id 到示例锚点映射当前以 `src/prover/prover_mapping_matrix_test.mbt` 为主锚点。"
 
-#: manual/conformance.md:132
+#: manual/conformance.md:135
 msgid "Tactic-level examples, local-over-name conflicts, and wrong-mode honest failures currently use `src/tactics/proof_state_test.mbt` as their primary anchor."
 msgstr "tactic-level 例子、local-over-name 冲突与 wrong-mode honest failure 当前以 `src/tactics/proof_state_test.mbt` 为主锚点。"
 
-#: manual/conformance.md:134
+#: manual/conformance.md:137
 msgid "Theorem scripts quoted on the package pages (`api/`, `design/`, `tutorial/`) reuse scripts from the anchors above; they do not introduce new script semantics."
 msgstr "包页面（`api/`、`design/`、`tutorial/`）中引用的定理脚本复用上述锚点处的脚本，不引入新的脚本语义。"
 
-#: manual/conformance.md:136
+#: manual/conformance.md:139
 msgid "MoonBit API examples on the package pages are complete programs that call the public functions of the current code and record their results with `assert_eq`, `assert_true` or `inspect` snapshots. Every such block is compiled and run against the current code before the page changes; a block that is not meant to run is fenced `moonbit nocheck`."
 msgstr "包页面中的 MoonBit API 示例是完整程序，调用当前代码的公开函数，并用 `assert_eq`、`assert_true` 或 `inspect` 快照记录结果。每个这样的代码块在页面变更之前都会针对当前代码编译并运行；不打算运行的代码块使用 `moonbit nocheck` 围栏标注。"
 
-#: manual/conformance.md:140
+#: manual/conformance.md:143
 msgid "If the documentation adds, modifies, or removes a public example, the corresponding regression test must be added, modified, or removed at the same time."
 msgstr "若文档要新增、修改或删除公开示例，应同步新增、修改或删除对应回归测试。"
 
-#: manual/conformance.md:144
+#: manual/conformance.md:147
 msgid "Contributor checklist"
 msgstr "贡献者清单"
 
-#: manual/conformance.md:146
+#: manual/conformance.md:149
 msgid "`logic` may only provide checked wrappers, definition/unfold helpers, replay helpers, and organization of non-authoritative theorem references; it must not bypass the kernel to invent new rules."
 msgstr "`logic` 只能做 checked wrapper、definition/unfold helper、replay helper 和非权威 theorem reference 组织；不能绕过 kernel invent 新规则。"
 
-#: manual/conformance.md:149
+#: manual/conformance.md:152
 msgid "`parser` must preserve `local > const` and the normalize + raw-offset contract, and must share the same connector contract with `logic`."
 msgstr "`parser` 必须保持 `local > const`、normalize + raw-offset contract，并与 `logic` 共用同一套 connector contract。"
 
-#: manual/conformance.md:151
+#: manual/conformance.md:154
 msgid "`elab` must freeze resolved identity; when later typing encounters const-id or schema drift, it must fail closed."
 msgstr "`elab` 必须冻结 resolved identity；后续 typing 遇到 const-id 或 schema drift 时必须 fail-closed。"
 
-#: manual/conformance.md:153
+#: manual/conformance.md:156
 msgid "`tactics` may hand out a theorem through `ps_qed` only when replay through `logic` constructs a `Thm` consistent with the sequent; otherwise it must fail closed."
 msgstr "`tactics` 只能在通过 `logic` 回放构造出与相继式一致的 `Thm` 时，由 `ps_qed` 交出定理；否则必须 fail-closed。"
 
-#: manual/conformance.md:155
+#: manual/conformance.md:158
 msgid "Final acceptance in `ps_qed` must currently use strict normalized sequent equality; the old boundary that admitted results based only on shape-aware compatibility must not be kept."
 msgstr "`ps_qed` 的最终验收当前必须按 strict normalized sequent equality 执行；不得保留仅按 shape-aware compatibility 放行的旧边界。"
 
-#: manual/conformance.md:157
+#: manual/conformance.md:160
 msgid "`prover` returns `Ok` and a `Thm` only when replay succeeds; otherwise it keeps returning honest errors."
 msgstr "`prover` 仅在回放成功时返回 `Ok` 与 `Thm`；否则继续返回诚实错误。"
 
-#: manual/conformance.md:159
+#: manual/conformance.md:162
 msgid "`cmd` may only be a new non-authoritative integration layer and must not become a second proof kernel."
 msgstr "`cmd` 只能是新的非权威集成层，不得成为第二证明内核。"
 
-#: manual/conformance.md:161
+#: manual/conformance.md:164
 msgid "Extension certificates may only be audit artifacts; they must not be treated as a substitute for theorem acceptance."
 msgstr "extension certificate 只能是 audit artifact；不能被当成 theorem acceptance 的替代物。"
 
-#: manual/conformance.md:164
+#: manual/conformance.md:167
 msgid "Verification"
 msgstr "验证"
 
-#: manual/conformance.md:166
+#: manual/conformance.md:169
 msgid "Run the checks serially from the repository root:"
 msgstr "从仓库根目录串行运行检查："
 
-#: manual/conformance.md:178
-msgid "The public package currently reports only `propext`, `Classical.choice`, and `Quot.sound` under `#print axioms`. Typst compilation is:"
-msgstr "公开定理包目前在 `#print axioms` 下仅报告 `propext`、`Classical.choice` 和 `Quot.sound`。Typst 编译命令如下："
+#: manual/conformance.md:181
+msgid "The public package reports only the Lean/Mathlib foundations `propext`, `Classical.choice`, and `Quot.sound` under `#print axioms`. The exact audited output and its role are recorded in `formal_verification/axioms.txt`. Typst compilation is:"
+msgstr "公开证明包在 `#print axioms` 下仅报告 Lean/Mathlib 基础公理 `propext`、`Classical.choice` 和 `Quot.sound`。完整审计输出及其作用记录在 `formal_verification/axioms.txt`。Typst 编译命令如下："
 
-#: manual/conformance.md:185
+#: manual/conformance.md:190
 msgid "MoonBit tests remain useful evidence for the realization, but they do not enlarge the Typed HOL proof boundary."
 msgstr "MoonBit 测试仍是实现的有用证据，但不会扩大 Typed HOL 的证明边界。"
 
@@ -3312,8 +3311,8 @@ msgid "A concrete interpretation in which `succ(0) = 0` is false and therefore u
 msgstr "具体解释使 `succ(0) = 0` 为假，因此该命题不可推导。"
 
 #: manual/current_workspace_audit.md:26
-msgid "The public theorem is `QEDFV.HOL.typed_hol_proof_complete`. Audited `#print axioms` output is `propext`, `Classical.choice`, and `Quot.sound`. There are no project-defined axioms, `sorry`, or `admit` in the retained Lean tree."
-msgstr "公开定理是 `QEDFV.HOL.typed_hol_proof_complete`。经审计的 `#print axioms` 输出为 `propext`、`Classical.choice` 和 `Quot.sound`。保留的 Lean 树没有项目自定义公理、`sorry` 或 `admit`。"
+msgid "The public theorem is `QEDFV.HOL.typed_hol_core_proof_complete`. Audited `#print axioms` output is `propext`, `Classical.choice`, and `Quot.sound`. There are no project-defined axioms, `sorry`, or `admit` in the retained Lean tree."
+msgstr "公开定理是 `QEDFV.HOL.typed_hol_core_proof_complete`。经审计的 `#print axioms` 输出为 `propext`、`Classical.choice` 和 `Quot.sound`。保留的 Lean 树没有项目自定义公理、`sorry` 或 `admit`。"
 
 #: manual/current_workspace_audit.md:31
 #: manual/design/cmd.md:70
@@ -3849,8 +3848,8 @@ msgid "Weakening is provided natively"
 msgstr "弱化是原生提供的"
 
 #: manual/design/kernel.md:154
-msgid "`add_assum_checked` implements weakening: for a proposition $q$, $\\Gamma \\vdash p$ gives $\\Gamma \\cup \\{q\\} \\vdash p$. It is not one of the ten rules and the specification does not list it, but it is a derived rule, so it adds no theorems. Both $p$ and $q$ have type $\\mathit{bool}$ (every conclusion does, and the rule checks $q$), so the two rules below apply:"
-msgstr "`add_assum_checked` 实现弱化：对命题 $q$，由 $\\Gamma \\vdash p$ 得到 $\\Gamma \\cup \\{q\\} \\vdash p$。它不是那十条规则之一，规范也没有列出它，但它是导出规则，所以不会增加定理。$p$ 和 $q$ 的类型都是 $\\mathit{bool}$（每个结论都是，且该规则会检查 $q$），因此下面两条规则都适用："
+msgid "`add_assum_checked` implements weakening: for a proposition $q$, $\\Gamma \\vdash p$ gives $\\Gamma \\cup \\{q\\} \\vdash p$. The classical HOL basis has ten rules; weakening is derivable from that basis and therefore adds no theorems. QED exposes it as a native checked rule, and the Typed HOL calculus represents it explicitly and proves its semantic preservation. Both $p$ and $q$ have type $\\mathit{bool}$ (every conclusion does, and the rule checks $q$), so the two rules below apply:"
+msgstr "`add_assum_checked` 实现弱化：对命题 $q$，由 $\\Gamma \\vdash p$ 得到 $\\Gamma \\cup \\{q\\} \\vdash p$。经典 HOL 基础包含十条规则；弱化可由该基础推导，因此不会增加定理。QED 也将它作为原生检查规则提供，Typed HOL 演算显式表示了该规则并证明其语义保持性。$p$ 和 $q$ 的类型都是 $\\mathit{bool}$（每个结论都是，且该规则会检查 $q$），因此下面两条规则均适用："
 
 #: manual/design/kernel.md:165
 msgid "The hypothesis set of line 4 is $\\Gamma \\cup \\{q\\}$: the part $\\{q\\} \\setminus \\{p\\}$ is contained in $\\{q\\}$, and $(\\Gamma \\setminus \\{q\\}) \\cup \\{q\\} = \\Gamma \\cup \\{q\\}$. The derivation works whether or not $q \\equiv_\\alpha p$ or $q \\in \\Gamma$, and it only uses set operations on hypotheses, so it gives the same hypothesis set as the native rule whatever equality the kernel uses to compare hypotheses. Every premise and result is checked against the same state, as in the native rule. The native rule is a shortcut used by replay in the `logic` package to make hypothesis sets match exactly."
@@ -7278,6 +7277,10 @@ msgstr "指定有效性与旧语言不变性"
 msgid "Predicate-subtype type-definition laws"
 msgstr "谓词子类型的类型定义规律"
 
+#: manual/qed_formal_audit_matrices.md:20
+msgid "Concrete non-triviality"
+msgstr "具体非平凡性"
+
 #: manual/qed_formal_audit_matrices.md:21
 msgid "Public package integration"
 msgstr "公开定理包集成"
@@ -9786,6 +9789,12 @@ msgstr "[tactics 设计](../design/tactics.md)解释了论证 (justification)，
 #: manual/tutorial/tactics.md:179
 msgid "The [prover tutorial](prover.md) runs the same proofs from scripts."
 msgstr "[prover 教程](prover.md)从脚本运行相同的证明。"
+
+#~ msgid "Primitive rule validity"
+#~ msgstr "原始规则的有效性"
+
+#~ msgid "Public theorem package"
+#~ msgstr "公开定理包"
 
 #~ msgid "Audience: contributors, reviewers"
 #~ msgstr "读者：贡献者、审阅者"

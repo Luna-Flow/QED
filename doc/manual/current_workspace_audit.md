@@ -23,7 +23,7 @@ library contains only the intrinsically typed development under
 - A concrete interpretation in which `succ(0) = 0` is false and therefore
   underivable.
 
-The public theorem is `QEDFV.HOL.typed_hol_proof_complete`. Audited
+The public theorem is `QEDFV.HOL.typed_hol_core_proof_complete`. Audited
 `#print axioms` output is `propext`, `Classical.choice`, and `Quot.sound`.
 There are no project-defined axioms, `sorry`, or `admit` in the retained Lean
 tree.

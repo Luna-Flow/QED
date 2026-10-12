@@ -50,6 +50,38 @@ theorem valid_assume (I : ConstVal S) (p : Term S Γ .bool) :
   intro ρ hρ η hh
   exact hh p (by simp)
 
+theorem valid_add_assum (I : ConstVal S) (s : Sequent S Γ)
+    (p : Term S Γ .bool) (hValid : Valid I s) :
+    Valid I { hyps := p :: s.hyps, concl := s.concl } := by
+  intro ρ hρ η hh
+  apply hValid ρ hρ η
+  intro h hh'
+  exact hh h (List.mem_cons_of_mem p hh')
+
+theorem valid_choose_from_witness (I : ConstVal S)
+    (p : Term S (a :: Γ) .bool) (w : Term S Γ a)
+    (hWitness : Valid I
+      { hyps := [], concl := p.substitute (Sub.single w) }) :
+    Valid I
+      { hyps := [], concl := p.substitute
+          (Sub.single (Term.choice.app (Term.lam p))) } := by
+  intro ρ hρ η _
+  have hw := hWitness ρ hρ η (by
+    intro h hh
+    cases hh)
+  rw [Term.eval_substitute, Sub.eval_single]
+  rw [Term.eval_substitute, Sub.eval_single] at hw
+  letI : Nonempty (Ty.denote ρ a) := a.carrier_nonempty ρ hρ
+  change p.eval I ρ hρ
+    (Env.extend η ((Term.choice.app (Term.lam p)).eval I ρ hρ η))
+  change p.eval I ρ hρ
+    (Env.extend η
+      (select (Ty.denote ρ a)
+        (fun q ↦ p.eval I ρ hρ (Env.extend η q))))
+  exact select_spec (Ty.denote ρ a)
+    (fun q ↦ p.eval I ρ hρ (Env.extend η q))
+    ⟨w.eval I ρ hρ η, hw⟩
+
 theorem valid_trans
     (I : ConstVal S) (A B : Sequent S Γ) (x y z : Term S Γ a)
     (hA : A.concl = x.equal y) (hB : B.concl = y.equal z)

@@ -1,0 +1,26 @@
+name: Lean Typed HOL
+
+on:
+  pull_request:
+    paths:
+      - 'formal_verification/**'
+      - 'doc/attachments/qed_formal_spec.typ'
+      - 'formal_verification/theory-proof-plan.md'
+      - '.github/workflows/lean.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'formal_verification/**'
+      - 'doc/attachments/qed_formal_spec.typ'
+      - 'formal_verification/theory-proof-plan.md'
+      - '.github/workflows/lean.yml'
+
+jobs:
+  typed-hol:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: leanprover/lean-action@v1
+        with:
+          lake-package-directory: formal_verification
+          build: true

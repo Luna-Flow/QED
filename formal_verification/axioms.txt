@@ -1,0 +1,29 @@
+Lean 4 trust dependency audit
+============================
+
+Generated with:
+  cd formal_verification
+  lake build
+  lake env lean QEDFV/HOL/AxiomAudit.lean
+
+Output:
+
+'QEDFV.HOL.typed_hol_core_proof_complete' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.derivation_sound' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.valid_definition_equation' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.typed_signature_generic_consistency' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.typed_signature_generic_nonvalid_in_extension' depends on axioms: [propext, Classical.choice, Quot.sound]
+
+These are Lean/Mathlib foundation axioms, not project declarations:
+
+- `propext` is propositional extensionality. It is used where validity of
+  boolean terms is identified with equality of propositions, including the
+  deduction rule.
+- `Classical.choice` supplies witnesses for the canonical interpretation,
+  nonempty carriers, and the selector used to interpret Hilbert choice.
+- `Quot.sound` is Lean's trusted quotient soundness principle. It enters
+  foundational extensionality/equality transport used by the development.
+
+There is no project-defined axiom asserting primitive-rule soundness or any
+extension rule's correctness. This report does not certify MoonBit refinement,
+the evolving-signature operations, or the infinity-axiom admission gate.

@@ -480,7 +480,7 @@ $$
 \frac{\Gamma \vdash p \qquad q : \mathit{bool}}{\Gamma \cup \{q\} \vdash p}\;\textsf{ADD\_ASSUM}
 $$
 
-Weakening is not among the ten rules of the specification; it is derivable from ASSUME, DEDUCT_ANTISYM_RULE and EQ_MP, and the [kernel design](../design/kernel.md) gives the derivation. Fails with `NotBoolTerm` when `q` is not a proposition.
+Weakening is derivable from the ten classical HOL rules ASSUME, DEDUCT_ANTISYM_RULE and EQ_MP. QED also exposes it as an explicit checked rule; the Typed HOL formal calculus includes and proves this rule sound. The [kernel design](../design/kernel.md) gives the classical derivation. Fails with `NotBoolTerm` when `q` is not a proposition.
 
 ### `trans_checked`
 

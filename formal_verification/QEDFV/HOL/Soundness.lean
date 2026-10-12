@@ -84,29 +84,26 @@ theorem typed_concrete_consistency
     ¬ Derivation standardSignature { hyps := [], concl := falseSentence } :=
   falseSentence_not_derivable select_natural
 
-theorem typed_concrete_consistency_in_extension
-    (es : List (Extension standardSignature))
-    (hOld : oldLanguageSequence es { hyps := [], concl := falseSentence }) :
-    ¬ Derivation standardSignature { hyps := [], concl := falseSentence } := by
-  intro d
-  have hExtended := derivation_sound_in_extension es standardConstVal d
-  have hBase := valid_base_of_interpretSequence es standardConstVal
-    { hyps := [], concl := falseSentence } hOld hExtended
-  exact falseSentence_not_valid hBase
+theorem typed_signature_generic_consistency (S : Signature) :
+    ¬ Derivation S { hyps := [], concl := signatureGenericFalseSentence S } :=
+  signatureGenericFalseSentence_not_derivable S select_natural
+
+theorem typed_signature_generic_nonvalid_in_extension
+    (es : List (Extension S)) :
+    ¬ Valid (interpretSequence es (canonicalConstVal S))
+      { hyps := [], concl := signatureGenericFalseSentence S } :=
+  signatureGenericFalseSentence_not_valid S
+    (interpretSequence es (canonicalConstVal S))
 
 /-! The complete mathematical deliverable for the Typed HOL mainline.  Every
 field is a theorem or a constructed witness; there is no model-law, gate, or
 implementation-correctness assumption hidden in this package. -/
-structure TypedHOLProofPackage : Prop where
+structure TypedHOLCoreProofPackage : Prop where
   choiceNatural : ChoiceNatural
   carrierNonempty :
     ∀ (a : Ty) (ρ : TypeVal), Admissible ρ → Nonempty (a.denote ρ)
   modelNonempty :
     ∀ (S : Signature), Nonempty (TypedHOLModel S)
-  extendedModelNonempty :
-    ∀ {S : Signature} (es : List (Extension S)),
-      let _extensions := es
-      Nonempty (TypedHOLModel S)
   renameEvaluation :
     ∀ {S : Signature} {Γ Δ : List Ty} {a : Ty} (I : ConstVal S)
       (ρ : TypeVal) (hρ : Admissible ρ) (t : Term S Γ a) (r : Ren Γ Δ)
@@ -133,6 +130,15 @@ structure TypedHOLProofPackage : Prop where
   derivationSound :
     ∀ {S : Signature} {Γ : List Ty} {s : Sequent S Γ},
       Derivation S s → ∀ (I : ConstVal S), Valid I s
+  addAssumSound :
+    ∀ {S : Signature} {Γ : List Ty} (I : ConstVal S)
+      (s : Sequent S Γ) (p : Term S Γ .bool),
+      Valid I s → Valid I { hyps := p :: s.hyps, concl := s.concl }
+  choiceSpecificationSound :
+    ∀ {S : Signature} {Γ : List Ty} {a : Ty} (I : ConstVal S)
+      (p : Term S (a :: Γ) .bool) (w : Term S Γ a),
+      Valid I { hyps := [], concl := p.substitute (Sub.single w) } →
+      Valid I { hyps := [], concl := p.substitute (Sub.single (Term.choice.app (Term.lam p))) }
   definitionEquation :
     ∀ {S : Signature} (D : DefinitionGate S) (I : ConstVal S),
       Valid (I.withDefinition D)
@@ -177,22 +183,26 @@ structure TypedHOLProofPackage : Prop where
     ¬ Derivation standardSignature { hyps := [], concl := falseSentence }
   infinityAnchor :
     Function.Injective Nat.succ ∧ ¬ Function.Surjective Nat.succ
-  concreteExtensionConsistency :
-    ∀ (es : List (Extension standardSignature)),
-      oldLanguageSequence es { hyps := [], concl := falseSentence } →
-      ¬ Derivation standardSignature { hyps := [], concl := falseSentence }
+  signatureGenericConsistency :
+    ∀ (S : Signature),
+      ¬ Derivation S { hyps := [], concl := signatureGenericFalseSentence S }
+  signatureGenericExtensionNonvalidity :
+    ∀ {S : Signature} (es : List (Extension S)),
+      ¬ Valid (interpretSequence es (canonicalConstVal S))
+        { hyps := [], concl := signatureGenericFalseSentence S }
 
-noncomputable def typedHOLProofPackage : TypedHOLProofPackage := by
+noncomputable def typedHOLCoreProofPackage : TypedHOLCoreProofPackage := by
   refine {
     choiceNatural := select_natural
     carrierNonempty := ?_
     modelNonempty := ?_
-    extendedModelNonempty := ?_
     renameEvaluation := ?_
     substitutionEvaluation := ?_
     betaEvaluation := ?_
     typeInstantiationEvaluation := ?_
     derivationSound := ?_
+    addAssumSound := ?_
+    choiceSpecificationSound := ?_
     definitionEquation := ?_
     definitionConservativity := ?_
     specificationValidity := ?_
@@ -204,12 +214,11 @@ noncomputable def typedHOLProofPackage : TypedHOLProofPackage := by
     finiteExtensionConservativity := ?_
     concreteConsistency := typed_concrete_consistency
     infinityAnchor := standard_ind_infinity_anchor
-    concreteExtensionConsistency := typed_concrete_consistency_in_extension
+    signatureGenericConsistency := typed_signature_generic_consistency
+    signatureGenericExtensionNonvalidity := typed_signature_generic_nonvalid_in_extension
   }
   · exact fun a ρ hρ ↦ a.carrier_nonempty ρ hρ
   · exact typed_model_nonempty
-  · intro S es
-    exact typed_extended_model_nonempty es
   · intro S Γ Δ a I ρ hρ t r η
     exact Term.eval_rename I ρ hρ t r η
   · intro S Γ Δ a I ρ hρ t σ η
@@ -220,6 +229,10 @@ noncomputable def typedHOLProofPackage : TypedHOLProofPackage := by
     exact Term.eval_instType select_natural I ρ hρ t θ η
   · intro S Γ s d I
     exact derivation_sound select_natural I d
+  · intro S Γ I s p hValid
+    exact valid_add_assum I s p hValid
+  · intro S Γ a I p w hValid
+    exact valid_choose_from_witness I p w hValid
   · intro S D I
     exact valid_definition_equation D I
   · intro S Γ D I s hOld
@@ -239,7 +252,7 @@ noncomputable def typedHOLProofPackage : TypedHOLProofPackage := by
   · intro S Γ es s hOld
     exact typed_global_semantic_conservativity es s hOld
 
-theorem typed_hol_proof_complete : Nonempty TypedHOLProofPackage :=
-  ⟨typedHOLProofPackage⟩
+theorem typed_hol_core_proof_complete : Nonempty TypedHOLCoreProofPackage :=
+  ⟨typedHOLCoreProofPackage⟩
 
 end QEDFV.HOL
