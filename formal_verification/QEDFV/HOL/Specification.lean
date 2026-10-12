@@ -2,11 +2,13 @@ import QEDFV.HOL.Definitions
 
 namespace QEDFV.HOL
 
+variable {κ : TyConVal}
+
 def specificationTerm (p : Term S (a :: Γ) .bool) : Term S Γ a :=
   Term.choice.app (Term.lam p)
 
 theorem valid_specification
-    (I : ConstVal S) (p : Term S (a :: Γ) .bool) (w : Term S Γ a)
+    (I : ConstVal κ S) (p : Term S (a :: Γ) .bool) (w : Term S Γ a)
     (hWitness : Valid I
       { hyps := [], concl := p.substitute (Sub.single w) }) :
     Valid I
@@ -19,14 +21,14 @@ theorem valid_specification
   rw [Term.eval_substitute, Sub.eval_single]
   rw [Term.eval_substitute] at hw
   rw [Sub.eval_single] at hw
-  letI : Nonempty (Ty.denote ρ a) := a.carrier_nonempty ρ hρ
+  letI : Nonempty (Ty.denote κ ρ a) := a.carrier_nonempty κ ρ hρ
   change p.eval I ρ hρ
     (Env.extend η ((Term.choice.app (Term.lam p)).eval I ρ hρ η))
   change p.eval I ρ hρ
     (Env.extend η
-      ((select (Ty.denote ρ a))
+      ((select (Ty.denote κ ρ a))
         (fun q ↦ p.eval I ρ hρ (Env.extend η q))))
-  exact select_spec (Ty.denote ρ a)
+  exact select_spec (Ty.denote κ ρ a)
     (fun q ↦ p.eval I ρ hρ (Env.extend η q))
     ⟨w.eval I ρ hρ η, hw⟩
 
@@ -60,14 +62,14 @@ def SpecificationGate.constant (G : SpecificationGate S)
     (Ty.subst_id (S G.id)).trans hTy
   hEq ▸ (Term.const (S := S) G.id Ty.var)
 
-noncomputable def ConstVal.withSpecification (I : ConstVal S)
-    (G : SpecificationGate S) (hTy : S G.id = G.ty) : ConstVal S :=
+noncomputable def ConstVal.withSpecification (I : ConstVal κ S)
+    (G : SpecificationGate S) (hTy : S G.id = G.ty) : ConstVal κ S :=
   I.override G.id (fun ρ hρ ↦
     hTy.symm ▸ (specificationTerm G.predicate).eval I ρ hρ closedEnv)
 
 theorem SpecificationGate.constant_eval_withSpecification
-    (G : SpecificationGate S) (I : ConstVal S) (hTy : S G.id = G.ty)
-    (ρ : TypeVal) (hρ : Admissible ρ) :
+    (G : SpecificationGate S) (I : ConstVal κ S) (hTy : S G.id = G.ty)
+    (ρ : TypeVal) (hρ : Admissible κ ρ) :
     (G.constant hTy).eval (I.withSpecification G hTy) ρ hρ closedEnv =
       (specificationTerm G.predicate).eval I ρ hρ closedEnv := by
   let hEq : Ty.subst Ty.var (S G.id) = G.ty :=
@@ -84,14 +86,14 @@ theorem SpecificationGate.constant_eval_withSpecification
     exact hraw.trans (by exact heq_of_eq hoverride)
   simpa [SpecificationGate.constant, hEq] using hcast.trans hvalue
 
-theorem SpecificationGate.valid_body (G : SpecificationGate S) (I : ConstVal S)
+theorem SpecificationGate.valid_body (G : SpecificationGate S) (I : ConstVal κ S)
     (hWitness : Valid I { hyps := [], concl := G.body }) :
     Valid I
       { hyps := [], concl := G.predicate.substitute
           (Sub.single (specificationTerm G.predicate)) } :=
   valid_specification I G.predicate G.witness hWitness
 
-theorem SpecificationGate.valid_constant (G : SpecificationGate S) (I : ConstVal S)
+theorem SpecificationGate.valid_constant (G : SpecificationGate S) (I : ConstVal κ S)
     (hTy : S G.id = G.ty)
     (hWitness : Valid I { hyps := [], concl := G.body }) :
     Valid (I.withSpecification G hTy)
@@ -126,7 +128,7 @@ theorem SpecificationGate.valid_constant (G : SpecificationGate S) (I : ConstVal
   exact hSpec
 
 theorem SpecificationGate.valid_old_language_iff
-    (G : SpecificationGate S) (I : ConstVal S) (hTy : S G.id = G.ty)
+    (G : SpecificationGate S) (I : ConstVal κ S) (hTy : S G.id = G.ty)
     (s : Sequent S Γ) (hOld : G.id ∉ s.constIds) :
     Valid (I.withSpecification G hTy) s ↔ Valid I s := by
   constructor
@@ -148,7 +150,7 @@ theorem SpecificationGate.valid_old_language_iff
     · exact hValid
 
 theorem SpecificationGate.valid_constant_from_derivation
-    (hChoice : ChoiceNatural) (G : SpecificationGate S) (I : ConstVal S)
+    (hChoice : ChoiceNatural) (G : SpecificationGate S) (I : ConstVal κ S)
     (hTy : S G.id = G.ty)
     (d : Derivation S { hyps := [], concl := G.body }) :
     Valid (I.withSpecification G hTy)
@@ -156,7 +158,7 @@ theorem SpecificationGate.valid_constant_from_derivation
   G.valid_constant I hTy (derivation_sound hChoice I d)
 
 theorem specification_valid_from_derivation
-    (hChoice : ChoiceNatural) (I : ConstVal S)
+    (hChoice : ChoiceNatural) (I : ConstVal κ S)
     (p : Term S (a :: Γ) .bool) (w : Term S Γ a)
     (d : Derivation S
       { hyps := [], concl := p.substitute (Sub.single w) }) :
@@ -165,7 +167,7 @@ theorem specification_valid_from_derivation
   valid_specification I p w (derivation_sound hChoice I d)
 
 theorem SpecificationGate.valid_constant_from_typed_derivation
-    (G : SpecificationGate S) (I : ConstVal S)
+    (G : SpecificationGate S) (I : ConstVal κ S)
     (hTy : S G.id = G.ty)
     (d : Derivation S { hyps := [], concl := G.body }) :
     Valid (I.withSpecification G hTy)
@@ -173,7 +175,7 @@ theorem SpecificationGate.valid_constant_from_typed_derivation
   G.valid_constant I hTy (derivation_sound select_natural I d)
 
 theorem specification_valid_from_typed_derivation
-    (I : ConstVal S)
+    (I : ConstVal κ S)
     (p : Term S (a :: Γ) .bool) (w : Term S Γ a)
     (d : Derivation S
       { hyps := [], concl := p.substitute (Sub.single w) }) :

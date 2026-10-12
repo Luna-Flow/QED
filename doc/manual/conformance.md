@@ -45,8 +45,9 @@ It does not certify growing-signature syntax or a MoonBit refinement. The defaul
 
 ## Explicit limits
 
-The Typed HOL theorem does not establish user type-constructor syntax and
-semantics, the MoonBit infinity registration gate, syntactic derivation erasure,
+The Typed HOL theorem has a neutral type-constructor node `Ty.con` with an explicit
+constructor interpretation, but it does not establish registration or semantics of
+user type constructors (typedef), the MoonBit infinity registration gate, syntactic derivation erasure,
 or a MoonBit-to-Lean refinement. It also does not certify the parser, elaborator,
 tactics, theorem replay, or mutable scope history. MoonBit theorem provenance is
 covered separately by the issue #15 implementation invariant and regression

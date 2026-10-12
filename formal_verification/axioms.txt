@@ -20,6 +20,7 @@ and derivations indexed by a finite constant-extension history.
 'QEDFV.HOL.typed_signature_generic_nonvalid_in_extension' depends on axioms: [propext, Classical.choice, Quot.sound]
 'QEDFV.HOL.extension_derivation_sound' depends on axioms: [propext, Classical.choice, Quot.sound]
 'QEDFV.HOL.typed_extension_derivation_sound' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.Ty.carrier_nonempty' does not depend on any axioms
 
 These are Lean/Mathlib foundation axioms, not project declarations:
 

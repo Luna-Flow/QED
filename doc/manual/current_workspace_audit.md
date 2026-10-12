@@ -37,8 +37,9 @@ tree.
 
 ## Boundaries
 
-The proof does not establish growing-signature derivations, user type-constructor
-syntax or semantics, the MoonBit infinity registration gate,
+The proof does not establish growing-signature derivations, registration or semantics
+of user type constructors (only the neutral node `Ty.con` and an explicit constructor
+interpretation exist), the MoonBit infinity registration gate,
 syntactic derivation erasure for extensions, or a MoonBit-to-Lean refinement.
 Parser, elaborator, tactic, replay, and mutable-state behavior remain separate
 implementation evidence. The MoonBit theorem-provenance condition in issue #15

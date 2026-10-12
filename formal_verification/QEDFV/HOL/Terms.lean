@@ -4,6 +4,8 @@ import QEDFV.HOL.Types
 instantiation. Variables and constants have distinct constructors. -/
 namespace QEDFV.HOL
 
+variable {κ : TyConVal}
+
 inductive Var : List Ty → Ty → Type where
   | zero : Var (a :: Γ) a
   | succ : Var Γ a → Var (b :: Γ) a

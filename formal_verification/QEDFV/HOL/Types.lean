@@ -2,7 +2,9 @@ import Mathlib.Logic.Function.Basic
 import Mathlib.Data.Finset.Basic
 
 /-! Concrete HOL carriers. Boolean values are propositions (two values by propositional
-extensionality); `ind` is ℕ. Type variables range over arbitrary nonempty small types. -/
+extensionality); `ind` is ℕ. Type variables range over arbitrary nonempty small types.
+A type-constructor node `Ty.con k n args` is interpreted by an explicit constructor
+interpretation `TyConVal`; the core calculus is sound for every such interpretation. -/
 namespace QEDFV.HOL
 
 inductive Ty where
@@ -10,7 +12,14 @@ inductive Ty where
   | ind
   | var (id : Nat)
   | arr (dom cod : Ty)
-deriving DecidableEq, Repr
+  /-- Application of the type constructor with id `k` and arity `n`. Arity correctness
+  of a particular `k` is a side condition of later gates, not part of `Ty`. -/
+  | con (k n : Nat) (args : Fin n → Ty)
+
+/-- Interpretation of type-constructor nodes: a carrier for each constructor id, arity and
+tuple of argument carriers. -/
+structure TyConVal where
+  carrier : Nat → (n : Nat) → (Fin n → Type) → Type
 
 abbrev TypeVal := Nat → Type
 abbrev TypeSub := Nat → Ty
@@ -20,24 +29,28 @@ def Ty.typeVars : Ty → Set Nat
   | .ind => ∅
   | .var i => {i}
   | .arr a b => a.typeVars ∪ b.typeVars
+  | .con _ _ args => {i | ∃ j, i ∈ (args j).typeVars}
 
 def TypeSub.imageTypeVars (θ : TypeSub) (vars : Set Nat) : Set Nat :=
   {i | ∃ j, j ∈ vars ∧ i ∈ (θ j).typeVars}
 
-def Ty.denote (ρ : TypeVal) : Ty → Type
+def Ty.denote (κ : TyConVal) (ρ : TypeVal) : Ty → Type
   | .bool => Prop
   | .ind => Nat
   | .var i => ρ i
-  | .arr a b => a.denote ρ → b.denote ρ
+  | .arr a b => a.denote κ ρ → b.denote κ ρ
+  | .con k n args => κ.carrier k n (fun j ↦ (args j).denote κ ρ)
 
 def Ty.subst (θ : TypeSub) : Ty → Ty
   | .bool => .bool
   | .ind => .ind
   | .var i => θ i
   | .arr a b => .arr (a.subst θ) (b.subst θ)
+  | .con k n args => .con k n (fun j ↦ (args j).subst θ)
 
 abbrev TypeSub.comp (θ σ : TypeSub) : TypeSub := fun i ↦ (σ i).subst θ
-abbrev TypeSub.pull (θ : TypeSub) (ρ : TypeVal) : TypeVal := fun i ↦ (θ i).denote ρ
+abbrev TypeSub.pull (θ : TypeSub) (κ : TyConVal) (ρ : TypeVal) : TypeVal :=
+  fun i ↦ (θ i).denote κ ρ
 
 @[simp] theorem Ty.typeVars_subst (a : Ty) (θ : TypeSub) :
     (a.subst θ).typeVars = TypeSub.imageTypeVars θ a.typeVars := by
@@ -62,6 +75,14 @@ abbrev TypeSub.pull (θ : TypeSub) (ρ : TypeVal) : TypeVal := fun i ↦ (θ i).
       · rintro ⟨j, (hja | hjb), hi⟩
         · exact Or.inl ⟨j, hja, hi⟩
         · exact Or.inr ⟨j, hjb, hi⟩
+  | con k n args ih =>
+      ext i
+      simp only [Ty.subst, Ty.typeVars, ih, TypeSub.imageTypeVars, Set.mem_setOf_eq]
+      constructor
+      · rintro ⟨j, l, hl, hi⟩
+        exact ⟨l, ⟨j, hl⟩, hi⟩
+      · rintro ⟨l, ⟨j, hl⟩, hi⟩
+        exact ⟨j, l, hl, hi⟩
 
 theorem TypeSub.imageTypeVars_union (θ : TypeSub) (A B : Set Nat) :
     TypeSub.imageTypeVars θ (A ∪ B) =
@@ -97,28 +118,44 @@ theorem TypeSub.imageTypeVars_image (θ σ : TypeSub) (A : Set Nat) :
     (a.subst σ).subst θ = a.subst (θ.comp σ) := by
   induction a <;> simp_all [Ty.subst, TypeSub.comp]
 
-@[simp] theorem Ty.denote_subst (a : Ty) (θ : TypeSub) (ρ : TypeVal) :
-    (a.subst θ).denote ρ = a.denote (θ.pull ρ) := by
+@[simp] theorem Ty.denote_subst (a : Ty) (κ : TyConVal) (θ : TypeSub) (ρ : TypeVal) :
+    (a.subst θ).denote κ ρ = a.denote κ (θ.pull κ ρ) := by
   induction a <;> simp_all [Ty.subst, Ty.denote, TypeSub.pull]
 
-def Admissible (ρ : TypeVal) : Prop := ∀ i, Nonempty (ρ i)
+/-- Admissible interpretations: nonempty carriers for type variables, and constructor
+carriers that are nonempty whenever all their argument carriers are. A constructor
+interpretation that violates the second clause admits no `ρ`, so every sequent is vacuously
+valid under it. -/
+structure Admissible (κ : TyConVal) (ρ : TypeVal) : Prop where
+  var : ∀ i, Nonempty (ρ i)
+  con : ∀ (k n : Nat) (as : Fin n → Type), (∀ j, Nonempty (as j)) →
+    Nonempty (κ.carrier k n as)
 
-theorem Ty.carrier_nonempty (a : Ty) (ρ : TypeVal) (hρ : Admissible ρ) :
-    Nonempty (a.denote ρ) := by
+theorem Ty.carrier_nonempty (a : Ty) (κ : TyConVal) (ρ : TypeVal) (hρ : Admissible κ ρ) :
+    Nonempty (a.denote κ ρ) := by
   induction a with
   | bool => exact ⟨True⟩
   | ind => exact ⟨(0 : Nat)⟩
-  | var i => exact hρ i
+  | var i => exact hρ.var i
   | arr a b _ ih =>
       rcases ih with ⟨v⟩
       exact ⟨fun _ ↦ v⟩
+  | con k n args ih => exact hρ.con k n _ ih
 
-theorem TypeSub.pull_admissible (θ : TypeSub) (ρ : TypeVal) (hρ : Admissible ρ) :
-    Admissible (θ.pull ρ) := fun i ↦ (θ i).carrier_nonempty ρ hρ
+theorem TypeSub.pull_admissible (θ : TypeSub) (κ : TyConVal) (ρ : TypeVal)
+    (hρ : Admissible κ ρ) : Admissible κ (θ.pull κ ρ) :=
+  ⟨fun i ↦ (θ i).carrier_nonempty κ ρ hρ, hρ.con⟩
+
+/-- The default constructor interpretation: every constructor denotes `PUnit`. -/
+def defaultTyCon : TyConVal := ⟨fun _ _ _ ↦ PUnit⟩
 
 def baseTypeVal : TypeVal := fun _ ↦ Unit
 
-theorem baseTypeVal_admissible : Admissible baseTypeVal := fun _ ↦ ⟨()⟩
+theorem defaultTyCon_baseTypeVal_admissible : Admissible defaultTyCon baseTypeVal :=
+  ⟨fun _ ↦ ⟨()⟩, fun _ _ _ _ ↦ ⟨PUnit.unit⟩⟩
+
+theorem baseTypeVal_admissible : Admissible defaultTyCon baseTypeVal :=
+  defaultTyCon_baseTypeVal_admissible
 
 theorem ind_infinity_anchor :
     Function.Injective Nat.succ ∧ ¬ Function.Surjective Nat.succ := by

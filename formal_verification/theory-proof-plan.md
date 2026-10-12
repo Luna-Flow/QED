@@ -51,7 +51,7 @@ the exact `indInfinitySentence`; a type match or an occurrence of `ind` alone is
 not evidence of that correspondence.
 
 The validity theorem for this sentence uses the fixed interpretation
-`Ty.ind.denote ρ = Nat` and the witness `Nat.succ`. It is therefore a theorem
+`Ty.ind.denote κ ρ = Nat` and the witness `Nat.succ`. It is therefore a theorem
 about the present fixed type grammar, not about every possible carrier for an
 abstract type named `ind`.
 
@@ -71,7 +71,7 @@ abstract type named `ind`.
 | type and term instantiation | `Derivation.instType`, `.instTerm`; `valid_inst_type`, `valid_inst_term` | Typed substitution preservation | Checked |
 | `ks_define_const`, `ks_define_const_thm` | `DefinitionGate`, `ExtensionDerivation.definition`; `extension_derivation_sound` | Defining equation; local RHS freshness is used, history-ID freshness is carried but unused by soundness | Fixed signature; name audit remains an implementation boundary |
 | `ks_specify_const` | `SpecificationExtension`, `ExtensionDerivation.specification`; `extension_derivation_sound` | Named constant theorem from a witness derivation in the preceding history; local gate freshness is used, history-ID freshness is carried but unused by soundness | Fixed signature; MoonBit certificate remains an implementation boundary |
-| `ks_register_type_definition` | `TypeDefContract` | Nonempty predicate subtype and Abs/Rep laws | No user type-constructor node in `Ty`; interpretation update is not modeled |
+| `ks_register_type_definition` | `TypeDefContract` | Nonempty predicate subtype and Abs/Rep laws | `Ty.con` and the constructor interpretation `TyConVal` exist but are not connected to the contract; interpretation update is not modeled |
 | `ks_ind_infinity_axiom` | `Derivation.indInfinity`; `indInfinitySentence` | Exact infinity sentence is valid in every model, witnessed by `Nat.succ` | MoonBit registration gate is not verified; see issue #7 |
 | eta | no kernel primitive found | Not applicable | Not a primitive of the current kernel calculus |
 
@@ -92,7 +92,7 @@ abstract type named `ind`.
 | Object-language infinity admission | `Derivation.indInfinity`, `indInfinitySentence_valid` | proved for the exact sentence in all models |
 | History-indexed definition/specification derivations | `extension_derivation_sound` | proved for fresh constant IDs over a fixed signature |
 | Growing-signature syntax and semantic interpretation | no history-indexed `Signature` or type constructors | open |
-| User type-constructor syntax and semantics | no constructor in `Ty` | open |
+| User type-constructor syntax and semantics | `Ty.con` node and `TyConVal` interpretation, core calculus sound for every admissible `κ`; no typedef gate, history-indexed `κ` or constructor registration | partial |
 | MoonBit-to-Lean refinement and theorem provenance | no Typed HOL theorem | refinement excluded; MoonBit lineage invariant is tested separately |
 | Syntactic conservativity/derivation erasure | no growing-theory derivation | open |
 

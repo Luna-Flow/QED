@@ -2,13 +2,15 @@ import QEDFV.HOL.Conservativity
 
 namespace QEDFV.HOL
 
+variable {κ : TyConVal}
+
 /-! Derivations are indexed by the declaration history in which they are used.
 The head of a history is its newest extension. -/
 inductive ExtensionDerivation (S : Signature) :
-    List (Extension S) → {Γ : List Ty} → Sequent S Γ → Prop where
+    List (Extension κ S) → {Γ : List Ty} → Sequent S Γ → Prop where
   | core {es Γ} {s : Sequent S Γ} (d : Derivation S s) :
       ExtensionDerivation S es s
-  | weaken {es Γ} {s : Sequent S Γ} (e : Extension S)
+  | weaken {es Γ} {s : Sequent S Γ} (e : Extension κ S)
       (d : ExtensionDerivation S es s) (hOld : e.oldLanguage s) :
       ExtensionDerivation S (e :: es) s
   | definition {es} (D : DefinitionGate S)
@@ -22,8 +24,8 @@ inductive ExtensionDerivation (S : Signature) :
         { hyps := [], concl := E.gate.predicate.substitute
             (Sub.single (E.gate.constant E.typeEq)) }
 
-theorem extension_derivation_sound (I : ConstVal S)
-    {es : List (Extension S)} {Γ : List Ty} {s : Sequent S Γ}
+theorem extension_derivation_sound (I : ConstVal κ S)
+    {es : List (Extension κ S)} {Γ : List Ty} {s : Sequent S Γ}
     (d : ExtensionDerivation S es s) :
     Valid (interpretSequence es I) s := by
   induction d with
@@ -38,9 +40,9 @@ theorem extension_derivation_sound (I : ConstVal S)
       exact E.valid_gate (interpretSequence _ I) ih
 
 theorem typed_extension_derivation_sound
-    {es : List (Extension S)} {Γ : List Ty} {s : Sequent S Γ}
+    {es : List (Extension κ S)} {Γ : List Ty} {s : Sequent S Γ}
     (d : ExtensionDerivation S es s) :
-    Valid (interpretSequence es (canonicalConstVal S)) s :=
-  extension_derivation_sound (canonicalConstVal S) d
+    Valid (interpretSequence es (canonicalConstVal κ S)) s :=
+  extension_derivation_sound (canonicalConstVal κ S) d
 
 end QEDFV.HOL

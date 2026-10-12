@@ -2,6 +2,8 @@ import QEDFV.HOL.Infinity
 
 namespace QEDFV.HOL
 
+variable {κ : TyConVal}
+
 /-! A typed HOL derivation object. The sequent index carries the complete
 typing information, so malformed rule applications are unrepresentable. -/
 inductive Derivation (S : Signature) :
@@ -59,7 +61,7 @@ inductive Derivation (S : Signature) :
   | indInfinity :
       Derivation S { hyps := [], concl := indInfinitySentence S }
 
-theorem derivation_sound (hChoice : ChoiceNatural) (I : ConstVal S)
+theorem derivation_sound (hChoice : ChoiceNatural) (I : ConstVal κ S)
     {Γ : List Ty} {s : Sequent S Γ}
     (d : Derivation S s) : Valid I s := by
   induction d with
@@ -83,7 +85,7 @@ theorem derivation_sound (hChoice : ChoiceNatural) (I : ConstVal S)
 
 theorem derivation_sound_all {Γ : List Ty} {s : Sequent S Γ}
     (d : Derivation S s) :
-    ∀ (_hChoice : ChoiceNatural) (I : ConstVal S), Valid I s := by
+    ∀ (_hChoice : ChoiceNatural) (I : ConstVal κ S), Valid I s := by
   intro hChoice I
   exact derivation_sound hChoice I d
 

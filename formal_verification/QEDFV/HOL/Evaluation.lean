@@ -4,18 +4,20 @@ import QEDFV.HOL.Terms
 laws is a field of the model. Polymorphic constants are interpreted at their schema. -/
 namespace QEDFV.HOL
 
-abbrev Env (ρ : TypeVal) (Γ : List Ty) := ∀ (a : Ty), Var Γ a → Ty.denote ρ a
-abbrev ConstVal (S : Signature) :=
-  ∀ (ρ : TypeVal), Admissible ρ → ∀ c, (S c).denote ρ
+variable {κ : TyConVal}
 
-noncomputable def canonicalConstVal (S : Signature) : ConstVal S :=
-  fun ρ hρ c ↦ Classical.choice ((S c).carrier_nonempty ρ hρ)
+abbrev Env κ (ρ : TypeVal) (Γ : List Ty) := ∀ (a : Ty), Var Γ a → Ty.denote κ ρ a
+abbrev ConstVal (κ : TyConVal) (S : Signature) :=
+  ∀ (ρ : TypeVal), Admissible κ ρ → ∀ c, (S c).denote κ ρ
 
-def Env.extend (η : Env ρ Γ) (x : Ty.denote ρ a) : Env ρ (a :: Γ)
+noncomputable def canonicalConstVal (κ : TyConVal) (S : Signature) : ConstVal κ S :=
+  fun ρ hρ c ↦ Classical.choice ((S c).carrier_nonempty κ ρ hρ)
+
+def Env.extend (η : Env κ ρ Γ) (x : Ty.denote κ ρ a) : Env κ ρ (a :: Γ)
   | _, .zero => x
   | _, .succ v => η _ v
 
-def Env.pull (η : Env ρ Δ) (r : Ren Γ Δ) : Env ρ Γ := fun _ v ↦ η _ (r v)
+def Env.pull (η : Env κ ρ Δ) (r : Ren Γ Δ) : Env κ ρ Γ := fun _ v ↦ η _ (r v)
 
 noncomputable def select (α : Type) [Nonempty α] (p : α → Prop) : α := by
   classical
@@ -26,11 +28,11 @@ theorem select_spec (α : Type) [Nonempty α] (p : α → Prop) (h : ∃ x, p x)
   simp only [select, dif_pos h]
   exact Classical.choose_spec h
 
-noncomputable def Term.eval (I : ConstVal S) (ρ : TypeVal) (hρ : Admissible ρ)
-    (η : Env ρ Γ) : Term S Γ a → Ty.denote ρ a
+noncomputable def Term.eval (I : ConstVal κ S) (ρ : TypeVal) (hρ : Admissible κ ρ)
+    (η : Env κ ρ Γ) : Term S Γ a → Ty.denote κ ρ a
   | .var v => η _ v
   | .const c σ =>
-      cast ((S c).denote_subst σ ρ).symm (I (σ.pull ρ) (σ.pull_admissible ρ hρ) c)
+      cast ((S c).denote_subst κ σ ρ).symm (I (σ.pull κ ρ) (σ.pull_admissible κ ρ hρ) c)
   | .app f x => f.eval I ρ hρ η (x.eval I ρ hρ η)
   | .lam b => fun x ↦ b.eval I ρ hρ (η.extend x)
   | .truth => True
@@ -41,48 +43,48 @@ noncomputable def Term.eval (I : ConstVal S) (ρ : TypeVal) (hρ : Admissible ρ
   | .ex p => ∃ x, p.eval I ρ hρ (η.extend x)
   | .eq => fun x y ↦ x = y
   | @Term.choice _ _ a =>
-      have : Nonempty (Ty.denote ρ a) := a.carrier_nonempty ρ hρ
-      select (Ty.denote ρ a)
+      have : Nonempty (Ty.denote κ ρ a) := a.carrier_nonempty κ ρ hρ
+      select (Ty.denote κ ρ a)
 
-@[simp] theorem Term.eval_truth (I : ConstVal S) (ρ : TypeVal)
-    (hρ : Admissible ρ) (η : Env ρ Γ) :
+@[simp] theorem Term.eval_truth (I : ConstVal κ S) (ρ : TypeVal)
+    (hρ : Admissible κ ρ) (η : Env κ ρ Γ) :
     (Term.truth : Term S Γ .bool).eval I ρ hρ η = True := rfl
 
-@[simp] theorem Term.eval_falsity (I : ConstVal S) (ρ : TypeVal)
-    (hρ : Admissible ρ) (η : Env ρ Γ) :
+@[simp] theorem Term.eval_falsity (I : ConstVal κ S) (ρ : TypeVal)
+    (hρ : Admissible κ ρ) (η : Env κ ρ Γ) :
     (Term.falsity : Term S Γ .bool).eval I ρ hρ η = False := rfl
 
-@[simp] theorem Term.eval_conj (I : ConstVal S) (ρ : TypeVal)
-    (hρ : Admissible ρ) (η : Env ρ Γ) (p q : Term S Γ .bool) :
+@[simp] theorem Term.eval_conj (I : ConstVal κ S) (ρ : TypeVal)
+    (hρ : Admissible κ ρ) (η : Env κ ρ Γ) (p q : Term S Γ .bool) :
     (Term.conj p q).eval I ρ hρ η =
       (p.eval I ρ hρ η ∧ q.eval I ρ hρ η) := rfl
 
-@[simp] theorem Term.eval_imp (I : ConstVal S) (ρ : TypeVal)
-    (hρ : Admissible ρ) (η : Env ρ Γ) (p q : Term S Γ .bool) :
+@[simp] theorem Term.eval_imp (I : ConstVal κ S) (ρ : TypeVal)
+    (hρ : Admissible κ ρ) (η : Env κ ρ Γ) (p q : Term S Γ .bool) :
     (Term.imp p q).eval I ρ hρ η =
       (p.eval I ρ hρ η → q.eval I ρ hρ η) := rfl
 
-@[simp] theorem Term.eval_all (I : ConstVal S) (ρ : TypeVal)
-    (hρ : Admissible ρ) (η : Env ρ Γ) (p : Term S (a :: Γ) .bool) :
+@[simp] theorem Term.eval_all (I : ConstVal κ S) (ρ : TypeVal)
+    (hρ : Admissible κ ρ) (η : Env κ ρ Γ) (p : Term S (a :: Γ) .bool) :
     (Term.all p).eval I ρ hρ η =
       (∀ x, p.eval I ρ hρ (η.extend x)) := rfl
 
-@[simp] theorem Term.eval_ex (I : ConstVal S) (ρ : TypeVal)
-    (hρ : Admissible ρ) (η : Env ρ Γ) (p : Term S (a :: Γ) .bool) :
+@[simp] theorem Term.eval_ex (I : ConstVal κ S) (ρ : TypeVal)
+    (hρ : Admissible κ ρ) (η : Env κ ρ Γ) (p : Term S (a :: Γ) .bool) :
     (Term.ex p).eval I ρ hρ η =
       (∃ x, p.eval I ρ hρ (η.extend x)) := rfl
 
-@[simp] theorem Term.eval_equal (I : ConstVal S) (ρ : TypeVal) (hρ : Admissible ρ)
-    (η : Env ρ Γ) (s t : Term S Γ a) :
+@[simp] theorem Term.eval_equal (I : ConstVal κ S) (ρ : TypeVal) (hρ : Admissible κ ρ)
+    (η : Env κ ρ Γ) (s t : Term S Γ a) :
     (s.equal t).eval I ρ hρ η = (s.eval I ρ hρ η = t.eval I ρ hρ η) := rfl
 
-theorem Env.pull_extend (η : Env ρ Δ) (r : Ren Γ Δ) (x : Ty.denote ρ a) :
+theorem Env.pull_extend (η : Env κ ρ Δ) (r : Ren Γ Δ) (x : Ty.denote κ ρ a) :
     Env.pull (Env.extend (a := a) η x) r.lift = Env.extend (a := a) (Env.pull η r) x := by
   funext b v
   cases v <;> rfl
 
-theorem Term.eval_rename (I : ConstVal S) (ρ : TypeVal) (hρ : Admissible ρ)
-    (t : Term S Γ a) (r : Ren Γ Δ) (η : Env ρ Δ) :
+theorem Term.eval_rename (I : ConstVal κ S) (ρ : TypeVal) (hρ : Admissible κ ρ)
+    (t : Term S Γ a) (r : Ren Γ Δ) (η : Env κ ρ Δ) :
     (t.rename r).eval I ρ hρ η = t.eval I ρ hρ (Env.pull η r) := by
   induction t generalizing Δ with
   | var v => rfl
@@ -122,11 +124,11 @@ theorem Term.eval_rename (I : ConstVal S) (ρ : TypeVal) (hρ : Admissible ρ)
   | eq => rfl
   | choice => rfl
 
-noncomputable def Sub.evalSubst (σ : Sub S Γ Δ) (I : ConstVal S) (ρ : TypeVal)
-    (hρ : Admissible ρ) (η : Env ρ Δ) : Env ρ Γ := fun _ v ↦ (σ v).eval I ρ hρ η
+noncomputable def Sub.evalSubst (σ : Sub S Γ Δ) (I : ConstVal κ S) (ρ : TypeVal)
+    (hρ : Admissible κ ρ) (η : Env κ ρ Δ) : Env κ ρ Γ := fun _ v ↦ (σ v).eval I ρ hρ η
 
-theorem Sub.eval_lift (σ : Sub S Γ Δ) (I : ConstVal S) (ρ : TypeVal)
-    (hρ : Admissible ρ) (η : Env ρ Δ) (x : Ty.denote ρ a) :
+theorem Sub.eval_lift (σ : Sub S Γ Δ) (I : ConstVal κ S) (ρ : TypeVal)
+    (hρ : Admissible κ ρ) (η : Env κ ρ Δ) (x : Ty.denote κ ρ a) :
     Sub.evalSubst σ.lift I ρ hρ (Env.extend (a := a) η x) =
       Env.extend (a := a) (Sub.evalSubst σ I ρ hρ η) x := by
   funext b v
@@ -136,8 +138,8 @@ theorem Sub.eval_lift (σ : Sub S Γ Δ) (I : ConstVal S) (ρ : TypeVal)
       simp only [Sub.evalSubst, Sub.lift, Term.eval_rename]
       rfl
 
-theorem Term.eval_substitute (I : ConstVal S) (ρ : TypeVal) (hρ : Admissible ρ)
-    (t : Term S Γ a) (σ : Sub S Γ Δ) (η : Env ρ Δ) :
+theorem Term.eval_substitute (I : ConstVal κ S) (ρ : TypeVal) (hρ : Admissible κ ρ)
+    (t : Term S Γ a) (σ : Sub S Γ Δ) (η : Env κ ρ Δ) :
     (t.substitute σ).eval I ρ hρ η = t.eval I ρ hρ (Sub.evalSubst σ I ρ hρ η) := by
   induction t generalizing Δ with
   | var v => rfl
@@ -177,14 +179,14 @@ theorem Term.eval_substitute (I : ConstVal S) (ρ : TypeVal) (hρ : Admissible �
   | eq => rfl
   | choice => rfl
 
-theorem Sub.eval_single (x : Term S Γ a) (I : ConstVal S) (ρ : TypeVal)
-    (hρ : Admissible ρ) (η : Env ρ Γ) :
+theorem Sub.eval_single (x : Term S Γ a) (I : ConstVal κ S) (ρ : TypeVal)
+    (hρ : Admissible κ ρ) (η : Env κ ρ Γ) :
     Sub.evalSubst (Sub.single x) I ρ hρ η = Env.extend (a := a) η (x.eval I ρ hρ η) := by
   funext (b : Ty) v
   cases v <;> rfl
 
-theorem Term.eval_beta (I : ConstVal S) (ρ : TypeVal) (hρ : Admissible ρ)
-    (η : Env ρ Γ) (b : Term S (a :: Γ) c) (x : Term S Γ a) :
+theorem Term.eval_beta (I : ConstVal κ S) (ρ : TypeVal) (hρ : Admissible κ ρ)
+    (η : Env κ ρ Γ) (b : Term S (a :: Γ) c) (x : Term S Γ a) :
     (Term.app (.lam b) x).eval I ρ hρ η =
       (b.substitute (Sub.single x)).eval I ρ hρ η := by
   rw [eval_substitute, Sub.eval_single]

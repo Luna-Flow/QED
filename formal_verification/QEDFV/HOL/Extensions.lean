@@ -5,6 +5,8 @@ import QEDFV.HOL.Evaluation
 typedef and choice gates; they are independent of the executable MoonBit gate. -/
 namespace QEDFV.HOL
 
+variable {κ : TyConVal}
+
 structure PredicateWitness (α : Type) (P : α → Prop) where
   witness : ∃ x, P x
 
