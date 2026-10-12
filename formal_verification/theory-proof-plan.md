@@ -25,9 +25,12 @@
    `HOL/TypeDefinitions.lean` prove local semantic extension contracts.
 8. `HOL/ExtensionDerivation.lean` defines `ExtensionDerivation S es`, indexed
    by newest-first constant-extension histories. Specification steps require a
-   witness derivation at the preceding history; declaration steps enforce
-   history freshness, and old derivations lift only across extensions absent
-   from their sequents. Soundness is proved by induction on the judgment.
+   witness derivation at the preceding history; definition and specification
+   steps carry history-ID freshness side conditions, and old derivations lift
+   only across extensions absent from their sequents. The soundness induction
+   does not use those history-freshness premises: they constrain well-formed
+   histories, while local gate freshness is used by the product validity lemmas.
+   This theorem does not establish global consistency of all prior equations.
 9. `HOL/Conservativity.lean` composes finite, old-language validity equivalence
    for pointwise constant overrides on one fixed signature.
 10. `HOL/Concrete.lean` proves concrete and signature-generic non-derivability.
@@ -49,8 +52,8 @@
 | `eq_mp_checked` | `Derivation.eqMp`; `valid_eqMp` | Boolean equality elimination | Checked |
 | `deduct_antisym_rule_checked` | `Derivation.deduct`; `valid_deduct` | Deduction antisymmetry | Checked |
 | type and term instantiation | `Derivation.instType`, `.instTerm`; `valid_inst_type`, `valid_inst_term` | Typed substitution preservation | Checked |
-| `ks_define_const`, `ks_define_const_thm` | `DefinitionGate`, `ExtensionDerivation.definition`; `extension_derivation_sound` | Fresh-history defining equation | Fixed signature; name audit remains an implementation boundary |
-| `ks_specify_const` | `SpecificationExtension`, `ExtensionDerivation.specification`; `extension_derivation_sound` | Named constant theorem from a witness derivation in the preceding history | Fixed signature; MoonBit certificate remains an implementation boundary |
+| `ks_define_const`, `ks_define_const_thm` | `DefinitionGate`, `ExtensionDerivation.definition`; `extension_derivation_sound` | Defining equation; local RHS freshness is used, history-ID freshness is carried but unused by soundness | Fixed signature; name audit remains an implementation boundary |
+| `ks_specify_const` | `SpecificationExtension`, `ExtensionDerivation.specification`; `extension_derivation_sound` | Named constant theorem from a witness derivation in the preceding history; local gate freshness is used, history-ID freshness is carried but unused by soundness | Fixed signature; MoonBit certificate remains an implementation boundary |
 | `ks_register_type_definition` | `TypeDefContract` | Nonempty predicate subtype and Abs/Rep laws | No user type-constructor node in `Ty`; interpretation update is not modeled |
 | `ks_ind_infinity_axiom` | `ind_infinity_anchor` only | `Nat.succ` is injective and not surjective | No object-language axiom admission rule; see issue #7 |
 | eta | no kernel primitive found | Not applicable | Not a primitive of the current kernel calculus |
@@ -91,8 +94,10 @@ proves the first two where listed; it does not identify them with the latter two
   `SpecificationGate` is a semantic object, not a proof of MoonBit certificate
   validation.
 - [Issue #9](https://github.com/Luna-Flow/QED/issues/9): definition
-  non-circularity is checked by constant name. Lean proves the local equation
-  from `fresh`, but does not prove the global dependency audit.
+  non-circularity is checked by constant name. Lean uses `DefinitionGate.fresh`
+  to prove the local defining equation, but the separate history-ID freshness
+  premise in `ExtensionDerivation.definition` is unused by soundness and does
+  not prove the global dependency audit.
 - [Issue #10](https://github.com/Luna-Flow/QED/issues/10): `add_assum_checked`
   was absent from the mapping. It now maps to `Derivation.addAssum` and has a
   direct semantic preservation proof.

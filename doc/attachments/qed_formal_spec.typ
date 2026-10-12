@@ -752,6 +752,16 @@ following boundary section states the precise obligations for named input.
   with their conversion hypotheses explicit.
 ])
 
+The executable propositional prelude presents connectives as defined constants,
+whereas the Typed HOL syntax uses primitive constructors for truth, falsity,
+conjunction, implication, and the two quantifiers. A refinement proof must map
+each kernel definition to its corresponding object-language constructor and
+prove the defining equation is preserved by lowering, evaluation, and
+substitution. Derived connectives such as negation and disjunction must be
+related compositionally to the primitive definitions. The infinity registration
+must lower to the exact `indInfinitySentence` below; matching only its type or
+the occurrence of `ind` is insufficient.
+
 QED currently uses a two-layer boundary:
 
 - external-facing terms/theorems are in named syntax;
@@ -1895,6 +1905,25 @@ added step. Definition uses the locally proved equation in the interpretation
 of the preceding history. Specification first applies the induction
 hypothesis to its witness derivation, then uses the witness-based gate theorem
 to validate the constant theorem in the extended interpretation.
+
+The freshness premises in these two inference clauses serve a separate
+well-formedness condition: they require each declared constant ID to be absent
+from the earlier extension history. The induction proving
+`extension_derivation_sound` does not use these history-freshness premises.
+Its definition case uses `valid_definition_equation`, whose proof does use the
+local condition `DefinitionGate.fresh` that the right-hand side omit its own
+head. Its specification case uses `SpecificationExtension.valid_gate`, whose
+proof uses `SpecificationGate.fresh` to keep the new constant out of the
+predicate and witness. Thus local non-self-reference is part of product
+soundness, while history ID uniqueness is a judgment side condition; this
+theorem alone does not prove global consistency or preservation of every prior
+declaration equation.
+
+In this specification, the word `SPECIFY` can denote the internal Hilbert
+choice inference only when explicitly qualified as the witness rule. It is
+distinct from `ks_specify_const`, the declaration extension that introduces a
+fresh named constant. The Lean judgments are `Derivation.chooseWitness` for
+the former and `ExtensionDerivation.specification` for the latter.
 
 #lean-def("Conservativity", ("Extension", "interpretSequence", "extensionHistoryIds"))
 #lean-def("ExtensionDerivation", ("ExtensionDerivation",))

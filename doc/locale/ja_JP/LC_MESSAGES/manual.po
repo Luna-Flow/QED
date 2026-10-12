@@ -3005,7 +3005,6 @@ msgid "Derivation soundness"
 msgstr "導出の健全性"
 
 #: manual/conformance.md:33
-#| msgid "One-step definition and specification derivations"
 msgid "History-indexed definition and specification derivations"
 msgstr "履歴で添字付けられた定義および仕様指定の導出"
 
@@ -3031,7 +3030,6 @@ msgid "Typed HOL core proof package"
 msgstr "Typed HOL コア証明パッケージ"
 
 #: manual/conformance.md:39
-#| msgid "The public entry point is `QEDFV.HOL.typed_hol_core_proof_complete`. It covers the typed core and fixed-signature semantic extension results. It does not certify a growing-theory calculus. The default `QEDFV` target imports `QEDFV.HOL.Soundness` only."
 msgid "The public entry point is `QEDFV.HOL.typed_hol_core_proof_complete`. It covers the typed core and history-indexed constant extensions over a fixed signature. It does not certify growing-signature syntax or a MoonBit refinement. The default `QEDFV` target imports `QEDFV.HOL.Soundness` only."
 msgstr "公開エントリーポイントは `QEDFV.HOL.typed_hol_core_proof_complete` です。この定理は型付きコアと、固定シグネチャ上で履歴により添字付けられた定数拡張を扱います。成長するシグネチャの構文や MoonBit の精緻化は認証しません。既定の `QEDFV` ターゲットがインポートするのは `QEDFV.HOL.Soundness` だけです。"
 
@@ -3040,7 +3038,6 @@ msgid "Explicit limits"
 msgstr "明示的な限界"
 
 #: manual/conformance.md:46
-#| msgid "The Typed HOL theorem does not establish composition of extension derivations through a growing theory, user type-constructor syntax and semantics, the infinity-axiom admission rule, syntactic derivation erasure, or a MoonBit-to-Lean refinement. It also does not certify the parser, elaborator, tactics, theorem replay, mutable scope history, or provenance behavior. Those are implementation work and must not be presented as evidence for the Lean theorem."
 msgid "The Typed HOL theorem does not establish user type-constructor syntax and semantics, the infinity-axiom admission rule, syntactic derivation erasure, or a MoonBit-to-Lean refinement. It also does not certify the parser, elaborator, tactics, theorem replay, mutable scope history, or provenance behavior. Those are implementation work and must not be presented as evidence for the Lean theorem."
 msgstr "Typed HOL 定理は、ユーザー型構成子の構文と意味論、無限公理の導入規則、拡張導出の構文的消去、または MoonBit から Lean への精緻化を確立していません。また、パーサー、エラボレーター、タクティク、定理のリプレイ、可変スコープ履歴、出自管理の動作も認証しません。これらは実装上の課題であり、Lean 定理の根拠として提示してはなりません。"
 
@@ -3297,7 +3294,6 @@ msgid "Intrinsic simple types and De Bruijn terms, with typed renaming, substitu
 msgstr "内在的に型付けされた単純型と De Bruijn 項、および型付き変数名変更、代入、beta、型の具体化に関する評価法則。"
 
 #: manual/current_workspace_audit.md:17
-#| msgid "Semantic validity preservation for all ten typed derivation constructors."
 msgid "Semantic validity preservation for all twelve typed core derivation constructors, including `ADD_ASSUM` and witness-based `SPECIFY`."
 msgstr "`ADD_ASSUM` と証人に基づく `SPECIFY` を含む、型付きコア導出の全 12 コンストラクタについて意味論的妥当性が保存されます。"
 
@@ -3310,7 +3306,6 @@ msgid "History-indexed definition and specification derivations. A specification
 msgstr "履歴で添字付けられた定義および仕様指定の導出。仕様指定の証人は直前の履歴で導出されます。固定シグネチャ内の新しい定数 ID について、健全性は履歴に沿って合成されます。"
 
 #: manual/current_workspace_audit.md:23
-#| msgid "Semantic definition and specification contracts and witnessed predicate subtype carrier laws."
 msgid "Semantic extension contracts and witnessed predicate subtype carrier laws."
 msgstr "意味論的な拡張契約と、証人を持つ述語部分型の台集合に関する法則。"
 
@@ -3339,7 +3334,6 @@ msgid "Boundaries"
 msgstr "境界"
 
 #: manual/current_workspace_audit.md:36
-#| msgid "The proof does not establish compositional derivations through a growing theory, user type-constructor syntax or semantics, object-language infinity admission, syntactic derivation erasure for extensions, a MoonBit-to-Lean refinement, or correctness of MoonBit parsing, elaboration, tactics, replay, mutable signature history, or theorem provenance. Tests and engineering audits remain separate evidence for those implementation properties."
 msgid "The proof does not establish growing-signature derivations, user type-constructor syntax or semantics, object-language infinity admission, syntactic derivation erasure for extensions, a MoonBit-to-Lean refinement, or correctness of MoonBit parsing, elaboration, tactics, replay, mutable signature history, or theorem provenance. Tests and engineering audits remain separate evidence for those implementation properties."
 msgstr "この証明は、成長するシグネチャ上の導出、ユーザー型構成子の構文と意味論、オブジェクト言語の無限公理導入、拡張導出の構文的消去、MoonBit から Lean への精緻化、および MoonBit の解析、エラボレーション、タクティク、リプレイ、可変シグネチャ履歴、定理の出自管理の正しさを確立していません。テストと工学的監査は、これらの実装特性に関する別の根拠です。"
 
