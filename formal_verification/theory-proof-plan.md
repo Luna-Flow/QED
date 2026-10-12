@@ -35,7 +35,15 @@
 9. `HOL/Conservativity.lean` composes finite, old-language validity equivalence
    for pointwise constant overrides on one fixed signature.
 10. `HOL/Concrete.lean` proves concrete and signature-generic non-derivability.
-11. `HOL/Soundness.lean` exports `typed_hol_core_proof_complete`, a package for
+11. `HOL/Congruence.lean` proves that evaluation depends only on the type
+    variables (`Term.annotVars`), type-constructor ids (`Term.tyCons`) and
+    constants occurring in a term (`Term.eval_congr`, `Term.eval_congr_κ`,
+    `Term.eval_congr_vars`); `HOL/Transport.lean` lifts this to validity across
+    constructor interpretations (`valid_transport_κ`, `valid_iff_κ`) and derives
+    the old-language statements as corollaries; `HOL/TyConCongruence.lean` has the
+    worked example and the counterexample showing that the sequent's constructor
+    ids cannot be dropped from the hypothesis.
+12. `HOL/Soundness.lean` exports `typed_hol_core_proof_complete`, a package for
     the checked core and its semantic results. It is not a completeness theorem
     or a full growing-theory development.
 
@@ -87,12 +95,13 @@ abstract type named `ind`.
 | Definition equation under its model override | `valid_definition_equation` | proved semantically |
 | Specification from a closed typed witness | `valid_choose_from_witness`, `SpecificationGate.valid_constant_from_typed_derivation` | proved semantically |
 | Type-variable closure under instantiation | `DefinitionGate.instType_type_vars_closed`, `SpecificationGate.instType_type_vars_closed` | proved |
+| Type, evaluation and cross-model validity congruence over constructor ids and type variables | `Ty.denote_congr`, `Term.eval_congr_κ`, `Term.eval_congr_vars`, `valid_transport_κ`, `valid_iff_κ`, `valid_allEq_one_unchanged`, `valid_allEq_zero_changes` | proved; no typedef gate uses it yet |
 | Predicate-subtype type-definition laws | `HOL/TypeDefinitions.lean` | proved at carrier level |
 | Finite old-language validity equivalence | `valid_interpretSequence_iff` | proved for fixed-signature overrides |
 | Object-language infinity admission | `Derivation.indInfinity`, `indInfinitySentence_valid` | proved for the exact sentence in all models |
 | History-indexed definition/specification derivations | `extension_derivation_sound` | proved for fresh constant IDs over a fixed signature |
 | Growing-signature syntax and semantic interpretation | no history-indexed `Signature` or type constructors | open |
-| User type-constructor syntax and semantics | `Ty.con` node and `TyConVal` interpretation, core calculus sound for every admissible `κ`; no typedef gate, history-indexed `κ` or constructor registration | partial |
+| User type-constructor syntax and semantics | `Ty.con` node and `TyConVal` interpretation, core calculus sound for every admissible `κ`; validity is invariant under changing `κ` on constructor ids a sequent does not mention; no typedef gate, history-indexed `κ` or constructor registration | partial |
 | MoonBit-to-Lean refinement and theorem provenance | no Typed HOL theorem | refinement excluded; MoonBit lineage invariant is tested separately |
 | Syntactic conservativity/derivation erasure | no growing-theory derivation | open |
 
