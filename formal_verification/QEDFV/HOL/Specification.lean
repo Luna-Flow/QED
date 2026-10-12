@@ -32,17 +32,19 @@ theorem valid_specification
     (fun q ↦ p.eval I ρ hρ (Env.extend η q))
     ⟨w.eval I ρ hρ η, hw⟩
 
+/-- The gate of a constant specification. As for `DefinitionGate`, `typeVarsClosed` is stated
+for `Term.annotVars`, matching the kernel's `term_tyvars` (binder domains included). -/
 structure SpecificationGate (S : Signature) where
   id : Nat
   ty : Ty
   predicate : Term S (ty :: []) .bool
   witness : Term S [] ty
   fresh : id ∉ predicate.constIds ∪ witness.constIds
-  typeVarsClosed : predicate.typeVars ⊆ ty.typeVars
+  typeVarsClosed : predicate.annotVars ⊆ ty.typeVars
 
 theorem SpecificationGate.type_vars_closed (G : SpecificationGate S) :
     G.predicate.typeVars ⊆ G.ty.typeVars :=
-  G.typeVarsClosed
+  fun _ hi ↦ G.typeVarsClosed (G.predicate.typeVars_subset_annotVars hi)
 
 theorem SpecificationGate.instType_type_vars_closed
     (G : SpecificationGate S) (θ : TypeSub) :
@@ -51,7 +53,7 @@ theorem SpecificationGate.instType_type_vars_closed
   rw [Term.typeVars_instType] at hi
   rw [Ty.typeVars_subst]
   rcases hi with ⟨j, hj, hi⟩
-  exact ⟨j, G.typeVarsClosed hj, hi⟩
+  exact ⟨j, G.type_vars_closed hj, hi⟩
 
 def SpecificationGate.body (G : SpecificationGate S) : Term S [] .bool :=
   G.predicate.substitute (Sub.single G.witness)
@@ -85,6 +87,38 @@ theorem SpecificationGate.constant_eval_withSpecification
       (hTy.symm ▸ (specificationTerm G.predicate).eval I ρ hρ closedEnv) := by
     exact hraw.trans (by exact heq_of_eq hoverride)
   simpa [SpecificationGate.constant, hEq] using hcast.trans hvalue
+
+/-- A specification step preserves locality of the constant interpretation. -/
+theorem SpecificationGate.withSpecification_local (G : SpecificationGate S) (I : ConstVal κ S)
+    (hTy : S G.id = G.ty) (hI : ∀ c, I.Local c) (c : Nat) :
+    (I.withSpecification G hTy).Local c := by
+  intro ρ hρ ρ' hρ' hag
+  by_cases h : c = G.id
+  · subst h
+    have e1 : I.withSpecification G hTy ρ hρ G.id =
+        hTy.symm ▸ (specificationTerm G.predicate).eval I ρ hρ closedEnv := by
+      simp [ConstVal.withSpecification, ConstVal.override]
+    have e2 : I.withSpecification G hTy ρ' hρ' G.id =
+        hTy.symm ▸ (specificationTerm G.predicate).eval I ρ' hρ' closedEnv := by
+      simp [ConstVal.withSpecification, ConstVal.override]
+    rw [e1, e2]
+    refine (heq_rec_symm (T := fun t ↦ t.denote κ ρ) hTy.symm _).trans
+      (HEq.trans ?_ (heq_rec_symm (T := fun t ↦ t.denote κ ρ') hTy.symm _).symm)
+    refine Term.eval_congr_vars hρ hρ' I (specificationTerm G.predicate) ?_
+      (fun c _ ↦ hI c) closedEnv closedEnv (fun _ v _ ↦ nomatch v)
+    intro i hi
+    have hty : ∀ i, i ∈ G.ty.typeVars → ρ i = ρ' i := fun i hi ↦ hag i (hTy ▸ hi)
+    have hi' : i ∈ G.ty.typeVars ∨ i ∈ G.predicate.annotVars := by
+      simpa [specificationTerm, Term.annotVars, Ty.typeVars] using hi
+    rcases hi' with h | h
+    · exact hty i h
+    · exact hty i (G.typeVarsClosed h)
+  · have a1 : I.withSpecification G hTy ρ hρ c = I ρ hρ c :=
+      ConstVal.override_agree I G.id c _ h ρ hρ
+    have a2 : I.withSpecification G hTy ρ' hρ' c = I ρ' hρ' c :=
+      ConstVal.override_agree I G.id c _ h ρ' hρ'
+    rw [a1, a2]
+    exact hI c ρ hρ ρ' hρ' hag
 
 theorem SpecificationGate.valid_body (G : SpecificationGate S) (I : ConstVal κ S)
     (hWitness : Valid I { hyps := [], concl := G.body }) :
