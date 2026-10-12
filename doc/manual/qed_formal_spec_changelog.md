@@ -1,5 +1,28 @@
 # Formal specification changelog
 
+## 2026-10-13 Type definitions as history-indexed derivations
+
+- `ExtensionDerivation` is indexed by histories of `ModelExtension` steps and has a
+  `typedef` constructor: one constructor with the selector `TypeDefLaw` (`Abs (Rep a) = a`,
+  `P (Rep a)`, `P r ⊢ Rep (Abs r) = r`), a mandatory hypothesis-free witness derivation
+  `⊢ P w` at the preceding history, and carried freshness of `k`, `rep`, `abs`. `weaken`
+  across a type definition requires the sequent not to mention `k`, `rep` or `abs`.
+- `extension_derivation_sound` now returns validity at the history's model pair
+  `(κ, I)` (`interpretModels`) for a local base model; the typed wrappers use the canonical
+  models. This changes the statement of the earlier theorem (histories of `Extension κ S`
+  over a fixed `κ` are replaced by histories of `ModelExtension`).
+- The definition and specification closure fields are now stated for `Term.annotVars`
+  (the kernel's `term_tyvars` counts binder domains); `type_vars_closed` and
+  `instType_type_vars_closed` are kept for `Term.typeVars` as consequences.
+- Proved that every declaration step preserves locality, hence
+  `valid_interpretModels_iff`, `typed_global_semantic_conservativity_models` and
+  `extension_derivation_old_language_valid` for histories with type definitions.
+- Worked example: the one-element subtype of `bool` with its witness derivation, the three
+  laws as derivations, an old-language theorem lifted with `weaken`, and non-triviality of
+  the extended model.
+- Not claimed: freshness used by soundness, a history-indexed full calculus, syntactic
+  erasure of a type definition (relativisation), string-name lowering, MoonBit refinement.
+
 ## 2026-10-13 Semantics of a type-definition gate
 
 - Added `TypeDefGate` (constructor id, arity with parameters by index, representation

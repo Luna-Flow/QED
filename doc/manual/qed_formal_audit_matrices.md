@@ -16,7 +16,10 @@ typechecks; it does not silently certify the separate MoonBit implementation.
 | Definition semantic equation and old-language invariance | `HOL/Definitions.lean` | proved |
 | Specification validity and old-language invariance | `HOL/Specification.lean` | proved |
 | Predicate-subtype type-definition laws | `HOL/TypeDefinitions.lean` | proved |
-| Type-definition gate semantics (new model, Abs/Rep laws, old-language invariance) | `HOL/TypeDefGate.lean`, `HOL/ModelExtension.lean` | proved over model pairs; no derivation constructor |
+| Type-definition gate semantics (new model, Abs/Rep laws, old-language invariance) | `HOL/TypeDefGate.lean`, `HOL/ModelExtension.lean` | proved over model pairs |
+| Locality preserved by definition, specification and type-definition steps | `HOL/Definitions.lean`, `HOL/Specification.lean`, `HOL/TypeDefLocal.lean` | proved (gate closure fields stated for `Term.annotVars`) |
+| Type-definition derivation constructor; soundness and old-language conservativity along a history | `HOL/ExtensionDerivation.lean`, `HOL/ModelExtension.lean` | proved at the history's model pair; freshness carried, not used |
+| Worked typedef derivation and non-triviality of the extended model | `HOL/TypeDefDerivationExamples.lean` | proved |
 | Finite semantic conservativity | `HOL/Conservativity.lean` | proved |
 | Concrete non-triviality | `HOL/Concrete.lean` | proved |
 | Public package integration | `HOL/Soundness.lean` and root target | proved |

@@ -6,15 +6,20 @@ variable {κ : TyConVal}
 
 def closedEnv {ρ : TypeVal} : Env κ ρ [] := fun _ v ↦ by cases v
 
+/-- The gate of a constant definition. `typeVarsClosed` is the kernel's check
+`term_tyvars rhs ⊆ tyvars (type of c)`; the kernel's `term_tyvars` counts every type
+annotation, including binder domains, so it is stated for `Term.annotVars` (not the weaker
+`Term.typeVars`, which omits the domain of an unused binder). This is what makes a definition
+step preserve locality of the constant interpretation (`DefinitionGate.withDefinition_local`). -/
 structure DefinitionGate (S : Signature) where
   id : Nat
   rhs : Term S [] (S id)
   fresh : id ∉ rhs.constIds
-  typeVarsClosed : rhs.typeVars ⊆ (S id).typeVars
+  typeVarsClosed : rhs.annotVars ⊆ (S id).typeVars
 
 theorem DefinitionGate.type_vars_closed (D : DefinitionGate S) :
     D.rhs.typeVars ⊆ (S D.id).typeVars :=
-  D.typeVarsClosed
+  fun _ hi ↦ D.typeVarsClosed (D.rhs.typeVars_subset_annotVars hi)
 
 theorem DefinitionGate.instType_type_vars_closed
     (D : DefinitionGate S) (θ : TypeSub) :
@@ -23,7 +28,7 @@ theorem DefinitionGate.instType_type_vars_closed
   rw [Term.typeVars_instType] at hi
   rw [Ty.typeVars_subst]
   rcases hi with ⟨j, hj, hi⟩
-  exact ⟨j, D.typeVarsClosed hj, hi⟩
+  exact ⟨j, D.type_vars_closed hj, hi⟩
 
 def DefinitionGate.head (D : DefinitionGate S) : Term S [] (S D.id) :=
   (Ty.subst_id (S D.id)).symm ▸ (.const D.id Ty.var)
@@ -70,12 +75,34 @@ theorem DefinitionGate.rhs_eval_withDefinition (D : DefinitionGate S)
   · exact False.elim (D.fresh (by simpa [h] using hc))
   · simp [ConstVal.withDefinition, h]
 
+/-- Rewriting a hypothesis cast along a type equality is transparent for `HEq`. -/
+theorem heq_rec_symm {T : Ty → Type} {a b : Ty} (h : a = b) (x : T a) : HEq (h ▸ x) x := by
+  subst h
+  rfl
+
 theorem DefinitionGate.withDefinition_agree (D : DefinitionGate S)
     (I : ConstVal κ S) {c : Nat} (hc : c ≠ D.id) :
     ∀ (ρ : TypeVal) (hρ : Admissible κ ρ),
       I.withDefinition D ρ hρ c = I ρ hρ c := by
   intro ρ hρ
   simp [ConstVal.withDefinition, hc]
+
+/-- A definition step preserves locality of the constant interpretation: the new value of
+`id` is the evaluation of a term whose annotations lie in the type variables of `S id`. -/
+theorem DefinitionGate.withDefinition_local (D : DefinitionGate S) (I : ConstVal κ S)
+    (hI : ∀ c, I.Local c) (c : Nat) : (I.withDefinition D).Local c := by
+  intro ρ hρ ρ' hρ' hag
+  by_cases h : c = D.id
+  · subst h
+    have e1 : I.withDefinition D ρ hρ D.id = D.rhs.eval I ρ hρ closedEnv := by
+      simp [ConstVal.withDefinition]
+    have e2 : I.withDefinition D ρ' hρ' D.id = D.rhs.eval I ρ' hρ' closedEnv := by
+      simp [ConstVal.withDefinition]
+    rw [e1, e2]
+    exact Term.eval_congr_vars hρ hρ' I D.rhs (fun i hi ↦ hag i (D.typeVarsClosed hi))
+      (fun c _ ↦ hI c) closedEnv closedEnv (fun _ v _ ↦ nomatch v)
+  · rw [D.withDefinition_agree I h ρ hρ, D.withDefinition_agree I h ρ' hρ']
+    exact hI c ρ hρ ρ' hρ' hag
 
 /-- Old-language invariance of a definition step across a change of model. -/
 theorem valid_definition_old_language_iff_κ {κ' : TyConVal}

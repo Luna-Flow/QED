@@ -6,6 +6,7 @@ import QEDFV.HOL.Concrete
 import QEDFV.HOL.TyConCongruence
 import QEDFV.HOL.ModelExtension
 import QEDFV.HOL.TypeDefExamples
+import QEDFV.HOL.TypeDefDerivationExamples
 
 namespace QEDFV.HOL
 
@@ -166,9 +167,15 @@ structure TypedHOLCoreProofPackage : Prop where
       (hTy : S G.id = G.ty) (s : Sequent S Γ), G.id ∉ s.constIds →
       (Valid (I.withSpecification G hTy) s ↔ Valid I s)
   extensionDerivationSound :
-    ∀ {κ : TyConVal} {S : Signature} (es : List (Extension κ S)) (I : ConstVal κ S)
-      {Γ : List Ty} {s : Sequent S Γ}, ExtensionDerivation S es s →
-      Valid (interpretSequence es I) s
+    ∀ {S : Signature} (M : Model S), M.IsLocal →
+      ∀ {es : List (ModelExtension S)} {Γ : List Ty} {s : Sequent S Γ},
+        ExtensionDerivation S es s → Valid (interpretModels es M).I s
+  extensionDerivationConservative :
+    ∀ {κ : TyConVal} {S : Signature}, κ.IsAdmissible → ∀ {es : List (ModelExtension S)}
+      {Γ : List Ty} {s : Sequent S Γ},
+      ExtensionDerivation S es s → oldLanguageModels es s → Valid (canonicalConstVal κ S) s
+  stepPreservesLocality :
+    ∀ {S : Signature} (e : ModelExtension S) {M : Model S}, M.IsLocal → (e.interpret M).IsLocal
   typeDefinitionNonempty :
     ∀ {κ : TyConVal} (C : TypeDefContract κ) (ρ : TypeVal) (hρ : Admissible κ ρ),
       Nonempty {y : Ty.denote κ ρ C.family.repTy // C.family.pred ρ hρ y}
@@ -199,6 +206,10 @@ structure TypedHOLCoreProofPackage : Prop where
       (s : Sequent S Γ), oldLanguageSequence es s →
       (Valid (interpretSequence es (canonicalConstVal κ S)) s ↔
         Valid (canonicalConstVal κ S) s)
+  historyConservativity :
+    ∀ {S : Signature} {Γ : List Ty} (es : List (ModelExtension S)) (M : Model S),
+      M.IsLocal → ∀ (s : Sequent S Γ), oldLanguageModels es s →
+        (Valid (interpretModels es M).I s ↔ Valid M.I s)
   concreteConsistency :
     ¬ Derivation standardSignature { hyps := [], concl := falseSentence }
   infinityAnchor :
@@ -214,6 +225,9 @@ structure TypedHOLCoreProofPackage : Prop where
       Admissible κ baseTypeVal →
       ¬ Valid (interpretSequence es (canonicalConstVal κ S))
         { hyps := [], concl := signatureGenericFalseSentence S }
+  signatureGenericHistoryNonvalidity :
+    ∀ {S : Signature} (es : List (ModelExtension S)) (M : Model S),
+      ¬ Valid (interpretModels es M).I { hyps := [], concl := signatureGenericFalseSentence S }
 
 noncomputable def typedHOLCoreProofPackage : TypedHOLCoreProofPackage := by
   refine {
@@ -232,6 +246,8 @@ noncomputable def typedHOLCoreProofPackage : TypedHOLCoreProofPackage := by
     specificationValidity := ?_
     specificationConservativity := ?_
     extensionDerivationSound := ?_
+    extensionDerivationConservative := ?_
+    stepPreservesLocality := ?_
     typeDefinitionNonempty := ?_
     typeDefinitionAbsRep := ?_
     typeDefinitionRepRange := ?_
@@ -240,11 +256,13 @@ noncomputable def typedHOLCoreProofPackage : TypedHOLCoreProofPackage := by
     typeDefinitionGateLaws := ?_
     typeDefinitionGateConservativity := ?_
     finiteExtensionConservativity := ?_
+    historyConservativity := ?_
     concreteConsistency := typed_concrete_consistency
     infinityAnchor := standard_ind_infinity_anchor
     infinitySentenceValidity := indInfinitySentence_valid
     signatureGenericConsistency := typed_signature_generic_consistency
     signatureGenericExtensionNonvalidity := typed_signature_generic_nonvalid_in_extension
+    signatureGenericHistoryNonvalidity := typed_signature_generic_nonvalid_in_history
   }
   · exact fun {κ} a ρ hρ ↦ a.carrier_nonempty κ ρ hρ
   · exact typed_model_nonempty
@@ -270,8 +288,12 @@ noncomputable def typedHOLCoreProofPackage : TypedHOLCoreProofPackage := by
     exact G.valid_constant_from_typed_derivation I hTy d
   · intro κ S Γ G I hTy s hOld
     exact G.valid_old_language_iff I hTy s hOld
-  · intro κ S es I Γ s d
-    exact extension_derivation_sound I d
+  · intro S M hM es Γ s d
+    exact extension_derivation_sound M hM d
+  · intro κ S hκ es Γ s d hOld
+    exact extension_derivation_old_language_valid hκ d hOld
+  · intro S e M hM
+    exact e.interpret_isLocal hM
   · intro κ C ρ hρ
     exact C.nonempty ρ hρ
   · intro κ C ρ hρ x
@@ -288,6 +310,8 @@ noncomputable def typedHOLCoreProofPackage : TypedHOLCoreProofPackage := by
     exact (ModelExtension.typeDefinition G).valid_iff M s hOld hloc
   · intro κ S Γ es s hOld
     exact typed_global_semantic_conservativity es s hOld
+  · intro S Γ es M hM s hOld
+    exact valid_interpretModels_iff es M hM s hOld
 
 theorem typed_hol_core_proof_complete : Nonempty TypedHOLCoreProofPackage :=
   ⟨typedHOLCoreProofPackage⟩

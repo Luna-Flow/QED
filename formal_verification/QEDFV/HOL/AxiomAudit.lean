@@ -38,3 +38,17 @@ import QEDFV.HOL.Soundness
 #print axioms QEDFV.HOL.canonicalConstVal_local
 #print axioms QEDFV.HOL.trueGate_laws
 #print axioms QEDFV.HOL.falseGate_repRange_not_valid
+#print axioms QEDFV.HOL.DefinitionGate.withDefinition_local
+#print axioms QEDFV.HOL.SpecificationGate.withSpecification_local
+#print axioms QEDFV.HOL.TypeDefGate.newConst_local
+#print axioms QEDFV.HOL.TypeDefGate.valid_law
+#print axioms QEDFV.HOL.ModelExtension.interpret_isLocal
+#print axioms QEDFV.HOL.interpretModels_isLocal
+#print axioms QEDFV.HOL.valid_interpretModels_iff
+#print axioms QEDFV.HOL.typed_global_semantic_conservativity_models
+#print axioms QEDFV.HOL.typed_extension_derivation_sound_default
+#print axioms QEDFV.HOL.extension_derivation_old_language_valid
+#print axioms QEDFV.HOL.typed_signature_generic_nonvalid_in_history
+#print axioms QEDFV.HOL.unit_laws_valid
+#print axioms QEDFV.HOL.unit_old_language_valid
+#print axioms QEDFV.HOL.unit_model_nontrivial

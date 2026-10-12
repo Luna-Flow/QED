@@ -37,11 +37,12 @@ tree.
 
 ## Boundaries
 
-The proof does not establish growing-signature derivations, a derivation rule for
-registering a user type constructor (the semantics of a type-definition step is
-proved over model pairs, but it is not a derivation constructor), the MoonBit infinity
-registration gate,
-syntactic derivation erasure for extensions, or a MoonBit-to-Lean refinement.
+The proof does not establish growing-signature derivations, a history-indexed full
+calculus that chains the derived type-definition laws with core rules (the laws are
+derivation conclusions at the extended history and sound at its model pair, and
+history freshness is carried but unused by soundness), the MoonBit infinity
+registration gate, syntactic derivation erasure for extensions, or a
+MoonBit-to-Lean refinement.
 Parser, elaborator, tactic, replay, and mutable-state behavior remain separate
 implementation evidence. The MoonBit theorem-provenance condition in issue #15
 is now enforced independently by the kernel and covered by regression tests.

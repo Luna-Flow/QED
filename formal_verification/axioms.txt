@@ -48,6 +48,20 @@ and derivations indexed by a finite constant-extension history.
 'QEDFV.HOL.canonicalConstVal_local' depends on axioms: [propext, Classical.choice, Quot.sound]
 'QEDFV.HOL.trueGate_laws' depends on axioms: [propext, Classical.choice, Quot.sound]
 'QEDFV.HOL.falseGate_repRange_not_valid' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.DefinitionGate.withDefinition_local' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.SpecificationGate.withSpecification_local' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.TypeDefGate.newConst_local' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.TypeDefGate.valid_law' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.ModelExtension.interpret_isLocal' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.interpretModels_isLocal' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.valid_interpretModels_iff' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.typed_global_semantic_conservativity_models' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.typed_extension_derivation_sound_default' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.extension_derivation_old_language_valid' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.typed_signature_generic_nonvalid_in_history' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.unit_laws_valid' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.unit_old_language_valid' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.unit_model_nontrivial' depends on axioms: [propext, Classical.choice, Quot.sound]
 
 These are Lean/Mathlib foundation axioms, not project declarations:
 

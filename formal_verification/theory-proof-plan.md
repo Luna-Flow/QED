@@ -2,8 +2,9 @@
 
 - Status: Typed HOL is the sole formal proof line.
 - Authority: [QED Typed HOL Core](../doc/attachments/qed_formal_spec.typ).
-- Scope: intrinsically typed core derivations, history-indexed constant
-  extension derivations, their semantic soundness, and non-triviality witnesses.
+- Scope: intrinsically typed core derivations, history-indexed extension
+  derivations (definition, specification and type definition), their semantic
+  soundness at the history's model pair, and non-triviality witnesses.
 - Excluded: MoonBit refinement, parser/tactic correctness, mutable signature
   provenance, and derivation erasure for a growing theory.
 
@@ -25,13 +26,22 @@
 7. `HOL/Definitions.lean`, `HOL/Specification.lean`, and
    `HOL/TypeDefinitions.lean` prove local semantic extension contracts.
 8. `HOL/ExtensionDerivation.lean` defines `ExtensionDerivation S es`, indexed
-   by newest-first constant-extension histories. Specification steps require a
-   witness derivation at the preceding history; definition and specification
-   steps carry history-ID freshness side conditions, and old derivations lift
-   only across extensions absent from their sequents. The soundness induction
-   does not use those history-freshness premises: they constrain well-formed
-   histories, while local gate freshness is used by the product validity lemmas.
-   This theorem does not establish global consistency of all prior equations.
+   by newest-first histories `es : List (ModelExtension S)` of definition,
+   specification and type-definition steps. Specification and type-definition
+   steps require a witness derivation at the preceding history (for a type
+   definition: `⊢ P w`, hypothesis-free, closed `w`); every step carries history
+   freshness side conditions (constant ids, and the constructor id `k` for a type
+   definition), and old derivations lift (`weaken`) only across steps whose new
+   constants and type constructors are absent from their sequents. The type
+   definition is one constructor `typedef` with a three-valued selector
+   (`TypeDefLaw`: `Abs (Rep a) = a`, `P (Rep a)`, `P r ⊢ Rep (Abs r) = r`).
+   `extension_derivation_sound` is stated at the history's model pair
+   `interpretModels es M` for a local base model `M` (the canonical models are
+   local). The soundness induction does not use the history-freshness premises:
+   they constrain well-formed histories, while local gate freshness is used by the
+   product validity lemmas. This theorem does not establish global consistency of
+   all prior equations. The earlier `Extension κ S` / `interpretSequence`, indexed
+   by one fixed `κ`, remains for the typedef-free sequence-level conservativity.
 9. `HOL/Conservativity.lean` composes finite, old-language validity equivalence
    for pointwise constant overrides on one fixed signature.
 10. `HOL/Concrete.lean` proves concrete and signature-generic non-derivability.
@@ -52,7 +62,14 @@
     only `valid_repRange` needs the witness hypothesis `WitnessAt`) and old-language
     invariance of the step (`valid_iff_old`); `HOL/ModelExtension.lean` adds model pairs
     `Model` and `ModelExtension` as a parallel version of `Extension`;
-    `HOL/TypeDefExamples.lean` has a nonempty and an empty predicate.
+    `HOL/TypeDefExamples.lean` has a nonempty and an empty predicate;
+    `HOL/TypeDefLocal.lean` proves that a type-definition step preserves locality
+    of the constant interpretation (`TypeDefGate.newConst_local`).
+    `HOL/ModelExtension.lean` also carries locality and old-language invariance
+    along a history (`interpretModels_isLocal`, `valid_interpretModels_iff`,
+    `typed_global_semantic_conservativity_models`).
+    `HOL/TypeDefDerivationExamples.lean` derives the three laws for a one-element
+    subtype of `bool` at an extended history.
 13. `HOL/Soundness.lean` exports `typed_hol_core_proof_complete`, a package for
     the checked core and its semantic results. It is not a completeness theorem
     or a full growing-theory development.
@@ -87,9 +104,9 @@ abstract type named `ind`.
 | `eq_mp_checked` | `Derivation.eqMp`; `valid_eqMp` | Boolean equality elimination | Checked |
 | `deduct_antisym_rule_checked` | `Derivation.deduct`; `valid_deduct` | Deduction antisymmetry | Checked |
 | type and term instantiation | `Derivation.instType`, `.instTerm`; `valid_inst_type`, `valid_inst_term` | Typed substitution preservation | Checked |
-| `ks_define_const`, `ks_define_const_thm` | `DefinitionGate`, `ExtensionDerivation.definition`; `extension_derivation_sound` | Defining equation; local RHS freshness is used, history-ID freshness is carried but unused by soundness | Fixed signature; name audit remains an implementation boundary |
+| `ks_define_const`, `ks_define_const_thm` | `DefinitionGate`, `ExtensionDerivation.definition`; `extension_derivation_sound` | Defining equation; local RHS freshness is used, history-ID freshness is carried but unused by soundness; the closure field is stated for `Term.annotVars` (matching the kernel's `term_tyvars`), which makes the step preserve locality (`DefinitionGate.withDefinition_local`) | Fixed signature; name audit remains an implementation boundary |
 | `ks_specify_const` | `SpecificationExtension`, `ExtensionDerivation.specification`; `extension_derivation_sound` | Named constant theorem from a witness derivation in the preceding history; local gate freshness is used, history-ID freshness is carried but unused by soundness | Fixed signature; MoonBit certificate remains an implementation boundary |
-| `ks_register_type_definition` | `TypeDefGate`, `TypeDefGate.interpret`, `ModelExtension.typeDefinition`; carrier-level `TypeDefContract` | New constructor interpretation (predicate subtype or `PUnit`) is admissible; `Abs (Rep a) = a`, `P (Rep a)` (under the witness hypothesis `WitnessAt`) and `P r ⊢ Rep (Abs r) = r` are valid in the new model; sequents not mentioning `k`, `rep`, `abs` keep their validity (for a local old interpretation) | Semantics over model pairs only: no `ExtensionDerivation` constructor, so the laws are not yet derivable in a history; history freshness of `k`, `rep`, `abs` and the kernel's string-name lowering are not modelled; MoonBit gate not verified |
+| `ks_register_type_definition` | `TypeDefGate`, `ExtensionDerivation.typedef` (selector `TypeDefLaw`), `ModelExtension.typeDefinition`; `extension_derivation_sound`; carrier-level `TypeDefContract` | The three laws `Abs (Rep a) = a`, `P (Rep a)` and `P r ⊢ Rep (Abs r) = r` are derivation conclusions at the extended history, from a mandatory hypothesis-free witness derivation `⊢ P w` at the preceding history; they are valid at the history's model pair (the witness derivation discharges `WitnessAt` through the induction hypothesis and `witnessAt_of_valid`); the new constructor interpretation is admissible; sequents not mentioning `k`, `rep`, `abs` keep their validity along the history (`weaken`) | History freshness of `k`, `rep`, `abs` is carried but unused by soundness; fixed total signature; string-name lowering (including the `ind` reservation question) not modelled; chaining typedef theorems with core rules needs a history-indexed full calculus (not provided); no syntactic erasure of typedef; MoonBit gate not verified |
 | `ks_ind_infinity_axiom` | `Derivation.indInfinity`; `indInfinitySentence` | Exact infinity sentence is valid in every model, witnessed by `Nat.succ` | MoonBit registration gate is not verified; see issue #7 |
 | eta | no kernel primitive found | Not applicable | Not a primitive of the current kernel calculus |
 
@@ -109,12 +126,16 @@ abstract type named `ind`.
 | Predicate-subtype type-definition laws | `HOL/TypeDefinitions.lean` | proved at carrier level |
 | Type-definition gate: admissible new model | `TypeDefGate.newTyCon_isAdmissible` | proved |
 | Type-definition Abs/Rep laws as valid sequents about `Rep`/`Abs` terms | `TypeDefGate.valid_absRep`, `valid_repAbs` (no witness needed), `valid_repRange` (under `WitnessAt`), `TypeDefGate.laws`, `TypeDefGate.laws_of_witness_valid` | proved semantically; the witness hypothesis is necessary (`falseGate_repRange_not_valid`) and is discharged in the derivation step from `⊢ P w` |
-| Old-language invariance of a type-definition step | `TypeDefGate.valid_iff_old`, `valid_iff_old_canonical`, `ModelExtension.valid_iff` | proved for a local old interpretation (the canonical one is local); not yet composed over histories |
+| Old-language invariance of a type-definition step | `TypeDefGate.valid_iff_old`, `valid_iff_old_canonical`, `ModelExtension.valid_iff` | proved for a local old interpretation (the canonical one is local) |
+| Locality preserved by every declaration step | `DefinitionGate.withDefinition_local`, `SpecificationGate.withSpecification_local`, `TypeDefGate.newConst_local`, `ModelExtension.interpret_isLocal`, `interpretModels_isLocal` | proved (definition and specification need the `annotVars` closure fields) |
+| Old-language invariance and conservativity along a history with type definitions | `valid_interpretModels_iff`, `typed_global_semantic_conservativity_models`, `extension_derivation_old_language_valid` | proved for a local base model; no hypothesis remains over the canonical model |
+| Type-definition derivation constructor and soundness at the history's model pair | `ExtensionDerivation.typedef`, `extension_derivation_sound`, `typed_extension_derivation_sound` | proved |
+| Worked typedef derivation (one-element subtype of `bool`) and non-triviality of the extended model | `unit_absRep_derivation`, `unit_repRange_derivation`, `unit_repAbs_derivation`, `unit_laws_valid`, `unit_old_language_valid`, `unit_model_nontrivial` | proved |
 | Finite old-language validity equivalence | `valid_interpretSequence_iff` | proved for fixed-signature overrides |
 | Object-language infinity admission | `Derivation.indInfinity`, `indInfinitySentence_valid` | proved for the exact sentence in all models |
-| History-indexed definition/specification derivations | `extension_derivation_sound` | proved for fresh constant IDs over a fixed signature |
+| History-indexed definition/specification/type-definition derivations | `extension_derivation_sound` | proved at the history's model pair over a fixed total signature |
 | Growing-signature syntax and semantic interpretation | no history-indexed `Signature` or type constructors | open |
-| User type-constructor syntax and semantics | `Ty.con` node and `TyConVal` interpretation, core calculus sound for every admissible `κ`; validity is invariant under changing `κ` on constructor ids a sequent does not mention; type-definition gate semantics over model pairs; no derivation constructor, history freshness or history-indexed `κ` | partial |
+| User type-constructor syntax and semantics | `Ty.con` node and `TyConVal` interpretation, core calculus sound for every admissible `κ`; validity is invariant under changing `κ` on constructor ids a sequent does not mention; type-definition gate semantics and derivation constructor over model pairs, history-indexed `(κ, I)`; history freshness is carried, not used | partial |
 | MoonBit-to-Lean refinement and theorem provenance | no Typed HOL theorem | refinement excluded; MoonBit lineage invariant is tested separately |
 | Syntactic conservativity/derivation erasure | no growing-theory derivation | open |
 
@@ -122,6 +143,9 @@ The levels of extension evidence must remain distinct: local semantic laws,
 history-indexed derivations over a fixed signature, growing-signature
 derivations, and syntactic erasure are different results. This development
 proves the first two where listed; it does not identify them with the latter two.
+In particular, type-definition conservativity here is semantic (old-language
+validity along a history); typedef erasure would need a relativisation
+translation and is not claimed.
 
 ## Open Kernel/Specification Issues
 
@@ -160,13 +184,15 @@ used to assert soundness. The Lean/mathlib foundations reported by the audit are
 - `typst compile` and `lunadoc check . --compile` validate the normative
   specification and its references.
 
-The extension interpretation is still over a fixed `Signature`. The legacy
-`Extension.typeDefinition` case is the identity; the type-definition step is
-modelled separately over model pairs (`ModelExtension`) and is not yet a
-constructor of `ExtensionDerivation`, so typedef soundness at the level of
-derivations in a history cannot be claimed. Old-language invariance across a
-change of the constructor interpretation needs locality of the old constant
-interpretation, which the canonical interpretation has and which definition
-steps preserve only under an annotation-closure condition the present
-`DefinitionGate` does not state. These limitations are explicit in the current
-theorem statements.
+The extension interpretation is still over a fixed total `Signature`. Histories are
+interpreted over model pairs `(κ, I)`: the type-definition step changes `κ`, so the
+earlier `Extension κ S`, indexed by one fixed `κ`, cannot represent it and is kept only
+for the typedef-free sequence-level conservativity. The soundness induction needs the
+base model to be local (`Model.IsLocal`, true of the canonical models) because
+old-language transport across a type-definition step compares valuations that differ in
+variables a constant does not depend on; every step preserves locality, which required
+the definition and specification closure fields to be stated for `Term.annotVars` (the
+kernel's `term_tyvars` counts binder domains) instead of `Term.typeVars`. Derivations
+chain only inside `core`: a consequence that uses a derived typedef law together with
+core rules needs a history-indexed full calculus, which is not part of this
+development. These limitations are explicit in the current theorem statements.

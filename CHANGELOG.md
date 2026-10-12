@@ -6,6 +6,31 @@ All notable changes to QED are recorded here. The format follows [Keep a Changel
 
 ### Added
 
+- Lean (`formal_verification`): type definitions as history-indexed derivations.
+  `ExtensionDerivation` is now indexed by histories of `ModelExtension` steps
+  (definition, specification, type definition) and has one `typedef` constructor with a
+  three-valued selector (`TypeDefLaw`) that derives `Abs (Rep a) = a`, `P (Rep a)` or
+  `P r ⊢ Rep (Abs r) = r` from a mandatory hypothesis-free witness derivation `⊢ P w` at
+  the preceding history; history freshness of `k`, `rep`, `abs` is a carried side
+  condition. `weaken` across a type definition requires the sequent to mention neither the
+  new constructor nor `rep`/`abs`. `extension_derivation_sound` returns validity at the
+  history's model pair `interpretModels es M` for a local base model, with typed wrappers
+  over the canonical models. Locality of the constant interpretation is carried through
+  histories (`ModelExtension.interpret_isLocal`, `TypeDefGate.newConst_local`), which
+  gives `valid_interpretModels_iff`, `typed_global_semantic_conservativity_models` and
+  `extension_derivation_old_language_valid`. A worked example derives the three laws for
+  the one-element subtype of `bool` and shows the extended model is non-trivial. Refs #17.
+
+### Changed
+
+- Lean (`formal_verification`): `DefinitionGate.typeVarsClosed` and
+  `SpecificationGate.typeVarsClosed` are now stated for `Term.annotVars` (the kernel's
+  `term_tyvars` counts binder domains) instead of `Term.typeVars`, so that definition and
+  specification steps preserve locality. `ExtensionDerivation` and
+  `extension_derivation_sound` take histories of `ModelExtension` instead of
+  `Extension κ S` (`Extension` and `interpretSequence` remain for the type-definition-free
+  statement). Refs #17.
+
 - Lean (`formal_verification`): semantics of a type-definition step. `TypeDefGate`
   models the checks of `ks_register_type_definition` (closed predicate over the
   declared parameters, new constructor, Rep and Abs constants); `TypeDefGate.interpret`
@@ -14,8 +39,6 @@ All notable changes to QED are recorded here. The format follows [Keep a Changel
   valid in the new model (the second under the witness hypothesis), and validity of
   sequents that do not mention the new constructor or constants is preserved. The step
   is not yet a derivation constructor (planned follow-up). Refs #17.
-
-### Changed
 
 - Upgrade the QED dependency on `moonbitlang/x` to `0.5.5` and verify it with
   MoonBit `0.10.15`.
