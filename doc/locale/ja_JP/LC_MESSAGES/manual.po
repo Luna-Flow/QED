@@ -2965,7 +2965,6 @@ msgstr "型と非空の台集合"
 #: manual/conformance.md:30
 #: manual/conformance.md:31
 #: manual/conformance.md:32
-#: manual/conformance.md:33
 #: manual/conformance.md:34
 #: manual/conformance.md:35
 #: manual/conformance.md:36
@@ -3006,8 +3005,13 @@ msgid "Derivation soundness"
 msgstr "導出の健全性"
 
 #: manual/conformance.md:33
-msgid "Definition and specification contracts"
-msgstr "定義と仕様指定の契約"
+#| msgid "One-step definition and specification derivations"
+msgid "History-indexed definition and specification derivations"
+msgstr "履歴で添字付けられた定義および仕様指定の導出"
+
+#: manual/conformance.md:33
+msgid "proved for fresh constant IDs over a fixed signature"
+msgstr "固定シグネチャ上の新しい定数 ID について証明済み"
 
 #: manual/conformance.md:34
 msgid "Type-definition carrier laws"
@@ -3027,16 +3031,18 @@ msgid "Typed HOL core proof package"
 msgstr "Typed HOL コア証明パッケージ"
 
 #: manual/conformance.md:39
-msgid "The public entry point is `QEDFV.HOL.typed_hol_core_proof_complete`. It covers the typed core and fixed-signature semantic extension results. It does not certify a growing-theory calculus. The default `QEDFV` target imports `QEDFV.HOL.Soundness` only."
-msgstr "公開エントリーポイントは `QEDFV.HOL.typed_hol_core_proof_complete` です。この定理は型付きコアと固定シグネチャ上の意味論的拡張結果を扱いますが、成長する理論の演算を認証しません。既定の `QEDFV` ターゲットがインポートするのは `QEDFV.HOL.Soundness` だけです。"
+#| msgid "The public entry point is `QEDFV.HOL.typed_hol_core_proof_complete`. It covers the typed core and fixed-signature semantic extension results. It does not certify a growing-theory calculus. The default `QEDFV` target imports `QEDFV.HOL.Soundness` only."
+msgid "The public entry point is `QEDFV.HOL.typed_hol_core_proof_complete`. It covers the typed core and history-indexed constant extensions over a fixed signature. It does not certify growing-signature syntax or a MoonBit refinement. The default `QEDFV` target imports `QEDFV.HOL.Soundness` only."
+msgstr "公開エントリーポイントは `QEDFV.HOL.typed_hol_core_proof_complete` です。この定理は型付きコアと、固定シグネチャ上で履歴により添字付けられた定数拡張を扱います。成長するシグネチャの構文や MoonBit の精緻化は認証しません。既定の `QEDFV` ターゲットがインポートするのは `QEDFV.HOL.Soundness` だけです。"
 
 #: manual/conformance.md:44
 msgid "Explicit limits"
 msgstr "明示的な限界"
 
 #: manual/conformance.md:46
-msgid "The Typed HOL theorem does not establish the infinity-axiom admission rule, derivations for definitions and type-constructor extensions in a growing theory, syntactic derivation erasure, or a MoonBit-to-Lean refinement. It also does not certify the parser, elaborator, tactics, theorem replay, mutable scope history, or provenance behavior. Those are implementation work and must not be presented as evidence for the Lean theorem."
-msgstr "Typed HOL 定理は、無限公理の導入規則、成長する理論における定義と型構成子拡張の導出、構文的な導出消去、または MoonBit から Lean への精緻化を確立していません。また、パーサー、エラボレーター、タクティク、定理のリプレイ、可変スコープ履歴、出自管理の動作も認証しません。これらは実装上の課題であり、Lean 定理の根拠として提示してはなりません。"
+#| msgid "The Typed HOL theorem does not establish composition of extension derivations through a growing theory, user type-constructor syntax and semantics, the infinity-axiom admission rule, syntactic derivation erasure, or a MoonBit-to-Lean refinement. It also does not certify the parser, elaborator, tactics, theorem replay, mutable scope history, or provenance behavior. Those are implementation work and must not be presented as evidence for the Lean theorem."
+msgid "The Typed HOL theorem does not establish user type-constructor syntax and semantics, the infinity-axiom admission rule, syntactic derivation erasure, or a MoonBit-to-Lean refinement. It also does not certify the parser, elaborator, tactics, theorem replay, mutable scope history, or provenance behavior. Those are implementation work and must not be presented as evidence for the Lean theorem."
+msgstr "Typed HOL 定理は、ユーザー型構成子の構文と意味論、無限公理の導入規則、拡張導出の構文的消去、または MoonBit から Lean への精緻化を確立していません。また、パーサー、エラボレーター、タクティク、定理のリプレイ、可変スコープ履歴、出自管理の動作も認証しません。これらは実装上の課題であり、Lean 定理の根拠として提示してはなりません。"
 
 #: manual/conformance.md:53
 msgid "Implementation evidence"
@@ -3291,30 +3297,36 @@ msgid "Intrinsic simple types and De Bruijn terms, with typed renaming, substitu
 msgstr "内在的に型付けされた単純型と De Bruijn 項、および型付き変数名変更、代入、beta、型の具体化に関する評価法則。"
 
 #: manual/current_workspace_audit.md:17
-msgid "Semantic validity preservation for all ten typed derivation constructors."
-msgstr "型付き導出の全 10 コンストラクタによる意味論的妥当性の保存。"
+#| msgid "Semantic validity preservation for all ten typed derivation constructors."
+msgid "Semantic validity preservation for all twelve typed core derivation constructors, including `ADD_ASSUM` and witness-based `SPECIFY`."
+msgstr "`ADD_ASSUM` と証人に基づく `SPECIFY` を含む、型付きコア導出の全 12 コンストラクタについて意味論的妥当性が保存されます。"
 
-#: manual/current_workspace_audit.md:18
+#: manual/current_workspace_audit.md:19
 msgid "Derivation soundness by induction, for every constant interpretation."
 msgstr "任意の定数解釈について、帰納法による導出の健全性。"
 
-#: manual/current_workspace_audit.md:19
-msgid "Semantic definition and specification contracts and witnessed predicate subtype carrier laws."
-msgstr "意味論的な定義・仕様指定契約と、証人を持つ述語部分型の台集合に関する法則。"
+#: manual/current_workspace_audit.md:20
+msgid "History-indexed definition and specification derivations. A specification witness is derived at the preceding history; soundness composes over fresh constant IDs in the fixed signature."
+msgstr "履歴で添字付けられた定義および仕様指定の導出。仕様指定の証人は直前の履歴で導出されます。固定シグネチャ内の新しい定数 ID について、健全性は履歴に沿って合成されます。"
 
-#: manual/current_workspace_audit.md:21
+#: manual/current_workspace_audit.md:23
+#| msgid "Semantic definition and specification contracts and witnessed predicate subtype carrier laws."
+msgid "Semantic extension contracts and witnessed predicate subtype carrier laws."
+msgstr "意味論的な拡張契約と、証人を持つ述語部分型の台集合に関する法則。"
+
+#: manual/current_workspace_audit.md:24
 msgid "Old-language semantic validity equivalence over finite modeled extension sequences."
 msgstr "モデル化された有限拡張列における旧言語の意味論的妥当性の同値。"
 
-#: manual/current_workspace_audit.md:23
+#: manual/current_workspace_audit.md:26
 msgid "A concrete interpretation in which `succ(0) = 0` is false and therefore underivable."
 msgstr "`succ(0) = 0` が偽となり、したがって導出不能である具体的解釈。"
 
-#: manual/current_workspace_audit.md:26
+#: manual/current_workspace_audit.md:29
 msgid "The public theorem is `QEDFV.HOL.typed_hol_core_proof_complete`. Audited `#print axioms` output is `propext`, `Classical.choice`, and `Quot.sound`. There are no project-defined axioms, `sorry`, or `admit` in the retained Lean tree."
 msgstr "公開定理は `QEDFV.HOL.typed_hol_core_proof_complete` です。監査済みの `#print axioms` 出力は `propext`、`Classical.choice`、`Quot.sound` です。保持する Lean ツリーにはプロジェクト独自の公理、`sorry`、`admit` はありません。"
 
-#: manual/current_workspace_audit.md:31
+#: manual/current_workspace_audit.md:34
 #: manual/design/cmd.md:70
 #: manual/design/elab.md:74
 #: manual/design/kernel.md:286
@@ -3326,47 +3338,48 @@ msgstr "公開定理は `QEDFV.HOL.typed_hol_core_proof_complete` です。監�
 msgid "Boundaries"
 msgstr "境界"
 
-#: manual/current_workspace_audit.md:33
-msgid "The proof does not establish completeness, syntactic derivation erasure for extensions, a MoonBit-to-Lean refinement, or correctness of MoonBit parsing, elaboration, tactics, replay, mutable signature history, or theorem provenance. Tests and engineering audits remain separate evidence for those implementation properties."
-msgstr "この証明は、完全性、拡張導出の構文的消去、MoonBit から Lean への精緻化、および MoonBit の解析、エラボレーション、タクティク、リプレイ、可変シグネチャ履歴、定理の出自管理の正しさを確立していません。テストと工学的監査は、これらの実装特性に関する別の根拠です。"
+#: manual/current_workspace_audit.md:36
+#| msgid "The proof does not establish compositional derivations through a growing theory, user type-constructor syntax or semantics, object-language infinity admission, syntactic derivation erasure for extensions, a MoonBit-to-Lean refinement, or correctness of MoonBit parsing, elaboration, tactics, replay, mutable signature history, or theorem provenance. Tests and engineering audits remain separate evidence for those implementation properties."
+msgid "The proof does not establish growing-signature derivations, user type-constructor syntax or semantics, object-language infinity admission, syntactic derivation erasure for extensions, a MoonBit-to-Lean refinement, or correctness of MoonBit parsing, elaboration, tactics, replay, mutable signature history, or theorem provenance. Tests and engineering audits remain separate evidence for those implementation properties."
+msgstr "この証明は、成長するシグネチャ上の導出、ユーザー型構成子の構文と意味論、オブジェクト言語の無限公理導入、拡張導出の構文的消去、MoonBit から Lean への精緻化、および MoonBit の解析、エラボレーション、タクティク、リプレイ、可変シグネチャ履歴、定理の出自管理の正しさを確立していません。テストと工学的監査は、これらの実装特性に関する別の根拠です。"
 
-#: manual/current_workspace_audit.md:39
+#: manual/current_workspace_audit.md:43
 msgid "This status supersedes older audit claims about conditional proof packs or MoonBit conformance being part of the formal target."
 msgstr "この状況は、条件付き証明パッケージや MoonBit の適合性が形式化ターゲットに含まれるとする過去の監査記述に優先します。"
 
-#: manual/current_workspace_audit.md:42
+#: manual/current_workspace_audit.md:46
 msgid "Open implementation soundness defect"
 msgstr "未解決の実装健全性の欠陥"
 
-#: manual/current_workspace_audit.md:44
+#: manual/current_workspace_audit.md:48
 msgid "[Issue #15](https://github.com/Luna-Flow/QED/issues/15) remains open. The reported public-API reproduction reuses a theorem across sibling `KernelState` histories whose independently allocated constant identifiers collide, deriving `|- T = F`. `Thm` does not track state lineage, and the current admissibility checks do not establish that the theorem belongs to the receiving declaration history."
 msgstr "[issue #15](https://github.com/Luna-Flow/QED/issues/15) は未解決です。報告された公開 API による再現では、兄弟関係の `KernelState` 履歴間で定理を再利用します。各履歴が独立に割り当てた定数識別子が衝突し、`|- T = F` が導出されます。`Thm` は状態の系譜を追跡せず、現在の受理チェックも、その定理が受け取り側の宣言履歴に属することを確立していません。"
 
-#: manual/current_workspace_audit.md:50
+#: manual/current_workspace_audit.md:54
 msgid "This is a material implementation soundness defect, not just a missing proof. The existing 357-test baseline did not cover this scenario. A green Lean build proves the Typed HOL calculus; it cannot establish correctness of this MoonBit behavior. Repair and implementation refinement are deferred at the user's request. Acceptance requires rejecting the first incompatible cross-state step, covering related registration paths, and preserving valid linear-history use."
 msgstr "これは重要な実装健全性の欠陥であり、単に証明が不足しているという問題ではありません。既存の 357 テストの基準には、この事例が含まれていません。Lean ビルドの成功は Typed HOL 計算体系を証明しますが、この MoonBit の動作の正しさは確立しません。ユーザーの指示により、修正と実装精緻化は延期しています。受け入れには、最初の不適合な状態間ステップの拒否、関連する登録経路の網羅、正当な線形履歴での利用の維持が必要です。"
 
-#: manual/current_workspace_audit.md:57
+#: manual/current_workspace_audit.md:61
 msgid "Remaining engineering follow-up"
 msgstr "残る実装上の作業"
 
-#: manual/current_workspace_audit.md:59
+#: manual/current_workspace_audit.md:63
 msgid "Maintain checked lowering and replay as structured proof blocks expand."
 msgstr "構造化証明ブロックを拡張する際にも、検査済みの lowering とリプレイを維持してください。"
 
-#: manual/current_workspace_audit.md:60
+#: manual/current_workspace_audit.md:64
 msgid "Keep hole and unfinished-proof diagnostics aligned with the canonical corpus."
 msgstr "穴と未完成証明の診断を標準コーパスと一致させてください。"
 
-#: manual/current_workspace_audit.md:61
+#: manual/current_workspace_audit.md:65
 msgid "Keep quantifier-facing frontend lowering and CLI diagnostics covered."
 msgstr "量化子向けフロントエンドの lowering と CLI 診断のテスト範囲を維持してください。"
 
-#: manual/current_workspace_audit.md:62
+#: manual/current_workspace_audit.md:66
 msgid "Keep the research rewrite/simplify path outside theorem authority."
 msgstr "研究用の rewrite/simplify 経路を定理の権限境界の外に置いてください。"
 
-#: manual/current_workspace_audit.md:64
+#: manual/current_workspace_audit.md:68
 msgid "These are implementation tasks, not additional assumptions of the Typed HOL proof. The current cleanup changes no MoonBit implementation."
 msgstr "これらは実装の作業であり、Typed HOL 証明の追加仮定ではありません。今回の整理で MoonBit 実装は変更していません。"
 
@@ -9789,6 +9802,15 @@ msgstr "[tactics 設計](../design/tactics.md)は、正当化と、不正なス�
 #: manual/tutorial/tactics.md:179
 msgid "The [prover tutorial](prover.md) runs the same proofs from scripts."
 msgstr "[prover チュートリアル](prover.md)は、同じ証明をスクリプトから実行する。"
+
+#~ msgid "proved for fixed signatures"
+#~ msgstr "固定シグネチャについて証明済み"
+
+#~ msgid "One-step definition and specification extension derivations, sound under their fixed-signature interpretation overrides."
+#~ msgstr "固定シグネチャの解釈を上書きしたもとで健全となる、定義および仕様指定の一段階拡張導出。"
+
+#~ msgid "Definition and specification contracts"
+#~ msgstr "定義と仕様指定の契約"
 
 #~ msgid "Primitive rule validity"
 #~ msgstr "原始規則の妥当性"

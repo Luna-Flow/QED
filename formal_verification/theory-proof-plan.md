@@ -2,8 +2,8 @@
 
 - Status: Typed HOL is the sole formal proof line.
 - Authority: [QED Typed HOL Core](../doc/attachments/qed_formal_spec.typ).
-- Scope: intrinsically typed core derivations, rule soundness, fixed-signature
-  semantic extension lemmas, and non-triviality witnesses.
+- Scope: intrinsically typed core derivations, history-indexed constant
+  extension derivations, their semantic soundness, and non-triviality witnesses.
 - Excluded: MoonBit refinement, parser/tactic correctness, mutable signature
   provenance, and derivation erasure for a growing theory.
 
@@ -23,10 +23,15 @@
    soundness by induction, with a case for every constructor.
 7. `HOL/Definitions.lean`, `HOL/Specification.lean`, and
    `HOL/TypeDefinitions.lean` prove local semantic extension contracts.
-8. `HOL/Conservativity.lean` composes finite, old-language validity equivalence
+8. `HOL/ExtensionDerivation.lean` defines `ExtensionDerivation S es`, indexed
+   by newest-first constant-extension histories. Specification steps require a
+   witness derivation at the preceding history; declaration steps enforce
+   history freshness, and old derivations lift only across extensions absent
+   from their sequents. Soundness is proved by induction on the judgment.
+9. `HOL/Conservativity.lean` composes finite, old-language validity equivalence
    for pointwise constant overrides on one fixed signature.
-9. `HOL/Concrete.lean` proves concrete and signature-generic non-derivability.
-10. `HOL/Soundness.lean` exports `typed_hol_core_proof_complete`, a package for
+10. `HOL/Concrete.lean` proves concrete and signature-generic non-derivability.
+11. `HOL/Soundness.lean` exports `typed_hol_core_proof_complete`, a package for
     the checked core and its semantic results. It is not a completeness theorem
     or a full growing-theory development.
 
@@ -44,8 +49,8 @@
 | `eq_mp_checked` | `Derivation.eqMp`; `valid_eqMp` | Boolean equality elimination | Checked |
 | `deduct_antisym_rule_checked` | `Derivation.deduct`; `valid_deduct` | Deduction antisymmetry | Checked |
 | type and term instantiation | `Derivation.instType`, `.instTerm`; `valid_inst_type`, `valid_inst_term` | Typed substitution preservation | Checked |
-| `ks_define_const`, `ks_define_const_thm` | `DefinitionGate`; `valid_definition_equation` | Equation valid in a pointwise overridden interpretation; old-language validity equivalence | No growing-theory derivation constructor |
-| `ks_specify_const` | `SpecificationGate`, `Derivation.specify`; `valid_constant_from_typed_derivation` | Witness-based choice and validity in the specified interpretation | Gate result is not threaded through an evolving signature derivation |
+| `ks_define_const`, `ks_define_const_thm` | `DefinitionGate`, `ExtensionDerivation.definition`; `extension_derivation_sound` | Fresh-history defining equation | Fixed signature; name audit remains an implementation boundary |
+| `ks_specify_const` | `SpecificationExtension`, `ExtensionDerivation.specification`; `extension_derivation_sound` | Named constant theorem from a witness derivation in the preceding history | Fixed signature; MoonBit certificate remains an implementation boundary |
 | `ks_register_type_definition` | `TypeDefContract` | Nonempty predicate subtype and Abs/Rep laws | No user type-constructor node in `Ty`; interpretation update is not modeled |
 | `ks_ind_infinity_axiom` | `ind_infinity_anchor` only | `Nat.succ` is injective and not surjective | No object-language axiom admission rule; see issue #7 |
 | eta | no kernel primitive found | Not applicable | Not a primitive of the current kernel calculus |
@@ -65,15 +70,16 @@
 | Predicate-subtype type-definition laws | `HOL/TypeDefinitions.lean` | proved at carrier level |
 | Finite old-language validity equivalence | `valid_interpretSequence_iff` | proved for fixed-signature overrides |
 | Object-language infinity admission | no derivation constructor | open |
-| Growing-theory definition/specification derivations | no indexed theory judgment | open |
+| History-indexed definition/specification derivations | `extension_derivation_sound` | proved for fresh constant IDs over a fixed signature |
+| Growing-signature syntax and semantic interpretation | no history-indexed `Signature` or type constructors | open |
 | User type-constructor syntax and semantics | no constructor in `Ty` | open |
 | MoonBit-to-Lean refinement and theorem provenance | no Typed HOL theorem | excluded; issue #15 remains open |
 | Syntactic conservativity/derivation erasure | no growing-theory derivation | open |
 
-The four-way scope must remain visible in claims: a local semantic equation,
-validity under an override, a derivation in an evolving theory, and syntactic
-conservativity are different results. This development proves the first two
-where listed; it does not identify them with the latter two.
+The levels of extension evidence must remain distinct: local semantic laws,
+history-indexed derivations over a fixed signature, growing-signature
+derivations, and syntactic erasure are different results. This development
+proves the first two where listed; it does not identify them with the latter two.
 
 ## Open Kernel/Specification Issues
 
@@ -111,8 +117,7 @@ used to assert soundness. The Lean/mathlib foundations reported by the audit are
   specification and its references.
 
 The extension interpretation is still over a fixed `Signature`; its
-`typeDefinition` case is the identity. A full theory calculus requires a
-separate design change that indexes judgments by declaration history and makes
-user type constructors part of both syntax and carrier interpretation. This
-limitation is intentional in the current theorem statements and is not hidden
-behind the package name.
+`typeDefinition` case is the identity. User type constructors must become part
+of both syntax and carrier interpretation before typedef soundness can be
+claimed at the object-language level. This limitation is explicit in the
+current theorem statements.

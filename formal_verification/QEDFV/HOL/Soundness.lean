@@ -1,4 +1,5 @@
 import QEDFV.HOL.Conservativity
+import QEDFV.HOL.ExtensionDerivation
 import QEDFV.HOL.Specification
 import QEDFV.HOL.TypeDefinitions
 import QEDFV.HOL.Concrete
@@ -159,6 +160,10 @@ structure TypedHOLCoreProofPackage : Prop where
     ∀ {S : Signature} {Γ : List Ty} (G : SpecificationGate S) (I : ConstVal S)
       (hTy : S G.id = G.ty) (s : Sequent S Γ), G.id ∉ s.constIds →
       (Valid (I.withSpecification G hTy) s ↔ Valid I s)
+  extensionDerivationSound :
+    ∀ {S : Signature} (es : List (Extension S)) (I : ConstVal S)
+      {Γ : List Ty} {s : Sequent S Γ}, ExtensionDerivation S es s →
+      Valid (interpretSequence es I) s
   typeDefinitionNonempty :
     ∀ (C : TypeDefContract) (ρ : TypeVal) (hρ : Admissible ρ),
       Nonempty {y : Ty.denote ρ C.family.repTy // C.family.pred ρ hρ y}
@@ -207,6 +212,7 @@ noncomputable def typedHOLCoreProofPackage : TypedHOLCoreProofPackage := by
     definitionConservativity := ?_
     specificationValidity := ?_
     specificationConservativity := ?_
+    extensionDerivationSound := ?_
     typeDefinitionNonempty := ?_
     typeDefinitionAbsRep := ?_
     typeDefinitionRepRange := ?_
@@ -241,6 +247,8 @@ noncomputable def typedHOLCoreProofPackage : TypedHOLCoreProofPackage := by
     exact G.valid_constant_from_typed_derivation I hTy d
   · intro S Γ G I hTy s hOld
     exact G.valid_old_language_iff I hTy s hOld
+  · intro S es I Γ s d
+    exact extension_derivation_sound I d
   · intro C ρ hρ
     exact C.nonempty ρ hρ
   · intro C ρ hρ x

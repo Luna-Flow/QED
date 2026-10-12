@@ -1264,14 +1264,16 @@ constant-agreement lemma applies in both directions.
 *Implementation contract (SpecOK).* A registration procedure must additionally
 check global declaration freshness and exact schema agreement. It must justify
 the produced theorem $P(c)$ through its explicit extension contract. The
-kernel's theorem is represented mathematically by the `SPECIFY` rule below,
-which concludes $P(epsilon P)$ from a derivation of $P(w)$. The current Lean
-gate proves that the selected interpretation satisfies $P(c)$, but does not
-connect the updated signature and theorem handle to a growing-theory
-derivation. The exact witness certificate expected by the MoonBit gate also
-remains an implementation boundary (issue #8).
+Hilbert-choice rule below is an internal inference rule: it concludes
+$P(epsilon P)$ from a derivation of $P(w)$. It is not the `ks_specify_const`
+declaration extension, which introduces a fresh constant $c$ and a theorem
+$P(c)$ under its witness contract. The current Lean gate proves that the
+selected interpretation satisfies $P(c)$, but does not connect the updated
+signature and theorem handle to a growing-theory derivation. The exact witness
+certificate expected by the MoonBit gate also remains an implementation
+boundary (issue #8).
 
-== Rule Schema: `SPECIFY`
+== Rule Schema: Hilbert Choice from a Witness
 
 Fix a type context $Gamma$ and a type $tau$. Let
 $P in "Tm"_(Sigma)(tau :: Gamma,"bool")$ be a predicate body whose first
@@ -1298,10 +1300,13 @@ term evaluates to that selected element, and the substitution evaluation lemma
 identifies this with the displayed conclusion.
 
 #lean-proof("Rules", ("valid_choose_from_witness",))
-#lean-def("Derivation", ("Derivation.specify",))
+#lean-def("Derivation", ("Derivation.chooseWitness",))
 
-This is a witness-based rule, not unrestricted axiom admission. It supplies the
-logical step inside `ks_specify_const`.
+This is a witness-based inference rule, not unrestricted axiom admission. Its
+conclusion contains the Hilbert-choice term. `ks_specify_const` is a separate
+theory-extension operation: it introduces a fresh named constant and registers
+the corresponding theorem. The fixed-signature Lean gate models that named
+constant by an interpretation override; it is not identified with this rule.
 
 = Global Admissibility and Proof Discipline
 
@@ -1750,11 +1755,13 @@ supply those additional claims.
 
 == Finite Semantic Extensions
 
-A semantic extension is a definition override, a specification override with a
-typed witness derivation, or a witnessed type-definition contract. Its effect
-on a constant interpretation is the corresponding override; the type-definition
-case is the identity. For a list $(e_1,...,e_n)$, define
-$I_0=I$ and $I_(j+1)=e_(j+1)(I_j)$. This recursion is `interpretSequence`.
+A semantic extension is a definition override, a specification override, or a
+witnessed type-definition contract. Its effect on a constant interpretation is
+the corresponding override; the type-definition case is the identity. A
+specification extension stores its gate and type equality; its witness is
+provided by the history-indexed derivation rule below. Histories are listed
+newest first and `interpretSequence` is defined by
+$I_([])=I$ and $I_(e :: "es")=I_e(I_("es"))$.
 
 A sequent is _unaffected_ by the list if it mentions none of the identifiers
 overridden by a definition or specification in the list. Every sequent is
@@ -1769,32 +1776,36 @@ $
 $
 
 *Proof.* Induct on the extension list. For the empty list the interpretations
-are equal. For a nonempty list, the one-step definition or specification
-agreement theorem gives validity equivalence before and after its first
-override. A type-definition step changes no interpretation and gives the same
-equivalence immediately. The sequent is unaffected by every remaining step,
-so the induction hypothesis applies to the rest. Compose the two equivalences.
+are equal. For a nonempty list, first apply the one-step agreement theorem to
+its head extension, using that the sequent is unaffected by that step. Then
+apply the induction hypothesis to the tail, which is also unaffected. The
+type-definition case is immediate because its interpretation is unchanged.
+Compose the equivalences.
 
 #lean-proof("Conservativity", ("Extension.valid_iff", "valid_interpretSequence_iff", "typed_global_semantic_conservativity"))
 
-*Corollary (Soundness under the final interpretation).* Every base-calculus
-derivation is valid under $I_n$.
+*Corollary (Core derivation under an extension interpretation).* Every
+base-calculus derivation is valid under $I_("es")$.
 
-*Proof.* The final override sequence is still a constant interpretation of the
+*Proof.* The history interpretation is still a constant interpretation of the
 same signature. Apply the soundness theorem, which holds for every such
 interpretation. No extension equation is a new premise of that derivation.
 
 #lean-proof("Conservativity", ("typed_derivation_sound_in_extension",))
 #lean-proof("Soundness", ("typed_extended_derivation_sound",))
 
-*Limits of the sequence theorem.* Local gates do not check global history
-freshness or preserve all earlier equations. For example, let two definitions
-assign the same identifier $c$ two distinct closed right-hand sides $r$ and $u$,
-neither containing $c$. Both local gates can hold, while the second override
-makes the first equation false whenever their values differ. Even distinct
-overridden identifiers can affect a previous right-hand side that depends on a
-later-overridden constant. The theorem protects the unaffected sequent, not all
-declaration products at once.
+*Limits of the finite semantic sequence theorem.* This theorem alone does not
+check global history freshness or preserve all earlier equations. The
+history-indexed derivation rules separately require each modeled constant ID
+to be fresh in the preceding extension history and lift old derivations only
+when the new step leaves their sequents unchanged. The fixed-signature model
+still cannot certify allocation against all implementation declarations. For
+example, let two semantic definitions assign the same identifier $c$ two
+distinct closed right-hand sides $r$ and $u$, neither containing $c$. Both
+local gates can hold, while the second override makes the first equation false
+whenever their values differ. Even distinct overridden identifiers can affect
+a previous right-hand side that depends on a later-overridden constant. The
+theorem protects the unaffected sequent, not all declaration products at once.
 
 Syntactic conservativity would assert that an extended-language derivation of
 an old-language sequent can be reconstructed in the base theory. That requires
@@ -1803,10 +1814,12 @@ The current theorem supplies neither that transformation nor a completeness
 argument from semantic validity to derivability.
 
 #keyblock("warning", [Exact Extension Claim], [
-  Finite old-language validity equivalence is proved. Preservation of every
-  previously admitted equation, globally fresh allocation, new type-constructor
-  syntax, and cross-theory derivation erasure are additional obligations.
-  The former approximation sketches are not referenced as their proofs.
+  History-indexed derivation soundness is proved for definition and witnessed
+  specification steps over the fixed type grammar, with explicit freshness and
+  old-language side conditions. This is not a growing-signature construction:
+  globally compatible allocation, user type constructors, and derivation
+  erasure remain open. The former approximation sketches are not referenced as
+  their proofs.
 ])
 
 == Kernel Extension Mapping and Open Gates
@@ -1818,12 +1831,17 @@ complete row-by-row mapping is recorded in
 - `add_assum_checked` maps to `Derivation.addAssum` and its direct preservation
   theorem `valid_add_assum` (issue #10).
 - `ks_define_const` and `ks_define_const_thm` map to `DefinitionGate` and
-  `valid_definition_equation`. This proves validity under one interpretation
-  override, not a derivation in a growing theory. The name-based dependency
-  check is an implementation boundary (issue #9).
+  the `definition` constructor of `ExtensionDerivation`. It admits the defining
+  equation at a fresh constant ID in the history, and
+  `extension_derivation_sound` proves it under the history interpretation. The
+  signature remains fixed; the name-based dependency check is an implementation
+  boundary (issue #9).
 - `ks_specify_const` maps to `SpecificationGate` and the witness-based
-  `Derivation.specify` rule. The Lean gate proves the semantic result but does
-  not certify the MoonBit witness representation (issue #8).
+  `specification` constructor of `ExtensionDerivation`. It requires the witness
+  body to be derived at the preceding history, then admits the fresh named
+  constant theorem. `Derivation.chooseWitness` remains a distinct Hilbert-choice
+  inference rule. The proof does not certify the MoonBit witness representation
+  (issue #8).
 - `ks_register_type_definition` maps to the carrier-level
   `TypeDefContract` Abs/Rep laws. The checked type grammar has no user type
   constructor, so registration does not yet extend Lean's object language.
@@ -1834,6 +1852,58 @@ complete row-by-row mapping is recorded in
 
 The kernel has no eta inference primitive. A future extension rule must be
 added to the typed judgment and receive its own semantic preservation case.
+
+== History-Indexed Extension Derivations
+
+A history $"es"$ is listed newest declaration first. Its interpretation is
+defined recursively by
+$I_([])=I$ and $I_(e :: "es")=I_e(I_("es"))$, where $I_e$ is the interpretation
+update for extension $e$. Thus every new declaration
+extends the interpretation of its preceding history. For constant extensions,
+`extensionHistoryIds(es)` records the declaration IDs already used.
+
+Write $"ExtDerivation"("es",H,p)$ for the history-indexed judgment. Every core derivation is
+available at every history; an old derivation can be lifted across a new
+extension only when that step does not alter any constant in its sequent:
+
+$$
+  frac(Derivation_S(H,p), "ExtDerivation"("es",H,p))
+  quad
+  frac("ExtDerivation"("es",H,p), e.oldLanguage(H,p), "ExtDerivation"(e :: "es",H,p)).
+$$
+
+A fresh definition adds its defining equation. A specification step must carry
+a derivation of its witness body at the preceding history, so the theorem's
+proof dependency is reflected in the index. Write $e_D$ for
+`Extension.definition D` and $e_G$ for `Extension.specification G`:
+
+$$
+  frac(D : DefinitionGate(S),
+    D.id notin extensionHistoryIds("es"),
+    "ExtDerivation"(e_D :: "es",[],c_D = rhs_D))
+  quad
+  frac("ExtDerivation"("es",[],body_G),
+    G : SpecificationExtension(S),
+    G.gate.id notin extensionHistoryIds("es"),
+    "ExtDerivation"(e_G :: "es",[],P_G(c_G))).
+$$
+
+The history interpretation soundness theorem is proved by induction on this
+judgment. The core case invokes `derivation_sound` in the final interpretation.
+The lifting case uses the two-way old-language validity theorem for the newly
+added step. Definition uses the locally proved equation in the interpretation
+of the preceding history. Specification first applies the induction
+hypothesis to its witness derivation, then uses the witness-based gate theorem
+to validate the constant theorem in the extended interpretation.
+
+#lean-def("Conservativity", ("Extension", "interpretSequence", "extensionHistoryIds"))
+#lean-def("ExtensionDerivation", ("ExtensionDerivation",))
+#lean-proof("ExtensionDerivation", ("extension_derivation_sound", "typed_extension_derivation_sound"))
+
+This judgment composes constant extension proofs through finite histories but
+still uses one fixed `Signature` and the existing four-constructor `Ty`. The
+type-definition extension remains carrier-level only; syntactic conservativity
+and erasure to a growing-signature core derivation are not claimed.
 
 == Type Preservation for Application Congruence
 

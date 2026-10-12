@@ -2955,7 +2955,6 @@ msgstr ""
 #: manual/conformance.md:30
 #: manual/conformance.md:31
 #: manual/conformance.md:32
-#: manual/conformance.md:33
 #: manual/conformance.md:34
 #: manual/conformance.md:35
 #: manual/conformance.md:36
@@ -2996,7 +2995,11 @@ msgid "Derivation soundness"
 msgstr ""
 
 #: manual/conformance.md:33
-msgid "Definition and specification contracts"
+msgid "History-indexed definition and specification derivations"
+msgstr ""
+
+#: manual/conformance.md:33
+msgid "proved for fresh constant IDs over a fixed signature"
 msgstr ""
 
 #: manual/conformance.md:34
@@ -3017,7 +3020,7 @@ msgid "Typed HOL core proof package"
 msgstr ""
 
 #: manual/conformance.md:39
-msgid "The public entry point is `QEDFV.HOL.typed_hol_core_proof_complete`. It covers the typed core and fixed-signature semantic extension results. It does not certify a growing-theory calculus. The default `QEDFV` target imports `QEDFV.HOL.Soundness` only."
+msgid "The public entry point is `QEDFV.HOL.typed_hol_core_proof_complete`. It covers the typed core and history-indexed constant extensions over a fixed signature. It does not certify growing-signature syntax or a MoonBit refinement. The default `QEDFV` target imports `QEDFV.HOL.Soundness` only."
 msgstr ""
 
 #: manual/conformance.md:44
@@ -3025,7 +3028,7 @@ msgid "Explicit limits"
 msgstr ""
 
 #: manual/conformance.md:46
-msgid "The Typed HOL theorem does not establish the infinity-axiom admission rule, derivations for definitions and type-constructor extensions in a growing theory, syntactic derivation erasure, or a MoonBit-to-Lean refinement. It also does not certify the parser, elaborator, tactics, theorem replay, mutable scope history, or provenance behavior. Those are implementation work and must not be presented as evidence for the Lean theorem."
+msgid "The Typed HOL theorem does not establish user type-constructor syntax and semantics, the infinity-axiom admission rule, syntactic derivation erasure, or a MoonBit-to-Lean refinement. It also does not certify the parser, elaborator, tactics, theorem replay, mutable scope history, or provenance behavior. Those are implementation work and must not be presented as evidence for the Lean theorem."
 msgstr ""
 
 #: manual/conformance.md:53
@@ -3281,30 +3284,34 @@ msgid "Intrinsic simple types and De Bruijn terms, with typed renaming, substitu
 msgstr ""
 
 #: manual/current_workspace_audit.md:17
-msgid "Semantic validity preservation for all ten typed derivation constructors."
-msgstr ""
-
-#: manual/current_workspace_audit.md:18
-msgid "Derivation soundness by induction, for every constant interpretation."
+msgid "Semantic validity preservation for all twelve typed core derivation constructors, including `ADD_ASSUM` and witness-based `SPECIFY`."
 msgstr ""
 
 #: manual/current_workspace_audit.md:19
-msgid "Semantic definition and specification contracts and witnessed predicate subtype carrier laws."
+msgid "Derivation soundness by induction, for every constant interpretation."
 msgstr ""
 
-#: manual/current_workspace_audit.md:21
-msgid "Old-language semantic validity equivalence over finite modeled extension sequences."
+#: manual/current_workspace_audit.md:20
+msgid "History-indexed definition and specification derivations. A specification witness is derived at the preceding history; soundness composes over fresh constant IDs in the fixed signature."
 msgstr ""
 
 #: manual/current_workspace_audit.md:23
-msgid "A concrete interpretation in which `succ(0) = 0` is false and therefore underivable."
+msgid "Semantic extension contracts and witnessed predicate subtype carrier laws."
+msgstr ""
+
+#: manual/current_workspace_audit.md:24
+msgid "Old-language semantic validity equivalence over finite modeled extension sequences."
 msgstr ""
 
 #: manual/current_workspace_audit.md:26
+msgid "A concrete interpretation in which `succ(0) = 0` is false and therefore underivable."
+msgstr ""
+
+#: manual/current_workspace_audit.md:29
 msgid "The public theorem is `QEDFV.HOL.typed_hol_core_proof_complete`. Audited `#print axioms` output is `propext`, `Classical.choice`, and `Quot.sound`. There are no project-defined axioms, `sorry`, or `admit` in the retained Lean tree."
 msgstr ""
 
-#: manual/current_workspace_audit.md:31
+#: manual/current_workspace_audit.md:34
 #: manual/design/cmd.md:70
 #: manual/design/elab.md:74
 #: manual/design/kernel.md:286
@@ -3316,47 +3323,47 @@ msgstr ""
 msgid "Boundaries"
 msgstr ""
 
-#: manual/current_workspace_audit.md:33
-msgid "The proof does not establish completeness, syntactic derivation erasure for extensions, a MoonBit-to-Lean refinement, or correctness of MoonBit parsing, elaboration, tactics, replay, mutable signature history, or theorem provenance. Tests and engineering audits remain separate evidence for those implementation properties."
+#: manual/current_workspace_audit.md:36
+msgid "The proof does not establish growing-signature derivations, user type-constructor syntax or semantics, object-language infinity admission, syntactic derivation erasure for extensions, a MoonBit-to-Lean refinement, or correctness of MoonBit parsing, elaboration, tactics, replay, mutable signature history, or theorem provenance. Tests and engineering audits remain separate evidence for those implementation properties."
 msgstr ""
 
-#: manual/current_workspace_audit.md:39
+#: manual/current_workspace_audit.md:43
 msgid "This status supersedes older audit claims about conditional proof packs or MoonBit conformance being part of the formal target."
 msgstr ""
 
-#: manual/current_workspace_audit.md:42
+#: manual/current_workspace_audit.md:46
 msgid "Open implementation soundness defect"
 msgstr ""
 
-#: manual/current_workspace_audit.md:44
+#: manual/current_workspace_audit.md:48
 msgid "[Issue #15](https://github.com/Luna-Flow/QED/issues/15) remains open. The reported public-API reproduction reuses a theorem across sibling `KernelState` histories whose independently allocated constant identifiers collide, deriving `|- T = F`. `Thm` does not track state lineage, and the current admissibility checks do not establish that the theorem belongs to the receiving declaration history."
 msgstr ""
 
-#: manual/current_workspace_audit.md:50
+#: manual/current_workspace_audit.md:54
 msgid "This is a material implementation soundness defect, not just a missing proof. The existing 357-test baseline did not cover this scenario. A green Lean build proves the Typed HOL calculus; it cannot establish correctness of this MoonBit behavior. Repair and implementation refinement are deferred at the user's request. Acceptance requires rejecting the first incompatible cross-state step, covering related registration paths, and preserving valid linear-history use."
 msgstr ""
 
-#: manual/current_workspace_audit.md:57
+#: manual/current_workspace_audit.md:61
 msgid "Remaining engineering follow-up"
 msgstr ""
 
-#: manual/current_workspace_audit.md:59
+#: manual/current_workspace_audit.md:63
 msgid "Maintain checked lowering and replay as structured proof blocks expand."
 msgstr ""
 
-#: manual/current_workspace_audit.md:60
+#: manual/current_workspace_audit.md:64
 msgid "Keep hole and unfinished-proof diagnostics aligned with the canonical corpus."
 msgstr ""
 
-#: manual/current_workspace_audit.md:61
+#: manual/current_workspace_audit.md:65
 msgid "Keep quantifier-facing frontend lowering and CLI diagnostics covered."
 msgstr ""
 
-#: manual/current_workspace_audit.md:62
+#: manual/current_workspace_audit.md:66
 msgid "Keep the research rewrite/simplify path outside theorem authority."
 msgstr ""
 
-#: manual/current_workspace_audit.md:64
+#: manual/current_workspace_audit.md:68
 msgid "These are implementation tasks, not additional assumptions of the Typed HOL proof. The current cleanup changes no MoonBit implementation."
 msgstr ""
 

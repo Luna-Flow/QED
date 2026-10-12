@@ -8,11 +8,17 @@ Generated with:
 
 Output:
 
+The commands audited are the declarations in `QEDFV/HOL/AxiomAudit.lean`,
+including the soundness of derivations indexed by a finite constant-extension
+history.
+
 'QEDFV.HOL.typed_hol_core_proof_complete' depends on axioms: [propext, Classical.choice, Quot.sound]
 'QEDFV.HOL.derivation_sound' depends on axioms: [propext, Classical.choice, Quot.sound]
 'QEDFV.HOL.valid_definition_equation' depends on axioms: [propext, Classical.choice, Quot.sound]
 'QEDFV.HOL.typed_signature_generic_consistency' depends on axioms: [propext, Classical.choice, Quot.sound]
 'QEDFV.HOL.typed_signature_generic_nonvalid_in_extension' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.extension_derivation_sound' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.typed_extension_derivation_sound' depends on axioms: [propext, Classical.choice, Quot.sound]
 
 These are Lean/Mathlib foundation axioms, not project declarations:
 
@@ -24,6 +30,7 @@ These are Lean/Mathlib foundation axioms, not project declarations:
 - `Quot.sound` is Lean's trusted quotient soundness principle. It enters
   foundational extensionality/equality transport used by the development.
 
-There is no project-defined axiom asserting primitive-rule soundness or any
-extension rule's correctness. This report does not certify MoonBit refinement,
-the evolving-signature operations, or the infinity-axiom admission gate.
+There is no project-defined axiom asserting primitive-rule soundness or
+constant-extension history soundness. This report does not certify a growing
+signature, MoonBit refinement, user type-constructor extensions, or the
+infinity-axiom admission gate.

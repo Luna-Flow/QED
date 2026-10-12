@@ -2965,7 +2965,6 @@ msgstr "类型与非空载体"
 #: manual/conformance.md:30
 #: manual/conformance.md:31
 #: manual/conformance.md:32
-#: manual/conformance.md:33
 #: manual/conformance.md:34
 #: manual/conformance.md:35
 #: manual/conformance.md:36
@@ -3006,8 +3005,13 @@ msgid "Derivation soundness"
 msgstr "推导可靠性"
 
 #: manual/conformance.md:33
-msgid "Definition and specification contracts"
-msgstr "定义与指定契约"
+#| msgid "One-step definition and specification derivations"
+msgid "History-indexed definition and specification derivations"
+msgstr "按历史索引的定义与指定推导"
+
+#: manual/conformance.md:33
+msgid "proved for fresh constant IDs over a fixed signature"
+msgstr "已证明适用于固定签名上的新鲜常量 ID"
 
 #: manual/conformance.md:34
 msgid "Type-definition carrier laws"
@@ -3027,16 +3031,18 @@ msgid "Typed HOL core proof package"
 msgstr "Typed HOL 核心证明包"
 
 #: manual/conformance.md:39
-msgid "The public entry point is `QEDFV.HOL.typed_hol_core_proof_complete`. It covers the typed core and fixed-signature semantic extension results. It does not certify a growing-theory calculus. The default `QEDFV` target imports `QEDFV.HOL.Soundness` only."
-msgstr "公开入口是 `QEDFV.HOL.typed_hol_core_proof_complete`。它覆盖类型化核心及固定签名的语义扩展结果，不认证增长理论演算。默认 `QEDFV` 目标仅导入 `QEDFV.HOL.Soundness`。"
+#| msgid "The public entry point is `QEDFV.HOL.typed_hol_core_proof_complete`. It covers the typed core and fixed-signature semantic extension results. It does not certify a growing-theory calculus. The default `QEDFV` target imports `QEDFV.HOL.Soundness` only."
+msgid "The public entry point is `QEDFV.HOL.typed_hol_core_proof_complete`. It covers the typed core and history-indexed constant extensions over a fixed signature. It does not certify growing-signature syntax or a MoonBit refinement. The default `QEDFV` target imports `QEDFV.HOL.Soundness` only."
+msgstr "公开入口是 `QEDFV.HOL.typed_hol_core_proof_complete`。它覆盖类型化核心，以及固定签名上的、按历史索引的常量扩展；不认证增长签名的语法或 MoonBit 精化。默认 `QEDFV` 目标仅导入 `QEDFV.HOL.Soundness`。"
 
 #: manual/conformance.md:44
 msgid "Explicit limits"
 msgstr "明确的限制"
 
 #: manual/conformance.md:46
-msgid "The Typed HOL theorem does not establish the infinity-axiom admission rule, derivations for definitions and type-constructor extensions in a growing theory, syntactic derivation erasure, or a MoonBit-to-Lean refinement. It also does not certify the parser, elaborator, tactics, theorem replay, mutable scope history, or provenance behavior. Those are implementation work and must not be presented as evidence for the Lean theorem."
-msgstr "Typed HOL 定理尚未建立无穷公理准入规则、增长理论中定义和类型构造器扩展的推导、语法推导擦除或 MoonBit 到 Lean 的精化。它也不认证解析器、精化器、策略、定理重放、可变作用域历史或来源追踪行为。这些属于实现工作，不得作为 Lean 定理的证据。"
+#| msgid "The Typed HOL theorem does not establish composition of extension derivations through a growing theory, user type-constructor syntax and semantics, the infinity-axiom admission rule, syntactic derivation erasure, or a MoonBit-to-Lean refinement. It also does not certify the parser, elaborator, tactics, theorem replay, mutable scope history, or provenance behavior. Those are implementation work and must not be presented as evidence for the Lean theorem."
+msgid "The Typed HOL theorem does not establish user type-constructor syntax and semantics, the infinity-axiom admission rule, syntactic derivation erasure, or a MoonBit-to-Lean refinement. It also does not certify the parser, elaborator, tactics, theorem replay, mutable scope history, or provenance behavior. Those are implementation work and must not be presented as evidence for the Lean theorem."
+msgstr "Typed HOL 定理尚未建立用户类型构造子的语法与语义、无穷公理准入规则、扩展的语法推导擦除或 MoonBit 到 Lean 的精化。它也不认证解析器、精化器、策略、定理重放、可变作用域历史或来源追踪行为。这些属于实现工作，不得作为 Lean 定理的证据。"
 
 #: manual/conformance.md:53
 msgid "Implementation evidence"
@@ -3291,30 +3297,36 @@ msgid "Intrinsic simple types and De Bruijn terms, with typed renaming, substitu
 msgstr "内在类型化的简单类型与 De Bruijn 项，以及类型化重命名、替换、beta 和类型实例化的求值规律。"
 
 #: manual/current_workspace_audit.md:17
-msgid "Semantic validity preservation for all ten typed derivation constructors."
-msgstr "全部十个类型化推导构造子保持语义有效性。"
+#| msgid "Semantic validity preservation for all ten typed derivation constructors."
+msgid "Semantic validity preservation for all twelve typed core derivation constructors, including `ADD_ASSUM` and witness-based `SPECIFY`."
+msgstr "全部十二个类型化核心推导构造子均保持语义有效性，包括 `ADD_ASSUM` 和基于见证的 `SPECIFY`。"
 
-#: manual/current_workspace_audit.md:18
+#: manual/current_workspace_audit.md:19
 msgid "Derivation soundness by induction, for every constant interpretation."
 msgstr "对任意常量解释，归纳证明推导可靠性。"
 
-#: manual/current_workspace_audit.md:19
-msgid "Semantic definition and specification contracts and witnessed predicate subtype carrier laws."
-msgstr "语义定义与指定契约，以及有见证的谓词子类型载体规律。"
+#: manual/current_workspace_audit.md:20
+msgid "History-indexed definition and specification derivations. A specification witness is derived at the preceding history; soundness composes over fresh constant IDs in the fixed signature."
+msgstr "按历史索引的定义与指定推导。指定步骤的见证须在前序历史中导出；对于固定签名中的新鲜常量 ID，可靠性可沿历史组合。"
 
-#: manual/current_workspace_audit.md:21
+#: manual/current_workspace_audit.md:23
+#| msgid "Semantic definition and specification contracts and witnessed predicate subtype carrier laws."
+msgid "Semantic extension contracts and witnessed predicate subtype carrier laws."
+msgstr "语义扩展契约，以及有见证的谓词子类型载体规律。"
+
+#: manual/current_workspace_audit.md:24
 msgid "Old-language semantic validity equivalence over finite modeled extension sequences."
 msgstr "有限建模扩展序列中旧语言语义有效性的等价性。"
 
-#: manual/current_workspace_audit.md:23
+#: manual/current_workspace_audit.md:26
 msgid "A concrete interpretation in which `succ(0) = 0` is false and therefore underivable."
 msgstr "具体解释使 `succ(0) = 0` 为假，因此该命题不可推导。"
 
-#: manual/current_workspace_audit.md:26
+#: manual/current_workspace_audit.md:29
 msgid "The public theorem is `QEDFV.HOL.typed_hol_core_proof_complete`. Audited `#print axioms` output is `propext`, `Classical.choice`, and `Quot.sound`. There are no project-defined axioms, `sorry`, or `admit` in the retained Lean tree."
 msgstr "公开定理是 `QEDFV.HOL.typed_hol_core_proof_complete`。经审计的 `#print axioms` 输出为 `propext`、`Classical.choice` 和 `Quot.sound`。保留的 Lean 树没有项目自定义公理、`sorry` 或 `admit`。"
 
-#: manual/current_workspace_audit.md:31
+#: manual/current_workspace_audit.md:34
 #: manual/design/cmd.md:70
 #: manual/design/elab.md:74
 #: manual/design/kernel.md:286
@@ -3326,47 +3338,48 @@ msgstr "公开定理是 `QEDFV.HOL.typed_hol_core_proof_complete`。经审计的
 msgid "Boundaries"
 msgstr "边界"
 
-#: manual/current_workspace_audit.md:33
-msgid "The proof does not establish completeness, syntactic derivation erasure for extensions, a MoonBit-to-Lean refinement, or correctness of MoonBit parsing, elaboration, tactics, replay, mutable signature history, or theorem provenance. Tests and engineering audits remain separate evidence for those implementation properties."
-msgstr "该证明没有建立完备性、扩展推导的语法擦除、MoonBit 到 Lean 的精化，也没有证明 MoonBit 解析、精化、策略、重放、可变签名历史或定理来源的正确性。测试和工程审计仍是这些实现性质的独立证据。"
+#: manual/current_workspace_audit.md:36
+#| msgid "The proof does not establish compositional derivations through a growing theory, user type-constructor syntax or semantics, object-language infinity admission, syntactic derivation erasure for extensions, a MoonBit-to-Lean refinement, or correctness of MoonBit parsing, elaboration, tactics, replay, mutable signature history, or theorem provenance. Tests and engineering audits remain separate evidence for those implementation properties."
+msgid "The proof does not establish growing-signature derivations, user type-constructor syntax or semantics, object-language infinity admission, syntactic derivation erasure for extensions, a MoonBit-to-Lean refinement, or correctness of MoonBit parsing, elaboration, tactics, replay, mutable signature history, or theorem provenance. Tests and engineering audits remain separate evidence for those implementation properties."
+msgstr "该证明没有建立增长签名上的推导、用户类型构造子的语法或语义、对象语言中的无穷公理准入、扩展推导的语法擦除、MoonBit 到 Lean 的精化，也没有证明 MoonBit 解析、精化、策略、重放、可变签名历史或定理来源的正确性。测试和工程审计仍是这些实现性质的独立证据。"
 
-#: manual/current_workspace_audit.md:39
+#: manual/current_workspace_audit.md:43
 msgid "This status supersedes older audit claims about conditional proof packs or MoonBit conformance being part of the formal target."
 msgstr "本状态取代旧审计中关于条件性证明包或将 MoonBit 符合性纳入形式化目标的声明。"
 
-#: manual/current_workspace_audit.md:42
+#: manual/current_workspace_audit.md:46
 msgid "Open implementation soundness defect"
 msgstr "尚未修复的实现可靠性缺陷"
 
-#: manual/current_workspace_audit.md:44
+#: manual/current_workspace_audit.md:48
 msgid "[Issue #15](https://github.com/Luna-Flow/QED/issues/15) remains open. The reported public-API reproduction reuses a theorem across sibling `KernelState` histories whose independently allocated constant identifiers collide, deriving `|- T = F`. `Thm` does not track state lineage, and the current admissibility checks do not establish that the theorem belongs to the receiving declaration history."
 msgstr "[问题 #15](https://github.com/Luna-Flow/QED/issues/15) 仍未关闭。已报告的公开 API 复现在兄弟 `KernelState` 历史间复用定理；各历史独立分配的常量标识符发生冲突，从而推出 `|- T = F`。`Thm` 不追踪状态谱系，当前准入检查也没有证明定理属于接收方的声明历史。"
 
-#: manual/current_workspace_audit.md:50
+#: manual/current_workspace_audit.md:54
 msgid "This is a material implementation soundness defect, not just a missing proof. The existing 357-test baseline did not cover this scenario. A green Lean build proves the Typed HOL calculus; it cannot establish correctness of this MoonBit behavior. Repair and implementation refinement are deferred at the user's request. Acceptance requires rejecting the first incompatible cross-state step, covering related registration paths, and preserving valid linear-history use."
 msgstr "这是重要的实现可靠性缺陷，不只是缺少证明。现有 357 项测试基线没有覆盖此情形。Lean 构建通过证明的是 Typed HOL 演算，不能建立该 MoonBit 行为的正确性。按照用户要求，修复与实现精化暂缓。验收要求拒绝第一个不兼容的跨状态步骤、覆盖相关注册路径，并保留合法的线性历史用法。"
 
-#: manual/current_workspace_audit.md:57
+#: manual/current_workspace_audit.md:61
 msgid "Remaining engineering follow-up"
 msgstr "剩余工程后续工作"
 
-#: manual/current_workspace_audit.md:59
+#: manual/current_workspace_audit.md:63
 msgid "Maintain checked lowering and replay as structured proof blocks expand."
 msgstr "扩展结构化证明块时维持经检查的 lowering 与重放。"
 
-#: manual/current_workspace_audit.md:60
+#: manual/current_workspace_audit.md:64
 msgid "Keep hole and unfinished-proof diagnostics aligned with the canonical corpus."
 msgstr "保持洞和未完成证明诊断与规范测试语料一致。"
 
-#: manual/current_workspace_audit.md:61
+#: manual/current_workspace_audit.md:65
 msgid "Keep quantifier-facing frontend lowering and CLI diagnostics covered."
 msgstr "保持面向量词的前端 lowering 和 CLI 诊断的测试覆盖。"
 
-#: manual/current_workspace_audit.md:62
+#: manual/current_workspace_audit.md:66
 msgid "Keep the research rewrite/simplify path outside theorem authority."
 msgstr "将研究性 rewrite/simplify 路径保持在定理权威边界之外。"
 
-#: manual/current_workspace_audit.md:64
+#: manual/current_workspace_audit.md:68
 msgid "These are implementation tasks, not additional assumptions of the Typed HOL proof. The current cleanup changes no MoonBit implementation."
 msgstr "这些是实现任务，不是 Typed HOL 证明的额外假设。本次清理没有修改 MoonBit 实现。"
 
@@ -9789,6 +9802,15 @@ msgstr "[tactics 设计](../design/tactics.md)解释了论证 (justification)，
 #: manual/tutorial/tactics.md:179
 msgid "The [prover tutorial](prover.md) runs the same proofs from scripts."
 msgstr "[prover 教程](prover.md)从脚本运行相同的证明。"
+
+#~ msgid "proved for fixed signatures"
+#~ msgstr "对固定签名已证明"
+
+#~ msgid "One-step definition and specification extension derivations, sound under their fixed-signature interpretation overrides."
+#~ msgstr "定义与指定的单步扩展推导；在固定签名的解释覆写下证明可靠。"
+
+#~ msgid "Definition and specification contracts"
+#~ msgstr "定义与指定契约"
 
 #~ msgid "Primitive rule validity"
 #~ msgstr "原始规则的有效性"
