@@ -9,19 +9,28 @@ discipline. This is the complete semantic conservativity layer for the typed cor
 structure SpecificationExtension (S : Signature) where
   gate : SpecificationGate S
   typeEq : S gate.id = gate.ty
-  witness : Derivation S { hyps := [], concl := gate.body }
 
 theorem SpecificationExtension.valid_gate
-    (E : SpecificationExtension S) (I : ConstVal S) :
+    (E : SpecificationExtension S) (I : ConstVal S)
+    (hWitness : Valid I { hyps := [], concl := E.gate.body }) :
     Valid (I.withSpecification E.gate E.typeEq)
       { hyps := [], concl := E.gate.predicate.substitute
           (Sub.single (E.gate.constant E.typeEq)) } :=
-  E.gate.valid_constant I E.typeEq (derivation_sound select_natural I E.witness)
+  E.gate.valid_constant I E.typeEq hWitness
 
 inductive Extension (S : Signature) where
   | definition (gate : DefinitionGate S)
   | specification (extension : SpecificationExtension S)
   | typeDefinition (contract : TypeDefContract)
+
+def Extension.constantIds (e : Extension S) : Finset Nat :=
+  match e with
+  | .definition D => {D.id}
+  | .specification E => {E.gate.id}
+  | .typeDefinition _ => ∅
+
+def extensionHistoryIds (es : List (Extension S)) : Finset Nat :=
+  es.foldr (fun e ids ↦ e.constantIds ∪ ids) ∅
 
 def Extension.oldLanguage (e : Extension S) (s : Sequent S Γ) : Prop :=
   match e with
@@ -50,7 +59,7 @@ theorem Extension.valid_iff
 noncomputable def interpretSequence (es : List (Extension S)) (I : ConstVal S) : ConstVal S :=
   match es with
   | [] => I
-  | e :: rest => interpretSequence rest (e.interpret I)
+  | e :: rest => e.interpret (interpretSequence rest I)
 
 def oldLanguageSequence (es : List (Extension S)) (s : Sequent S Γ) : Prop :=
   ∀ e, e ∈ es → e.oldLanguage s
@@ -67,9 +76,9 @@ theorem valid_interpretSequence_iff
       have hRest : oldLanguageSequence rest s := by
         intro e' he'
         exact hOld e' (by simp [he'])
-      change Valid (interpretSequence rest (e.interpret I)) s ↔ Valid I s
-      rw [ih (I := e.interpret I) hRest]
-      exact e.valid_iff I s hHead
+      change Valid (e.interpret (interpretSequence rest I)) s ↔ Valid I s
+      rw [e.valid_iff (interpretSequence rest I) s hHead]
+      exact ih (I := I) hRest
 
 theorem valid_interpretSequence_of_old_language
     (es : List (Extension S)) (I : ConstVal S) (s : Sequent S Γ)

@@ -14,10 +14,17 @@ library contains only the intrinsically typed development under
 
 - Intrinsic simple types and De Bruijn terms, with typed renaming, substitution,
   beta, and type-instantiation evaluation laws.
-- Semantic validity preservation for all ten typed derivation constructors.
+- Semantic validity preservation for all thirteen derivation constructors,
+  including `ADD_ASSUM`, witness-based `SPECIFY`, and infinity admission.
+- Object-language truth, falsity, conjunction, implication, universal and
+  existential quantification with proved evaluation characterizations.
+- The closed infinity sentence is valid in every model; its derivation
+  constructor has a direct soundness case.
 - Derivation soundness by induction, for every constant interpretation.
-- Semantic definition and specification contracts and witnessed predicate
-  subtype carrier laws.
+- History-indexed definition and specification derivations. A specification
+  witness is derived at the preceding history; soundness composes over fresh
+  constant IDs in the fixed signature.
+- Semantic extension contracts and witnessed predicate subtype carrier laws.
 - Old-language semantic validity equivalence over finite modeled extension
   sequences.
 - A concrete interpretation in which `succ(0) = 0` is false and therefore
@@ -30,8 +37,9 @@ tree.
 
 ## Boundaries
 
-The proof does not establish completeness, syntactic derivation erasure for
-extensions, a MoonBit-to-Lean refinement, or correctness of MoonBit parsing,
+The proof does not establish growing-signature derivations, user type-constructor
+syntax or semantics, the MoonBit infinity registration gate,
+syntactic derivation erasure for extensions, a MoonBit-to-Lean refinement, or correctness of MoonBit parsing,
 elaboration, tactics, replay, mutable signature history, or theorem provenance.
 Tests and engineering audits remain separate evidence for those implementation
 properties.

@@ -7,6 +7,12 @@ def Term.constIds : Term S Γ a → Finset Nat
   | .const c _ => {c}
   | .app f x => f.constIds ∪ x.constIds
   | .lam b => b.constIds
+  | .truth => ∅
+  | .falsity => ∅
+  | .conj p q => p.constIds ∪ q.constIds
+  | .imp p q => p.constIds ∪ q.constIds
+  | .all p => p.constIds
+  | .ex p => p.constIds
   | .eq => ∅
   | .choice => ∅
 
@@ -36,6 +42,52 @@ theorem Term.eval_agree (t : Term S Γ a) (I J : ConstVal S)
       apply ih
       intro c hc ρ' hρ'
       exact hAgree c (by simpa [Term.constIds] using hc) ρ' hρ'
+  | truth => rfl
+  | falsity => rfl
+  | conj p q ihp ihq =>
+      simp only [Term.eval]
+      rw [ihp η (by
+        intro c hc ρ' hρ'
+        exact hAgree c (by simp [Term.constIds, hc]) ρ' hρ'),
+        ihq η (by
+        intro c hc ρ' hρ'
+        exact hAgree c (by simp [Term.constIds, hc]) ρ' hρ')]
+  | imp p q ihp ihq =>
+      simp only [Term.eval]
+      rw [ihp η (by
+        intro c hc ρ' hρ'
+        exact hAgree c (by simp [Term.constIds, hc]) ρ' hρ'),
+        ihq η (by
+        intro c hc ρ' hρ'
+        exact hAgree c (by simp [Term.constIds, hc]) ρ' hρ')]
+  | all p ih =>
+      simp only [Term.eval]
+      apply propext
+      constructor
+      · intro h x
+        have hb := ih (Env.extend η x) (by
+          intro c hc ρ' hρ'
+          exact hAgree c (by simpa [Term.constIds] using hc) ρ' hρ')
+        exact hb.mp (h x)
+      · intro h x
+        have hb := ih (Env.extend η x) (by
+          intro c hc ρ' hρ'
+          exact hAgree c (by simpa [Term.constIds] using hc) ρ' hρ')
+        exact hb.mpr (h x)
+  | ex p ih =>
+      simp only [Term.eval]
+      apply propext
+      constructor
+      · rintro ⟨x, hx⟩
+        have hb := ih (Env.extend η x) (by
+          intro c hc ρ' hρ'
+          exact hAgree c (by simpa [Term.constIds] using hc) ρ' hρ')
+        exact ⟨x, hb.mp hx⟩
+      · rintro ⟨x, hx⟩
+        have hb := ih (Env.extend η x) (by
+          intro c hc ρ' hρ'
+          exact hAgree c (by simpa [Term.constIds] using hc) ρ' hρ')
+        exact ⟨x, hb.mpr hx⟩
   | eq => rfl
   | choice => rfl
 

@@ -1,4 +1,4 @@
-import QEDFV.HOL.Instantiation
+import QEDFV.HOL.Infinity
 
 namespace QEDFV.HOL
 
@@ -56,6 +56,8 @@ inductive Derivation (S : Signature) :
       Derivation S
         { hyps := [], concl := p.substitute
             (Sub.single (Term.choice.app (Term.lam p))) }
+  | indInfinity :
+      Derivation S { hyps := [], concl := indInfinitySentence S }
 
 theorem derivation_sound (hChoice : ChoiceNatural) (I : ConstVal S)
     {Γ : List Ty} {s : Sequent S Γ}
@@ -77,6 +79,7 @@ theorem derivation_sound (hChoice : ChoiceNatural) (I : ConstVal S)
   | instType θ d ih => exact valid_inst_type hChoice I θ _ ih
   | instTerm σ d ih => exact valid_inst_term I σ _ ih
   | chooseWitness p w d ih => exact valid_choose_from_witness I p w ih
+  | indInfinity => exact indInfinitySentence_valid S I
 
 theorem derivation_sound_all {Γ : List Ty} {s : Sequent S Γ}
     (d : Derivation S s) :

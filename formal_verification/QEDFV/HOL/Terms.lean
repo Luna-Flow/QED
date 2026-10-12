@@ -15,6 +15,12 @@ inductive Term (S : Signature) : List Ty → Ty → Type where
   | const (c : Nat) (σ : TypeSub) : Term S Γ ((S c).subst σ)
   | app : Term S Γ (.arr a b) → Term S Γ a → Term S Γ b
   | lam : Term S (a :: Γ) b → Term S Γ (.arr a b)
+  | truth : Term S Γ .bool
+  | falsity : Term S Γ .bool
+  | conj : Term S Γ .bool → Term S Γ .bool → Term S Γ .bool
+  | imp : Term S Γ .bool → Term S Γ .bool → Term S Γ .bool
+  | all : Term S (a :: Γ) .bool → Term S Γ .bool
+  | ex : Term S (a :: Γ) .bool → Term S Γ .bool
   | eq : Term S Γ (.arr a (.arr a .bool))
   | choice : Term S Γ (.arr (.arr a .bool) a)
 
@@ -23,6 +29,12 @@ def Term.typeVars : Term S Γ a → Set Nat
   | .const c σ => ((S c).subst σ).typeVars
   | .app f x => f.typeVars ∪ x.typeVars
   | .lam b => b.typeVars
+  | .truth => ∅
+  | .falsity => ∅
+  | .conj p q => p.typeVars ∪ q.typeVars
+  | .imp p q => p.typeVars ∪ q.typeVars
+  | @Term.all _ a Γ p => a.typeVars ∪ p.typeVars
+  | @Term.ex _ a Γ p => a.typeVars ∪ p.typeVars
   | .eq => a.typeVars
   | .choice => a.typeVars
 
@@ -38,6 +50,12 @@ def Term.rename (r : Ren Γ Δ) : Term S Γ a → Term S Δ a
   | .const c σ => .const c σ
   | .app f x => .app (f.rename r) (x.rename r)
   | .lam b => .lam (b.rename r.lift)
+  | .truth => .truth
+  | .falsity => .falsity
+  | .conj p q => .conj (p.rename r) (q.rename r)
+  | .imp p q => .imp (p.rename r) (q.rename r)
+  | .all p => .all (p.rename r.lift)
+  | .ex p => .ex (p.rename r.lift)
   | .eq => .eq
   | .choice => .choice
 
@@ -50,6 +68,12 @@ def Term.substitute (σ : Sub S Γ Δ) : Term S Γ a → Term S Δ a
   | .const c θ => .const c θ
   | .app f x => .app (f.substitute σ) (x.substitute σ)
   | .lam b => .lam (b.substitute σ.lift)
+  | .truth => .truth
+  | .falsity => .falsity
+  | .conj p q => .conj (p.substitute σ) (q.substitute σ)
+  | .imp p q => .imp (p.substitute σ) (q.substitute σ)
+  | .all p => .all (p.substitute σ.lift)
+  | .ex p => .ex (p.substitute σ.lift)
   | .eq => .eq
   | .choice => .choice
 
@@ -69,6 +93,12 @@ def Term.instType (θ : TypeSub) : Term S Γ a →
   | .const c σ => (Ty.subst_comp (S c) θ σ).symm ▸ .const c (θ.comp σ)
   | .app f x => .app (f.instType θ) (x.instType θ)
   | .lam b => .lam (b.instType θ)
+  | .truth => .truth
+  | .falsity => .falsity
+  | .conj p q => .conj (p.instType θ) (q.instType θ)
+  | .imp p q => .imp (p.instType θ) (q.instType θ)
+  | .all p => .all (p.instType θ)
+  | .ex p => .ex (p.instType θ)
   | .eq => .eq
   | .choice => .choice
 
@@ -93,6 +123,20 @@ theorem Term.typeVars_cast {h : a = b} (t : Term S Γ a) :
       exact TypeSub.imageTypeVars_union θ f.typeVars x.typeVars |>.symm
   | lam b ih =>
       simp only [Term.instType, Term.typeVars, ih]
+  | truth => simp [Term.instType, Term.typeVars, TypeSub.imageTypeVars]
+  | falsity => simp [Term.instType, Term.typeVars, TypeSub.imageTypeVars]
+  | conj p q ihp ihq =>
+      simp only [Term.instType, Term.typeVars, ihp, ihq]
+      exact TypeSub.imageTypeVars_union θ p.typeVars q.typeVars |>.symm
+  | imp p q ihp ihq =>
+      simp only [Term.instType, Term.typeVars, ihp, ihq]
+      exact TypeSub.imageTypeVars_union θ p.typeVars q.typeVars |>.symm
+  | @all a Γ p ih =>
+      simp only [Term.instType, Term.typeVars, Ty.typeVars_subst, ih]
+      rw [TypeSub.imageTypeVars_union]
+  | @ex a Γ p ih =>
+      simp only [Term.instType, Term.typeVars, Ty.typeVars_subst, ih]
+      rw [TypeSub.imageTypeVars_union]
   | eq =>
       simp [Term.instType, Term.typeVars, Ty.typeVars, TypeSub.imageTypeVars,
         Ty.typeVars_subst]
