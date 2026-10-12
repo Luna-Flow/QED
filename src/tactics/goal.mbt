@@ -10,7 +10,7 @@ pub fn mk_goal(hyps : Array[Term], concl : Term) -> Goal {
 }
 
 ///|
-pub fn goal_hyp_count(goal : Goal) -> Int {
+pub fn goal_hyp_count(goal : Goal) -> Int32 {
   goal.hyps.length()
 }
 

@@ -1,7 +1,7 @@
 ///|
 pub struct PropRule {
   name : String
-  premise_count : Int
+  premise_count : Int32
 }
 
 ///|
@@ -274,12 +274,12 @@ pub fn install_prop_prelude(
 }
 
 ///|
-pub fn prop_prelude_rule_count(prelude : PropPrelude) -> Int {
+pub fn prop_prelude_rule_count(prelude : PropPrelude) -> Int32 {
   prelude.rules.length()
 }
 
 ///|
-pub fn prop_prelude_rule_at(prelude : PropPrelude, idx : Int) -> PropRule? {
+pub fn prop_prelude_rule_at(prelude : PropPrelude, idx : Int32) -> PropRule? {
   if idx < 0 || idx >= prelude.rules.length() {
     None
   } else {

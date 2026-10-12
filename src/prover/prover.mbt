@@ -57,11 +57,11 @@ pub struct ProverFailure {
   theorem_name : String?
   kind : ProverDiagnosticKind
   detail : String
-  raw_offset : Int?
+  raw_offset : Int32?
   goal_src : String?
   goal_span : SourceSpan?
-  step_index : Int?
-  branch_path : Array[Int]
+  step_index : Int32?
+  branch_path : Array[Int32]
   step_span : SourceSpan?
   step_src : String?
   current_goal : Goal?
@@ -79,11 +79,11 @@ pub enum ProverScriptError {
 pub struct ProverUnfinished {
   theorem_name : String
   detail : String
-  raw_offset : Int?
+  raw_offset : Int32?
   goal_src : String?
   goal_span : SourceSpan?
-  step_index : Int?
-  branch_path : Array[Int]
+  step_index : Int32?
+  branch_path : Array[Int32]
   step_span : SourceSpan?
   step_src : String?
   current_goal : Goal
@@ -246,14 +246,14 @@ fn prover_failure(
   theorem_name : String?,
   goal_src : String?,
   goal_span : SourceSpan?,
-  step_index : Int?,
-  branch_path : Array[Int],
+  step_index : Int32?,
+  branch_path : Array[Int32],
   step_span : SourceSpan?,
   step_src : String?,
   current_goal : Goal?,
   local_hyps : Array[ProverLocalHyp],
   error : ProverError,
-  raw_offset : Int?,
+  raw_offset : Int32?,
 ) -> ProverRunResult {
   Failed(ProverFailure::{
     theorem_name,
@@ -284,15 +284,15 @@ pub fn prover_unfinished(
   theorem_name : String,
   goal_src : String?,
   goal_span : SourceSpan?,
-  step_index : Int?,
-  branch_path : Array[Int],
+  step_index : Int32?,
+  branch_path : Array[Int32],
   step_span : SourceSpan?,
   step_src : String?,
   current_goal : Goal,
   local_hyps : Array[ProverLocalHyp],
   hole_name : String?,
   detail : String,
-  raw_offset : Int?,
+  raw_offset : Int32?,
 ) -> ProverRunResult {
   Unfinished(ProverUnfinished::{
     theorem_name,
@@ -311,7 +311,7 @@ pub fn prover_unfinished(
 }
 
 ///|
-fn step_branch_arity(step : SynTacticStep) -> Int {
+fn step_branch_arity(step : SynTacticStep) -> Int32 {
   match step {
     Split => 2
     Left => 1
@@ -325,13 +325,13 @@ fn branch_step_failure(
   theorem_name : String,
   goal_src : String,
   goal_span : SourceSpan,
-  step_index : Int,
-  branch_path : Array[Int],
+  step_index : Int32,
+  branch_path : Array[Int32],
   script_step : SynScriptStep,
   current_goal : Goal?,
   local_hyps : Array[ProverLocalHyp],
   error : ProverError,
-  raw_offset : Int?,
+  raw_offset : Int32?,
 ) -> ProverRunResult {
   prover_failure(
     Some(theorem_name),
@@ -353,12 +353,12 @@ fn branch_goal_failure(
   theorem_name : String,
   goal_src : String,
   goal_span : SourceSpan,
-  step_index : Int,
-  branch_path : Array[Int],
+  step_index : Int32,
+  branch_path : Array[Int32],
   script_step : SynScriptStep,
   ps : ProofState,
   detail : String,
-  raw_offset : Int?,
+  raw_offset : Int32?,
 ) -> ProverRunResult {
   branch_step_failure(
     theorem_name,
@@ -384,10 +384,10 @@ fn structured_branch_step_result(
   _before_step : ProofState,
   after_step : ProofState,
   script_step : SynScriptStep,
-  step_idx : Int,
-  branch_path : Array[Int],
-  before_goal_count : Int,
-) -> (ProofState, Int, ProverRunResult?) {
+  step_idx : Int32,
+  branch_path : Array[Int32],
+  before_goal_count : Int32,
+) -> (ProofState, Int32, ProverRunResult?) {
   let branch_arity = step_branch_arity(script_step.step)
   if script_step.branches.length() != 0 &&
     script_step.branches.length() != branch_arity {
@@ -500,14 +500,14 @@ fn run_branch_body_isolated(
   goal_src : String,
   goal_span : SourceSpan,
   parent_ps : ProofState,
-  branch_index : Int,
+  branch_index : Int32,
   body : SynScriptBody,
-  step_idx : Int,
-  branch_path : Array[Int],
+  step_idx : Int32,
+  branch_path : Array[Int32],
   script_step : SynScriptStep,
-  span_offset : Int,
+  span_offset : Int32,
   incomplete_detail : String,
-) -> (ProofState, Int, Thm?, ProverRunResult?) {
+) -> (ProofState, Int32, Thm?, ProverRunResult?) {
   let child_ps0 = match ps_isolate_pending_at(parent_ps, branch_index) {
     Some(v) => v
     None =>
@@ -572,10 +572,10 @@ fn run_split_branch_bodies(
   goal_span : SourceSpan,
   ps : ProofState,
   script_step : SynScriptStep,
-  step_idx : Int,
-  _before_goal_count : Int,
-  branch_path : Array[Int],
-) -> (ProofState, Int, ProverRunResult?) {
+  step_idx : Int32,
+  _before_goal_count : Int32,
+  branch_path : Array[Int32],
+) -> (ProofState, Int32, ProverRunResult?) {
   let branch1_path = branch_path.copy()
   branch1_path.push(1)
   let (_, next_idx1, th1, err1) = run_branch_body_isolated(
@@ -727,10 +727,10 @@ fn run_disjunction_branch_body(
   goal_span : SourceSpan,
   ps : ProofState,
   script_step : SynScriptStep,
-  step_idx : Int,
-  _before_goal_count : Int,
-  branch_path : Array[Int],
-) -> (ProofState, Int, ProverRunResult?) {
+  step_idx : Int32,
+  _before_goal_count : Int32,
+  branch_path : Array[Int32],
+) -> (ProofState, Int32, ProverRunResult?) {
   let branch1_path = branch_path.copy()
   branch1_path.push(1)
   let (_, next_idx, th, err) = run_branch_body_isolated(
@@ -812,10 +812,10 @@ fn execute_script_body(
   goal_span : SourceSpan,
   ps : ProofState,
   body : SynScriptBody,
-  next_step_index : Int,
-  branch_path : Array[Int],
-  skip_prefix_steps : Int,
-) -> (ProofState, Int, ProverRunResult?) {
+  next_step_index : Int32,
+  branch_path : Array[Int32],
+  skip_prefix_steps : Int32,
+) -> (ProofState, Int32, ProverRunResult?) {
   let mut out = ps
   let mut step_idx = next_step_index
   let mut body_idx = 0

@@ -50,8 +50,8 @@ pub struct CmdFailure {
   path : String
   theorem_name : String?
   kind : CmdFailureKind
-  step_index : Int?
-  branch_path : Array[Int]
+  step_index : Int32?
+  branch_path : Array[Int32]
   current_goal_summary : String?
   local_hyps : Array[CmdLocalHypSummary]
   detail : String
@@ -61,8 +61,8 @@ pub struct CmdFailure {
 pub struct CmdUnfinished {
   path : String
   theorem_name : String
-  step_index : Int?
-  branch_path : Array[Int]
+  step_index : Int32?
+  branch_path : Array[Int32]
   current_goal_summary : String
   local_hyps : Array[CmdLocalHypSummary]
   hole_name : String?
@@ -112,8 +112,8 @@ fn cmd_failure(
   path : String,
   theorem_name : String?,
   kind : CmdFailureKind,
-  step_index : Int?,
-  branch_path : Array[Int],
+  step_index : Int32?,
+  branch_path : Array[Int32],
   current_goal_summary : String?,
   local_hyps : Array[CmdLocalHypSummary],
   detail : String,
@@ -134,8 +134,8 @@ fn cmd_failure(
 pub fn cmd_unfinished(
   path : String,
   theorem_name : String,
-  step_index : Int?,
-  branch_path : Array[Int],
+  step_index : Int32?,
+  branch_path : Array[Int32],
   current_goal_summary : String,
   local_hyps : Array[CmdLocalHypSummary],
   hole_name : String?,
@@ -233,7 +233,7 @@ fn cmd_failure_has_context(err : CmdFailure) -> Bool {
 }
 
 ///|
-fn render_branch_path(branch_path : Array[Int]) -> String {
+fn render_branch_path(branch_path : Array[Int32]) -> String {
   if branch_path.length() == 0 {
     "<root>"
   } else {
@@ -255,7 +255,7 @@ pub fn cmd_failure_kind_to_string(kind : CmdFailureKind) -> String {
 }
 
 ///|
-pub fn cmd_exit_code(result : CmdRunResult) -> Int {
+pub fn cmd_exit_code(result : CmdRunResult) -> Int32 {
   match result {
     FileReport(report) => {
       let mut has_warning = false

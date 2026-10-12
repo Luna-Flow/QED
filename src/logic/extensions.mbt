@@ -48,14 +48,14 @@ pub fn logic_typedef_contract(
 }
 
 ///|
-pub fn logic_extension_cert_count(state : KernelState) -> Int {
+pub fn logic_extension_cert_count(state : KernelState) -> Int32 {
   ks_extension_cert_count(state)
 }
 
 ///|
 pub fn logic_extension_cert_at(
   state : KernelState,
-  idx : Int,
+  idx : Int32,
 ) -> ExtensionCert? {
   ks_extension_cert_at(state, idx)
 }

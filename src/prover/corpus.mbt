@@ -342,8 +342,8 @@ pub struct UnfinishedCorpusCase {
   expected_goal : String
   script : String
   layout : ScriptLayout
-  expected_step_index : Int
-  expected_branch_path : Array[Int]
+  expected_step_index : Int32
+  expected_branch_path : Array[Int32]
   expected_hole_name : String?
   expected_detail : String
 }
@@ -403,8 +403,8 @@ pub struct QuantifierCorpusCase {
   outcome : QuantifierSurfaceOutcome
   capability_label : String
   manual_anchor : String
-  expected_step_index : Int?
-  expected_branch_path : Array[Int]
+  expected_step_index : Int32?
+  expected_branch_path : Array[Int32]
   expected_hole_name : String?
   expected_detail : String?
 }

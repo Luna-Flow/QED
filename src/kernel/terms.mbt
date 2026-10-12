@@ -2,7 +2,7 @@
 /// HOL term representation used by the trusted kernel.
 pub enum Term {
   Var(String, HolType)
-  Const(String, HolType, Int)
+  Const(String, HolType, Int32)
   Comb(Term, Term)
   Abs(Term, Term)
 }
@@ -10,9 +10,9 @@ pub enum Term {
 ///|
 /// Explicit De Bruijn representation used for alpha-invariant analyses.
 pub enum DbTerm {
-  DbBound(Int, HolType)
+  DbBound(Int32, HolType)
   DbFree(String, HolType)
-  DbConst(String, HolType, Int)
+  DbConst(String, HolType, Int32)
   DbComb(DbTerm, DbTerm)
   DbAbs(HolType, DbTerm)
 }
@@ -29,7 +29,7 @@ pub fn mk_const(name : String, ty : HolType) -> Term {
 }
 
 ///|
-pub fn mk_const_bound(name : String, ty : HolType, const_id : Int) -> Term {
+pub fn mk_const_bound(name : String, ty : HolType, const_id : Int32) -> Term {
   Const(name, ty, const_id)
 }
 
@@ -164,7 +164,7 @@ pub fn term_to_string(term : Term) -> String {
 ///|
 priv enum DbLookupResult {
   FreeVar
-  BoundIndex(Int)
+  BoundIndex(Int32)
   TypeMismatch
 }
 
@@ -244,7 +244,7 @@ fn collect_db_free_names(term : DbTerm, out : Array[String]) -> Unit {
 fn fresh_bound_name(
   forbidden : Array[String],
   used : Array[String],
-  seed : Int,
+  seed : Int32,
 ) -> String {
   let mut i = seed
   while true {
@@ -392,7 +392,7 @@ pub fn db_has_free(term : DbTerm, needle : DbTerm) -> Bool {
 }
 
 ///|
-fn int_add_checked(lhs : Int, rhs : Int) -> Int? {
+fn int_add_checked(lhs : Int32, rhs : Int32) -> Int32? {
   let int_max = 2147483647
   let int_min = -2147483648
   if rhs > 0 && lhs > int_max - rhs {
@@ -405,7 +405,7 @@ fn int_add_checked(lhs : Int, rhs : Int) -> Int? {
 }
 
 ///|
-fn db_shift_walk(delta : Int, cutoff : Int, term : DbTerm) -> DbTerm? {
+fn db_shift_walk(delta : Int32, cutoff : Int32, term : DbTerm) -> DbTerm? {
   match term {
     DbBound(i, ty) =>
       if i >= cutoff {
@@ -436,7 +436,12 @@ fn db_shift_walk(delta : Int, cutoff : Int, term : DbTerm) -> DbTerm? {
 }
 
 ///|
-fn db_subst_walk(j : Int, s : DbTerm, cutoff : Int, term : DbTerm) -> DbTerm? {
+fn db_subst_walk(
+  j : Int32,
+  s : DbTerm,
+  cutoff : Int32,
+  term : DbTerm,
+) -> DbTerm? {
   match term {
     DbBound(i, _) =>
       match int_add_checked(j, cutoff) {
@@ -533,7 +538,11 @@ pub fn db_subst_free_parallel(
   term : DbTerm,
   subst : Array[(DbTerm, DbTerm)],
 ) -> DbTerm? {
-  fn walk(depth : Int, t : DbTerm, subst : Array[(DbTerm, DbTerm)]) -> DbTerm? {
+  fn walk(
+    depth : Int32,
+    t : DbTerm,
+    subst : Array[(DbTerm, DbTerm)],
+  ) -> DbTerm? {
     match t {
       DbBound(_, _) => Some(t)
       DbFree(_, _) =>

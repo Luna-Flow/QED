@@ -15,7 +15,7 @@ fn[T, E] expect_ok_any_sig_test(res : Result[T, E]) -> T {
 }
 
 ///|
-fn expect_cert(state : KernelState, idx : Int) -> ExtensionCert {
+fn expect_cert(state : KernelState, idx : Int32) -> ExtensionCert {
   match ks_extension_cert_at(state, idx) {
     Some(c) => c
     None => panic()

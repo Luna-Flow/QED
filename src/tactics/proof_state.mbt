@@ -85,7 +85,7 @@ pub fn local_hyp_term(hyp : LocalHyp) -> Term {
 struct ProofGoalView {
   goal : Goal
   locals : Array[LocalHyp]
-  branch_path : Array[Int]
+  branch_path : Array[Int32]
 }
 
 ///|
@@ -99,14 +99,14 @@ pub fn proof_goal_view_locals(view : ProofGoalView) -> Array[LocalHyp] {
 }
 
 ///|
-pub fn proof_goal_view_branch_path(view : ProofGoalView) -> Array[Int] {
+pub fn proof_goal_view_branch_path(view : ProofGoalView) -> Array[Int32] {
   view.branch_path.copy()
 }
 
 ///|
 struct ProofStateSnapshot {
   root_goal : Goal
-  pending_goal_count : Int
+  pending_goal_count : Int32
   current : ProofGoalView?
 }
 
@@ -118,7 +118,7 @@ pub fn proof_state_snapshot_root_goal(snapshot : ProofStateSnapshot) -> Goal {
 ///|
 pub fn proof_state_snapshot_pending_goal_count(
   snapshot : ProofStateSnapshot,
-) -> Int {
+) -> Int32 {
   snapshot.pending_goal_count
 }
 
@@ -155,7 +155,7 @@ priv struct PendingGoal {
   hyps : Array[Term]
   concl : Term
   locals : Array[LocalHyp]
-  branch_path : Array[Int]
+  branch_path : Array[Int32]
   imp_prefix : Array[Term]
   refine_chain : Array[PendingRefine]
   split_role : SplitRole
@@ -198,7 +198,7 @@ fn copy_goal_shape(
 ) -> (
   Array[Term],
   Array[LocalHyp],
-  Array[Int],
+  Array[Int32],
   Array[Term],
   Array[PendingRefine],
 ) {
@@ -221,7 +221,7 @@ pub fn ps_init(goal : Goal) -> ProofState {
 }
 
 ///|
-pub fn ps_goal_count(ps : ProofState) -> Int {
+pub fn ps_goal_count(ps : ProofState) -> Int32 {
   ps.pending.length()
 }
 
@@ -248,7 +248,7 @@ pub fn ps_current_focus(ps : ProofState) -> ProofGoalView? {
 }
 
 ///|
-pub fn ps_current_branch_path(ps : ProofState) -> Array[Int] {
+pub fn ps_current_branch_path(ps : ProofState) -> Array[Int32] {
   match ps_current_focus(ps) {
     Some(goal) => proof_goal_view_branch_path(goal)
     None => []
@@ -256,7 +256,7 @@ pub fn ps_current_branch_path(ps : ProofState) -> Array[Int] {
 }
 
 ///|
-pub fn ps_pending_focus_at(ps : ProofState, idx : Int) -> ProofGoalView? {
+pub fn ps_pending_focus_at(ps : ProofState, idx : Int32) -> ProofGoalView? {
   if idx < 0 || idx >= ps.pending.length() {
     None
   } else {
@@ -290,7 +290,7 @@ pub fn ps_current_goal(ps : ProofState) -> Goal? {
 }
 
 ///|
-pub fn ps_pending_goal_at(ps : ProofState, idx : Int) -> Goal? {
+pub fn ps_pending_goal_at(ps : ProofState, idx : Int32) -> Goal? {
   match ps_pending_focus_at(ps, idx) {
     Some(goal) => Some(proof_goal_view_goal(goal))
     None => None
@@ -317,7 +317,7 @@ pub fn ps_enter_frame(goal : Goal) -> ProofState {
 }
 
 ///|
-pub fn ps_isolate_pending_at(ps : ProofState, idx : Int) -> ProofState? {
+pub fn ps_isolate_pending_at(ps : ProofState, idx : Int32) -> ProofState? {
   if idx < 0 || idx >= ps.pending.length() {
     None
   } else {
@@ -386,7 +386,10 @@ fn local_ref_bindings(locals : Array[LocalHyp]) -> Array[(String, Term)] {
 }
 
 ///|
-fn child_branch_path(branch_path : Array[Int], branch_idx : Int) -> Array[Int] {
+fn child_branch_path(
+  branch_path : Array[Int32],
+  branch_idx : Int32,
+) -> Array[Int32] {
   let out = branch_path.copy()
   out.push(branch_idx)
   out

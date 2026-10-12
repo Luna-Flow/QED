@@ -88,7 +88,7 @@ fn matrix_entry_count(
   entries : Array[MappingMatrixEntry],
   kind : MappingCaseKind,
   case_id : String,
-) -> Int {
+) -> Int32 {
   let mut out = 0
   for entry in entries {
     if mapping_kind_matches(entry.kind, kind) && entry.case_id == case_id {

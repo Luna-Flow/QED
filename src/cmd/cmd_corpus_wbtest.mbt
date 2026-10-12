@@ -41,7 +41,7 @@ fn quantifier_cases() -> Array[@prover.QuantifierCorpusCase] {
 }
 
 ///|
-fn render_branch_path_test(branch_path : Array[Int]) -> String {
+fn render_branch_path_test(branch_path : Array[Int32]) -> String {
   if branch_path.length() == 0 {
     "<root>"
   } else {
@@ -101,7 +101,7 @@ fn expect_single_report_warning(result : CmdRunResult) -> CmdUnfinished {
 }
 
 ///|
-fn expected_quantifier_local_count(_case_id : String) -> Int {
+fn expected_quantifier_local_count(_case_id : String) -> Int32 {
   1
 }
 

@@ -23,8 +23,8 @@ pub struct SynBinder {
 
 ///|
 pub struct SourceSpan {
-  start_offset : Int
-  end_offset : Int
+  start_offset : Int32
+  end_offset : Int32
 }
 
 ///|
@@ -35,8 +35,8 @@ pub struct ParseEnv {
 ///|
 pub struct NormalizedInput {
   text : String
-  raw_offsets : Array[Int]
-  raw_length : Int
+  raw_offsets : Array[Int32]
+  raw_length : Int32
 }
 
 ///|
@@ -54,8 +54,8 @@ pub enum SynTacticStep {
 ///|
 pub struct SynScriptStep {
   step : SynTacticStep
-  step_index : Int
-  branch_path : Array[Int]
+  step_index : Int32
+  branch_path : Array[Int32]
   span : SourceSpan
   src : String
   branches : Array[SynScriptBranch]
@@ -63,7 +63,7 @@ pub struct SynScriptStep {
 
 ///|
 pub struct SynScriptBranch {
-  branch_path : Array[Int]
+  branch_path : Array[Int32]
   body : SynScriptBody
   span : SourceSpan
   src : String
@@ -98,7 +98,7 @@ pub enum ParseErrorCode {
 ///|
 pub struct ParseError {
   code : ParseErrorCode
-  offset : Int
+  offset : Int32
   detail : String
 }
 
@@ -157,7 +157,7 @@ priv enum TokKind {
 ///|
 priv struct Token {
   kind : TokKind
-  offset : Int
+  offset : Int32
 }
 
 ///|
@@ -170,7 +170,7 @@ priv enum Assoc {
 ///|
 fn mk_parse_error(
   code : ParseErrorCode,
-  offset : Int,
+  offset : Int32,
   detail : String,
 ) -> ParseError {
   ParseError::{ code, offset, detail, }
@@ -182,7 +182,7 @@ pub fn empty_parse_env() -> ParseEnv {
 }
 
 ///|
-pub fn parse_env_local_count(env : ParseEnv) -> Int {
+pub fn parse_env_local_count(env : ParseEnv) -> Int32 {
   env.locals.length()
 }
 
@@ -198,7 +198,7 @@ pub fn parse_env_push_local(
 }
 
 ///|
-pub fn parse_env_local_at(env : ParseEnv, idx : Int) -> (String, HolType)? {
+pub fn parse_env_local_at(env : ParseEnv, idx : Int32) -> (String, HolType)? {
   if idx < 0 || idx >= env.locals.length() {
     None
   } else {
@@ -222,8 +222,8 @@ fn parse_env_lookup(env : ParseEnv, name : String) -> HolType? {
 ///|
 pub fn normalized_input_raw_offset_at(
   input : NormalizedInput,
-  idx : Int,
-) -> Int {
+  idx : Int32,
+) -> Int32 {
   if idx < 0 {
     0
   } else if idx >= input.raw_offsets.length() {
@@ -236,16 +236,16 @@ pub fn normalized_input_raw_offset_at(
 ///|
 fn push_normalized_char(
   chars : Array[Char],
-  raw_offsets : Array[Int],
+  raw_offsets : Array[Int32],
   c : Char,
-  raw_off : Int,
+  raw_off : Int32,
 ) -> Unit {
   chars.push(c)
   raw_offsets.push(raw_off)
 }
 
 ///|
-pub fn source_span(start_offset : Int, end_offset : Int) -> SourceSpan {
+pub fn source_span(start_offset : Int32, end_offset : Int32) -> SourceSpan {
   let start = if start_offset < 0 { 0 } else { start_offset }
   let end = if end_offset < start { start } else { end_offset }
   SourceSpan::{ start_offset: start, end_offset: end, }
@@ -254,8 +254,8 @@ pub fn source_span(start_offset : Int, end_offset : Int) -> SourceSpan {
 ///|
 fn raw_source_slice(
   src : String,
-  start_offset : Int,
-  end_offset : Int,
+  start_offset : Int32,
+  end_offset : Int32,
 ) -> String {
   let start = if start_offset < 0 { 0 } else { start_offset }
   let end = if end_offset < start { start } else { end_offset }
@@ -285,7 +285,7 @@ fn normalize_theorem_script_input(
   src : String,
 ) -> Result[NormalizedInput, ParseError] {
   let out_chars : Array[Char] = []
-  let raw_offsets : Array[Int] = []
+  let raw_offsets : Array[Int32] = []
   let mut view = src.view()
   let mut off = 0
   let mut pending_space = false
@@ -399,7 +399,7 @@ pub fn normalize_parser_input(
   src : String,
 ) -> Result[NormalizedInput, ParseError] {
   let out_chars : Array[Char] = []
-  let raw_offsets : Array[Int] = []
+  let raw_offsets : Array[Int32] = []
   let mut view = src.view()
   let mut off = 0
   let mut pending_space = false
@@ -523,7 +523,7 @@ fn token_label(kind : TokKind) -> String {
 }
 
 ///|
-fn token_normalized_width(kind : TokKind) -> Int {
+fn token_normalized_width(kind : TokKind) -> Int32 {
   match kind {
     TkName(name) => name.length()
     TkLParen => 1
@@ -547,15 +547,15 @@ fn token_normalized_width(kind : TokKind) -> Int {
 }
 
 ///|
-fn token_normalized_end(tok : Token) -> Int {
+fn token_normalized_end(tok : Token) -> Int32 {
   tok.offset + token_normalized_width(tok.kind)
 }
 
 ///|
 fn map_source_span(
   input : NormalizedInput,
-  start_offset : Int,
-  end_offset : Int,
+  start_offset : Int32,
+  end_offset : Int32,
 ) -> SourceSpan {
   source_span(
     normalized_input_raw_offset_at(input, start_offset),
@@ -593,7 +593,7 @@ fn is_operator_like(c : Char) -> Bool {
 }
 
 ///|
-fn read_name(view : StringView) -> (String, StringView, Int) {
+fn read_name(view : StringView) -> (String, StringView, Int32) {
   let chars : Array[Char] = []
   let mut rest = view
   let mut n = 0
@@ -791,7 +791,7 @@ fn lex_tokens(src : String) -> Result[Array[Token], ParseError] {
 }
 
 ///|
-fn token_at(tokens : Array[Token], idx : Int) -> Token {
+fn token_at(tokens : Array[Token], idx : Int32) -> Token {
   if idx < 0 || idx >= tokens.length() {
     Token::{ kind: TkEnd, offset: tokens.length(), }
   } else {
@@ -832,8 +832,8 @@ fn type_name_to_hol(name : String) -> HolType {
 ///|
 fn parse_type_atom(
   tokens : Array[Token],
-  idx : Int,
-) -> Result[(HolType, Int), ParseError] {
+  idx : Int32,
+) -> Result[(HolType, Int32), ParseError] {
   let tok = token_at(tokens, idx)
   match tok.kind {
     TkName(name) => Ok((type_name_to_hol(name), idx + 1))
@@ -877,8 +877,8 @@ fn parse_type_atom(
 ///|
 fn parse_type(
   tokens : Array[Token],
-  idx : Int,
-) -> Result[(HolType, Int), ParseError] {
+  idx : Int32,
+) -> Result[(HolType, Int32), ParseError] {
   match parse_type_atom(tokens, idx) {
     Ok((lhs, j)) =>
       match token_at(tokens, j).kind {
@@ -915,7 +915,7 @@ fn parse_type_tokens(tokens : Array[Token]) -> Result[HolType, ParseError] {
 }
 
 ///|
-fn op_fixity(op : String) -> (Int, Assoc)? {
+fn op_fixity(op : String) -> (Int32, Assoc)? {
   if op == "=" {
     Some((40, NonAssoc))
   } else if op == "->" {
@@ -932,7 +932,7 @@ fn op_fixity(op : String) -> (Int, Assoc)? {
 ///|
 fn resolve_once(
   terms : Array[SynTerm],
-  ops : Array[(String, Int)],
+  ops : Array[(String, Int32)],
 ) -> Result[Unit, ParseError] {
   let op = match ops.pop() {
     Some(v) => v
@@ -968,7 +968,7 @@ fn resolve_once(
 fn should_reduce(
   top_op : String,
   new_op : String,
-  new_off : Int,
+  new_off : Int32,
 ) -> Result[Bool, ParseError] {
   let (top_prec, top_assoc) = match op_fixity(top_op) {
     Some(v) => v
@@ -1012,13 +1012,13 @@ fn should_reduce(
 ///|
 fn resolve_infix_chain(
   lhs : SynTerm,
-  chain : Array[(String, SynTerm, Int)],
+  chain : Array[(String, SynTerm, Int32)],
 ) -> Result[SynTerm, ParseError] {
   if chain.length() == 0 {
     return Ok(lhs)
   }
   let terms : Array[SynTerm] = [lhs]
-  let ops : Array[(String, Int)] = []
+  let ops : Array[(String, Int32)] = []
   for item in chain {
     let (op_name, rhs, off) = item
     while ops.length() > 0 {
@@ -1058,9 +1058,9 @@ fn resolve_infix_chain(
 ///|
 fn parse_atom(
   tokens : Array[Token],
-  idx : Int,
+  idx : Int32,
   allow_forall : Bool,
-) -> Result[(SynTerm, Int), ParseError] {
+) -> Result[(SynTerm, Int32), ParseError] {
   let tok = token_at(tokens, idx)
   match tok.kind {
     TkName(name) => Ok((Name(name), idx + 1))
@@ -1110,9 +1110,9 @@ fn parse_atom(
 ///|
 fn parse_app(
   tokens : Array[Token],
-  idx : Int,
+  idx : Int32,
   allow_forall : Bool,
-) -> Result[(SynTerm, Int), ParseError] {
+) -> Result[(SynTerm, Int32), ParseError] {
   match parse_atom(tokens, idx, allow_forall) {
     Ok((head, j0)) => {
       let mut out = head
@@ -1135,8 +1135,8 @@ fn parse_app(
 ///|
 fn parse_forall_binder(
   tokens : Array[Token],
-  idx : Int,
-) -> Result[(String, HolType, Int), ParseError] {
+  idx : Int32,
+) -> Result[(String, HolType, Int32), ParseError] {
   let binder_start = idx + 1
   match token_at(tokens, binder_start).kind {
     TkLParen => ()
@@ -1174,7 +1174,7 @@ fn parse_forall_binder(
       )
   }
   let mut depth = 0
-  let mut close_idx : Int? = None
+  let mut close_idx : Int32? = None
   let mut i = colon_idx + 1
   while i < tokens.length() {
     match token_at(tokens, i).kind {
@@ -1232,9 +1232,9 @@ fn parse_forall_binder(
 ///|
 fn parse_prefix_with_forall(
   tokens : Array[Token],
-  idx : Int,
+  idx : Int32,
   allow_forall : Bool,
-) -> Result[(SynTerm, Int), ParseError] {
+) -> Result[(SynTerm, Int32), ParseError] {
   let tok = token_at(tokens, idx)
   match tok.kind {
     TkForall | TkName("forall") if allow_forall => {
@@ -1267,12 +1267,12 @@ fn parse_prefix_with_forall(
 ///|
 fn parse_infix_with_forall(
   tokens : Array[Token],
-  idx : Int,
+  idx : Int32,
   allow_forall : Bool,
-) -> Result[(SynTerm, Int), ParseError] {
+) -> Result[(SynTerm, Int32), ParseError] {
   match parse_prefix_with_forall(tokens, idx, allow_forall) {
     Ok((lhs0, j0)) => {
-      let chain : Array[(String, SynTerm, Int)] = []
+      let chain : Array[(String, SynTerm, Int32)] = []
       let mut j = j0
       while true {
         let tok = token_at(tokens, j)
@@ -1368,7 +1368,7 @@ fn parse_goal_tokens(tokens : Array[Token]) -> Result[SynGoal, ParseError] {
   let n = tokens.length()
   let end_idx = n - 1
   let mut depth = 0
-  let mut split_idx : Int? = None
+  let mut split_idx : Int32? = None
   let mut i = 0
   while i < end_idx {
     let tok = tokens[i]
@@ -1486,8 +1486,8 @@ fn parse_goal_tokens(tokens : Array[Token]) -> Result[SynGoal, ParseError] {
 ///|
 fn slice_tokens_with_end(
   tokens : Array[Token],
-  start : Int,
-  end : Int,
+  start : Int32,
+  end : Int32,
 ) -> Array[Token] {
   let out : Array[Token] = []
   let mut i = start
@@ -1503,8 +1503,8 @@ fn slice_tokens_with_end(
 ///|
 fn slice_tokens_without_newlines_with_end(
   tokens : Array[Token],
-  start : Int,
-  end : Int,
+  start : Int32,
+  end : Int32,
 ) -> Array[Token] {
   let out : Array[Token] = []
   let mut i = start
@@ -1565,7 +1565,7 @@ pub fn parse_goal_raw(src : String) -> Result[SynGoal, ParseError] {
 }
 
 ///|
-fn tokens_to_src(tokens : Array[Token], start : Int, end : Int) -> String {
+fn tokens_to_src(tokens : Array[Token], start : Int32, end : Int32) -> String {
   let out : Array[String] = []
   let mut i = start
   while i < end {
@@ -1585,7 +1585,10 @@ fn tokens_to_src(tokens : Array[Token], start : Int, end : Int) -> String {
 }
 
 ///|
-fn child_branch_path(branch_path : Array[Int], branch_idx : Int) -> Array[Int] {
+fn child_branch_path(
+  branch_path : Array[Int32],
+  branch_idx : Int32,
+) -> Array[Int32] {
   let out = branch_path.copy()
   out.push(branch_idx)
   out
@@ -1641,7 +1644,7 @@ fn parse_script_step_tokens(
 }
 
 ///|
-fn next_non_newline_token_index(tokens : Array[Token], idx : Int) -> Int {
+fn next_non_newline_token_index(tokens : Array[Token], idx : Int32) -> Int32 {
   let mut j = idx
   while true {
     match token_at(tokens, j).kind {
@@ -1655,8 +1658,8 @@ fn next_non_newline_token_index(tokens : Array[Token], idx : Int) -> Int {
 ///|
 fn body_remainder_is_only_newlines(
   tokens : Array[Token],
-  start : Int,
-  end : Int,
+  start : Int32,
+  end : Int32,
 ) -> Bool {
   let mut i = start
   while i < end {
@@ -1671,9 +1674,9 @@ fn body_remainder_is_only_newlines(
 ///|
 fn last_non_newline_token_index(
   tokens : Array[Token],
-  start : Int,
-  end : Int,
-) -> Int? {
+  start : Int32,
+  end : Int32,
+) -> Int32? {
   let mut i = end
   while i > start {
     i = i - 1
@@ -1686,7 +1689,7 @@ fn last_non_newline_token_index(
 }
 
 ///|
-fn token_is_line_start(tokens : Array[Token], idx : Int) -> Bool {
+fn token_is_line_start(tokens : Array[Token], idx : Int32) -> Bool {
   if idx <= 0 {
     true
   } else {
@@ -1697,8 +1700,8 @@ fn token_is_line_start(tokens : Array[Token], idx : Int) -> Bool {
 ///|
 fn token_line_remainder_is_empty(
   tokens : Array[Token],
-  start : Int,
-  end : Int,
+  start : Int32,
+  end : Int32,
 ) -> Bool {
   let i = start + 1
   if i >= end {
@@ -1712,7 +1715,11 @@ fn token_line_remainder_is_empty(
 }
 
 ///|
-fn token_is_qed_terminator(tokens : Array[Token], idx : Int, end : Int) -> Bool {
+fn token_is_qed_terminator(
+  tokens : Array[Token],
+  idx : Int32,
+  end : Int32,
+) -> Bool {
   match token_at(tokens, idx).kind {
     TkName("qed") =>
       token_is_line_start(tokens, idx) &&
@@ -1726,10 +1733,10 @@ fn parse_script_step_segment(
   input : NormalizedInput,
   raw_src : String,
   tokens : Array[Token],
-  start : Int,
-  end : Int,
-  step_index : Int,
-  branch_path : Array[Int],
+  start : Int32,
+  end : Int32,
+  step_index : Int32,
+  branch_path : Array[Int32],
 ) -> Result[SynScriptStep, ParseError] {
   let seg : Array[Token] = []
   let mut i = start
@@ -1757,7 +1764,7 @@ fn parse_script_step_segment(
 }
 
 ///|
-fn expected_branch_count(step : SynTacticStep) -> Int {
+fn expected_branch_count(step : SynTacticStep) -> Int32 {
   match step {
     Split => 2
     Left => 1
@@ -1769,9 +1776,9 @@ fn expected_branch_count(step : SynTacticStep) -> Int {
 ///|
 fn find_matching_brace(
   tokens : Array[Token],
-  start : Int,
-  end : Int,
-) -> Result[Int, ParseError] {
+  start : Int32,
+  end : Int32,
+) -> Result[Int32, ParseError] {
   let open = token_at(tokens, start)
   match open.kind {
     TkLBrace => ()
@@ -1808,11 +1815,11 @@ fn parse_script_body_range_with_path(
   input : NormalizedInput,
   raw_src : String,
   tokens : Array[Token],
-  start : Int,
-  end : Int,
-  branch_path : Array[Int],
-  next_step_index : Int,
-) -> Result[(SynScriptBody, Int), ParseError] {
+  start : Int32,
+  end : Int32,
+  branch_path : Array[Int32],
+  next_step_index : Int32,
+) -> Result[(SynScriptBody, Int32), ParseError] {
   let steps : Array[SynScriptStep] = []
   let mut seg_start = start
   let mut step_index = next_step_index
@@ -2051,8 +2058,8 @@ fn parse_script_body_range(
   input : NormalizedInput,
   raw_src : String,
   tokens : Array[Token],
-  start : Int,
-  end : Int,
+  start : Int32,
+  end : Int32,
 ) -> Result[SynScriptBody, ParseError] {
   match
     parse_script_body_range_with_path(input, raw_src, tokens, start, end, [], 0) {
@@ -2066,9 +2073,9 @@ fn parse_theorem_binder_segment(
   input : NormalizedInput,
   raw_src : String,
   tokens : Array[Token],
-  start : Int,
-  end : Int,
-) -> Result[(SynBinder, Int), ParseError] {
+  start : Int32,
+  end : Int32,
+) -> Result[(SynBinder, Int32), ParseError] {
   match token_at(tokens, start).kind {
     TkLParen => ()
     _ =>
@@ -2115,7 +2122,7 @@ fn parse_theorem_binder_segment(
     )
   }
   let mut depth = 0
-  let mut close_idx : Int? = None
+  let mut close_idx : Int32? = None
   let mut i = type_start
   while i < end {
     match tokens[i].kind {
@@ -2203,8 +2210,8 @@ fn parse_theorem_script_range(
   input : NormalizedInput,
   src : String,
   tokens : Array[Token],
-  start_idx : Int,
-  end_idx : Int,
+  start_idx : Int32,
+  end_idx : Int32,
 ) -> Result[SynTheoremScript, ParseError] {
   if end_idx - start_idx < 5 {
     return Err(
@@ -2244,7 +2251,7 @@ fn parse_theorem_script_range(
       )
   }
   let binders : Array[SynBinder] = []
-  let mut colon_idx : Int? = None
+  let mut colon_idx : Int32? = None
   let mut header_idx = next_non_newline_token_index(tokens, name_idx + 1)
   while header_idx < end_idx {
     match token_at(tokens, header_idx).kind {
@@ -2285,7 +2292,7 @@ fn parse_theorem_script_range(
 
   let goal_start = next_non_newline_token_index(tokens, colon_idx + 1)
   let mut depth = 0
-  let mut assign_idx : Int? = None
+  let mut assign_idx : Int32? = None
   let mut i = goal_start
   while i < end_idx {
     let tk = tokens[i]
