@@ -1,2600 +1,578 @@
-#set page(paper: "a4", margin: (x: 2.4cm, y: 2.2cm))
-#set par(justify: true, leading: 0.62em)
+#set page(paper: "a4", margin: (x: 2.3cm, y: 2.0cm))
 #set text(size: 10.5pt)
-#import "@preview/fletcher:0.5.8" as fletcher: diagram, edge, node
-
-#let info-color = rgb("#1d4ed8")
-#let warning-color = rgb("#ca8a04")
-#let critical-color = rgb("#b91c1c")
-
-#let level-color(level) = {
-  if level == "info" {
-    info-color
-  } else if level == "warning" {
-    warning-color
-  } else {
-    critical-color
-  }
-}
-
-#let keyblock(level, title, body) = {
-  let color = level-color(level)
-  rect(
-    inset: 10pt,
-    radius: 5pt,
-    stroke: 0.5pt + color,
-    fill: color.lighten(86%),
-    [
-      #text(fill: color)[#title]
-      #v(0.35em)
-      #body
-    ],
-  )
-}
+#set par(leading: 0.65em)
+#set heading(numbering: "1.")
 
 #align(center)[
-  #text(size: 16pt, weight: "bold")[A Formal Mathematical Specification for QED]
+  #text(size: 19pt, weight: "bold")[QED Typed HOL Core]
   #linebreak()
-  #text(size: 11pt)[A Minimal LCF-Style HOL Kernel in MoonBit]
+  #text(size: 12pt)[A Mathematical Specification and Proof Guide]
+  #linebreak()
+  #text(size: 9pt, fill: gray)[Version 1.0 · 2026-10-12]
 ]
 
-#v(1.2em)
+#v(1em)
 
 = Abstract
 
-QED is an interactive theorem prover in MoonBit, designed around an LCF-style trusted kernel and a higher-order logic foundation. This document gives a formal mathematical specification of its core theory. The presentation starts from first principles: signatures, type formation, term formation, typing judgments, substitution laws, theorem objects, and primitive inference rules. The objective is to make the trust model and proof discipline explicit enough that the logic stands independently of any one implementation.
-
-#v(0.8em)
-#keyblock("info", [Reading Guide], [
-  The document is split into two parts. Part I is the normative logic core (definitions, rules, metatheorems). Part II is the engineering realization and conformance obligations. A reader focused on logic soundness may read Part I alone.
-])
-
-#set heading(numbering: "1.")
-
-= Part I: Logic Core (Normative)
-
-#keyblock("warning", [Proof Status], [
-  Part I states the intended HOL/STT contract. The Typed HOL mainline in `formal_verification/QEDFV/HOL` constructs the standard carriers and proves typed rule preservation, model-independent derivation soundness, natural choice coherence, typed definition and specification contracts, finite extension conservativity, and non-triviality. `HOL/Soundness.lean` is the public entry point, and `typed_hol_proof_complete` packages the complete mathematical result. The default `QEDFV` target imports this mainline only. The legacy `Lean.Expr`/MoonBit refinement, distinct-state syntactic conservativity simulations, and the #15 provenance fix remain implementation obligations. Sections marked *Implementation refinement* identify work outside the Typed HOL proof.
-])
-
-*Normative Scope.*
-
-- Part I is the single normative source for syntax, typing, derivability, admissibility gates, and soundness/conservativity claims.
-- Part II introduces no logical axioms, primitive rules, or weakened side conditions beyond Part I.
-- De Bruijn conversion and scoped signature semantics are treated as logical correctness machinery in Part I, not as optional realization detail.
-- In case of disagreement, Part I is taken as authoritative and Part II is revised accordingly.
-
-= Notation and Meta-Level Conventions
-
-This section fixes the notation baseline used by all later definitions and rules.
-
-- Object-language judgments are written with $tack.r$, e.g. $Gamma tack.r t : tau$.
-- Partial computation/evaluation at the meta level is written with $mapsto$, e.g. $f(x) mapsto y$.
-- Named-term alpha-equivalence is written $equiv_alpha$.
-- De Bruijn structural equivalence is written $tilde.equiv$.
-- Semantic interpretation (denotation) is written as $"denote"(t, rho, M)$ for term meaning under environment/model pair $(rho, M)$.
-
-Layering discipline:
-
-1. *Object layer*: syntax, typing, theorem sequents, and primitive rules.
-2. *Boundary layer*: named/De Bruijn conversion partial functions.
-3. *Meta layer*: proofs about invariants, commutation, and soundness.
-
-All claims below explicitly indicate which layer they inhabit.
-
-Per-section dependency template (used throughout this manuscript):
-
-- *Defines*: new syntax/judgments introduced in the section.
-- *Depends on*: earlier sections required for well-formedness.
-- *Used by*: later rules/theorems that rely on this section.
-
-= Motivation and Design Goal
-
-The central engineering goal of QED is to separate trusted reasoning from untrusted proof search. In an LCF architecture, theorem creation is restricted to a very small set of primitive kernel operations. Everything else, including automation and tactics, is merely a theorem-producing program that calls those primitives.
-
-This architecture has two consequences:
-
-1. Correctness is reduced to the soundness of a small kernel.
-2. Rich user tooling can evolve without expanding the trusted code base.
-
-The mathematical role of this document is to state the object language and inference rules precisely enough to support both consequences.
-
-= Positioning and Related Systems
-
-QED is positioned as a minimal, auditable HOL kernel rather than a full proof-assistant platform. The design goal is to keep the trusted core small, make boundary assumptions explicit, and allow tactic/automation layers to evolve independently.
-
-*Definition (Design Target).*
-QED prioritizes kernel verifiability over feature breadth: every exported theorem object must be traceable to primitive kernel rules under explicit side conditions.
-
-Compared with mainstream systems:
-
-- HOL Light: same LCF trust model and primitive-rule discipline, but QED currently executes primitive cores on De Bruijn objects and then lifts to named boundaries.
-- Coq: richer dependent type theory and broader automation ecosystem, while QED currently focuses on STT/HOL kernel minimality.
-- Isabelle: mature logical framework and extensive libraries, while QED intentionally optimizes for a compact, audit-oriented kernel specification.
-
-= Foundational Theory
-
-== Signatures and Symbols
-
-Let $Sigma_t$ be a type-constructor signature. Each constructor $k in Sigma_t$ has a natural-number arity $a(k) in NN$.
-
-Let $Sigma_c$ be a term-constant signature. Each constant $c in Sigma_c$ is assigned a simple type.
-
-In the current QED kernel, $Sigma_c$ is managed by a scoped signature stack:
-
-- each scope stores a finite partial map from constant names to types;
-- lookup proceeds from the innermost scope to the outermost scope;
-- same-name insertion is rejected inside one scope but allowed in a nested scope (shadowing).
-
-For polymorphic constants, the assigned type is read as a principal type schema (universally quantified at the meta level), and concrete uses are type instances of that schema.
-
-QED reserves two distinguished type constructors:
-
-- $"bool"$ with arity $0$.
-- $"fun"$ with arity $2$.
-
-These are sufficient to define simply typed lambda terms with boolean propositions.
-
-For next-stage conservative theory construction, QED additionally fixes one trusted
-foundation type constructor:
-
-- $"ind"$ with arity $0$.
-
-`"ind"` is the carrier used by the explicit infinity-anchor assumption; it is not
-introduced by user-level extension rules.
-
-== Constant Type Schemes and Instance Relation
-
-To avoid polymorphism lockout while preserving kernel typing discipline, constant typing uses a principal-schema + instance relation.
-
-*Definition (Constant Principal Type).*
-Each resolved constant identity carries a principal simple type schema:
-$
-  kappa_c : tau_"gen"
-$
-where type variables in $tau_"gen"$ are implicitly universally quantified.
-
-*Definition (Type Instance Relation).*
-For types $tau$ and $tau_"gen"$, write
-$
-  tau prec.eq tau_"gen"
-$
-iff there exists a type substitution $theta$ such that
-$
-  tau = theta(tau_"gen")
-$
-and $theta$ maps only type variables.
-
-This relation is used by elaboration and core typing of `RConst`, including user constants and reserved logical constants.
-
-== Logical Constants and Reserved Symbols
-
-The kernel distinguishes *logical symbols* from ordinary signature-managed constants.
-
-*Definition (Reserved Equality Symbol).*
-The symbol $"="$ is a reserved polymorphic logical constant with schematic type
-$
-  "=" : product alpha. "fun"(alpha, "fun"(alpha, "bool"))
-$
-and is not inserted by user signature operations.
-
-*Definition (Reserved Choice Operator).*
-The symbol $"@"$ is a reserved polymorphic choice operator with schematic type
-$
-  "@" : product alpha. "fun"("fun"(alpha, "bool"), alpha)
-$
-and is not inserted by user signature operations.
-
-*Axiom Schema (Choice).*
-For each type instance $alpha$ and predicate $P : "fun"(alpha, "bool")$:
-$
-  tack.r (exists x : alpha. P(x)) arrow.r.double P("@"(P))
-$
-This axiom schema is part of the trusted baseline and is used to derive
-specification-style constant introduction.
-
-*Constraint (No Shadowing of Reserved Symbols).*
-For every scope stack state $S$, insertion is forbidden for reserved names:
-$
-  (c in "Reserved")
-  /
-  (" "S tack.r "add"(c : tau) mapsto "fail" " ")
-$
-where currently $"Reserved" = {"=", "@"}$.
-
-*Definition (Typed Equality Formation).*
-Given resolved terms $u, v$:
-$
-  (" "Gamma tack.r.r u : tau ," "Gamma tack.r.r v : tau" ")
-  /
-  (Gamma tack.r.r (u = v) : "bool")
-$
-This formation rule is the unique source of equality propositions used by primitive rules.
-
-*Remark (Signature Separation).*
-Ordinary entries in $Sigma_c$ are user/system constants. Logical equality is fixed by the logic layer and cannot be rebound by scope operations.
-
-== Signature Judgments for Scoped Stacks
-
-*Definition (Scoped Signature Judgments).*
-We use the following judgments for scoped signature operations:
-
-- $S tack.r "wf"$: signature stack $S$ is well-formed.
-- $S tack.r c : tau$: lookup for constant $c$ succeeds with type $tau$.
-- $S tack.r "push" mapsto S'$: push succeeds and returns $S'$.
-- $S tack.r "add"(c : tau) mapsto S'$: insertion in current scope succeeds.
-- $S tack.r "pop" mapsto S'$: pop succeeds and returns $S'$.
-
-Notation: $S "++" [F]$ denotes stack append with $F$ as the new innermost frame. In particular, $S "++" ["empty"]$ means push one fresh empty scope onto $S$.
-
-Representative rules:
-
-$
-  (S tack.r "wf")
-  /
-  (" "S tack.r "push" mapsto S "++" ["empty"]" ")
-$
-
-$
-  (" "S = [S_0, ..., S_n] , c in.not "dom"(S_n) , S' = [S_0, ..., S_n[c := tau]]" ")
-  /
-  (S tack.r "add"(c : tau) mapsto S')
-$
-
-$
-  (" "S = [S_0, ..., S_n] , c in "dom"(S_n) , S_n(c) = tau" ")
-  /
-  (S tack.r c : tau)
-$
-
-$
-  (" "S = [S_0, ..., S_n] , c in.not "dom"(S_n) , [S_0, ..., S_(n - 1)] tack.r c : tau" ")
-  /
-  (S tack.r c : tau)
-$
-
-$
-  (" "S = [S_0, ..., S_n] , n > 0 , S' = [S_0, ..., S_(n - 1)]" ")
-  /
-  (S tack.r "pop" mapsto S')
-$
-
-*Well-Formedness Side Conditions.*
-
-- no frame may bind a reserved logical symbol;
-- each frame is a finite partial map;
-- lookup is deterministic by innermost-first traversal.
-
-These rules make success/failure boundaries explicit and give a judgmental presentation of scoped lookup and mutation.
-
-== Global Theory State vs Local Scope State
-
-To avoid ambiguity between poppable lookup state and persistent logical commitments, QED distinguishes two state layers:
-
-- global theory state $T$: append-only logical history (definition heads, type constructors, proved definitional theorems);
-- local scope stack $S$: poppable name-lookup convenience layer.
-
-Combined machine state is written $(T, S)$.
-
-Operational boundary:
-
-1. `push`/`pop` mutate $S$ only.
-2. definitional extension mutates $T$ (and may expose a binding in current $S$).
-3. global freshness checks for definitions are performed against $T$, never against current-stack-only visibility.
-
-Name history used by definitions:
-$
-  "DefHeads"(T) = {"all constant names ever committed by definitional extension"}
-$
-
-Equivalent representation view: `"DefHeads"(T)` is any monotone history set unaffected by scope pop.
-
-Monotonicity law:
-$
-  T mapsto T' arrow.r.double "DefHeads"(T) subset.eq "DefHeads"(T')
-$
-
-*Proposition (Pop Invariance of Definitional History).*
-If $(T_0, S) tack.r "pop" mapsto (T_1, S')$, then
-$
-  T_0 = T_1 and "DefHeads"(T_0) = "DefHeads"(T_1)
-$
-trivially, because `pop` is local-scope-only and does not rollback committed theory symbols.
-
-== Type Grammar
-
-Types are generated by the grammar
-$
-  tau ::= alpha | k(tau_1, ..., tau_n)
-$
-where $alpha$ ranges over type variables and $k in Sigma_t$ with $a(k) = n$.
-
-One canonical concrete representation is:
-
-- `TyVal(name)` for type variables.
-- `TyApp(tycon, args)` for constructor application.
-
-The representation is syntax-directed and supports recursive operations such as type substitution and constructor decomposition.
-
-== Type Constructor Extension Discipline
-
-Non-emptiness of all well-formed types is enforced by admissible type introduction, not by unconstrained signature mutation.
-
-*Definition (Type Definition Admissibility).*
-A new type-constructor introduction is written:
-$
-  "TypeDefOK"(T, k, a, "Rep", P, w)
-$
-and requires:
-
-1. $k in.not "TySymbols"(T)$ and $a$ matches declared parameter arity.
-2. $w$ is a witness theorem establishing representability non-emptiness for each parameter instantiation.
-3. the defining predicate $P$ is well-typed and closed under the declared parameters.
-4. all free type variables of $P$ are exactly the declared parameters (no undeclared type-variable leakage).
-5. representation head name $"Rep"_k$ is globally fresh in theory history and reserved-symbol disjoint.
-6. abstraction head name $"Abs"_k$ is globally fresh in theory history and reserved-symbol disjoint.
-
-Representative admissible step:
-$
-  "TypeDefOK"(T, k, a, "Rep", P, w) arrow.r.double T mapsto T + {"typedef" k"/"a}
-$
-
-*Definition (Typedef Product Contract).*
-For each admissible typedef step above, theory extension must also expose fresh constants:
-$
-  "Abs"_k : "RepTy"_k -> k(alpha_1, ..., alpha_a)
-$
-$
-  "Rep"_k : k(alpha_1, ..., alpha_a) -> "RepTy"_k
-$
-and must provide the following theorem schemata (with the declared type parameters explicitly quantified):
-
-1. Surjectivity of abstraction:
-$
-  tack.r forall n : k(alpha_1, ..., alpha_a). "Abs"_k("Rep"_k(n)) = n
-$
-2. Representation range soundness:
-$
-  tack.r forall n : k(alpha_1, ..., alpha_a). P("Rep"_k(n))
-$
-3. Conditional retraction on predicate range:
-$
-  tack.r forall r : "RepTy"_k. P(r) arrow.r.double "Rep"_k("Abs"_k(r)) = r
-$
-
-No weaker contract is admissible for kernel-level typedef extension.
-
-*Theorem (Typed HOL Construction Invariant).*
-Every intrinsically typed HOL type has a non-empty carrier under every admissible
-type valuation. A typedef predicate family additionally supplies a non-empty subtype
-carrier for every admissible parameter valuation. This is proved by
-`HOL/Types.lean:Ty.carrier_nonempty` and
-`HOL/TypeDefinitions.lean:TypeDefContract.nonempty`; it is the semantic invariant
-used by `INST_TYPE`.
-
-== Term Grammar
-
-Terms are generated by:
-
-$
-  t ::= & x : tau             && " variable" \
-      | & c : tau             && " constant" \
-      | & t_1" "t_2           && " application" \
-      | & lambda (x : tau). t && " abstraction"
-$
-
-where $x$ is a variable symbol and $c$ is a constant symbol.
-
-One canonical concrete representation is:
-
-- `Var(name, tau)`
-- `Const(name, tau)`
-- `Comb(f, x)`
-- `Abs(x, t)`
-
-The abstraction constructor is intended to bind occurrences of the variable component of `x` in `t`.
-
-#keyblock("warning", [Binding and Capture], [
-  Any substitution algorithm used by the kernel must be capture-avoiding. This is not a convenience detail: it is a semantic requirement for soundness.
-])
-
-== Resolution Boundary (Integrated Form)
-
-*Definition (One-Shot Resolution).*
-To avoid splitting the document into two full grammars, QED keeps one named grammar and adds a single boundary judgment:
-$
-  Sigma_c tack.r t mapsto t_r
-$
-where $t_r$ is a resolved term used by kernel rules. Constant occurrences are frozen at resolution time and are not re-looked-up during later theorem reuse.
-
-Notation compatibility: this section writes resolution with $mapsto$; the later typing section writes the same elaboration relation as $arrow.b.double$.
-
-Representative constant-resolution clause:
-$
-  (" "Sigma_c tack.r c : tau , "resolve"(Sigma_c, c) = kappa_c" ")
-  /
-  (" "Sigma_c tack.r c : tau mapsto "ConstAtom"(kappa_c, tau)" ")
-$
-
-*Property (Theorem Stability Under Scope Mutation).*
-If a theorem is constructed from resolved terms, then later `push`/`pop`/shadowing operations on $Sigma_c$ do not change that theorem's meaning or typing status.
-
-*Property (Alias Safety for Existing Theorems).*
-Theorem aliasing is handle-level only: alias creation does not trigger re-elaboration, and therefore does not depend on the current signature stack.
-
-= Elaboration and Core Typing Judgments
-
-To make scope-mutation stability and boundary safety derivable (not merely stated), QED uses a two-layer typing story.
-
-== Named Elaboration Judgment
-
-Named terms are first elaborated against the current signature stack:
-$
-  Sigma_c ; Gamma tack.r t arrow.b.double t_r
-$
-where $t_r$ is a resolved term in which constant occurrences have fixed kernel identities.
-
-Representative clauses:
-
-$
-  (" "(x : tau) in Gamma" ")
-  /
-  (" "Sigma_c ; Gamma tack.r x : tau arrow.b.double "RVar"(x, tau)" ")
-$
-
-$
-  (" "Sigma_c tack.r c : tau_"gen" , "resolve"(Sigma_c, c) = kappa_c , tau prec.eq tau_"gen"" ")
-  /
-  (Sigma_c ; Gamma tack.r c : tau arrow.b.double "RConst"(kappa_c, tau))
-$
-
-$
-  (" "Sigma_c ; Gamma tack.r f arrow.b.double f_r ," "Sigma_c ; Gamma tack.r x arrow.b.double x_r" ")
-  /
-  (Sigma_c ; Gamma tack.r f" "x arrow.b.double "RComb"(f_r, x_r))
-$
-
-$
-  (" "Sigma_c ; (Gamma, x : tau) tack.r t arrow.b.double t_r" ")
-  /
-  (" "Sigma_c ; Gamma tack.r lambda (x : tau). t arrow.b.double "RAbs"(x, tau, t_r)" ")
-$
-
-Elaboration failure is explicit and does not produce a theorem object.
-
-== Core Typing over Resolved Terms
-
-Primitive rules consume resolved terms only. Their typing judgment is:
-$
-  Gamma tack.r.r t_r : tau
-$
-with rules independent of mutable signature lookup.
-
-Representative clauses:
-
-$
-  (" "(x : tau) in Gamma" ")
-  /
-  (" "Gamma tack.r.r "RVar"(x, tau) : tau" ")
-$
-
-$
-  (" "kappa_c : tau_"gen" , tau prec.eq tau_"gen"" ")
-  /
-  (" "Gamma tack.r.r "RConst"(kappa_c, tau) : tau" ")
-$
-
-$
-  (" "Gamma tack.r.r f_r : "fun"(tau_1, tau_2) ," "Gamma tack.r.r x_r : tau_1" ")
-  /
-  (Gamma tack.r.r "RComb"(f_r, x_r) : tau_2)
-$
-
-$
-  (Gamma, x : tau_1 tack.r.r t_r : tau_2)
-  /
-  (" "Gamma tack.r.r "RAbs"(x, tau_1, t_r) : "fun"(tau_1, tau_2)" ")
-$
-
-*Lemma (Polymorphic Constant Instantiation Admissibility).*
-If $kappa_c : tau_"gen"$ and $tau prec.eq tau_"gen"$, then `"RConst"(kappa_c, tau)` is a well-formed resolved term and may appear in any rule premise requiring type $tau$.
-
-*Remark (No Monomorphic Lockout).*
-A constant introduced once at principal schema (e.g. $"fun"(alpha, alpha)$) is usable at all admissible instances (e.g. $"fun"("bool", "bool")$, $"fun"("int", "int")$), rather than requiring one separately named constant per instance type.
-
-== Stability Theorem for Scope Mutation
-
-*Theorem (Resolved-Theorem Stability Under Scope Mutation).*
-If $Sigma_c ; Gamma tack.r t arrow.b.double t_r$ and $Gamma tack.r.r t_r : tau$, then for any later signature stack mutation sequence $mu$ (push/pop/shadowing on non-reserved names), the established typing fact for $t_r$ remains valid:
-$
-  Gamma tack.r.r t_r : tau
-$
-because $t_r$ contains fixed resolved constant identities and does not re-run named lookup.
-
-This theorem is the formal bridge behind one-shot resolution stability claims.
-
-= Substitution and Alpha-Equivalence
-
-== Type Substitution
-
-Type substitution is a mapping `theta : type_variable -> hol_type` that extends structurally to types and terms.
-
-For a type variable $alpha$,
-
-- $theta(alpha)$ if defined,
-- otherwise $alpha$.
-
-For type application $k(tau_1, ..., tau_n)$,
-
-- apply $theta$ recursively to each argument.
-
-== Term Substitution
-
-Term substitution is a finite map from variables to terms. It must satisfy two constraints:
-
-1. Type preservation: replacement terms match the declared type of replaced variables.
-2. Capture avoidance: bound variables may require renaming before substitution under abstraction.
-
-== De Bruijn Shifting (for `BETA`)
-
-The De Bruijn core is typed. Binder-domain type labels are part of core syntax and are never erased.
-
-Core grammar fragment:
-$
-  d ::= "DBound"(k, tau) | "DFree"(x, tau) | "DConst"(c, tau) | "DComb"(d_1, d_2) | "DAbs"(tau, d)
-$
-
-To make beta operationally precise, we fix two recursive operators on typed De Bruijn terms: `shift` and `subst`.
-
-For shift, written $"shift"(delta, c, d)$ with increment $delta$ and cutoff $c$:
-
-- $"shift"(delta, c, "DBound"(k, tau)) = "DBound"(k, tau)$, when $k < c$.
-- $"shift"(delta, c, "DBound"(k, tau)) = "DBound"(k + delta, tau)$, when $k gt.eq c$.
-- $"shift"(delta, c, "DComb"(f, x)) = "DComb"("shift"(delta, c, f), "shift"(delta, c, x))$.
-- $"shift"(delta, c, "DAbs"(tau, t)) = "DAbs"(tau, "shift"(delta, c + 1, t))$.
-
-For substitution, written $"subst"(j, s, d)$:
-
-- $"subst"(j, s, "DBound"(k, tau)) = s$, when $k = j$ and $"type_of"(s) = tau$.
-- $"subst"(j, s, "DBound"(k, tau)) = "DBound"(k, tau)$, when $k eq.not j$.
-- $"subst"(j, s, "DComb"(f, x)) = "DComb"("subst"(j, s, f), "subst"(j, s, x))$.
-- $"subst"(j, s, "DAbs"(tau, t)) = "DAbs"(tau, "subst"(j + 1, "shift"(1, 0, s), t))$.
-
-Then the typed De Bruijn beta contraction used by the kernel is fixed as
-$
-  "beta"(("DAbs"(tau, t)) u) = "shift"(-1, 0, "subst"(0, "shift"(1, 0, u), t))
-$
-with the side condition $"type_of"(u) = tau$.
-
-*Invariant (Typed-Core Injectivity).*
-De Bruijn structural equality is type-sensitive:
-$
-  "DAbs"(tau_1, t_1) = "DAbs"(tau_2, t_2) arrow.r.double tau_1 = tau_2 and t_1 = t_2
-$
-Hence abstractions that differ only by binder-domain type are distinct core terms and cannot be merged by structural matching.
-
-*Theorem (Lowering Preserves Typing).*
-If named elaboration succeeds and named typing holds:
-$
-  Sigma_c ; Gamma tack.r t arrow.b.double d and Gamma tack.r t : tau
-$
-then the lowered typed De Bruijn term satisfies core typing:
-$
-  Gamma tack.r.r d : tau
-$
-Proof is by induction on the structure of $t$, using the elaboration clauses and the
-typed constructors of `DBound/DFree/DConst/DComb/DAbs`.
-
-*Theorem (Lifting Preserves Typing up to Alpha).*
-If $"Term"_arrow.t" "d mapsto t$ and $Gamma tack.r.r d : tau$, then:
-$
-  Gamma tack.r t : tau
-$
-and for any second successful lift $"Term"_arrow.t" "d mapsto t'$, we have $t equiv_alpha t'$.
-Thus lift choices are presentation variants, not typing variants.
-
-*Theorem (Boundary Commutation with Capture-Avoiding Substitution).*
-Whenever both sides are defined, lowering commutes with substitution:
-$
-  "Lower"(t[s\/x]) tilde.equiv "DbSubst"(x, "Lower"(s), "Lower"(t))
-$
-and therefore beta-contraction in named syntax and beta-contraction in typed De Bruijn syntax
-agree modulo $equiv_alpha$ after lift.
-
-*Proof status.* The intrinsically typed HOL core proves renaming, capture-avoiding
-substitution, beta evaluation, and type-instantiation preservation directly. The
-named/De Bruijn conversion and denotation bridge in `Boundary/Conversion.lean` is
-implementation refinement and remains outside the Typed HOL completion; its
-concrete MoonBit proof is intentionally deferred.
-
-== Alpha-Equivalence
-
-Alpha-equivalence, written $t_1 equiv_alpha t_2$, identifies terms up to systematic renaming of bound variables. It is required by multiple kernel operations, including theorem transitivity-style checks where structural syntax should not distinguish alpha-variants.
-
-The specification uses the following mandatory properties:
-
-1. Reflexive: $t equiv_alpha t$.
-2. Symmetric: $t_1 equiv_alpha t_2 arrow.r.double t_2 equiv_alpha t_1$.
-3. Transitive: $t_1 equiv_alpha t_2 and t_2 equiv_alpha t_3 arrow.r.double t_1 equiv_alpha t_3$.
-4. Congruence for constructors (`Comb`, `Abs`) and proposition/equality contexts.
-
-For De Bruijn forms, structural equivalence $tilde.equiv$ is used as the canonical representative-level equality. The boundary lemmas below connect $equiv_alpha$ and $tilde.equiv$.
-
-= Boundary Conversion and Scoped Shadowing
-
-QED currently uses a two-layer boundary:
-
-- external-facing terms/theorems are in named syntax;
-- kernel rule cores execute on De Bruijn syntax.
-
-Boundary conversion functions are used with the following Haskell-style signatures:
-
-$
-  "Term"_arrow.b :: "Term" arrow.r "DbTerm"?
-$
-$
-  "Term"_arrow.t :: "DbTerm" arrow.r "Term"?
-$
-$
-  "Thm"_arrow.b :: "Thm" arrow.r "DbSequent"?
-$
-$
-  "Thm"_arrow.t :: "DbSequent" arrow.r "Thm"?
-$
-
-Here $"Term"_arrow.b$ lowers named terms to De Bruijn terms, and $"Term"_arrow.t$ reconstructs named terms from De Bruijn terms. Likewise, $"Thm"_arrow.b$ lowers named sequents to De Bruijn sequents, and $"Thm"_arrow.t$ lifts De Bruijn sequents back to named boundary objects. All four conversions are partial and may fail at the boundary.
-
-For theorem objects:
-$
-  "Thm"_arrow.b" "A_p tack.r p = A_d tack.r p_d
-$
-and
-$
-  "Thm"_arrow.t" "A_d tack.r p_d = A_p' tack.r p'
-$
-defined pointwise by $"Term"_arrow.b$ and $"Term"_arrow.t$ on assumptions and conclusion.
-
-== Boundary Conversion Properties
-
-The boundary metatheory relies on the following invariants.
-
-*Lemma (Alpha-Invariant Lowering).*
-$
-  (t_1 equiv_alpha t_2)
-  /
-  (" Term"_arrow.b" "t_1 tilde.equiv "Term"_arrow.b" "t_2" ")
-$
-
-*Lemma (Round-Trip Stability up to Alpha).*
-$
-  (" Term"_arrow.b" "t mapsto d ," Term"_arrow.t" "d mapsto t'" ")
-  /
-  (t' equiv_alpha t)
-$
-
-*Lemma (Lift Choice Congruence).*
-If $"Term"_arrow.t" "d mapsto t_1$ and $"Term"_arrow.t" "d mapsto t_2$, then $t_1 equiv_alpha t_2$.
-
-*Property (Name-Insensitive Rule Matching).*
-Any named-side premise matching required by primitive rules is interpreted modulo $equiv_alpha$. Binder spellings are presentation-level choices and cannot change rule applicability.
-
-*Lemma (Type-Sensitive Core Matching).*
-Boundary lowering preserves binder-domain type labels. Therefore, if two named abstractions differ in binder-domain type, their lowered typed De Bruijn forms are not structurally equal:
-$
-  "Term"_arrow.b" "(lambda (x : tau_1). t_1) eq.not "Term"_arrow.b" "(lambda (y : tau_2). t_2)
-$
-whenever $tau_1 eq.not tau_2$, even if bodies are De Bruijn-index isomorphic.
-
-*Lemma (Term Denotation Preservation Across Boundary).*
-If $"Term"_arrow.b" "t mapsto d$, then for every valuation/model pair $(rho, M)$:
-$
-  "denote"(t, rho, M) = "denote"(d, rho, M)
-$
-where the right-hand side denotes De Bruijn evaluation under the environment induced by $rho$.
-
-*Lemma (Sequent Denotation Preservation Across Boundary).*
-If $"Thm"_arrow.b" "A_p tack.r p mapsto A_d tack.r p_d$, then semantic validity is preserved:
-$
-  (A_p tack.r p) " valid " arrow.l.r.double (A_d tack.r p_d) " valid "
-$
-
-*Theorem (Semantic Rule Lifting Safety).*
-Assume a primitive core rule
-$
-  R_d : "DbSequent"^n arrow.r "DbSequent"?
-$
-is semantically preserving on its defined domain:
-$
-  "valid"(x_d) arrow.r.double "valid"(R_d(x_d))
-$
-Then the lifted named rule
-$
-  R" "x = "Thm"_arrow.t" "(R_d" "("Thm"_arrow.b" "x))
-$
-is semantically preserving on all inputs where boundary conversions succeed. Consequently, rule lifting preserves both structure (modulo alpha) and denotation.
-
-*Property (Diagrammatic Commutation on Successful Conversions).*
-The lifting relation is visualized by the following commutative diagram (structural and semantic commutation):
+QED's formal logic is a simply typed higher-order logic with polymorphic constant
+schemas, equality, and Hilbert choice. This document specifies the logic from
+typed syntax through semantics and primitive derivation rules. The syntax is
+intrinsically typed: a malformed application, abstraction, or rule instance
+cannot be constructed as a term or derivation.
+
+The Lean 4 development in `formal_verification/QEDFV/HOL` is the machine-checked
+definition of this mathematical core. Its public theorem
+`QEDFV.HOL.typed_hol_proof_complete` packages the current results: evaluation
+commutes with renaming and substitution, beta reduction is semantically valid,
+typed derivations are sound, the extension contracts have their stated semantic
+properties, and a concrete interpretation rules out derivation of a false
+sentence. The proof has no project-defined axioms or unfinished proof holes.
+Lean reports dependencies on `propext`, `Classical.choice`, and `Quot.sound`.
+
+The development proves the logic described here. It does not prove that the
+separate MoonBit implementation refines this Lean calculus. That boundary is
+part of the specification status, not an implicit premise of soundness.
+
+= Scope and status
+
+== Normative mathematical core
+
+The normative core consists of the typed calculus, its semantics, and the
+explicitly scoped metatheorems below. The matching
+Lean declarations are the authoritative formal definitions and checked theorems.
+If prose and Lean disagree, the discrepancy must be resolved by correcting the
+specification or the formalization; implementation tests cannot silently change
+the calculus.
+
+This specification fixes:
+
+- simple types, typed terms, contexts, sequents, and substitutions;
+- the ten primitive derivation constructors;
+- the set-theoretic interpretation and validity relation;
+- soundness and the semantic extension results proved in Lean;
+- the exact limits of those results.
+
+== Implementation boundary
+
+QED's intended architecture has a small theorem-producing kernel. Parsers,
+elaborators, tactics, automation, and user interfaces may propose proof steps,
+but a result is trusted only when checked by the kernel.
+
+The Typed HOL proof is a proof about the Lean calculus. It does not include a
+verified translation from MoonBit terms, theorem objects, mutable signature
+state, or primitive-rule code into this calculus. It also does not prove
+completeness, syntactic derivability preservation for extensions, or correctness
+of user-facing proof search. Those claims require separate formal results.
+
+= Design at a glance
+
+The theory has four layers:
+
+#enum(
+  [*Typed language.* Types determine the carrier of every term. Bound variables
+  use De Bruijn indices, and constant occurrences carry an explicit type
+  substitution.],
+  [*Proof calculus.* A derivation is an inductive object indexed by its sequent.
+  The index rules out ill-typed rule applications before soundness is considered.],
+  [*Semantics.* Types denote nonempty carriers, terms denote carrier elements,
+  and sequents are valid when true assumptions imply a true conclusion in every
+  environment.],
+  [*Metatheory.* Each primitive constructor preserves validity. Induction over a
+  derivation proves soundness without placing a soundness law inside a model.]
+)
+
+The dependency order is:
 
 #align(center)[
-  #diagram(
-    node((0, 1.6), [$"NamedSequent" "/" equiv_alpha$]),
-    node((2.0, 1.6), [$"NamedSequent" "/" equiv_alpha$]),
-    node((0, 0), [$"DbSequent" "/" tilde.equiv$]),
-    node((2.0, 0), [$"DbSequent" "/" tilde.equiv$]),
-    edge((0, 1.6), (2.0, 1.6), "->", [$R$]),
-    edge((0, 0), (2.0, 0), "->", [$R_d$]),
-    edge((0, 1.6), (0, 0), "->", [$"Thm"_arrow.b$]),
-    edge((2.0, 0), (2.0, 1.6), "->", [$"Thm"_arrow.t$]),
-  )
+  #text(weight: "bold")[
+    typed syntax -> evaluation laws -> primitive-rule preservation ->
+    derivation soundness -> extension and consistency results
+  ]
 ]
 
-Operationally, this means:
-$
-  (" Thm"_arrow.b" "x mapsto x_d ," "R_d" "x_d mapsto y_d ," Thm"_arrow.t" "y_d mapsto y" ")
-  /
-  (R" "x mapsto y)
-$
-on all inputs where boundary conversions and core rule execution succeed, together with
-$
-  "valid"(x) arrow.r.double "valid"(y)
-$
-under the denotation-preservation lemmas above.
-
-*Remark (Not a Strict Bijection).*
-This correspondence is not a strict named-to-De Bruijn bijection:
-
-- alpha-variant named terms collapse to one De Bruijn equivalence class;
-- lifting from De Bruijn chooses a representative named binder presentation;
-- boundary conversions are partial, so the mapping is defined only on well-formed successful cases.
-
-#keyblock("info", [Boundary Discipline], [
-  Primitive rules are interpreted over `DbSequent` core objects. Named `Thm` values are boundary presentations. Conversion failure is a boundary failure, not a logical derivation.
-])
-
-== Scoped Shadowing Properties
-
-Let a signature state be a stack
-$
-  S = [S_0, S_1, ..., S_n]
-$
-where $S_n$ is the innermost scope.
-
-Notation and intent:
-
-- $P(S)$ denotes pushing a fresh, empty scope.
-- $A(S, c : tau)$ denotes inserting a constant into the current scope.
-- $Q(S)$ denotes popping the innermost scope.
-
-These operators provide the abstract logical calculus for scope push/add/pop.
-
-Lookup is defined by:
-$
-  L(S, c) = S_j(c)
-$
-where $j$ is the greatest index such that $c in "dom"(S_j)$.
-
-Insertion in current scope:
-$
-  A(S, c : tau)
-$
-is allowed iff $c in.not "dom"(S_n)$.
-
-From these definitions:
-
-*Proposition (Shadowing Determinism).*
-if $c$ is defined in innermost scope $S_n$, then $L(S, c) = S_n(c)$.
-Proof. By definition, lookup returns $S_j(c)$ for the greatest index $j$ with
-$c in "dom"(S_j)$. Since $c in "dom"(S_n)$ and $n$ is maximal index of the stack,
-the greatest such index is $j = n$. Hence $L(S, c) = S_n(c)$.
-
-*Proposition (Outer Restoration by Pop).*
-if $S' = P(S)$, $A(S', c : tau_1) = S''$, and $Q(S'') = S$, then $L(S, c) = L(Q(S''), c)$.
-Proof. $P(S)$ adds one fresh empty innermost frame. $A(S', c : tau_1)$ modifies only
-that fresh frame. $Q$ then removes exactly that frame, restoring all original frames
-pointwise. Therefore lookup of any symbol in restored stack is identical to lookup in $S$,
-so $L(S, c) = L(Q(S''), c)$.
-
-*Proposition (Scope-Local Uniqueness).*
-if $c$ is already defined in innermost scope $S_n$, then $A(S, c : tau)$ fails.
-Proof. Admissibility of $A(S, c : tau)$ requires $c in.not "dom"(S_n)$ by definition.
-Given $c in "dom"(S_n)$, the premise is false, so no insertion rule instance exists; hence
-$A(S, c : tau)$ fails.
-
-*Theorem (Resolution Freeze under Scope Mutation).*
-Let $mu$ be any finite sequence of operations from `{push, add, pop}` on non-reserved names,
-and let $Sigma_c ; Gamma tack.r t arrow.b.double d$. If $mu$ is applied to obtain a later stack
-$Sigma_c'$, then:
-$
-  Gamma tack.r.r d : tau
-$
-and all primitive-rule premises that mention $d$ are unchanged by $mu$.
-Proof. $d$ contains resolved constant identities, not deferred name lookups. Scope mutations
-alter only future named-resolution results; they do not rewrite existing resolved terms.
-
-These properties specify the abstract behavior required of any faithful scoped-signature realization.
-
-Scope-local shadowing properties above are lookup properties only. They do not authorize redefining committed definition heads recorded in `"DefHeads"(T)`.
-
-= Theorem Object and Trust Boundary
-
-A theorem is represented mathematically as a sequent
-$
-  Gamma_p tack.r p
-$
-with $p$ a boolean term and $Gamma_p$ a finite set of boolean assumptions.
-
-== Assumption Sets as Alpha-Quotients
-
-To keep rule behavior binder-name invariant, assumptions are not raw syntax sets. They are finite sets of alpha-equivalence classes:
-$
-  Gamma_p subset.eq "Term" "/" equiv_alpha
-$
-with all elements constrained to type $"bool"$.
-
-Operations used by primitive rules are interpreted on equivalence classes:
-
-- membership: $[a]_alpha in Gamma_p$;
-- union: $Gamma_1 union Gamma_2$ on classes;
-- removal: $Gamma_p - {[a]_alpha}$.
-
-Required laws:
-
-1. Idempotence: $Gamma union Gamma = Gamma$.
-2. Commutativity: $Gamma_1 union Gamma_2 = Gamma_2 union Gamma_1$.
-3. Alpha-compatibility of membership/removal:
-  if $a equiv_alpha b$ then $[a]_alpha = [b]_alpha$ and
-  $
-    (Gamma - {[a]_alpha}) = (Gamma - {[b]_alpha})
-  $
-4. Finiteness preservation under union/removal.
-
-All assumption-manipulating rules (`ASSUME`, `TRANS`, `EQ_MP`, `DEDUCT_ANTISYM_RULE`) are read in this quotient semantics.
-
-The trusted boundary condition is:
-
-- external contexts cannot directly construct theorem values,
-- theorem values are produced only by primitive kernel inference functions.
-- theorem values store resolved terms; primitive rules and theorem aliases do not re-run constant lookup against the current signature stack.
-
-This boundary is the core LCF invariant.
-
-#keyblock("critical", [Kernel Integrity Condition], [
-  If external code can fabricate theorem values, the entire soundness argument collapses, regardless of how correct individual inference rules appear.
-])
-
-= Definitional Extension Discipline (Conservativity Gate)
-
-QED permits signature growth only through conservative admissible extension gates.
-
-*Rule Schema (New Constant by Definition).*
-Given base theory $T$ and fresh constant $c$:
-$
-  (" "c in.not "DefHeads"(T) , c in.not "Reserved" , Gamma tack.r r : tau , "closed"(r, Gamma = "empty") , "acyclic"(r, c) , "TVars"(r) subset.eq "TVars"(tau)" ")
-  /
-  (T mapsto T + {"def" c : tau = r})
-$
-
-Mandatory side conditions:
-
-1. *Freshness*: $c$ does not occur in global definitional history `"DefHeads"(T)` and is not reserved.
-2. *Typedness*: $r$ is well-typed at declared type $tau$.
-3. *Closedness*: $r$ has no free term variables (global-definition discipline).
-4. *Non-circularity*: $r$ does not mention $c$ (directly or via definitional cycle).
-5. *Type-Variable Closure*: free type variables in $r$ are constrained by the declared head type:
-  $
-    "TVars"(r) subset.eq "TVars"(tau)
-  $
-  so no ghost type variable can appear only in the body.
-
-*Safety Note (Ghost Type Variables).*
-Without Condition 5, an `INST_TYPE` step may change only the definition body instance while leaving the head constant unchanged, which breaks definitional conservativity.
-
-*Policy Clarification (Shadowing vs Definitional Freshness).*
-Scoped insertion rules may allow same-name shadowing for ordinary local constants. Definitional extension is stricter: definitional heads are introduced with globally fresh names and are never shadow-reused. This resolves any apparent tension between local scope shadowing and global definition soundness.
-
-*Typed HOL theorem (Conservativity of Definitional Extension).*
-Let $T'$ be obtained from $T$ by one admissible definitional extension above. For every theorem statement $p_0$ in the old language of $T$:
-$
-  T' tack.r p_0 arrow.r.double T tack.r p_0
-$
-In the Typed HOL semantics, this is the validity equivalence
-`HOL/Definitions.lean:valid_definition_old_language_iff`. Its finite-composition
-form is proved by `HOL/Conservativity.lean:valid_interpretSequence_iff`.
-Cross-state syntactic derivation erasure is an implementation refinement and is
-not used as evidence for the Typed HOL theorem.
-
-== Definition Admissibility Judgment
-
-To make the definition gate reusable by later rules and metatheory, we package side conditions into one judgment:
-$
-  "DefOK"(T, c : tau = r)
-$
-defined as the conjunction of Conditions 1--5 above.
-
-Admissible extension step:
-$
-  "DefOK"(T, c : tau = r) arrow.r.double T mapsto T + {"def" c : tau = r}
-$
-
-*Theorem (Definition Theorem Shape).*
-If $"DefOK"(T, c : tau = r)$ and $T mapsto T'$, then the generated definition theorem has empty assumptions:
-$
-  tack.r c = r
-$
-and is well-typed at $"bool"$. Intrinsic typing supplies the closedness and type
-side conditions, and `HOL/Definitions.lean:valid_definition_equation` proves the
-semantic equation under the defining interpretation.
-
-*Lemma (Instantiation Coherence for Definitions).*
-If $"DefOK"(T, c : tau = r)$ and $theta$ is any admissible type substitution on $"TVars"(tau)$, then
-$
-  theta(c = r) = theta(c) = theta(r)
-$
-and no body-only type variable can be changed independently of the head.
-
-*Corollary (No Ghost-Type Instantiation Drift).*
-Under $"DefOK"$, `INST_TYPE` cannot produce contradictory definition instances of one constant by varying a type variable that appears only in the body.
-
-This subsection is the structural contract tying definitional extension to the primitive `INST_TYPE` rule.
-
-= Controlled Specification Extension Discipline
-
-To support HOL-style derived-theory construction without unrestricted axiom injection,
-QED treats specification introduction as a derived discipline over Choice + `DefOK`,
-not as an independent primitive inference rule.
-
-*Definition (Specification Admissibility).*
-Given theory $T$, fresh constant head $c$, and predicate $P(x)$, write:
-$
-  "SpecOK"(T, c : tau, P)
-$
-iff all conditions below hold:
-
-1. Freshness: $c in.not "DefHeads"(T)$, $c in.not "Reserved"$, and $c$ is not already in theory symbol tables.
-2. Witness theorem shape: there exists a theorem with empty assumptions ($Gamma = "empty"$):
-  $
-    tack.r exists x : tau. P(x)
-  $
-3. Term closure: $P(x)$ has no free term variable except $x$.
-4. Type-variable closure:
-  $
-    "TVars"(P) subset.eq "TVars"(tau)
-  $
-  (no type variable appears in $P$ that is absent from the declared type of $c$).
-5. Strict type-schema lock:
-  $
-    "Schema"(c) = "Gen"(tau)
-  $
-  for this admission step only.
-6. No implicit widening:
-  no type variable absent from $tau$ may be generalized into $"Schema"(c)$ by this step.
-
-*Derived Rule Schema (Specification via Choice + Definitional Admission).*
-$
-  (" "tack.r exists x : tau. P(x) , "SpecOK"(T, c : tau, P) , "DefOK"(T, c : tau = "@"(lambda x : tau. P(x)))" ")
-  /
-  (T mapsto T + {"def" c : tau = "@"(lambda x : tau. P(x))} , tack.r P(c))
-$
-
-This is the only admissible introduction path for specification constants in this stage.
-
-*Meta-Constraint (No Hidden Side Conditions).*
-Any admission-procedure check used by `SpecOK` must correspond to one of the six
-explicit conditions above; no additional silent premise is allowed.
-
-*Typed HOL theorem (Conservativity of Specification Extension).*
-If $T'$ is obtained from $T$ by one admissible `SpecOK` step admitting fresh head $c$,
-and $phi$ is a sentence in the old language of $T$, then:
-$
-  T' tack.r phi arrow.r.double T tack.r phi
-$
-The Typed HOL proof is `HOL/Specification.lean:SpecificationGate.valid_old_language_iff`;
-finite sequences use `HOL/Conservativity.lean:valid_interpretSequence_iff`.
-The earlier derivation-object erasure sketch has been retired from the normative
-proof path. A syntactic eliminator for the concrete implementation remains a
-MoonBit refinement obligation.
-
-= Global Admissibility Envelope
-
-*Typed HOL status.* The Typed HOL soundness envelope is constructive: standard
-non-empty carriers, a natural choice operator, primitive rule preservation, and
-finite extension semantics are all proved in `formal_verification/QEDFV/HOL`.
-The legacy `GlobalAdmissibilityEnvelope` and `Model` law bundle describe only the
-MoonBit/refinement layer and are not part of the normative soundness evidence.
-
-The kernel-level soundness argument uses a single admissibility envelope:
+No theorem in this chain is used as a premise for its own semantic model.
 
-1. theorem values arise only from primitive rules or admissible extension gates;
-2. primitive rules consume well-formed resolved sequents;
-3. definitional extension steps must satisfy `"DefOK"`;
-4. type-constructor extension steps must satisfy `"TypeDefOK"` (non-emptiness witness gate);
-5. specification extension steps must satisfy `"SpecOK"` (derived over Choice + `DefOK`);
-6. boundary conversion failures are non-derivational failures.
-
-All later soundness obligations are stated relative to this envelope, so no rule silently bypasses definition admissibility constraints. Issue \#14 records the former circular definition in which the envelope itself contained `primitive_sound_all`; that definition has been removed.
+= Types and signatures
 
-*Implementation bug status (\#15).* The current MoonBit API still has an open
-forked-state provenance defect: sibling `KernelState` values can allocate the
-same `ConstId`, while theorem values do not record their originating state. A
-theorem such as `|- c = T` from one fork can therefore be combined with
-`c := F` from its sibling. The Lean specification pack does not model this
-state-lineage invariant, so its successful build is not evidence that \#15 is
-fixed. The kernel must reject cross-lineage theorem reuse or make identities
-globally unique before implementation soundness can be claimed.
+== Types
 
-= Primitive Inference Rules
+Type-variable identifiers are natural numbers. The type grammar is:
 
-QED follows a HOL Light style primitive interface:
+```text
+Ty ::= bool | ind | var(i) | arr(Ty, Ty)
+```
 
-`REFL`, `ASSUME`, `TRANS`, `MK_COMB`, `ABS`, `BETA`, `EQ_MP`, `DEDUCT_ANTISYM_RULE`, `INST_TYPE`, `INST`.
+Lean names these constructors `Ty.bool`, `Ty.ind`, `Ty.var i`, and `Ty.arr a b`.
+The type `bool` denotes propositions, `ind` denotes individuals, and `arr a b`
+denotes functions from `a` to `b`.
 
-Judgmental convention in this section:
+A type substitution is a total map `theta : Nat -> Ty`. It acts structurally:
 
-- core rule premises are checked on resolved terms/sequents;
-- named forms are boundary presentations of those same rules;
-- assumption-set operations are interpreted on alpha-quotient classes.
+```text
+bool[theta]       = bool
+ind[theta]        = ind
+var(i)[theta]     = theta(i)
+arr(a, b)[theta]  = arr(a[theta], b[theta])
+```
 
-Each primitive rule must be specified by:
+A signature is a total map `S : Nat -> Ty`. Its value is a principal constant
+schema. A constant occurrence `const(c, theta)` has type `S(c)[theta]`.
+Polymorphism is therefore schema instantiation, not an untyped escape hatch.
 
-1. Input theorem and term constraints.
-2. Side conditions (typing, freeness, alpha-matching, etc.).
-3. Output sequent.
-4. Failure condition classification.
+== Type valuations and non-emptiness
 
-For example, selected rules can be presented in antecedent style:
+A type valuation is `rho : Nat -> Type` (the carrier universe used by this Lean development). It is admissible when every variable
+carrier is inhabited:
 
-- `REFL`: for any term $t$, conclude $tack.r t = t$.
-- `ASSUME`: for any boolean proposition $p$, conclude $p tack.r p$.
+```text
+Admissible(rho) := forall i, Nonempty (rho i)
+```
 
-$
-  (" "A_p tack.r s = t ," "B_p tack.r t = u" ")
-  /
-  (A_p union B_p tack.r s = u)
-$
+The type interpretation is:
 
-$
-  (" "A_p tack.r p = q ," "B_p tack.r p" ")
-  /
-  (A_p union B_p tack.r q)
-$
+```text
+denote(bool, rho)       = Prop
+denote(ind, rho)        = Nat
+denote(var(i), rho)     = rho(i)
+denote(arr(a, b), rho)  = denote(a, rho) -> denote(b, rho)
+```
 
-Detailed formal side conditions stated here are authoritative for all later rule use and metatheory.
+Every type has a nonempty denotation under an admissible valuation. For an arrow
+type, a constant function returning an inhabitant of the codomain is enough.
+`Ty.carrier_nonempty` proves this by induction; non-emptiness is established,
+not assumed as a model law.
 
-== Rule Schema: `REFL`
+= Contexts and terms
 
-Input:
+== Typed contexts
 
-- a well-formed term $t$.
+A context is a finite list of types. The variable at index zero has the first
+type in the list, and `succ` moves to an outer binding:
 
-Output:
+```text
+Var(a :: Gamma, a)
+Var(Gamma, a) -> Var(b :: Gamma, a)
+```
 
-- theorem $tack.r t = t$.
+This is De Bruijn syntax. Variable names and alpha-equivalence are not part of
+the core language.
 
-Side conditions:
+== Term grammar and typing
 
-1. $t$ must be typable.
-2. equality constructor must be formed at the type of $t$.
+Terms are indexed by both a signature/context and their result type:
 
-Failure clauses:
+```text
+var(v)       : Term(S, Gamma, a)                 when v : Var(Gamma, a)
+const(c, th) : Term(S, Gamma, S(c)[th])
+app(f, x)    : Term(S, Gamma, b)                 when f : Term(S, Gamma, arr(a,b))
+                                                   and x : Term(S, Gamma, a)
+lam(body)    : Term(S, Gamma, arr(a,b))          when body : Term(S, a :: Gamma, b)
+eq           : Term(S, Gamma, arr(a, arr(a, bool)))
+choice       : Term(S, Gamma, arr(arr(a, bool), a))
+```
 
-1. malformed term input;
-2. type construction failure in equality formation.
+There is no untyped application followed by a repair judgment. The type indices
+make domain mismatches unrepresentable. Constants and bound variables have
+distinct constructors.
 
-Antecedent form:
-$
-  (" "Gamma tack.r.r t_r : T" ") / (tack.r t_r = t_r)
-$
+== Notation for reading the calculus
 
-== Rule Schema: `ASSUME`
+In mathematical notation, $Gamma tack.r t : a$ means that `t` inhabits
+`Term S Gamma a`; it abbreviates an indexed term, rather than a separate
+algorithm for checking an untyped expression. We write $lambda x:a. t$ for
+`lam(t)`, $t u$ for `app(t,u)`, and $s =_a t$ for applying the intrinsic
+equality constructor at type `a` to `s` and `t`. Binder names in this notation
+are for the reader; the stored variables are De Bruijn indices.
 
-Input:
+For example, in context `Gamma = [a]` with outer variable `y`, the named
+expression `(lambda x:a. lambda z:a. x) y` reduces to `lambda z:a. y`. Its
+De Bruijn body is `lam(var(succ(zero)))`; substituting `y` shifts it past
+`z`, producing `lam(var(succ(zero)))` in the target context. The surviving
+outer variable remains outer, rather than being captured as `z`.
 
-- a proposition term $p$.
+== Renaming, substitution, and type instantiation
 
-Output:
+A renaming `r : Ren Gamma Delta` maps each variable to a variable of the same
+type. `Ren.lift` preserves the new zero variable and shifts outer variables.
 
-- theorem $p tack.r p$.
+A term substitution `sigma : Sub S Gamma Delta` maps each variable to a term of
+the same type. `Sub.lift` leaves the new zero variable unchanged and renames
+the substituted outer terms. Capture avoidance is structural.
 
-Side conditions:
+The operations `Term.rename`, `Term.substitute`, and `Term.instType` recurse
+over the typed term. The Lean proofs establish evaluation commutation for
+renaming and substitution, the beta evaluation equation, and evaluation
+coherence for type instantiation, including terms below binders.
+
+= Sequents and primitive derivations
 
-1. $p$ must have type $"bool"$.
-2. assumption set representation must admit $p$.
+== Sequent judgment
 
-Failure clauses:
+For a signature `S` and context `Gamma`, a sequent contains a list of boolean
+assumptions and a boolean conclusion:
 
-1. non-boolean proposition;
-2. invalid assumption-set insertion.
+```text
+Sequent S Gamma := { hyps : List (Term S Gamma bool),
+                     concl : Term S Gamma bool }
+```
 
-Antecedent form:
-$
-  (" "Gamma tack.r.r p_r : "bool " ," "[p_r]_alpha in Gamma_p" ")
-  /
-  (" "Gamma_p tack.r p_r" ")
-$
+`Derivation S s` is an inductive proposition indexed by the complete sequent
+`s`. A constructor can produce only the exact assumptions and conclusion in its
+type.
 
-== Rule Schema: `TRANS`
+== Primitive rules
 
-Input:
+The calculus has ten primitive constructors. In each rule, all displayed terms
+share the signature `S`; premises and conclusions share the stated context except
+for binder introduction and instantiation. `A` and `B` below denote assumption
+lists, `++` is list concatenation (the Lean helper `union`), and an empty list is
+omitted to the left of `|-`. Assumption order and duplicates remain in the
+syntax; validity requires each listed assumption to hold.
 
-- theorem $A_p tack.r s = t$;
-- theorem $B_p tack.r t = u$.
+There is no primitive choice axiom, defining-equation admission rule, or
+type-definition admission rule in `Derivation`. Choice is interpreted by the
+selector below; the extension results concern semantic validity separately.
 
-Output:
+=== Equality rules
 
-- theorem $A_p union B_p tack.r s = u$.
+```text
+REFL:
+  |- t = t
 
-Side conditions:
+ASSUME:
+  [p] |- p
 
-1. both conclusions must be equalities;
-2. the middle terms must match up to alpha-equivalence and type consistency;
-3. under boundary lowering, core matching is performed on typed De Bruijn terms (including binder-domain labels), not on type-erased structure.
+TRANS:
+  A |- s = t       B |- t = u
+  -----------------------------
+       A ++ B |- s = u
 
-Failure clauses:
+MK_COMB:
+  A |- f = g       B |- x = y
+  -----------------------------
+       A ++ B |- f x = g y
+```
 
-1. non-equality conclusion in either premise theorem;
-2. middle-term mismatch;
-3. type inconsistency in chained equality;
-4. boundary/core mismatch caused by typed-core inequality.
+`MK_COMB` requires `f` and `g` to have type `a -> b`, and `x` and `y`
+to have type `a`; the indices enforce these requirements.
 
-Antecedent form:
-$
-  (" "A_p tack.r s = t ," "B_p tack.r t = u" ")
-  /
-  (A_p union B_p tack.r s = u)
-$
+=== Abstraction and computation
 
-== Rule Schema: `MK_COMB`
+```text
+ABS:
+  weaken(A) |- s = t
+  -----------------------------
+  A |- (lam s) = (lam t)
 
-Input:
+BETA:
+  |- (lam s) x = s.substitute (Sub.single x)
+```
 
-- theorem $A_p tack.r f = g$;
-- theorem $B_p tack.r x = y$.
+`weaken` shifts each assumption past the new binder. The typed context form
+expresses the usual freshness condition. `BETA` uses the capture-avoiding
+substitution for the zero-index variable.
 
-Output:
+=== Propositional equality rules
 
-- theorem $A_p union B_p tack.r f x = g y$.
+```text
+EQ_MP:
+  A |- p = q       B |- p
+  -------------------------
+       A ++ B |- q
 
-Side conditions:
+DEDUCT:
+  A |- p           B |- q
+  -----------------------------------------------
+  (remove A q) ++ (remove B p) |- p = q
+```
 
-1. both premise conclusions must be equalities;
-2. $f$ and $g$ must have function type with argument type matching $x$ and $y$;
-3. codomain types of $f$ and $g$ must coincide.
+`remove` deletes every occurrence of the displayed assumption. `DEDUCT` has no
+additional union-equality side condition: its soundness follows from boolean
+equality semantics and the two premise-validity proofs.
 
-Failure clauses:
+=== Instantiation rules
 
-1. non-equality premise theorem;
-2. function-domain mismatch for application;
-3. codomain inconsistency across the two function sides.
+```text
+INST_TERM:
+  A |- p
+  ----------------
+  termSubst(sigma, A) |- p[sigma]
 
-Antecedent form:
-$
-  (" "A_p tack.r f = g ," "B_p tack.r x = y" ")
-  /
-  (A_p union B_p tack.r f x = g y)
-$
+INST_TYPE:
+  A |- p
+  ----------------
+  typeSubst(theta, A) |- p[theta]
+```
 
-== Rule Schema: `ABS`
+`INST_TYPE` maps contexts and constant occurrences with the same schema
+substitution. These are typed constructors, not post-hoc checks.
 
-Input:
+= Semantics
 
-- variable term $x$;
-- theorem $A_p tack.r s = t$.
+== Environments and interpretations
 
-Output:
+For admissible `rho`, an environment supplies a value of the corresponding
+denoted type to every variable:
 
-- theorem $A_p tack.r lambda (x : tau). s = lambda (x : tau). t$.
+```text
+Env rho Gamma := forall a, Var(Gamma, a) -> denote(a, rho)
+```
 
-Side conditions:
+An environment extension adds the value for the new zero-index variable. A
+constant interpretation has type:
 
-1. $x$ must be a variable term;
-2. premise conclusion must be an equality;
-3. $x$ must not occur free in assumptions $A_p$.
+```text
+ConstVal S := forall rho, Admissible(rho) -> forall c, denote(S(c), rho)
+```
 
-Failure clauses:
+A constant occurrence at schema instance `theta` is evaluated using the type
+valuation induced by `theta`:
 
-1. non-variable abstraction binder;
-2. non-equality premise theorem;
-3. free-variable violation in assumption set.
+```text
+(theta.pull rho)(i) = denote(theta(i), rho)
+denote(a[theta], rho) = denote(a, theta.pull rho)
+```
 
-Antecedent form:
-$
-  (A_p tack.r s = t)
-  /
-  (" "A_p tack.r lambda (x : tau). s = lambda (x : tau). t" ")
-$
+The second equality (`Ty.denote_subst`) transports the constant value into the
+carrier indexed by its instantiated type. This transport is part of evaluation,
+not a model law supplied by a caller.
 
-== Rule Schema: `BETA`
+== Term evaluation
 
-Input:
+Write `E(t)` for evaluation at `I, rho, h_rho, eta`. Evaluation is the following
+recursive function; the constant case uses the type transport just described.
 
-- a typed De Bruijn beta-redex term of shape $("DComb"("DAbs"(tau, t), u))$.
+```text
+E(var(v))       = eta(v)
+E(const(c, th)) = transport(I(th.pull rho, th.pull_admissible h_rho, c))
+E(app(f, x))    = E(f)(E(x))
+E(lam(t))       = fun x => eval(t, I, rho, h_rho, eta.extend x)
+E(eq)           = fun x y => x = y
+E(choice[a])    = select(denote(a, rho))
+```
 
-Output:
+In particular, equality at `bool` is equality of Lean propositions.
+Propositional extensionality relates this equality to logical equivalence, and
+function extensionality validates the abstraction rule.
 
-- theorem $tack.r ("DComb"("DAbs"(tau, t), u)) = "beta"(("DAbs"(tau, t)) u)$.
+`select` returns an element satisfying a predicate whenever that predicate has a
+witness. `select_natural` proves the required coherence under type
+instantiation. Choice coherence is therefore a theorem about the selector, not
+a soundness field assumed in a model.
 
-This is the De Bruijn substitution form (with the usual shift and shift-back to avoid capture). It corresponds to the named rule $tack.r ((lambda (x : tau). s) u) = s[u\/x]$ under boundary conversion.
+== Validity
 
-Side conditions:
+For a fixed constant interpretation `I`, a sequent is valid when every admissible
+valuation and environment satisfying its assumptions also satisfies its conclusion:
 
-1. the redex must be well-typed;
-2. substitution is capture-avoiding;
-3. the contracted De Bruijn term must be well-scoped, so the final $"shift"(-1, 0, ...)$ step is defined.
-4. the argument type must equal the abstraction binder-domain label: $"type_of"(u) = tau$.
+```text
+Valid I s := forall rho h_rho eta,
+  (forall h, h in s.hyps -> eval(h, I, rho, eta)) ->
+  eval(s.concl, I, rho, eta)
+```
 
-*Lemma (Well-Scoped Beta Contraction Safety).*
-For well-typed and well-scoped input redexes, the contraction
-$
-  "beta"(("DAbs"(tau, t)) u) = "shift"(-1, 0, "subst"(0, "shift"(1, 0, u), t))
-$
-does not create dangling indices.
+The definition covers open contexts as well as closed terms.
 
-Failure clauses:
+= Main metatheorems
 
-1. input is not a beta-redex of the required shape;
-2. type inconsistency in redex construction;
-3. boundary reconstruction failure;
-4. binder-domain label mismatch in typed De Bruijn core.
+== Evaluation laws
 
-Antecedent form:
-$
-  (" "r = "DComb"("DAbs"(tau, t), u) , "welltyped"(r) , "type_of"(u) = tau" ")
-  /
-  (tack.r r = "beta"("DComb"("DAbs"(tau, t), u)))
-$
+The Lean development proves by structural induction:
 
-== Rule Schema: `EQ_MP`
+- renaming commutes with evaluation;
+- substitution commutes with evaluation;
+- beta evaluation equals evaluation of the capture-avoiding substitution;
+- type instantiation commutes with evaluation, including choice.
 
-Input:
+The substitution law is:
 
-- theorem $A_p tack.r p = q$;
-- theorem $B_p tack.r p$.
+```text
+eval(t[sigma], eta) = eval(t, eta_sigma)
+eta_sigma(v) = eval(sigma(v), eta)
+```
 
-Output:
+Under type instantiation, evaluation at `rho` corresponds to evaluation of the
+original term at `theta.pull rho`, with the environment pulled back as well.
+The Lean statement uses `HEq` because the two carrier expressions have different
+type indices before transport. These lemmas are the semantic basis of the rule
+proof; they do not assume soundness of the derivation relation.
 
-- theorem $A_p union B_p tack.r q$.
+== Rule preservation and derivation soundness
 
-Side conditions:
+Each primitive rule preserves validity. The theorem `derivation_sound` proceeds
+by induction on `Derivation`, with one case per constructor:
 
-1. first premise must conclude an equality proposition;
-2. left side of equality must match the second premise conclusion up to alpha-equivalence;
-3. all involved terms must be boolean propositions.
+```text
+Derivation S s -> forall I, Valid I s
+```
 
-Failure clauses:
+For example, `TRANS` receives validity of `A |- s = t` and `B |- t = u`.
+An environment satisfying `A ++ B` satisfies both lists, so the induction
+hypotheses give `eval(s) = eval(t)` and `eval(t) = eval(u)`. Equality
+transitivity yields the conclusion. `INST_TERM` uses the substitution law to
+turn a target environment into the premise environment; `INST_TYPE` uses type
+transport and `select_natural`. Thus neither case postulates the desired rule
+soundness in the interpretation.
 
-1. first premise is not an equality theorem;
-2. proposition mismatch between equality lhs and premise theorem;
-3. non-boolean proposition in premises.
+The canonical interpretation `canonicalConstVal` chooses an inhabitant for every
+constant carrier, producing a model for every signature. `TypedHOLModel` packages
+an interpretation with the proved `ChoiceNatural` property used by the
+type-instantiation case.
 
-Antecedent form:
-$
-  (" "A_p tack.r p = q ," "B_p tack.r p" ")
-  /
-  (A_p union B_p tack.r q)
-$
+== Non-triviality witness
 
-== Rule Schema: `DEDUCT_ANTISYM_RULE`
+For `standardSignature`, `ind` is interpreted as `Nat`, constant 0 as zero,
+and constant 1 as successor. The closed sentence `succ(0) = 0` evaluates to
+`False`. By derivation soundness it is not derivable. This is a concrete
+non-triviality witness for the calculus.
 
-Input:
+= Conservative semantic extensions
 
-- theorem $A_p tack.r p$;
-- theorem $B_p tack.r q$.
+The Lean core defines semantic extension contracts over one fixed signature.
+These contracts prove validity results. They are not derivation-erasure theorems.
 
-Output:
+== Definitions
 
-- theorem $(A_p - {q}) union (B_p - {p}) tack.r p = q$.
+`DefinitionGate` contains a fresh identifier `c`, a closed right-hand side
+`rhs : Term S [] (S c)`, and `typeVars(rhs) subset typeVars(S c)`. Freshness
+means that `c` does not occur in `rhs`. Since `S` is total, `c` already has a
+schema slot. The gate overrides that slot pointwise; it does not allocate an
+identifier or prove that `c` was unused throughout a global declaration history.
 
-Side conditions:
+The extended interpretation assigns `c` the value of `rhs` in the old
+interpretation and leaves every other constant unchanged. Lean proves:
 
-1. both premises must conclude propositions;
-2. subtraction from assumption sets must be defined by alpha-aware proposition equality;
-3. resulting assumption set must remain finite.
+- the defining equation `c = rhs` is valid in the extended interpretation;
+- a sequent not containing `c` is valid before and after the interpretation
+  change in both directions.
 
-Failure clauses:
+== Specifications
 
-1. malformed assumption-set subtraction;
-2. proposition mismatch in set-removal targets;
-3. non-propositional premise conclusion.
+`SpecificationGate` contains a fresh identifier `c`, a type `a`, a predicate
+`predicate : Term S [a] bool`, a closed witness `w : Term S [] a`, and the
+conditions `c` absent from both predicate and witness, and
+`typeVars(predicate) subset typeVars(a)`. Its interpretation also requires
+`S(c) = a`. There is no additional type-variable closure field for the witness
+in the current gate.
+
+The body `predicate(w)` is the witness obligation. Given a typed derivation of
+that body, the extended interpretation assigns `c` the selected value satisfying
+the predicate. Lean proves the resulting predicate theorem and old-language
+validity equivalence.
+
+== Type-definition contracts
+
+`PredicateFamily` gives a representation type, a predicate on its carrier under
+each admissible valuation, and a witness for every valuation. The corresponding
+new carrier is the subtype of values satisfying that predicate. Lean proves:
 
-Antecedent form:
-$
-  (A_p tack.r p ," "B_p tack.r q)
-  /
-  (" "(A_p - {q}) union (B_p - {p}) tack.r p = q" ")
-$
-
-== Rule Schema: `INST_TYPE`
-
-Input:
-
-- type substitution $theta$;
-- theorem $A_p tack.r p$.
-
-Output:
-
-- theorem $theta(A_p) tack.r theta(p)$.
-
-Side conditions:
-
-1. substitution domain must contain only type variables;
-2. every target type in $theta$ must be a well-formed type admitted by the current type-extension discipline (`TypeDefOK`-closed theory state);
-3. substitution application must preserve term well-typedness;
-4. if the theorem being instantiated is a definitional theorem produced under `DefOK`, the instantiated head/body pair must satisfy definitional instantiation coherence (no body-only type drift);
-5. for every constant occurrence `"RConst"(kappa_c, tau_i)` in the theorem, instantiated type arguments must still satisfy $tau_i prec.eq tau_"gen"(kappa_c)$;
-6. theorem structure must be preserved under parallel type substitution.
-
-Failure clauses:
-
-1. invalid substitution mapping (non-type-variable key or malformed target type);
-2. inadmissible type target (violates current type-admissibility gate);
-3. typing failure after substitution;
-4. definitional coherence violation for definition-origin theorems;
-5. constant-instance mismatch against principal schema;
-6. malformed theorem structure under substitution.
-
-Antecedent form:
-$
-  (" "A_p tack.r p , "valid_ty_subst"(theta) , "admissible_ty_image"(T, theta) , "def_inst_coherent"(theta, A_p tack.r p) , "const_instance_ok"(theta, A_p tack.r p)" ")
-  /
-  (theta(A_p) tack.r theta(p))
-$
-
-*Bridge Note.*
-This rule is soundness-linked to three upstream contracts:
-
-- definition admissibility (`DefOK`) prevents ghost-type-variable drift under instantiation;
-- type admissibility (`TypeDefOK`) prevents empty-type semantic escape in substitution targets;
-- constant principal-schema instantiation guard (`prec.eq`) permits polymorphic constant use without collapsing type checks;
-- global admissibility envelope forbids bypassing either gate during theorem production.
-
-== Rule Schema: `INST`
-
-Input:
-
-- term substitution $sigma$;
-- theorem $A_p tack.r p$.
-
-Output:
-
-- theorem $sigma(A_p) tack.r sigma(p)$.
-
-*Definition (Parallel Substitution Snapshot).*
-For $sigma = {x_1 mapsto s_1, ..., x_n mapsto s_n}$, substitution is simultaneous: each $s_i$ is read in the original pre-substitution context, and no right-hand side is rewritten by another entry of $sigma$.
-
-Example (Swap Case):
-$
-  sigma = {x mapsto y, y mapsto x}
-$
-must exchange $x$ and $y$ in one parallel step, not via sequential chaining.
-
-Side conditions:
-
-1. substitution domain must contain only variable terms;
-2. each mapped term in $sigma$ must have the same type as its source variable;
-3. substitution must be capture-avoiding and applied in parallel.
-
-Failure clauses:
-
-1. non-variable key in substitution map;
-2. type mismatch in substitution pair;
-3. variable capture or malformed substitution application.
-
-Antecedent form:
-$
-  (" "A_p tack.r p ," valid"(sigma)" ")
-  /
-  (sigma(A_p) tack.r sigma(p))
-$
-
-== Rule-Level Constructive Preservation Capsules
-
-To make rule soundness usable as a constructive component (not a black-box claim), each
-primitive rule has a canonical preservation capsule of the form:
-$
-  "Preserve"_R : "valid"("Premises"_R) arrow.r.double "valid"("Conclusion"_R)
-$
-proved by direct construction from the rule side conditions.
-
-Capsule statements:
-
-1. $"Preserve"_("REFL")$: from typing of $t$, construct validity of $t = t$ by equality reflexivity.
-2. $"Preserve"_("ASSUME")$: from boolean typing of $p$, extend environment obligation with hypothesis membership.
-3. $"Preserve"_("TRANS")$: compose two equality-valid conclusions using middle-term alpha/core match and equality transitivity.
-4. $"Preserve"_("MK_COMB")$: apply congruence of application under function-domain/codomain typing side conditions.
-5. $"Preserve"_("ABS")$: lift equality under abstraction using binder freshness in hypotheses.
-6. $"Preserve"_("BETA")$: use typed De Bruijn substitution and well-scoped contraction lemma.
-7. $"Preserve"_("EQ_MP")$: rewrite proposition validity along boolean equality premise.
-8. $"Preserve"_("DEDUCT_ANTISYM_RULE")$: combine two implication-style derivations via alpha-aware assumption removal.
-9. $"Preserve"_("INST_TYPE")$: transport validity through admissible type substitution (`TypeDefOK` + `DefOK` coherence + constant-instance guard).
-10. $"Preserve"_("INST")$: transport validity through parallel capture-avoiding term substitution.
-
-*Theorem (Rule Capsule Closure).*
-Let $R$ range over the ten primitive rules above. If all side conditions of $R$ hold and
-all premise sequents are valid, then $"Preserve"_R$ yields validity of the rule conclusion.
-Proof is by case analysis on $R$ and invocation of the corresponding capsule construction.
-
-*Proof status.* The Typed HOL mainline constructs the standard interpretation and proves all ten typed rule capsules in `HOL/Rules.lean`, including general open-context `ABS`, exact assumption discharge `DEDUCT`, typed `INST_TYPE`, and typed `INST`. `HOL/Derivation.lean` proves validity for every model-independent indexed typed derivation; `HOL/Instantiation.lean:select_natural` constructs the required natural choice operator. `HOL/Definitions.lean`, `HOL/Specification.lean`, `HOL/Transport.lean`, and `HOL/Conservativity.lean` prove the typed extension and finite old-language semantic contracts, collected by `HOL/Soundness.lean`. The legacy `Model`/`RuleSoundness.lean` package is implementation refinement only.
-
-= Soundness Strategy
-
-The project-level soundness story is divided into six obligations.
-
-1. Rule-level preservation: every primitive rule preserves semantic validity.
-2. Definition-level conservativity: every constant-definition step used by the kernel satisfies $"DefOK"$ and preserves old-language provability.
-3. Type-level non-emptiness preservation: every type-constructor extension satisfies `"TypeDefOK"` so well-formed types remain semantically inhabited.
-4. Specification-level conservativity: every specification step satisfies `"SpecOK"` and preserves old-language provability.
-5. Interface safety: only primitive rules and admissibility-gated extensions can introduce theorem values.
-6. Derivation closure: any finite derivation tree built from primitive rules plus admissible extensions is sound.
-
-This decomposition is practical: it separates rule, gate, interface, and derivation obligations into reviewable proof blocks.
-
-*Status.* The Typed HOL mainline closes the semantic dependency chain: rule
-preservation, non-empty carriers, definition and specification conservativity,
-finite extension composition, model existence, non-triviality, and consistency
-are all kernel-checked. Boundary correspondence, distinct-state syntactic
-cross-theory erasure, legacy conformance, and MoonBit provenance remain
-implementation refinement obligations.
-
-Dependency closure for these obligations is now explicit:
-
-- Obligation 1 depends on: core typing, substitution lemmas, alpha-quotient assumptions, and semantic lifting lemmas.
-- Obligation 2 depends on: definitional side conditions, type-variable closure, and conservativity theorem.
-- Obligation 3 depends on: type-definition witness discipline and non-empty-type construction invariant.
-- Obligation 4 depends on: explicit `SpecOK` derived schema over Choice + `DefOK`, freshness/closure constraints, and specification conservativity theorem.
-- Obligation 5 depends on: theorem constructor encapsulation + boundary failure discipline + extension gate encapsulation.
-- Obligation 6 depends on: induction on derivation depth using Obligations 1, 2, 3, 4, and 5.
-
-== One-Page Soundness Dependency Map (Reader-First)
-
-Instead of one dense graph, we use a layered map read in page order (top -> down).
-In this map, each downward arrow means "derives to next layer."
-
-Layer 4 — Foundations (top):
-
-- F1: Signatures + reserved symbols.
-- F2: Elaboration + core typing.
-- F3: Substitution + alpha laws.
-- F4: Explicit infinity-anchor assumption (model-class restriction).
-- F5: Primitive choice-operator axiom schema.
-
-Layer 3 — Admissibility Gates:
-
-- A1: Primitive rule schemas + boundary denotation lemmas.
-- A2: Definitional admissibility (`DefOK`).
-- A3: Type admissibility (`TypeDefOK`).
-- A4: Specification admissibility (`SpecOK`, derived over Choice + `DefOK`).
-
-Layer 2 — Preservation Obligations:
-
-- P1: Rule-level preservation.
-- P2: Definition conservativity.
-- P3: Type non-emptiness preservation.
-- P4: Specification conservativity (for derived `SpecOK` admissions).
-- P5: Interface safety.
-
-Layer 1 — Global Result (bottom):
-
-- G1: Global derivation soundness.
-
-#align(center)[
-  #diagram(
-    node((0, 0.0), [Layer 4: Foundations]),
-    node((0, 1.0), [Layer 3: Admissibility Gates]),
-    node((0, 2.0), [Layer 2: Preservation Obligations]),
-    node((0, 3.0), [Layer 1: Global Derivation Soundness]),
-    edge((0, 0.0), (0, 1.0), "->"),
-    edge((0, 1.0), (0, 2.0), "->"),
-    edge((0, 2.0), (0, 3.0), "->"),
-  )
-]
-
-Review rule: every Layer 1 claim must be traceable upward through Layer 2/3 to Layer 4 foundations.
-
-== Constructive Closure: Derivation Objects and Erasure Operators
-
-The following derivation language records the historical implementation refinement
-route. It is not the Typed HOL soundness proof: the normative result is the semantic
-finite-extension theorem in `HOL/Conservativity.lean`.
-
-*Definition (Finite Derivation Objects).*
-For theory state $T$, a derivation object is an inductive tree:
-$
-  D ::= "Leaf"(s)
-  | "Rule"(r, [D_1, ..., D_n], s)
-  | "Gate"(g, "cert", D, s)
-$
-where $s$ is a sequent, $r$ is one primitive rule name, and $g in {"DefOK", "TypeDefOK", "SpecOK"}$.
-Write
-$
-  T tack.r "Derives"(D, s)
-$
-for the judgment "D is a valid finite derivation tree of sequent s in theory T".
-
-*Definition (Old-Language Predicate).*
-For base theory $T_0$, write $"OldLang"_(T_0)(s)$ when all symbols in $s$ are in the
-language of $T_0$.
-
-*Definition (Single-Head Erasure Operators).*
-For freshly admitted head $h$, define three recursive operators on derivation trees:
-$
-  "erase_def"_h, "erase_spec"_h, "erase_typedef"_h
-$
-Each operator is identity on leaves/rule nodes not mentioning $h$, and recursively rewrites
-only nodes whose justification uses the extension introducing $h$.
-
-Representative recursive clause (uniform shape):
-$
-  "erase"_h("Rule"(r, [D_1, ..., D_n], s))
-  =
-  "Rule"(r, ["erase"_h(D_1), ..., "erase"_h(D_n)], s')
-$
-where $s'$ is the old-language-normalized target sequent produced by the corresponding
-gate-specific rewrite.
-
-*Implementation refinement target (Definitional-Head Erasure Correctness).*
-If $T_1 = T_0 + {"def" h : tau = r}$ with `DefOK` and
-$
-  T_1 tack.r "Derives"(D, s) and "OldLang"_(T_0)(s)
-$
-then
-$
-  T_0 tack.r "Derives"("erase_def"_h(D), s)
-$
-Required proof: structural induction on a rule-indexed derivation, with a simulation from each extended-theory rule or gate node into $T_0$ and a language-membership invariant for the root.
-
-*Implementation refinement target (Specification-Head Erasure Correctness).*
-If $T_1$ is obtained by one `SpecOK` admission of head $h$, and
-$
-  T_1 tack.r "Derives"(D, s) and "OldLang"_(T_0)(s)
-$
-then
-$
-  T_0 tack.r "Derives"("erase_spec"_h(D), s)
-$
-The required gate case must reconstruct the specification theorem from the certified witness, Choice, and the definition of $h$, then eliminate the new head in the old-language root.
-
-*Implementation refinement target (Type-Extension Erasure Correctness for Old Language).*
-If $T_1 = T_0 + {"typedef" k / a}$ under `TypeDefOK`, and
-$
-  T_1 tack.r "Derives"(D, s) and "OldLang"_(T_0)(s)
-$
-then
-$
-  T_0 tack.r "Derives"("erase_typedef"_k(D), s)
-$
-The proof must account for type instantiation and all extension-local type occurrences, not only the root's syntax. The current Lean `erase_typedef` removes a gate tag while keeping every sequent and the same theory state.
-
-*Implementation conditional composition lemma.*
-If each step supplies a cross-theory erasure simulation preserving derivability of sequents in the preceding language, then finite backward composition yields local and global conservativity. `CrossTheoryObligations.lean` records the one-step simulation as an explicit premise. The existing Lean `erase_def`, `erase_spec`, and `erase_typedef` prove only preservation of `Derives` in a fixed `KernelState`; their `OldLang` predicate presently ignores the base theory argument. Neither fact proves the cross-theory premise.
-
-== Semantic Assumptions
-
-*Assumption (Base Non-Empty Prelude Types).*
-Initial built-in types (before user extensions) are interpreted by non-empty semantic carriers.
-
-*Assumption (Explicit Infinity Anchor).*
-There exists a distinguished foundation type `"ind"` and a function $f : "ind" -> "ind"$ such that:
-$
-  "Injective"(f) and not "Surjective"(f)
-$
-This assumption is explicit and is part of the trusted baseline. No hidden realization
-shortcut may replace it.
-
-*Definition (Canonical Infinity-Anchor Theorem Identifier).*
-The exported theorem name `"IND_INFINITY_AXIOM"` denotes exactly the sentence:
-$
-  tack.r exists f : "fun"("ind", "ind"). "Injective"(f) and not "Surjective"(f)
-$
-No alternate theorem shape may be treated as equivalent by presentation policy alone.
-
-*Typed HOL theorem (Global Non-Empty Type Preservation).*
-Given the base assumption above and admissible type-constructor extensions satisfying `"TypeDefOK"`, every well-formed type in the extended signature is interpreted by a non-empty carrier. Consequently, `INST_TYPE` ranges only over non-empty type interpretations.
-
-In Typed HOL this is `Ty.carrier_nonempty` together with
-`TypeDefContract.nonempty` for each predicate-family extension. The legacy
-`TypeDefOK` witness-string representation remains an implementation obligation.
-
-*Definition (Classical Typed HOL Model Discipline).*
-The soundness argument is read under the standard HOL set-theoretic model discipline: typing and instantiation preserve denotation, and theorem validity is evaluated in that model class.
-
-*Theorem (Choice-Axiom Model Compatibility).*
-The model class used for soundness must validate the reserved choice-operator schema
-introduced above; specification-derived constants are interpreted through that same
-choice-compatible model class. `HOL/Instantiation.lean:select_natural` proves the
-needed type-instantiation coherence for the canonical choice operator.
-
-*Definition (Admissible Model Class).*
-For theory state $T$, write $"ModelClass"(T)$ for the class of models satisfying:
-
-1. all Part I typing/denotation clauses;
-2. the reserved Choice schema;
-3. the explicit infinity-anchor sentence for `"ind"`;
-4. every admissible extension theorem admitted by gates in $T$.
-
-*Theorem (Typed HOL Model Non-Emptiness).*
-For the base theory $T_0$, $"ModelClass"(T_0)$ is non-empty. The canonical model is
-`HOL/Soundness.lean:canonicalModel`, and `typed_model_nonempty` proves its existence
-for every typed signature. Its finite extension interpretations are provided by
-`HOL/Conservativity.lean`.
-
-*Theorem (Typed HOL Semantic Non-Triviality Transfer).*
-If $M in "ModelClass"(T)$ and a closed sentence $psi$ is not valid in $M$, then
-$
-  not (T tack.r psi)
-$
-Proof. By contrapositive of rule/gate soundness: if $T tack.r psi$ then every
-$M in "ModelClass"(T)$ validates $psi$. Therefore a countermodel $M$ excludes derivability.
-
-*Theorem (Typed HOL Consistency Witness Form).*
-If $"ModelClass"(T)$ is non-empty, then there is no closed sentence $chi$ such that both
-$
-  T tack.r chi and T tack.r not chi
-$
-under the same semantic negation operator in the model class.
-
-*Theorem (Typed HOL Global Semantic Conservativity Under Admissible Extensions).*
-Let $T'$ be obtained from $T$ by a finite sequence of admissible steps from
-$
-  {"DefOK", "TypeDefOK", "SpecOK"} " (where SpecOK is derived over Choice + DefOK)"
-$
-then for any old-language sentence $phi$:
-$
-  "Valid"_(T', phi) arrow.r.double "Valid"_(T, phi)
-$
-and conversely. The Lean theorem is
-`HOL/Conservativity.lean:typed_global_semantic_conservativity`.
-
-*Implementation refinement proof sketch (finite-step backward erasure).*
-Let the extension sequence be
-$
-  T = T_0 mapsto T_1 mapsto ... mapsto T_n = T'
-$
-where each $T_i mapsto T_(i+1)$ is one admissible gate step.
-Given any finite derivation $D_n$ of $phi$ in $T_n$, define recursively:
-$
-  D_i = "erase"_(i)(D_(i + 1))
-$
-where $"erase"_(i)$ is the gate-specific erasure operator for step $T_i mapsto T_(i+1)$
-(Def-head erasure, Spec-head erasure, or Typedef erasure).
-
-By the three required cross-theory erasure simulations, each step preserves derivability of the
-same old-language root sentence:
-$
-  T_(i + 1) tack.r "Derives"(D_(i + 1), phi) arrow.r.double T_i tack.r "Derives"(D_i, phi)
-$
-Composing these implications for $i = n - 1, ..., 0$ yields
-$
-  T tack.r "Derives"(D_0, phi)
-$
-hence $T tack.r phi$. Therefore:
-$
-  T' tack.r phi arrow.r.double T tack.r phi
-$
-by finite-step composition. This syntactic derivation erasure remains a MoonBit
-refinement obligation and is not used to establish the Typed HOL semantic theorem.
-
-== Type Preservation Theorem for `MK_COMB`
-
-*Theorem (Type Preservation for `MK_COMB`).*
-Assume premises $A_p tack.r f = g$ and $B_p tack.r x = y$, with
-$
-  (" "Gamma tack.r.r f_r : "fun"(tau_1, tau_2) and Gamma tack.r.r g_r : "fun"(tau_1, tau_2) and Gamma tack.r.r x_r : tau_1 and Gamma tack.r.r y_r : tau_1" ")
-$
-Then by application typing,
-$
-  (" "Gamma tack.r.r f_r" "x_r : tau_2 and Gamma tack.r.r g_r" "y_r : tau_2" ")
-$
-and therefore
-$
-  Gamma tack.r.r (f_r" "x_r = g_r" "y_r) : "bool"
-$
-Proof. By application typing, both $f_r" "x_r$ and $g_r" "y_r$ have codomain type $tau_2$.
-Equality formation at a common type yields $(f_r" "x_r = g_r" "y_r)$ at type $"bool"$.
-Hence the `MK_COMB` output proposition preserves the theorem-object boolean invariant.
-
-= Part II: Engineering Realization (Informative + Conformance)
-
-This part is intentionally downstream of Part I. It records one concrete realization strategy
-and executable conformance hooks, but does not redefine logic.
-
-== Engineering Correspondence
-
-The formal clauses above map to implementation modules as follows.
-
-- `src/kernel/types.mbt`: type constructors, decomposers, predicates, and type-level operators.
-- `src/kernel/terms.mbt`: term constructors, decomposers, typing helper, and term-level operators.
-- `src/kernel/thm.mbt`: theorem abstraction and primitive rule implementation.
-- `src/kernel/sig.mbt`: scoped signature stack, constant registration, and definitional signature operations.
-
-This mapping is informative: it supports coverage review and does not alter any Part I definition or theorem.
-
-Concrete representation details: the reserved `@` identity is seeded into the initial signature for lookup while insertion of reserved names is rejected. `Thm` stores typed De Bruijn assumptions and conclusion; named `Term` values are reconstructed at the public boundary. The Part I statements about logical reservation and named presentation refer to semantic roles, not literal storage layout.
-
-== Audit Certificates and Replay Interface
-
-*Definition (Minimal Extension Certificate).*
-For each successful admissible extension gate step, the kernel appends one audit certificate:
-$
-  "ExtCert" ::= ("gate", "heads", "witness_digest")
-$
-where:
-
-- `"gate" in {"DefOK", "TypeDefOK", "SpecOK"}`
-- `"heads"` is the finite list of newly admitted symbol heads for that step
-- `"witness_digest"` is a stable theorem digest string for audit replay/indexing.
-
-*Constraint (Audit-Only Semantics).*
-Extension certificates are observability artifacts only. They are never accepted as a runtime proof
-that bypasses any admissibility gate or theorem-admissibility check.
-
-*Definition (Admissible Theorem at State).*
-$
-  "Admissible"(T, t_h)
-$
-means: there exists a Part I derivation object $D$ such that
-$
-  T tack.r "Derives"(D, "SequentOf"(t_h))
-$
-and every extension step referenced in $D$ satisfies the corresponding Part I gate judgment.
-
-*Definition (Sentence in Base Language).*
-$
-  "SentenceInLanguage"(T_0, t_h)
-$
-means: the theorem conclusion of $t_h$ is a closed boolean sentence and every non-reserved
-symbol in it belongs to the language of $T_0$.
-
-*Definition (Executable Old-Language Replay Check).*
-Given base state $T_0$, extended state $T_1$, and theorem $t_h$, define:
-$
-  "ConservativeReplayOK"(T_0, T_1, t_h)
-  := "Admissible"(T_1, t_h) and "SentenceInLanguage"(T_0, t_h) and "Admissible"(T_0, t_h)
-$
-This is the executable regression proxy for the conservativity target over old-language sentences.
-
-== Rule-to-Implementation Mapping (Current)
-
-- `REFL` -> `src/kernel/thm.mbt` (implemented; De Bruijn core + boundary lift).
-- `ASSUME` -> `src/kernel/thm.mbt` (implemented; De Bruijn core + boundary lift).
-- `TRANS` -> `src/kernel/thm.mbt` (implemented; De Bruijn core + boundary lift).
-- `MK_COMB` -> `src/kernel/thm.mbt` (implemented; De Bruijn core + boundary lift).
-- `ABS` -> `src/kernel/thm.mbt` (implemented; De Bruijn core + boundary lift).
-- `BETA` -> `src/kernel/thm.mbt` (implemented; De Bruijn beta core + boundary lift).
-- `EQ_MP` -> `src/kernel/thm.mbt` (implemented; De Bruijn core + boundary lift).
-- `DEDUCT_ANTISYM_RULE` -> `src/kernel/thm.mbt` (implemented; De Bruijn core + boundary lift).
-- `INST_TYPE` -> `src/kernel/thm.mbt` (implemented; De Bruijn substitution core + boundary lift).
-- `INST` -> `src/kernel/thm.mbt` (implemented; De Bruijn substitution core + boundary lift).
-
-== Conformance Obligations (Part I -> Part II)
-
-The following obligations define what counts as a faithful implementation of Part I:
-
-1. *Rule fidelity*: each exported theorem-constructor path must correspond to one Part I primitive rule schema with identical side conditions.
-2. *Boundary fidelity*: named/De Bruijn conversion functions must satisfy the Part I alpha/typing/denotation bridge lemmas on all successful inputs.
-3. *Scope fidelity*: push/pop/shadowing behavior must preserve resolved-theorem stability exactly as stated in Part I scope theorems.
-4. *Gate fidelity*: all extension admissions must be checked against Part I gate judgments (`DefOK`, `TypeDefOK`, `SpecOK`) without hidden implementation-only bypasses.
-5. *Certificate non-authority*: audit certificates may index/replay checks but never serve as proof objects that bypass gate or rule checking.
-
-The current `ks_specify_const` path checks a closed witness application and then creates the theorem `P(c)` inside the trusted kernel extension path. Its derivation from Choice plus the new definition is a pending formal obligation; until that derivation is checked or reconstructed, this path belongs to the trusted base for conformance review.
-
-Conformance failure in any item above is treated as an implementation defect, not as a change to the logic.
-
-== Conformance Transfer Theorem
-
-*Definition (Faithful Realization).*
-A realization $R$ is faithful to this manuscript iff all five conformance obligations above hold
-for every exported theorem-construction path and every extension-admission path.
-
-*Conditional theorem (Implementation-to-Logic Transfer; proved for abstract `CheckedDerivation` evidence).*
-If $R$ is faithful and $R$ accepts a theorem object with sequent $s$, then
-$
-  tack.r s
-$
-is derivable in Part I.
-
-Proof status: the Lean theorem reconstructs `Derivable` from an abstract
-`CheckedDerivation`; it does not yet prove that the current MoonBit
-implementation emits such evidence. By reconstruction on the acceptance trace produced by $R$:
-
-1. every primitive-step acceptance maps to one Part I primitive rule instance (Rule fidelity);
-2. every boundary conversion step is replaced by the corresponding Part I boundary lemma (Boundary fidelity);
-3. every scope mutation in the trace is erased using Part I scope-stability theorems (Scope fidelity);
-4. every extension acceptance is replaced by the matching Part I gate judgment (Gate fidelity);
-5. certificate events are dropped (Certificate non-authority).
-
-The reconstructed trace is a Part I derivation tree of $s$, hence $tack.r s$.
-
-== Design Delta vs HOL Light
-
-QED and HOL Light share the LCF principle and primitive-rule trust model, but QED currently differs in two engineering choices:
-
-1. Rule execution layer:
-  HOL Light executes directly over named terms; QED executes rule cores over De Bruijn objects and lifts results to named boundaries.
-2. Constant signature policy:
-  HOL Light uses globally unique constant naming; QED currently uses scoped signature stacks with explicit shadowing.
-
-These deltas are intentional and must be read as implementation-level policy choices, not changes to the object-logic proposition/equality calculus.
-
-== Lawful Axiomatic Type Classes via Dictionary Passing (Refinement Blueprint)
-
-This subsection records one refinement strategy for constrained generic reasoning in STT/HOL, without adding primitive kernel rules. The strategy follows three principles:
-
-1. class signatures + laws are encoded as higher-order boolean predicates,
-2. generic proofs carry class constraints as explicit assumptions/antecedents,
-3. concrete instances discharge those constraints by ordinary primitive instantiation + elimination rules.
-
-*Definition (Law Predicate Encoding).*
-For a class with one operation field, elaboration introduces a predicate over that operation. For semigroups:
-$
-  "IsSemigroup" : "fun"("fun"(alpha, "fun"(alpha, alpha)), "bool")
-$
-$
-  "IsSemigroup"(op) = forall x : alpha. forall y : alpha. forall z : alpha.
-  op(op(x)(y))(z) = op(x)(op(y)(z))
-$
-Admissibility is checked by the same definitional gate as other constants: fresh head, typed rhs, and no ghost type variables (`TVars` side condition in `DefOK`).
-
-*Definition (Constrained Generic Theorem Shape).*
-Generic theorem schemas are represented with explicit constraints:
-$
-  tack.r "IsSemigroup"(d) arrow.r.double "GenericBody"(d, u_1, ..., u_n)
-$
-Equivalent assumption-set presentations are also admissible:
-$
-  "IsSemigroup"(d) tack.r "GenericBody"(d, u_1, ..., u_n)
-$
-The equivalence between implication-style and assumption-style presentations is treated as an explicit derived-rule obligation over Part I primitives (not as parser sugar).
-
-*Definition (Frontend Instance Environment).*
-Dictionary resolution is performed against a dedicated instance environment $"I"$, separate from the scoped constant stack $"S"$.
-
-*Definition (Instance Record Shape).*
-An instance entry is represented as:
-$
-  i ::= ("cls", kappa_"cls", "ty", nu, "dict_schema", d_"gen", "reqs", Xi, "owner", M_"def", "vis", V)
-$
-where:
-
-- $kappa_"cls"$ is the class head identity;
-- $nu$ is a normalized target type expression;
-- $d_"gen"$ is the polymorphic dictionary schema term for this entry;
-- $Xi$ is a finite list of prerequisite class constraints (superclass/dependent constraints);
-- $M_"def"$ is the defining module identity;
-- $V$ is the visibility policy payload.
-
-*Definition (Type Normalization and Instance Key).*
-Type normalization used by resolution keys is:
-$
-  "NormTy" : "Type" -> "Type"
-$
-and instance keys are:
-$
-  "InstKey"(kappa_"cls", tau) := (kappa_"cls", "NormTy"(tau))
-$
-
-*Clarification (Role of `InstKey`).*
-`"InstKey"` is an indexing/caching artifact for frontend lookup acceleration. Logical
-instance selection is defined by schema matching (`"Match"`), not by key equality alone.
-
-*Scope Restriction (Single-Parameter Class Profile).*
-This realization profile supports only unary class heads and one target type argument per instance key.
-Multi-parameter classes are out of scope for this section and require separate coherence machinery (for example functional dependencies or equivalent constraints).
-
-*Definition (Type Equivalence Domain for Resolution).*
-Write:
-$
-  tau_1 equiv_"ty" tau_2
-$
-iff $tau_1$ and $tau_2$ are alpha-equivalent as simple types (same constructor tree, possibly different type-variable names).
-In the current STT kernel type grammar (`TyVal`/`TyApp`), there is no type-level beta/eta reduction; therefore key normalization is alpha-canonicalization, not higher-order type reduction.
-
-Canonical clauses for normalization:
-$
-  "NormTy"("TyVal"(a_i)) = "TyVal"(v_"idx"(a_i))
-$
-$
-  "NormTy"("TyApp"(k, [tau_1, ..., tau_n]))
-  = "TyApp"(k, ["NormTy"(tau_1), ..., "NormTy"(tau_n)])
-$
-where $"idx"$ maps each variable to first-occurrence order in a deterministic left-to-right traversal.
-
-*Definition (Parser Variable Stability for `NormTy`).*
-For any input type $tau$, let $"VarOrder"(tau)$ be the list of first occurrences of type variables produced by:
-
-1. depth-first traversal of the type syntax tree,
-2. left-to-right visit order of constructor arguments,
-3. recording only first occurrence of each variable.
-
-Let $"Ren"_tau$ map the $j$-th variable in $"VarOrder"(tau)$ to $"TyVal"(v_j)$.
-Normalization is then:
-$
-  "NormTy"(tau) := "TyRename"("Ren"_tau, tau)
-$
-
-Determinism/alpha-reflection clauses:
-$
-  tau_1 equiv_"ty" tau_2 arrow.r.double "VarOrder"(tau_1) and "VarOrder"(tau_2)
-  " induce alpha-equivalent normalized outputs"
-$
-so variable naming choices from parser/elaboration cannot change resolution outcomes.
-
-*Obligation (Normalization Stability under Type Equivalence).*
-Resolution conformance requires:
-$
-  tau_1 equiv_"ty" tau_2 arrow.r.double "NormTy"(tau_1) = "NormTy"(tau_2)
-$
-and conversely:
-$
-  "NormTy"(tau_1) = "NormTy"(tau_2) arrow.r.double tau_1 equiv_"ty" tau_2
-$
-
-*Definition (Instance Environment Carrier).*
-The environment is a class-indexed finite instance store:
-$
-  I : "ClassHead" arrow.r "FinSet"("InstRec")
-$
-with invariant:
-$
-  i in I(kappa_"cls") arrow.r.double "ClassOf"(i) = kappa_"cls"
-$
-
-*Definition (Type-Size Metric for Termination Checks).*
-$
-  "TySize"("TyVal"(a)) = 1
-$
-$
-  "TySize"("TyApp"(k, [tau_1, ..., tau_n]))
-  = 1 + "TySize"(tau_1) + ... + "TySize"(tau_n)
-$
-
-*Definition (Well-Formed Instance Environment).*
-Write:
-$
-  I tack.r "wf_I"
-$
-iff all conditions hold:
-
-1. *Finite store*: total entry set $"Entries"(I)$ is finite.
-2. *Schema normalization*: for each $i in "Entries"(I)$,
-   $
-     "TyOf"(i) = "NormTy"("TyOf"(i))
-   $
-3. *Class/index coherence*: if $i in I(kappa_"cls")$ then $"ClassOf"(i) = kappa_"cls"$.
-4. *Closed witness shape*: each entry has a closed law witness theorem of shape
-   $
-     tack.r "LawPred"("ClassOf"(i))("DictSchema"(i))
-   $
-   (empty assumptions at theorem-object level).
-5. *No overlap by unification*: for each class head $kappa_"cls"$ and distinct
-   $i_1, i_2 in I(kappa_"cls")$:
-   $
-     not "Unifiable"("TyOf"(i_1), "TyOf"(i_2))
-   $
-6. *No orphan*: for each entry $i$ in module $"OwnerMod"(i)$,
-   $
-     "OwnerMod"(i) = "OwnerClass"("ClassOf"(i))
-     " or "
-     "OwnerMod"(i) = "OwnerTyHead"("TypeHead"("TyOf"(i)))
-   $
-7. *Paterson-style decrease on prerequisites*: for each $i in "Entries"(I)$ and
-   each $(kappa_r, nu_r) in "Reqs"(i)$:
-   $
-     "TySize"(nu_r) < "TySize"("TyOf"(i))
-     " and "
-     "TVars"(nu_r) subset.eq "TVars"("TyOf"(i))
-   $
-8. *Prerequisite-key uniqueness*: for each entry $i$, normalized keys induced by $"Reqs"(i)$ are pairwise distinct.
-9. *Type-variable containment in prerequisites*:
-   $
-     "TVars"("Reqs"(i)) subset.eq "TVars"("TyOf"(i))
-   $
-   so prerequisite constraints cannot introduce unconstrained escaping type variables.
-
-*Definition (Module Resolution Context).*
-Resolution context is:
-$
-  Delta ::= ("mod", M_"cur", "visible", V_"cur")
-$
-with visibility predicate:
-$
-  "Visible"(Delta, i) := "OwnerMod"(i) in "VisibleMods"(Delta)
-$
-
-*Definition (Instance Admission Step).*
-Instance admission is a frontend state transition:
-$
-  I ; M tack.r "add_inst"(kappa_"cls", nu, d_"gen", Xi, V) mapsto I'
-$
-admissible only if:
-
-1. $nu = "NormTy"(nu)$;
-2. for each $i in I(kappa_"cls")$, $"Unifiable"("TyOf"(i), nu)$ is false;
-3. orphan side condition above holds for module $M$;
-4. $"TVars"(Xi) subset.eq "TVars"(nu)$;
-5. $"WitnessStratified"(I, (kappa_"cls", nu), i_"new")$;
-6. for each $(kappa_r, nu_r) in Xi$, $"TySize"(nu_r) < "TySize"(nu)$;
-7. $I' = "InsertInst"(I, kappa_"cls", i_"new")$;
-8. $I' tack.r "wf_I"$.
-
-*Definition (Global Resolution Coherence).*
-Define auxiliary predicates:
-
-$
-  "ResOut"(I, Delta, kappa_"cls", tau, d)
-  := (I ; Delta tack.r "Resolve"(kappa_"cls", tau) mapsto d)
-$
-$
-  "CanonEq"(d_1, d_2)
-  := ("CanonDict"(d_1) = "CanonDict"(d_2))
-$
-$
-  "ResUnique"(I, Delta, kappa_"cls", tau)
-  := forall d_1. forall d_2.
-     ("ResOut"(I, Delta, kappa_"cls", tau, d_1)
-      and "ResOut"(I, Delta, kappa_"cls", tau, d_2))
-     arrow.r.double "CanonEq"(d_1, d_2)
-$
-
-Then global coherence is:
-$
-  "Coherent"(I)
-  := forall Delta. forall kappa_"cls". forall tau.
-     "ResUnique"(I, Delta, kappa_"cls", tau)
-$
-
-*Theorem (Add-Instance Preservation).*
-$
-  (" "I tack.r "wf_I" ,
-  "Coherent"(I) ,
-  I ; M tack.r "add_inst"(kappa_"cls", nu, d_"gen", Xi, V) mapsto I'" ")
-  /
-  (" "I' tack.r "wf_I" and "Coherent"(I')" ")
-$
-This is the formal monotonicity contract required by module-wise extension: admissible
-instance admission preserves global coherence invariants.
-
-*Definition (Witness Stratification).*
-For candidate key $k$ and candidate entry $i$, write:
-$
-  "WitnessStratified"(I, k, i)
-$
-iff there exists a finite replay trace $"Pi"_w$ such that:
-
-1. $"ReplayPartI"("Pi"_w) mapsto (tack.r "LawPred"("ClassOf"(i))("DictSchema"(i)))$;
-2. $k in.not "ResolveKeys"("Pi"_w)$ (the witness trace does not resolve the key being admitted);
-3. $"ResolveKeys"("Pi"_w) subset.eq "EntryKeys"(I)$ (all resolution dependencies are in the old environment).
-
-*Definition (Resolution Judgment).*
-Implicit dictionary search is modeled as:
-$
-  I ; Delta tack.r "Resolve"(kappa_"cls", tau) mapsto d
-$
-Define the following premise shorthands:
-
-$
-  "NoFeedbackSubst"(theta, tau)
-  := "TVars"("TySubstRange"(theta)) subset.eq "TVars"("NormTy"(tau))
-$
-$
-  "TyMatch"(i, tau, theta)
-  := ("Dom"(theta) subset.eq "TVars"("TyOf"(i))
-      and "TySubst"(theta, "TyOf"(i)) = "NormTy"(tau)
-      and "NoFeedbackSubst"(theta, tau))
-$
-$
-  "Match"(I, kappa_"cls", tau, i, theta)
-  := (i in I(kappa_"cls") and "TyMatch"(i, tau, theta))
-$
-$
-  "ReqInst"(i, theta)
-  := "TySubstReqs"(theta, "Reqs"(i))
-$
-$
-  "ReqDecrease"(i, theta, tau)
-  := forall (kappa_r, tau_r) in "ReqInst"(i, theta).
-     "TySize"(tau_r) < "TySize"(tau)
-$
-$
-  "ReqOK"(I, Delta, i, theta, d_s)
-  := "ResolveReqs"(I, Delta, "ReqInst"(i, theta)) mapsto d_s
-$
-$
-  "BuildOK"(i, theta, d_s, d)
-  := d = "CanonDict"("BuildDict"(i, theta, d_s))
-     and "CoreTypeOK"(d, "TySubst"(theta, "DictTy"(i)))
-     and "ReplayLawOK"(i, theta, d_s, d)
-$
-
-*Definition (Dictionary Calculus for Instance Realization).*
-Each instance stores a polymorphic schema term $"DictSchema"(i) = d_"gen"$ with
-prerequisite dictionary placeholders $[v_1, ..., v_n]$ corresponding to $"Reqs"(i)$.
-Dictionary construction is:
-$
-  "BuildDict"(i, theta, [d_1, ..., d_n])
-  := "TermSubst"({v_1 mapsto d_1, ..., v_n mapsto d_n}, "TySubstTerm"(theta, d_"gen"))
-$
-This enforces a two-stage realization discipline:
-
-1. instantiate type parameters by $theta$ on the dictionary schema;
-2. fill prerequisite dictionary placeholders by resolved dictionaries.
-
-*Definition (Core Typing Contract for Dictionary Terms).*
-$
-  "CoreTypeOK"(d, tau) := ("empty" tack.r.r d : tau)
-$
-
-*Definition (Dictionary Canonicalization Policy).*
-$
-  "CanonDict" : "RTerm" -> "RTerm"
-$
-is a deterministic frontend alpha-canonicalization operator on resolved dictionary terms
-(stable binder renaming + stable constructor ordering; no semantic rewriting rule beyond alpha-normalization).
-No new Part I equality principle is introduced by this policy.
-
-*Definition (Deterministic Prerequisite Resolution).*
-Prerequisites are resolved over the declared order in $"Reqs"(i)$:
-$
-  "ResolveReqs"(I, Delta, []) mapsto []
-$
-$
-  (r = (kappa, tau) ,
-  I ; Delta tack.r "Resolve"(kappa, tau) mapsto d_r ,
-  "ResolveReqs"(I, Delta, Xi) mapsto d_s)
-  /
-  ("ResolveReqs"(I, Delta, "Cons"(r, Xi)) mapsto "Cons"(d_r, d_s))
-$
-Operationally, implementations maintain a $"Seen"$ key set during recursive calls; revisiting a key yields `"PrereqCycle"`.
-
-with success clause:
-$
-  (" "I tack.r "wf_I" ,
-  "Match"(I, kappa_"cls", tau, i, theta) ,
-  "Visible"(Delta, i) ,
-  "ReqDecrease"(i, theta, tau) ,
-  "ReqOK"(I, Delta, i, theta, d_s) ,
-  "BuildOK"(i, theta, d_s, d)" ")
-  /
-  (I ; Delta tack.r "Resolve"(kappa_"cls", tau) mapsto d)
-$
-where $"ResolveReqs"$ recursively resolves instantiated prerequisite constraints in
-$"ReqInst"(i, theta)$.
-
-*Theorem (Match Coherence from `wf_I`).*
-$
-  (" "I tack.r "wf_I" ,
-  "Match"(I, kappa_"cls", tau, i_1, theta_1) ,
-  "Match"(I, kappa_"cls", tau, i_2, theta_2)" ")
-  /
-  (i_1 = i_2)
-$
-Hence any two successful resolutions for one target class/type pair differ, at most, in
-substitution presentation and not in selected instance schema.
-
-*Lemma (BuildDict Typing Preservation).*
-$
-  (" "I tack.r "wf_I" ,
-  "Match"(I, kappa_"cls", tau, i, theta) ,
-  "ReqDecrease"(i, theta, tau) ,
-  "ReqOK"(I, Delta, i, theta, d_s) ,
-  "BuildOK"(i, theta, d_s, d)" ")
-  /
-  ("CoreTypeOK"(d, "TySubst"(theta, "DictTy"(i))) and "ReplayLawOK"(i, theta, d_s, d))
-$
-
-*Definition (Replay Obligation for Nested Dictionary Terms).*
-$"ReplayLawOK"(i, theta, d_s, d)$ holds iff elaboration emits a finite replay trace $"Pi"$ such that:
-
-1. $"Pi"$ is a sequence of Part I-admissible primitive-rule steps plus admissible gate references;
-2. replay of $"Pi"$ derives:
-   $
-     tack.r "LawPred"("ClassOf"(i))(d)
-   $
-3. every non-variable subterm constructor appearing in $d$ is either:
-  - a constant admitted by Part I definitional/specification/type gates, or
-  - a dictionary obtained from recursive prerequisite resolution in $d_s$.
-
-This condition prevents "frontend-only valid" nested dictionary constructions that lack Part I replay witnesses.
-
-*Definition (Logical Solvability Predicate).*
-Write:
-$
-  "Solvable"(I, Delta, kappa_"cls", tau)
-$
-iff there exist $i, theta$ such that:
-$
-  "Match"(I, kappa_"cls", tau, i, theta) and "Visible"(Delta, i)
-$
-and every prerequisite pair $r in "ReqInst"(i, theta)$ is recursively solvable under the same $(I, Delta)$.
-The recursion is interpreted under the well-founded decrease obligations from $"wf_I"$.
-
-*Theorem (Resolution Completeness on the Admissible Profile).*
-$
-  (" "I tack.r "wf_I" , "Solvable"(I, Delta, kappa_"cls", tau)" ")
-  /
-  (exists d. I ; Delta tack.r "Resolve"(kappa_"cls", tau) mapsto d)
-$
-
-*Theorem (Resolution Soundness to Solvability).*
-$
-  (I ; Delta tack.r "Resolve"(kappa_"cls", tau) mapsto d)
-  /
-  ("Solvable"(I, Delta, kappa_"cls", tau))
-$
-
-*Definition (Substitution Opacity / No-Feedback).*
-The substitution witness $theta$ used by `"Match"` and `"BuildDict"` is existential and
-resolution-local: it is not exported to callers and does not refine/modify the caller type environment.
-At matching time this is enforced syntactically by $"NoFeedbackSubst"(theta, tau)$.
-
-Formal boundary contract:
-$
-  (" "I ; Delta tack.r "Resolve"(kappa_"cls", tau) mapsto d ,
-  Gamma tack.r.r t_r : sigma" ")
-  /
-  (Gamma tack.r.r t_r : sigma)
-$
-So dictionary resolution can consume local matching evidence but cannot introduce
-new type-equality commitments into $Gamma$.
-
-*Definition (Resolution Failure Classification).*
-Resolution failure codes are:
-$
-  "ResolveError" ::= & "NoInstance"        && " key not found" \
-                   | & "InvisibleInstance" && " key found but not visible" \
-                   | & "AmbiguousInstance" && " malformed environment violates uniqueness" \
-                   | & "PrereqCycle"       && " recursive prerequisite cycle" \
-                   | & "PrereqFailure"     && " prerequisite resolution failed"
-$
-
-Layer-separation constraints for $"S"$ and $"I"$:
-
-- $"S"$ controls local name lookup/shadowing for ordinary terms only;
-- $"I"$ controls implicit instance resolution only;
-- push/pop on $"S"$ does not mutate $"I"$;
-- theorem-object acceptance in Part I never reads $"I"$ directly.
-
-*Definition (Instance Witness Obligation).*
-Each concrete instance provides a closed law witness:
-$
-  tack.r "IsSemigroup"("IntAdd")
-$
-
-*Admissibility Policy (Coherence-Oriented Baseline).*
-The baseline realization profile used for conformance adopts:
-
-1. *No local instances*: local scope mutation cannot introduce or remove implicit instances.
-2. *No overlap under matching*: for one class head, two distinct instance schemas must not be unifiable.
-3. *No orphan*: an instance declaration in module $"M"$ is admissible only if $"M"$ owns the class head or the target type head.
-4. *Fail on ambiguity*: if uniqueness cannot be established, elaboration fails and no theorem object is produced.
-
-*Refinement Pipeline (No New Kernel Rules).*
-Given a generic derivation and witness theorem:
-
-1. apply `INST_TYPE` to specialize type variables (e.g. $alpha := "int"$),
-2. apply `INST` to replace the dictionary variable (e.g. $d := "IntAdd"$),
-3. discharge the class antecedent using the witness theorem via an explicit Part I derived rule for implication elimination (constructed from `EQ_MP` or an equivalent `DEDUCT_ANTISYM_RULE` path).
-
-Resulting instance theorem shape:
-$
-  tack.r "GenericBody"("IntAdd", u_1, ..., u_n)
-$
-
-*Definition (Trait-Trace Erasure Function).*
-Elaboration traces with trait-resolution events are erased by:
-$
-  "EraseTraitTrace" : "TraitTrace" -> "PartITrace"
-$
-with clauses:
-
-1. dictionary-resolution events map to explicit `INST_TYPE`/`INST` substitutions with resolved dictionary terms;
-2. prerequisite-resolution events map to earlier substitutions in dependency order;
-3. law-discharge events map to explicit derived implication-elimination subtraces over Part I primitives;
-4. frontend bookkeeping-only events map to empty trace segments.
-
-*Theorem (Erasure Faithfulness for Trait Elaboration).*
-$
-  ("TraitAccept"(I, Delta, "Pi"_tr, s))
-  /
-  ("ReplayPartI"("EraseTraitTrace"("Pi"_tr)) mapsto (tack.r s))
-$
-
-*Meta-Theory Targets (Part II Conformance).*
-The following properties are required for this refinement profile:
-
-- *Resolution Uniqueness*: if $I ; Delta tack.r "Resolve"(kappa_"cls", tau) mapsto d_1$ and
-  $I ; Delta tack.r "Resolve"(kappa_"cls", tau) mapsto d_2$, then
-  $
-    "CanonDict"(d_1) = "CanonDict"(d_2)
-  $
-  (hence $d_1 equiv_alpha d_2$).
-- *Normalization Stability*: type-equivalent targets cannot diverge by normalization (`NormTy` respects and reflects $equiv_"ty"$).
-- *Resolution Termination*: recursive superclass/instance search must terminate on admissible instance graphs.
-- *Prerequisite Determinism*: ordered `"ResolveReqs"` evaluation yields one dictionary vector for each prerequisite list.
-- *Type-Variable Discipline*: prerequisite constraints satisfy $"TVars"(Xi) subset.eq "TVars"(tau)$ and do not escape admission context.
-- *Witness Stratification*: instance-law witnesses are provable from the old environment and cannot self-justify the to-be-admitted key.
-- *Resolution Completeness on Solvable Inputs*: every logically solvable visible key resolves successfully.
-- *Scope Insensitivity*: resolution outcomes are invariant under push/pop mutations of $"S"$ that do not alter $"I"$.
-- *Elaboration Erasure to Part I*: every accepted constrained elaboration trace erases to a derivation tree using only Part I primitive rules and admissible gate steps.
-
-*Boundary Clarification (LCF Discipline).*
-Resolution algorithms, candidate search order, and module visibility checks belong to frontend metatheory. Kernel trust remains unchanged: acceptance depends only on explicit dictionaryized terms and replayable Part I derivation traces.
-
-*Clarification (Syntactic vs Extensional Dictionary Equality).*
-In this profile, automatic resolution guarantees canonical syntactic representatives through `"CanonDict"`.
-Manually supplied dictionaries that are extensionally equal but syntactically different are not identified by extra kernel extensionality principles.
-This is a usability/coherence policy choice, not a kernel soundness risk.
-
-*Conservative Status Note.*
-Under the obligations above, this refinement is conservative with respect to Part I:
-
-- no new primitive inference rule is introduced,
-- all class-law usage is explicit in assumptions/antecedents,
-- all debt discharge is replayable as Part I primitive-rule traces.
-
-#keyblock("info", [Error Semantics Status], [
-  Kernel gate/rule entrypoints use typed error channels (`LogicError` for theorem rules and `SigError` for theory/state admissions). The remaining option-style helpers are internal normalization/lookup utilities and are not trusted external admission interfaces.
-])
-
-== Target Error Taxonomy (`LogicError`)
-
-The target kernel-facing error type is:
-
-$
-  "LogicError" ::= & "TypeMismatch"         && " typing mismatch" \
-                 | & "VariableCaptured"     && " capture risk" \
-                 | & "NotAnEquality"        && " equality shape required" \
-                 | & "NotBoolTerm"          && " boolean proposition required" \
-                 | & "AlphaMismatch"        && " alpha check failed" \
-                 | & "InvalidInstantiation" && " ill-formed substitution" \
-                 | & "VarFreeInHyp"         && " binder free in assumptions" \
-                 | & "NotTrivialBetaRedex"  && " invalid beta-redex shape" \
-                 | & "BoundaryFailure"      && " named/db conversion failed"
-$
-
-Intended alignment with rule-level failure clauses:
-
-- `REFL`: malformed term or equality formation failure -> `BoundaryFailure` or `TypeMismatch`.
-- `ASSUME`: non-boolean proposition -> `NotBoolTerm`.
-- `TRANS`: non-equality premise -> `NotAnEquality`; middle mismatch -> `AlphaMismatch`; chain typing failure -> `TypeMismatch`.
-- `MK_COMB`: non-equality premise -> `NotAnEquality`; function or argument typing mismatch -> `TypeMismatch`.
-- `ABS`: non-variable binder -> `InvalidInstantiation`; binder free in assumptions -> `VarFreeInHyp`.
-- `BETA`: non-redex input -> `NotTrivialBetaRedex`; redex typing failure -> `TypeMismatch`.
-- `EQ_MP`: equality premise malformed -> `NotAnEquality`; lhs/premise mismatch -> `AlphaMismatch`; non-boolean proposition -> `NotBoolTerm`.
-- `DEDUCT_ANTISYM_RULE`: set-removal target mismatch -> `AlphaMismatch`; non-propositional premise -> `NotBoolTerm`.
-- `INST_TYPE` and `INST`: invalid substitution shape -> `InvalidInstantiation`; capture-risk boundary -> `VariableCaptured`; post-substitution typing failure -> `TypeMismatch`.
-
-This mapping is a conformance target for engineering realizations and gives a direct bridge from Part I failure clauses to machine-checkable error constructors.
-
-= Concluding Remarks
-
-This document remains a living formal artifact. Part I is maintained as the logic source of truth; Part II is maintained as a conformance-reporting layer against Part I.
-
-Future refinement directions:
-
-1. keep constructive erasure operators (`erase_def`, `erase_spec`, `erase_typedef`) synchronized with gate side conditions and regression tests,
-2. preserve theorem-shape invariants for typedef/specification products as realization interfaces evolve,
-3. preserve audit-only semantics of extension certificates (no runtime bypass semantics),
-4. preserve executable old-language conservativity checks alongside kernel extension work.
-
-#keyblock("info", [Established Results], [
-  This revision establishes constructive closure inside the manuscript: reserved equality/choice discipline, two-layer judgments, alpha-quotient assumptions, boundary denotation bridges, explicit derivation-object erasure operators for Def/Spec/Type extensions, finite-step global conservativity composition, canonical infinity anchor, typedef product contracts, extension certificates, and executable old-language replay checks.
-])
-
-= Appendix A: Primitive Rule Dependency Matrix
-
-Each primitive rule is required to reference the following dependency blocks.
-
-- `REFL` -> core typing of input term; reserved equality formation; theorem boundary constructor.
-- `ASSUME` -> boolean typing in resolved layer; alpha-quotient insertion law.
-- `TRANS` -> equality destructor/constructor typing; alpha-aware middle-term matching; typed De Bruijn core matching (binder-domain labels preserved); assumption union laws.
-- `MK_COMB` -> function application typing; equality formation at codomain; assumption union laws.
-- `ABS` -> binder well-formedness; free-variable side condition over assumption quotient; equality congruence under abstraction.
-- `BETA` -> typed De Bruijn redex shape (`DAbs(tau, ...)`); binder/argument type agreement; well-scoped substitution lemmas; boundary lift stability.
-- `EQ_MP` -> boolean equality premise typing; alpha-aware premise matching; assumption union laws.
-- `DEDUCT_ANTISYM_RULE` -> quotient removal law; proposition typing for both conclusions; equality formation.
-- `INST_TYPE` -> well-formed type substitution; typing preservation under type substitution; theorem-structure preservation; definitional-instantiation coherence under `DefOK`; non-empty type admissibility under `TypeDefOK`; constant principal-schema instance preservation (`prec.eq`).
-- `INST` -> parallel capture-avoiding substitution; domain key well-formedness; typing preservation under term substitution.
-
-Review criteria for this matrix:
-
-- every side condition in each rule schema points to one of the dependency blocks above;
-- no side condition remains as an unbound prose-only requirement.
-
-= Appendix B: Closure Checklist
-
-Checklist for closure review:
-
-The numbered items below check whether an obligation is *stated*. They do not certify that it is proved or that the MoonBit implementation refines the stated rule. Current proof status is recorded in the audit matrices.
-
-1. Reserved logical equality symbol defined and non-shadowable.
-2. Named elaboration and resolved core typing formally separated.
-3. Scope-mutation stability theorem stated over resolved terms.
-4. Assumption sets defined as finite alpha-quotient sets.
-5. Boundary conversion includes denotation-preserving lemmas.
-6. Rule lifting theorem upgraded from structural to semantic preservation.
-7. Definitional extension side conditions include type-variable closure ($"TVars"(r) subset.eq "TVars"(tau)$).
-8. `DefOK` admissibility judgment and global admissibility envelope are stated and referenced.
-9. Primitive-rule dependency matrix completed (10/10 coverage).
-10. Soundness dependency graph present and cited by soundness obligations.
-11. Failure clauses remain aligned with rule side conditions after closure edits.
-12. Type-constructor extensions are gated by `TypeDefOK` with non-empty witness discipline.
-13. Global theory history (`DefHeads`) is separated from local poppable scope and is monotone.
-14. De Bruijn core matching is type-sensitive (no binder-domain type erasure during boundary lowering).
-15. Constant typing uses principal schema + instance relation (`tau prec.eq tau_gen`) so polymorphic constants remain usable at admissible instances.
-16. Primitive choice operator (`@`) and its axiom schema are explicitly stated in foundations.
-17. `SpecOK` is documented as a derived admission rule (Choice + `DefOK`), not a standalone primitive rule.
-18. Infinity-anchor theorem identifier (`IND_INFINITY_AXIOM`) is explicitly fixed.
-19. Typedef admission persists the fixed three-theorem product contract (AbscomposeRep, Rep-range, conditional RepcomposeAbs).
-20. Minimal extension certificates are emitted for `DefOK` / `TypeDefOK` / `SpecOK` and remain audit-only.
-21. Executable old-language replay check (`ConservativeReplayOK`) is present for conservativity regressions.
-22. Constructive derivation-object system (`Derives(D, s)`) is stated with explicit finite-tree recursion.
-23. Per-gate erasure operators (`erase_def`, `erase_spec`, `erase_typedef`) and finite-step composition theorem are stated constructively.
-24. Part II explicitly declares itself informative/downstream relative to Part I.
-25. Conformance obligations (rule/boundary/scope/gate/certificate) are stated as implementation duties.
-26. Conformance transfer theorem (faithful realization -> Part I derivability) is stated.
-27. Engineering correspondence is marked non-authoritative for logical truth.
-28. Error taxonomy mapping is marked as conformance target, not as independent logic source.
-
-This checklist serves as a combined logic-closure and conformance/regression gate.
-
-= Appendix C: Definition and State Soundness Validation Scenarios
-
-Validation scenarios for definition-layer completeness:
-
-1. *Ghost-Type Rejection Scenario*:
-  attempt $"def" c : "bool" = r(alpha)$ with $alpha in.not "TVars"("bool")$;
-  expected result: rejected by `TVars(r) subset.eq TVars(tau)`.
-2. *Instantiation Coherence Scenario*:
-  from an admissible definition theorem $tack.r c = r$, apply $"INST_TYPE"$ on head variables;
-  expected result: instantiated head/body remain coherent as one definitional instance.
-3. *Shadowing Separation Scenario*:
-  local scope shadowing of ordinary constants is permitted;
-  definitional head reuse is rejected by global freshness in $"DefOK"$.
-4. *Old-Language Conservativity Scenario*:
-  after admissible extension, any theorem not mentioning the new symbol is derivable iff it was derivable before.
-5. *Pop-Then-Redefine Rejection Scenario*:
-  define head $c$, pop local scope, attempt defining $c$ again;
-  expected result: rejected because $c in "DefHeads"(T)$ despite local lookup removal.
-
-Together, these five scenarios provide structured evidence for definition/state-layer closure.
-
-= Appendix D: Type Soundness Validation Scenarios
-
-Validation scenarios for type-extension completeness:
-
-1. *Empty-Type Constructor Rejection Scenario*:
-  propose a new type constructor without witness theorem;
-  expected result: rejected by $"TypeDefOK"$ admissibility gate.
-2. *Witness-Carrying Type Definition Scenario*:
-  introduce a type constructor with a valid non-emptiness witness;
-  expected result: accepted and preserves global non-empty-type invariant.
-3. *INST_TYPE Inhabitation Scenario*:
-  apply $"INST_TYPE"$ after admissible type extensions;
-  expected result: substitutions range over inhabited types only.
-4. *No Semantic Escape Scenario*:
-  attempt to derive a theorem relying on empty-carrier semantics;
-  expected result: blocked because no empty type can be introduced admissibly.
-5. *Polymorphic Constant Instantiation Scenario*:
-  define $id$ at principal schema $"fun"(alpha, alpha)$, then use it at $"fun"("bool", "bool")$ and $"fun"("int", "int")$;
-  expected result: both uses are accepted via the instance relation $tau prec.eq tau_"gen"$, without requiring per-type renamed constants.
-
-Together, these five scenarios provide structured evidence for type-layer closure.
-
-= Appendix E: Typed De Bruijn Core Validation Scenarios
-
-Validation scenarios for typed-core/boundary consistency:
-
-1. *Binder-Type Distinction Scenario*:
-  compare $lambda (x:tau_1). x$ and $lambda (x:tau_2). x$ with $tau_1 eq.not tau_2$;
-  expected result: lowered typed De Bruijn abstractions are distinct ($"DAbs"(tau_1, ...) eq.not "DAbs"(tau_2, ...)$).
-2. *TRANS Middle-Term Guard Scenario*:
-  chain two equalities whose middle terms are structurally similar but differ in binder-domain type labels;
-  expected result: TRANS rejects by typed-core mismatch.
-3. *BETA Binder Agreement Scenario*:
-  attempt beta contraction with argument type not equal to abstraction binder-domain label;
-  expected result: rejected before contraction.
-4. *Boundary Lift Type Coherence Scenario*:
-  lower and lift a theorem involving typed abstractions;
-  expected result: reconstructed theorem preserves abstraction-domain types and cannot cross-type-identify abstractions.
-
-Together, these four scenarios provide structured evidence for De Bruijn core/type-system coherence closure.
-
-= Appendix F: Specification and Choice Validation Scenarios
-
-Validation scenarios for derived specification-admission discipline:
-
-1. *Empty-Hypothesis Witness Requirement Scenario*:
-  provide a witness theorem with non-empty assumptions for specification introduction;
-  expected result: rejected by `SpecOK` witness-shape policy.
-2. *Freshness Collision Scenario*:
-  attempt to introduce specification constant $c$ where $c$ is reserved or already present in theory history;
-  expected result: rejected by specification freshness constraints.
-3. *Type-Schema Widening Scenario*:
-  attempt specification admission where the admission procedure widens schema beyond $"Gen"(tau)$;
-  expected result: rejected by strict type-schema lock.
-4. *Derived-Path Integrity Scenario*:
-  attempt to admit specification constant without explicit Choice + `DefOK` derivation trace;
-  expected result: rejected because `SpecOK` is derived-only in this stage.
-5. *Old-Language Conservativity Scenario*:
-  after admissible specification extension, prove a sentence not mentioning the new symbol;
-  expected result: derivable iff derivable before extension.
-
-Together, these five scenarios provide structured evidence for specification-layer closure.
-
-= Appendix G: Part II Conformance Validation Scenarios
-
-Validation scenarios for faithful realization transfer from Part II into Part I:
-
-1. *Rule-Fidelity Replay Scenario*:
-  replay each exported theorem-constructor trace as a sequence of Part I primitive rule instances;
-  expected result: one-to-one replay succeeds without introducing extra rule premises.
-2. *Boundary-Fidelity Scenario*:
-  for accepted conversions, check alpha/typing/denotation bridge lemmas against Part I boundary requirements;
-  expected result: accepted conversions satisfy all three bridges; rejected conversions produce no theorem.
-3. *Scope-Fidelity Stability Scenario*:
-  perform push/add/pop mutations after theorem construction and replay the same theorem object;
-  expected result: resolved-theorem premises/conclusion remain invariant exactly as Part I stability theorem states.
-4. *Gate-Fidelity Scenario*:
-  attempt to admit extensions via any path not passing `DefOK`/`TypeDefOK`/`SpecOK`;
-  expected result: admission rejected and no theorem object produced.
-5. *Certificate Non-Authority Scenario*:
-  supply valid-looking extension certificate metadata without matching admissibility derivation;
-  expected result: no theorem acceptance; certificates are observability only.
-6. *Lawful Dictionary Instantiation Scenario*:
-  construct one constrained generic theorem schema plus one closed instance witness, then replay the instance proof via `INST_TYPE`, `INST`, and antecedent discharge;
-  expected result: final concrete theorem is accepted with no residual class-law assumption, and replay uses only Part I primitive-rule obligations.
-7. *No-Orphan Admission Scenario*:
-  declare an instance in module $"M"$ where $"M"$ owns neither the class head nor the target type head;
-  expected result: admission rejected before theorem construction.
-8. *Overlap Rejection Scenario*:
-  attempt to admit two schemas for one class head that are unifiable (for example $"Eq"(alpha)$ and $"Eq"("int")$);
-  expected result: second admission rejected and resolution remains unique.
-9. *Scope-Shadowing Invariance Scenario*:
-  run dictionary resolution before and after local push/add/pop shadowing operations over $"S"$ while keeping $"I"$ unchanged;
-  expected result: identical resolved dictionary (up to alpha-equivalence) and identical replayable theorem trace.
-10. *Normalization Completeness Scenario*:
-  query resolution with two alpha-equivalent target types $tau_1 equiv_"ty" tau_2$ that differ only by type-variable naming;
-  expected result: matching succeeds for both targets with equivalent substitutions (via `"NormTy"` invariance), and resolution returns alpha-equivalent canonical dictionaries.
-11. *Nested Dictionary Replay Scenario*:
-  construct an instance whose dictionary is built from prerequisite dictionaries and auxiliary admitted constants;
-  expected result: `"BuildOK"` holds only when `"CoreTypeOK"` and `"ReplayLawOK"` both hold, and replay yields a Part I law theorem for the built dictionary term.
-12. *Witness Self-Cycle Rejection Scenario*:
-  attempt to admit key $k$ with a witness trace that resolves $k$ itself;
-  expected result: `"WitnessStratified"` fails and admission is rejected.
-13. *Solvable-Implies-Resolvable Scenario*:
-  build a visible acyclic prerequisite chain satisfying $"Solvable"(I, Delta, kappa_"cls", tau)$;
-  expected result: resolution succeeds and returns some dictionary term $d$.
-14. *Polymorphic-Match Scenario*:
-  register one schema instance with head $"Eq"("list"(alpha))$ and query resolution at $"Eq"("list"("int"))$;
-  expected result: `"Match"` succeeds with some type substitution $theta$ and the resolved dictionary is well-typed at the instantiated dictionary type.
-15. *Add-Instance Coherence Preservation Scenario*:
-  start from coherent $I$, admit one new instance through `"add_inst"` that satisfies non-overlap/orphan/Paterson side conditions, then replay prior and new resolutions;
-  expected result: resulting environment remains `"wf_I"` and `"Coherent"`, and previously resolvable queries keep the same canonical dictionaries.
-16. *No-Feedback Resolution Scenario*:
-  run resolution for a constrained goal under a fixed typing context $Gamma$, then continue typing unrelated terms;
-  expected result: generated matching substitution $theta$ is not exported, and typing facts in $Gamma$ are unchanged.
-17. *Parser Variable Stability Scenario*:
-  resolve the same goal twice with alpha-renamed parser-level type variables in target annotations;
-  expected result: `"VarOrder"` + `"NormTy"` yield alpha-equivalent normalized targets, and resolution returns the same canonical dictionary.
-
-Together, these seventeen scenarios provide structured evidence for Part II conformance completeness.
-
-= Appendix H: Claim-to-Proof Trace Matrix
-
-This appendix gives short review paths from high-level claims to their defining clauses and proof obligations. An anchor may be a target rather than a completed theorem.
-
-| Claim ID | High-level claim | Definition anchor | Proof anchor | Current status |
-| --- | --- | --- | --- | --- |
-| C1 | Primitive derivations are semantically preserving | Primitive rule schemas (`REFL`..`INST`) | `HOL/Soundness.lean:typed_derivation_sound_all` | Proved in the Typed HOL mainline; implementation correspondence deferred |
-| C2 | Definitional extension is conservative | `DefOK` judgment | `HOL/Definitions.lean:valid_definition_equation` + `HOL/Conservativity.lean:valid_interpretSequence_iff` | Proved in Typed HOL semantics; implementation bridge deferred |
-| C3 | Specification extension is conservative | `SpecOK` judgment | `HOL/Specification.lean:SpecificationGate.valid_constant` + `HOL/Conservativity.lean:valid_interpretSequence_iff` | Proved in Typed HOL semantics; implementation bridge deferred |
-| C4 | Type extensions do not leak empty carriers into admissible instantiation | `TypeDefOK` + non-empty construction invariant | `HOL/Types.lean:Ty.carrier_nonempty` + `HOL/TypeDefinitions.lean:TypeDefContract.nonempty` | Proved in Typed HOL semantics; signature bridge deferred |
-| C5 | Scope mutation does not invalidate resolved theorems | scoped stack judgments + one-shot resolution | Resolution Freeze under Scope Mutation | Abstract state law checked; concrete MoonBit refinement deferred |
-| C6 | Boundary conversion does not alter denotation on successful paths | `Term`/`Thm` lowering and lifting definitions | boundary denotation obligations | MoonBit boundary proof deferred |
-| C7 | Global admissibility yields global conservativity for old-language sentences | Typed HOL extension sequence | `HOL/Conservativity.lean:typed_global_semantic_conservativity` | Proved in Typed HOL semantics; distinct-state syntactic simulation deferred |
-| C8 | Faithful engineering realizations cannot exceed Part I logic | Part II conformance obligations | Conformance Transfer Theorem | Implementation-open; abstract `CheckedDerivation` transfer proved |
-| C9 | Non-triviality is semantically witnessed | `HOL/Concrete.lean` standard signature/model | `falseSentence_not_valid` and `HOL/Soundness.lean:typed_concrete_consistency` | Proved for the typed canonical choice model |
-| C10 | Audit artifacts do not change derivability | extension certificate definition | certificate non-authority obligation + conformance audit scenarios | Implementation-open; policy recorded |
-
-Review rule: follow claim -> definition -> proof anchor, then inspect the current status and the exact Lean theorem statement before treating the claim as established.
+- the subtype carrier is nonempty;
+- `abs(rep(x)) = x` for subtype values;
+- `rep(abs(x)) = x` when the predicate holds;
+- `pred(rep(x))` for every subtype value `x`.
+
+This is the carrier-level mathematics of a witnessed type definition. The current
+`Extension.typeDefinition` constructor preserves the constant interpretation; it
+does not allocate a new type-constructor signature. No stronger claim is made.
+
+== Finite extension sequences
+
+A finite list of extensions is interpreted as a sequence of semantic
+interpretation changes. If a sequent contains none of the fresh identifiers
+introduced by the sequence, Lean proves:
+
+```text
+Valid I_extended s <-> Valid I_base s
+```
+
+The freshness checks are local to each gate. A sequence does not check globally
+distinct identifiers or protect earlier gate equations against later overrides.
+For instance, two definitions of the same `c` with different right-hand sides
+can each satisfy their local gate; the second override need not preserve the
+first equation. Model non-emptiness here means an interpretation of the fixed
+signature exists, not that all declaration equations in an arbitrary sequence
+hold simultaneously.
+
+This is semantic validity conservativity. It does not translate an extended
+derivation into a base derivation, and no completeness theorem is used to infer
+such a translation.
+
+= Proof dependency and trust basis
+
+The proof dependency is one-way:
+
+#enum(
+  [typed terms and types],
+  [evaluation and substitution lemmas],
+  [validity preservation for each primitive rule],
+  [induction on typed derivations],
+  [extension validity and concrete non-triviality results]
+)
+
+The public package theorem is `QEDFV.HOL.typed_hol_proof_complete`.
+
+#table(
+  columns: (1.35fr, 2.45fr),
+  [*Topic*], [*Lean source*],
+  [Types and carrier non-emptiness], [QEDFV/HOL/Types.lean],
+  [Typed terms and substitutions], [QEDFV/HOL/Terms.lean],
+  [Evaluation and beta], [QEDFV/HOL/Evaluation.lean],
+  [Type-instantiation coherence], [QEDFV/HOL/Instantiation.lean],
+  [Primitive validity rules], [QEDFV/HOL/Rules.lean],
+  [Inductive derivation soundness], [QEDFV/HOL/Derivation.lean],
+  [Definitions and transport], [QEDFV/HOL/Definitions.lean, Transport.lean],
+  [Specification and typedef], [QEDFV/HOL/Specification.lean, TypeDefinitions.lean],
+  [Finite semantic conservativity], [QEDFV/HOL/Conservativity.lean],
+  [Concrete model and public package], [QEDFV/HOL/Concrete.lean, Soundness.lean],
+)
+
+`lake build` checks the complete QEDFV library. The audited `#print axioms`
+results for the public package, soundness theorem, semantic conservativity
+theorem, and concrete non-derivability theorem are `propext`, `Classical.choice`,
+and `Quot.sound`. These are Lean/mathlib foundational dependencies; the project
+adds no custom axiom to assert soundness.
+
+= Claims and exact limits
+
+The current formal result supports:
+
+- validity of every `Derivation` in every interpretation of its signature;
+- nonempty carriers under admissible type valuations;
+- the stated definition and specification semantic contracts;
+- the witnessed predicate-subtype carrier laws;
+- old-language validity invariance under finite modeled extensions;
+- non-derivability of the concrete false sentence.
+
+The current formal result does not establish:
+
+- completeness of the typed calculus;
+- syntactic conservativity by translating extended derivations;
+- a formal mapping from MoonBit kernel operations or theorem objects to Lean
+  `Derivation`;
+- correctness of parsing, elaboration, tactics, theorem replay, or user scripts;
+- correctness of mutable signature history, identity allocation, or provenance in
+  the MoonBit implementation;
+- a new type-constructor signature extension from `TypeDefContract` alone;
+- joint satisfaction of all gate equations under unrestricted later overrides.
+
+Implementation integration must enforce compatible declaration history and
+theorem provenance. The open sibling-state theorem-reuse defect (issue #15)
+is an implementation risk outside this Lean calculus; these proofs do not
+resolve or certify that behavior.
+
+These distinctions are essential when reading `lake build`: it checks the stated
+typed theory and its theorems. It does not verify a separate program.
+
+= Maintenance rule
+
+Changes to types, term constructors, primitive rules, or extension semantics must
+update the Lean definitions, this document, and the proof-status record together.
+A new rule or extension is part of the trusted mathematical core only after its
+typed constructor, semantic preservation argument, and integration into
+`derivation_sound` are checked.
+
+An implementation may optimize representation or proof search only when it
+preserves this calculus. Until a checked refinement establishes that
+correspondence, implementation behavior and Typed HOL theorems must be reported
+as separate evidence.

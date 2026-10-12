@@ -1,6 +1,6 @@
 # QED (Quite Easy Deduction)
 
-QED is a theorem prover for higher-order logic written in MoonBit, built kernel-first in the LCF tradition. A small trusted kernel implements HOL's primitive inference rules and is the only code that can create theorems; the parser, tactics, script driver and command-line tool build on it without being trusted, and every unsupported path fails closed instead of faking success. A formal specification (`doc/attachments/qed_formal_spec.typ`) is the only normative source for the kernel, and a Lean 4 pack in `formal_verification/` checks its conformance claims against the paper.
+QED is a theorem prover for higher-order logic written in MoonBit, built kernel-first in the LCF tradition. A small trusted kernel implements HOL's primitive inference rules and is the only code that can create theorems; the parser, tactics, script driver and command-line tool build on it without being trusted, and every unsupported path fails closed instead of faking success. The normative mathematical core is specified in `doc/attachments/qed_formal_spec.typ` and formalized in Lean 4 as the intrinsically typed HOL development under `formal_verification/QEDFV/HOL`. The Lean proof does not yet establish a refinement from the MoonBit implementation.
 
 ## Current state
 
@@ -67,7 +67,7 @@ moon test
 moon info && moon fmt
 ```
 
-The Lean formalisation builds with `lake build` in `formal_verification/`.
+The Typed HOL formalization builds with `lake build` in `formal_verification/`.
 
 ## Documentation
 

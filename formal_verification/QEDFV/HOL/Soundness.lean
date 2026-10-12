@@ -6,7 +6,7 @@ import QEDFV.HOL.Concrete
 namespace QEDFV.HOL
 
 /-! Public Typed HOL soundness entry points. These declarations only compose the
-independent proofs in the HOL namespace; the legacy `Lean.Expr` and MoonBit
+independent proofs in the intrinsically typed HOL namespace; any MoonBit
 refinement remains outside this semantic package. -/
 
 structure TypedHOLModel (S : Signature) where

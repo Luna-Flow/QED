@@ -4,7 +4,7 @@ This manual documents `v0.1.0` of `Luna-Flow/QED`, as it stands on `main`.
 
 ## Overview
 
-QED (Quite Easy Deduction) is a theorem prover for higher-order logic written in MoonBit. It follows the LCF approach: a small trusted kernel implements the primitive inference rules of HOL and is the only code that can create theorems, and everything else, from the parser to the command-line tool, builds on it without being trusted. Proofs are written as short theorem scripts with goal-directed steps; a script either yields a kernel theorem, fails with a structured diagnostic, or reports an unfinished proof. A formal specification defines the kernel, and a Lean 4 pack in `formal_verification/` checks the specification's conformance claims.
+QED (Quite Easy Deduction) is a theorem prover for higher-order logic written in MoonBit. It follows the LCF approach: a small trusted kernel implements the primitive inference rules of HOL and is the only code that can create theorems, and everything else, from the parser to the command-line tool, builds on it without being trusted. Proofs are written as short theorem scripts with goal-directed steps; a script either yields a kernel theorem, fails with a structured diagnostic, or reports an unfinished proof. A formal specification defines the kernel, and the Typed HOL development in `formal_verification/` proves the mathematical calculus; MoonBit refinement remains separate.
 
 The shipped proof language covers propositional logic with equality, theorem-header binders and goal-level `forall`; the [user manual](manual.md) has the exact support matrix.
 
@@ -54,7 +54,7 @@ Repository guides:
 | [Specification conformance](conformance.md) | How code and tests align with the specification, and what contributors must do |
 | [Documentation governance](governance.md) and [code governance](code_governance.md) | Repository rules for documents, package layering and alias entry points |
 | [Formal specification changelog](qed_formal_spec_changelog.md) | Revisions of the specification |
-| [Workspace audit (2026-04-18)](current_workspace_audit.md) | A point-in-time record of risks and gaps |
+| [Workspace audit (2026-10-12)](current_workspace_audit.md) | A point-in-time record of risks and gaps |
 
 Blackbox test files (`*_test.mbt`) and the alias files `alias.mbt` and `alias_test.mbt` belong to their packages; [code governance](code_governance.md) defines their rules. The theorem files in `examples/` and `prelude/` are inputs for the command-line tool, not packages.
 
@@ -91,4 +91,4 @@ moon check --target all
 moon test
 ```
 
-The examples on the package pages compile against the current code; [specification conformance](conformance.md) describes how they are checked. The Lean formalisation builds separately with `lake build` in `formal_verification/`.
+The examples on the package pages compile against the current code; [specification conformance](conformance.md) describes how they are checked. The Typed HOL proof builds separately with `lake build` in `formal_verification/`; it formalizes the mathematical calculus and does not yet prove a refinement from the MoonBit implementation.

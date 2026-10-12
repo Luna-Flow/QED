@@ -1,94 +1,59 @@
 # Specification conformance
 
-- Status: active
-- Audience: contributors, reviewers
-- Authority: engineering conformance guide; subordinate to [QED formal specification](../attachments/qed_formal_spec.typ) and current code/tests
-- Scope: code/test mapping, implementation alignment, contributor obligations, and documentation example rules
-- Last reviewed: 2026-10-08
+- Status: Typed HOL proof line active
+- Audience: maintainers and reviewers
+- Authority: [QED Typed HOL Core](../attachments/qed_formal_spec.typ)
+- Scope: Lean mathematical core and the explicitly separated MoonBit boundary
+- Last reviewed: 2026-10-12
 
-This document records how the current MoonBit engineering line aligns with [QED formal specification](../attachments/qed_formal_spec.typ),
-and what peripheral engineering must do to conform to the current core.
+The repository has one formal proof line: `formal_verification/QEDFV/HOL`. The
+Lean library defines an intrinsically typed HOL calculus and proves its semantic
+soundness. The MoonBit implementation remains a separate realization until a
+checked refinement connects its terms, theorem objects, and kernel operations to
+the Lean calculus.
 
-It is not a new normative layer; its role is to put "paper requirements", "current code", "current
-tests", and "peripheral engineering obligations" on the same table.
+## Evidence hierarchy
 
-## Normative source
+1. The Typst specification states the mathematical contract.
+2. `formal_verification/QEDFV/HOL` defines and proves that contract in Lean.
+3. MoonBit code and tests describe the current realization and its behavior.
+4. This document records the boundary and verification commands; it does not
+   add logical assumptions.
 
-QED's current authority relations are as follows:
+## Typed HOL evidence
 
-- [QED formal specification](../attachments/qed_formal_spec.typ) is the only normative source.
-- [`doc/attachments/qed_formal_spec.typ`](../attachments/qed_formal_spec.typ) is the specification source file.
-- Current code and tests determine the actual current shipped state.
-- [Documentation governance](governance.md) defines the documentation hierarchy and citation rules.
-- [User manual](manual.md) describes the implementation contract in the current repository.
-- This document describes engineering conformance, the code/test mapping, and the contributor checklist.
+| Area | Lean source | Result |
+| --- | --- | --- |
+| Types and non-empty carriers | `HOL/Types.lean` | proved |
+| Intrinsic terms, renaming, substitution | `HOL/Terms.lean` | proved |
+| Evaluation and beta | `HOL/Evaluation.lean` | proved |
+| Type instantiation and choice coherence | `HOL/Instantiation.lean` | proved |
+| Primitive rule validity | `HOL/Rules.lean` | proved |
+| Derivation soundness | `HOL/Derivation.lean` | proved |
+| Definition and specification contracts | `HOL/Definitions.lean`, `HOL/Specification.lean` | proved |
+| Type-definition carrier laws | `HOL/TypeDefinitions.lean` | proved |
+| Finite semantic conservativity | `HOL/Conservativity.lean` | proved |
+| Concrete non-triviality | `HOL/Concrete.lean` | proved |
+| Public theorem package | `HOL/Soundness.lean` | proved |
 
-The Lean anchors for Part II conformance are mainly in:
+The public entry point is `QEDFV.HOL.typed_hol_proof_complete`. The default
+`QEDFV` target imports `QEDFV.HOL.Soundness` only.
 
-- `formal_verification/QEDFV/Engineering/Conformance.lean`
-- `formal_verification/QEDFV/Spec/Items.lean`
-- `formal_verification/QEDFV/Audit/AppendixG.lean`
-- `formal_verification/QEDFV/Audit/PartI.lean`
+## Explicit limits
 
-## Implemented vs not implemented
+The Typed HOL theorem does not establish completeness, syntactic derivation
+erasure for extensions, or a MoonBit-to-Lean refinement. It also does not certify
+the parser, elaborator, tactics, theorem replay, mutable scope history, or
+provenance behavior. Those are implementation work and must not be presented as
+evidence for the Lean theorem.
 
-### Implemented and tested
+## Implementation evidence
 
-The parts currently backed by stable code and regression tests are:
-
-- typed term/type core
-- opaque theorem object + checked primitive rules
-- scoped signature stack and definition history discipline
-- `DefOK` / `TypeDefOK` / `SpecOK` gate
-- theorem admissibility around const identity, schema instance, definitional coherence, and
-  type-language admissibility
-- resolved elaboration boundary with frozen constant identity
-- parser normalize + raw-offset contract
-- parser-owned goal lowering boundary without direct tactics dependency
-- basis-backed lowering contract for surface connectors
-- canonical definition-theorem-backed connector recognition
-- audit certificates and executable conservative replay hook
-- definition theorem / unfold / replay helpers in the logic layer
-- supported propositional theorem scripting paths that replay to kernel `Thm`
-
-### Implemented but intentionally partial
-
-The following parts exist, but their coverage is still limited:
-
-- `Goal` / `ProofState` / step execution and the `ps_qed` success path in `tactics`
-- the theorem-script driver in `prover`
-- theorem-name based replay currently covers only a small catalog of stable propositions
-- the parser currently supports theorem-header binders, sequential `by` bodies, and a minimal
-  structured branch block syntax:
-  a theorem header may carry zero or more `(name : type)` binders;
-  the body may be written as a single line `theorem ... := by step; step; ...`,
-  or as a block `theorem ... := by` followed by a newline-separated list of steps;
-  `split` / `left` / `right` may still carry the minimal branch block syntax, and the parser keeps
-  raw binder/goal/step spans; the actual scheduling and blame attribution of branch bodies is
-  handled by `prover`
-- theorem-script also currently supports the `hole` / `hole <name>` unfinished-proof step;
-  theorem-header binders now form a shipped quantifier-facing surface that reliably enters
-  goal lowering, proof-state locals, and cmd diagnostics; a raw `forall` / `∀`
-  theorem goal also enters the shipped lowering path as goal-only sugar, but is still not
-  term-level syntax
-- parser-side `parse_let` / `parse_def_function` are formalized as a non-script utility surface
-
-These layers are not a complete frontend in which "any user proof can produce a trusted theorem".
-
-### Not implemented
-
-The following are currently not implemented and should be treated explicitly as missing capabilities:
-
-- richer proof blocks
-- promoted rewrite/simplify tactic / command surface
-- dictionary passing
-- typeclass frontend
-- instance environment / instance search
-- constraint solving
-- metavariables / holes
-- local type inference
-- higher-order unification
-- complete theorem reconstruction for arbitrary scripts / arbitrary tactic combinations
+The following mappings and contributor rules remain implementation evidence,
+not a checked refinement theorem. Existing tests do not cover every trust-boundary
+case: [issue #15](https://github.com/Luna-Flow/QED/issues/15) reports that
+sibling `KernelState` histories can accept each other's theorems and derive
+`T = F`. Its repair is deferred with the MoonBit work.
 
 ## Code and test mapping
 
@@ -105,7 +70,6 @@ The following are currently not implemented and should be treated explicitly as 
 | Operational proof scripting + M1 subset replay | `src/tactics/proof_state.mbt`, `src/prover/prover.mbt` | `src/tactics/proof_state_test.mbt`, `src/tactics/tactics_test.mbt`, `src/prover/prover_test.mbt`, `src/prover/prover_positive_corpus_test.mbt`, `src/prover/prover_negative_corpus_test.mbt` |
 | File-first `cmd` integration surface | `src/cmd/cmd.mbt` | `src/cmd/cmd_wbtest.mbt` |
 | Quantifier-facing binder / raw-`forall` corpus + CLI contract | `src/prover/corpus.mbt`, `src/prover/prover_mapping_matrix_test.mbt`, `src/cmd/cmd_corpus_wbtest.mbt` | `src/cmd/cmd_corpus_wbtest.mbt`, `src/cmd/cmd_wbtest.mbt`, `src/prover/prover_mapping_matrix_test.mbt` |
-| Formal Part I / Part II conformance pack | `formal_verification/QEDFV/Audit/PartI.lean`, `formal_verification/QEDFV/Engineering/Conformance.lean` | `lake build` |
 
 Regression points that deserve particular attention:
 
@@ -176,22 +140,8 @@ examples must currently follow these source constraints:
 - If the documentation adds, modifies, or removes a public example, the corresponding regression
   test must be added, modified, or removed at the same time.
 
-## Part II conformance obligations
 
-Lean now states the Part II obligations of peripheral engineering explicitly as engineering
-obligations. The core items are:
-
-- `ruleFidelity`
-- `boundaryFidelity`
-- `scopeFidelity`
-- `replayTraceFidelity`
-- `gateFidelity`
-- `certificateNonAuthority`
-- `conservativeReplayFidelity`
-
-For contributors, the more actionable checklist is the following set of rules.
-
-### Contributor checklist
+## Contributor checklist
 
 - `logic` may only provide checked wrappers, definition/unfold helpers, replay helpers, and
   organization of non-authoritative theorem references; it must not bypass the kernel to invent new
@@ -211,102 +161,26 @@ For contributors, the more actionable checklist is the following set of rules.
 - Extension certificates may only be audit artifacts; they must not be treated as a substitute for
   theorem acceptance.
 
-The goal of this checklist is to progressively compress the executable frontend into what the paper
-calls a faithful realization, rather than adding a second logical system in peripheral engineering.
+## Verification
 
-## Peripheral alignment
+Run the checks serially from the repository root:
 
-The engineering mainline of the current workspace is a deliberate consolidation:
-
-- The parser has moved from "relying on a prelude constant of the same name existing in the state" to
-  "basis-backed builder + resolve/lowering contract".
-- Logic has advanced from "registering surface symbol names" to "defined constants + definition
-  theorem + unfold/replay helpers + small theorem catalog + shared theorem inventory".
-- Tactics/prover have moved from a purely operational prototype to "the supported subset replays to
-  kernel `Thm`, with the support matrix and honest failures pinned down by the canonical corpus".
-
-For peripheral engineering to keep conforming to the current core, it should continue to:
-
-- extend replay builders on top of the shared theorem inventory and the canonical corpus;
-- write new shipped capabilities back into the canonical corpus / mapping matrix /
-  manual anchors, so the documentation does not lag behind the implementation;
-- turn goal / hole / unfinished-proof diagnostics into a formal frontend contract, while continuing
-  to state explicitly that they are not proof objects;
-- keep the parser/lowering/replay boundaries explicit for the shipped quantifier-facing path of
-  theorem-header binders, as well as for the raw `forall` theorem-goal sugar;
-- have `cmd` keep reusing the structured failure contract of `prover` instead of interpreting error
-  strings on its own;
-- keep expanding frontend expressiveness on top of the current file-first workflow.
-
-These tasks should reuse the existing tools:
-
-- `logic_prop_def_*`
-- `logic_prop_unfold_*`
-- `logic_apply_fun_eq*`
-- `logic_beta_normalize_eq`
-- `logic_eq_mp_bool`
-- `logic_eq_sym`
-- `logic_prop_replay_*`
-
-Do not create a separate ad-hoc proof semantics that holds only inside tactic/prover but cannot be
-replayed to the kernel path.
-
-## Remaining non-shipped surfaces
-
-The capabilities that are still not shipped include:
-
-- the theorem catalog is still small and not yet enough to support a large body of more natural
-  scripts; however, the inventory, mode boundaries, and corpus of the current shipped subset are
-  already fixed;
-- the canonical corpus still needs its hardening regressions filled in to complete the `H5`
-  integration gate;
-- the theorem-script body already supports minimal `M4b` structured branch blocks, but richer proof
-  blocks are still not implemented;
-- holes / unfinished proofs have now entered the shipped theorem-script surface, but hole
-  completion / metavariable authority is still not implemented;
-- the theorem-header binder quantifier-facing surface is shipped; the raw
-  `forall` / `∀` theorem-goal frontend is also supported as goal-only sugar;
-- the parser-side utility surface has been consolidated into a non-script API; going forward,
-  documentation and tests only need to be kept in sync;
-- the Lean line is currently a paper/conformance pack, not a direct mechanized proof of the MoonBit
-  source.
-
-A more accurate assessment of the status is therefore:
-
-- the Part I core and the main conformance conventions of Part II are in place;
-- a theorem-producing frontend over the supported subset already exists;
-- but a more complete faithful realization is still being consolidated.
-
-## Verification gate
-
-The currently recommended paper-alignment / engineering-conformance gate is:
-
-```bash
-moon build
-moon test
+```text
 cd formal_verification
 lake build
+lake env lean --stdin <<'LEAN'
+import QEDFV
+#print axioms QEDFV.HOL.typed_hol_proof_complete
+LEAN
+cd ..
 ```
 
-When preparing to merge or freeze a release, also run:
+The public package currently reports only `propext`, `Classical.choice`, and
+`Quot.sound` under `#print axioms`. Typst compilation is:
 
-```bash
-moon info
-moon fmt
-moon test
-cd formal_verification
-lake build
+```text
+typst compile doc/attachments/qed_formal_spec.typ /tmp/qed-typed-hol-spec.pdf
 ```
 
-Local check results:
-
-- 2026-10-08, MoonBit `moonc` v0.10.14: `moon check --target all` reports no warnings and `moon test`
-  passes (357 tests) on the `wasm`, `wasm-gc`, `js` and `native` targets
-- 2026-04-05: `lake build` passes; `formal_verification/` has not changed since
-
-When a change touches the trust boundary, scope, gates, the connector contract, proof scripting, or
-documentation conventions, also check:
-
-- [QED formal specification](../attachments/qed_formal_spec.typ)
-- [User manual](manual.md)
-- this document
+MoonBit tests remain useful evidence for the realization, but they do not enlarge
+the Typed HOL proof boundary.

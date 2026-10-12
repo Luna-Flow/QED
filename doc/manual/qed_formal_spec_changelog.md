@@ -1,5 +1,20 @@
 # Formal specification changelog
 
+## 2026-10-12 Typed HOL-only specification rewrite
+
+- Replaced the accumulated implementation-oriented manuscript with a concise
+  presentation of the typed calculus, semantics, primitive rules, proof
+  dependency, extension contracts, and exact proof boundary.
+- Removed all non-HOL Lean modules from `formal_verification/QEDFV`; the retained
+  library contains only `QEDFV/HOL` and its public soundness entry point.
+- Rewrote the proof plan, conformance guide, audit matrix, and current workspace
+  status around the Typed HOL mainline. Historical entries below record prior
+  states and are superseded where they describe retained approximate modules or
+  the former specification structure.
+- Verified the distinction between semantic validity conservativity and
+  syntactic derivation erasure; only the former is claimed by the current Lean
+  theorem.
+
 ## 2026-10-12 Typed HOL mainline and audit status
 
 - Integrated `HOL/Concrete.lean`, `HOL/TypeDefinitions.lean`, `HOL/Definitions.lean`,

@@ -1,140 +1,65 @@
 # Workspace audit (2026-10-12)
 
-- Status: point-in-time audit
-- Audience: maintainers, contributors
-- Authority: stage audit; subordinate to [QED formal specification](../attachments/qed_formal_spec.typ), current code/tests, and implementation docs
-- Scope: risks, gaps, and follow-up items that still remain material on the audited baseline
-- Last reviewed: 2026-10-12
+- Status: Typed HOL is the sole formal proof line.
+- Authority: [QED Typed HOL Core](../attachments/qed_formal_spec.typ).
+- Scope: Typed HOL proof status and material implementation risks.
+- Excluded: MoonBit implementation refinement and user-facing proof workflow.
 
-_Date: 2026-10-12_
+The former approximate Lean proof tree has been removed. The current formal
+library contains only the intrinsically typed development under
+`formal_verification/QEDFV/HOL`; the root module imports its public
+`Soundness` entry point. The library builds with `lake build`.
 
-This report audits the current workspace against the repository's source-of-truth
-order:
+## Verified results
 
-1. [QED formal specification](../attachments/qed_formal_spec.typ)
-2. current code and regression tests
-3. implementation-facing docs ([User manual](manual.md), [Specification conformance](conformance.md))
-4. top-level summary docs (`README.md`, `application.typ`)
+- Intrinsic simple types and De Bruijn terms, with typed renaming, substitution,
+  beta, and type-instantiation evaluation laws.
+- Semantic validity preservation for all ten typed derivation constructors.
+- Derivation soundness by induction, for every constant interpretation.
+- Semantic definition and specification contracts and witnessed predicate
+  subtype carrier laws.
+- Old-language semantic validity equivalence over finite modeled extension
+  sequences.
+- A concrete interpretation in which `succ(0) = 0` is false and therefore
+  underivable.
 
-Validation baseline used during this audit:
+The public theorem is `QEDFV.HOL.typed_hol_proof_complete`. Audited
+`#print axioms` output is `propext`, `Classical.choice`, and `Quot.sound`.
+There are no project-defined axioms, `sorry`, or `admit` in the retained Lean
+tree.
 
-- `moon test` -> pass (`357/357`)
-- `formal_verification/lake build` -> pass (594 jobs)
+## Boundaries
 
-These green gates show that the checked packages and regression suite are
-internally consistent on the current baseline. The Typed HOL line now includes
-constructed carriers, natural choice coherence, model-independent derivation
-soundness, typed definition/specification contracts, finite extension composition,
-canonical model existence, and old-language semantic transport. The remaining
-formal gaps are confined to the excluded MoonBit/refinement boundary: concrete
-named/De Bruijn correspondence, distinct-state provenance, and implementation
-transfer.
+The proof does not establish completeness, syntactic derivation erasure for
+extensions, a MoonBit-to-Lean refinement, or correctness of MoonBit parsing,
+elaboration, tactics, replay, mutable signature history, or theorem provenance.
+Tests and engineering audits remain separate evidence for those implementation
+properties.
 
-The default `QEDFV` library target now imports only `QEDFV.HOL.Soundness` and
-exports `QEDFV.HOL.typed_hol_proof_complete`. The former `Lean.Expr` proof pack
-remains in the tree as archival material and is not part of the Typed HOL release
-evidence.
+This status supersedes older audit claims about conditional proof packs or
+MoonBit conformance being part of the formal target.
 
-## Resolved since the previous audit
+## Open implementation soundness defect
 
-The following previously reported risks are no longer current findings:
+[Issue #15](https://github.com/Luna-Flow/QED/issues/15) remains open. The reported
+public-API reproduction reuses a theorem across sibling `KernelState` histories
+whose independently allocated constant identifiers collide, deriving `|- T = F`.
+`Thm` does not track state lineage, and the current admissibility checks do not
+establish that the theorem belongs to the receiving declaration history.
 
-- type-language admissibility is now enforced at trusted theorem / sentence
-  boundaries;
-- connector recognition is now definition-theorem-backed rather than raw
-  head-name acceptance;
-- non-`bool` surface connectors now fail closed with structured errors rather
-  than crashing on user-reachable paths.
-- the theorem-name inventory, the `exact` / `apply` mode boundary, and the
-  canonical positive / negative script corpus are now all explicit and have
-  regression coverage.
-- file-first `cmd` surface now exists, is covered by regression tests, and uses
-  structured tactic-failure context instead of raw string-only reporting.
-- the current M4 slice is now integrated on the shipped path:
-  theorem-header binders, sequential block-body theorem-script parsing, raw
-  binder/goal/step spans, and structured frontend diagnostics all have
-  regression coverage.
-- `ProofState` final theorem validation is now tightened to strict normalized
-  sequent matching, with regressions that reject the old wide-match behavior.
-- disjunction wrap replay now enforces the same explicit full-goal postcondition
-  discipline as conjunction merge.
-- local `exact` witnesses are now frozen to active hypothesis aliases only, and
-  local shadowing no longer falls through to same-name theorem entries.
-- canonical prover corpus and mapping-matrix coverage are now aligned with the
-  hardened replay/final-theorem contracts, so `H5` no longer depends on a
-  stale wider corpus contract.
-- minimal `M4b` is now shipped on the main theorem-script path:
-  structured branch blocks for `split` / `left` / `right` are parsed, replayed,
-  covered by parser/prover/cmd regressions, and diagnosed with stable branch
-  paths.
+This is a material implementation soundness defect, not just a missing proof.
+The existing 357-test baseline did not cover this scenario. A green Lean build
+proves the Typed HOL calculus; it cannot establish correctness of this MoonBit
+behavior. Repair and implementation refinement are deferred at the user's
+request. Acceptance requires rejecting the first incompatible cross-state step,
+covering related registration paths, and preserving valid linear-history use.
 
-This audit therefore focuses only on the issues and gaps that still remain
-material today.
+## Remaining engineering follow-up
 
-## Findings
+- Maintain checked lowering and replay as structured proof blocks expand.
+- Keep hole and unfinished-proof diagnostics aligned with the canonical corpus.
+- Keep quantifier-facing frontend lowering and CLI diagnostics covered.
+- Keep the research rewrite/simplify path outside theorem authority.
 
-The Typed HOL semantic proof scope is closed. The findings below are retained as
-implementation-boundary notes and are not evidence against the Typed HOL proof.
-
-### [P2] The Lean line remains a paper/conformance pack, not a direct proof of the MoonBit implementation
-
-**Why this matters**
-
-This is not a bug in the MoonBit kernel, but it is an important status boundary
-for honest communication. `lake build` proves the paper model and abstract
-conformance obligations. It does not mechanically bind the current MoonBit
-source tree to the Lean `Realization`.
-
-**Evidence**
-
-- `formal_verification/QEDFV/Engineering/Conformance.lean` reasons about abstract
-  realizations and obligations;
-- the traceability and rule-mapping files are paper/conformance artifacts, not a
-  generated link to MoonBit symbols;
-- repository docs already treat the Lean line as paper-first rather than direct
-  implementation verification.
-
-**Impact**
-
-- public assurance language must stay precise;
-- `lake build` should be read as “the stated Lean propositions and conformance
-  pack compile”, not “the model is constructed”, “the pack is semantically
-  closed”, or “the MoonBit program is machine-checked equivalent to Lean”.
-
-**Required follow-up**
-
-- keep docs precise on this boundary;
-- only add a stronger claim later if a concrete MoonBit-to-Lean binding story is
-  introduced as a new milestone.
-
-**Opened task(s)**
-
-- `A6`
-
-## Testing gaps that still matter
-
-The current suite is strong, but the following gaps remain important for the
-next stages:
-
-1. richer proof-block expansion beyond the current minimal branch-block slice;
-2. richer hole / unfinished-proof reporting beyond the canonical unfinished case;
-3. quantifier-facing frontend and its trust-relevant lowering contract;
-4. any future CLI feature must continue to reuse the current positive / negative
-  corpus instead of forking a second script matrix.
-
-## Overall assessment
-
-- The kernel and the current theorem-producing propositional subset remain in a
-  materially stronger state than the previous audit snapshot described.
-- This review did not uncover a direct checked-kernel soundness break in the
-  current shipped path.
-- The most important next work is now:
-  1. keep the new structured branch-block surface on the same checked lowering /
-     replay boundary;
-  2. move the roadmap toward richer user-facing proof experience: script, goal,
-     proof blocks, and quantifier frontend;
-  3. continue corpus + docs + conformance maintenance as the frontend expands.
-- The rewrite/simplify line remains research only.
-- The Lean line remains green and valuable, but it should continue to be
-  described as a paper/conformance pack unless a stronger implementation binding
-  is explicitly added later.
+These are implementation tasks, not additional assumptions of the Typed HOL
+proof. The current cleanup changes no MoonBit implementation.
