@@ -48,7 +48,9 @@ inductive Derivation (S : Signature) :
   | instTerm {Γ Δ : List Ty} {A : Sequent S Γ} (σ : Sub S Γ Δ)
       (d : Derivation S A) :
       Derivation S (termSubstSequent σ A)
-  | specify {Γ : List Ty} {a : Ty} (p : Term S (a :: Γ) .bool)
+  | /-- Hilbert choice from an explicitly derived witness. This is an internal
+      inference rule, not the `ks_specify_const` declaration extension. -/
+    chooseWitness {Γ : List Ty} {a : Ty} (p : Term S (a :: Γ) .bool)
       (w : Term S Γ a)
       (d : Derivation S { hyps := [], concl := p.substitute (Sub.single w) }) :
       Derivation S
@@ -74,7 +76,7 @@ theorem derivation_sound (hChoice : ChoiceNatural) (I : ConstVal S)
   | deduct dA dB ihA ihB => exact valid_deduct I _ _ ihA ihB
   | instType θ d ih => exact valid_inst_type hChoice I θ _ ih
   | instTerm σ d ih => exact valid_inst_term I σ _ ih
-  | specify p w d ih => exact valid_choose_from_witness I p w ih
+  | chooseWitness p w d ih => exact valid_choose_from_witness I p w ih
 
 theorem derivation_sound_all {Γ : List Ty} {s : Sequent S Γ}
     (d : Derivation S s) :
