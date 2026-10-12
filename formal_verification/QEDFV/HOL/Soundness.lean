@@ -4,6 +4,8 @@ import QEDFV.HOL.Specification
 import QEDFV.HOL.TypeDefinitions
 import QEDFV.HOL.Concrete
 import QEDFV.HOL.TyConCongruence
+import QEDFV.HOL.ModelExtension
+import QEDFV.HOL.TypeDefExamples
 
 namespace QEDFV.HOL
 
@@ -182,6 +184,16 @@ structure TypedHOLCoreProofPackage : Prop where
     ∀ {κ : TyConVal} (C : TypeDefContract κ) (ρ : TypeVal) (hρ : Admissible κ ρ)
       {x : Ty.denote κ ρ C.family.repTy}, C.family.pred ρ hρ x →
       C.rep ρ hρ (C.abs ρ hρ x) = x
+  typeDefinitionGateAdmissible :
+    ∀ {S : Signature} (G : TypeDefGate S) (M : Model S), (G.interpret M).κ.IsAdmissible
+  typeDefinitionGateLaws :
+    ∀ {S : Signature} (G : TypeDefGate S) (M : Model S), G.PredLocal M.I → G.WitnessAt M.I →
+      Valid (G.interpret M).I G.absRepSequent ∧ Valid (G.interpret M).I G.repRangeSequent ∧
+        Valid (G.interpret M).I G.repAbsSequent
+  typeDefinitionGateConservativity :
+    ∀ {S : Signature} {Γ : List Ty} (G : TypeDefGate S) (M : Model S) (s : Sequent S Γ),
+      (ModelExtension.typeDefinition G).oldLanguage s → (∀ c, c ∈ s.constIds → M.I.Local c) →
+      (Valid (G.interpret M).I s ↔ Valid M.I s)
   finiteExtensionConservativity :
     ∀ {κ : TyConVal} {S : Signature} {Γ : List Ty} (es : List (Extension κ S))
       (s : Sequent S Γ), oldLanguageSequence es s →
@@ -224,6 +236,9 @@ noncomputable def typedHOLCoreProofPackage : TypedHOLCoreProofPackage := by
     typeDefinitionAbsRep := ?_
     typeDefinitionRepRange := ?_
     typeDefinitionRepAbs := ?_
+    typeDefinitionGateAdmissible := ?_
+    typeDefinitionGateLaws := ?_
+    typeDefinitionGateConservativity := ?_
     finiteExtensionConservativity := ?_
     concreteConsistency := typed_concrete_consistency
     infinityAnchor := standard_ind_infinity_anchor
@@ -265,6 +280,12 @@ noncomputable def typedHOLCoreProofPackage : TypedHOLCoreProofPackage := by
     exact C.rep_in_range ρ hρ x
   · intro κ C ρ hρ x hx
     exact C.rep_abs_of_pred ρ hρ hx
+  · intro S G M
+    exact (G.interpret M).adm
+  · intro S G M hloc hW
+    exact G.laws M hloc hW
+  · intro S Γ G M s hOld hloc
+    exact (ModelExtension.typeDefinition G).valid_iff M s hOld hloc
   · intro κ S Γ es s hOld
     exact typed_global_semantic_conservativity es s hOld
 

@@ -34,6 +34,7 @@ the Lean calculus.
 | Infinity sentence and admission rule | `HOL/Infinity.lean`, `HOL/Derivation.lean` | exact sentence valid in all models; soundness case proved |
 | History-indexed definition and specification derivations | `HOL/ExtensionDerivation.lean` | proved for fresh constant IDs over a fixed signature |
 | Type-definition carrier laws | `HOL/TypeDefinitions.lean` | proved |
+| Type-definition gate semantics: new model, Abs/Rep laws, old-language invariance | `HOL/TypeDefGate.lean`, `HOL/ModelExtension.lean` | proved over model pairs |
 | Finite semantic conservativity | `HOL/Conservativity.lean` | proved |
 | Concrete and signature-generic non-triviality | `HOL/Concrete.lean` | proved |
 | Typed HOL core proof package | `HOL/Soundness.lean` | proved |
@@ -46,8 +47,10 @@ It does not certify growing-signature syntax or a MoonBit refinement. The defaul
 ## Explicit limits
 
 The Typed HOL theorem has a neutral type-constructor node `Ty.con` with an explicit
-constructor interpretation, but it does not establish registration or semantics of
-user type constructors (typedef), the MoonBit infinity registration gate, syntactic derivation erasure,
+constructor interpretation, and it models the semantics of a type-definition step over
+model pairs, but it has no derivation constructor for a type definition and no history
+freshness for the new constructor, constants or Abs/Rep theorems. It does not
+establish the MoonBit infinity registration gate, syntactic derivation erasure,
 or a MoonBit-to-Lean refinement. It also does not certify the parser, elaborator,
 tactics, theorem replay, or mutable scope history. MoonBit theorem provenance is
 covered separately by the issue #15 implementation invariant and regression

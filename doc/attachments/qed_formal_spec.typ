@@ -87,8 +87,9 @@ a separate refinement proof.
   `typed_hol_core_proof_complete`. It proves the typed core, including
   `ADD_ASSUM` and witness-based choice, plus the stated fixed-signature semantic
   extension results and the object-language infinity rule. It does not yet prove
-  a derivability-preserving calculus for growing theories or allocation of user type
-  constructors, or refinement of the MoonBit implementation. The removed
+  a derivability-preserving calculus for growing theories, a history-indexed
+  derivation rule that allocates a user type constructor (only the semantics of the
+  type-definition step is proved), or refinement of the MoonBit implementation. The removed
   approximation modules are not proof evidence.
 ])
 
@@ -430,9 +431,9 @@ The implementation's broader type syntax may represent $k(tau_1,...,tau_n)$ by
 `TyApp(k, args)`, with constructor arity checked against a type signature. A
 faithful extension must supply the new carrier and preserve type-substitution
 coherence. The checked `Ty` language has the neutral node `Ty.con` for such a $k$
-and an explicit constructor interpretation, but no gate yet allocates a $k$ or
-fixes its carrier. We therefore state the semantic subtype construction
-separately from its future signature integration.
+and an explicit constructor interpretation. We first state the semantic subtype
+construction on its own; the later section on type-definition gate semantics
+connects it to a gate that allocates a $k$ and fixes its carrier.
 
 *Definition (Witnessed predicate family).* Fix a representation type $tau$.
 For every admissible valuation $rho$, let $P_rho$ be a predicate on $D_(rho)(tau)$,
@@ -470,11 +471,15 @@ justified theorem products. The semantic construction supplies the carrier
 mathematics; it does not prove that this registration procedure is correct.
 
 #keyblock("warning", [Signature Integration Boundary], [
-  `TypeDefContract` records the witnessed family. `Extension.typeDefinition`
-  leaves the constant interpretation unchanged. Neither declaration allocates a
-  new type constructor (the node `Ty.con` and the interpretation `TyConVal` exist,
-  but nothing connects them to a type definition), and the carrier proof must not
-  be cited as a proof of that allocation or of its interaction with all future type substitutions.
+  `TypeDefContract` records the witnessed family at the carrier level, and the
+  legacy `Extension.typeDefinition` leaves the constant interpretation unchanged;
+  neither allocates a type constructor. The gate `TypeDefGate` and the model step
+  `TypeDefGate.interpret` (section on type-definition gate semantics) allocate a
+  constructor and define the new model, over model pairs `(κ, I)`; they are not yet
+  a constructor of `ExtensionDerivation`, so no Abs/Rep theorem is derivable in a
+  history, and the laws are proved only under the explicit hypotheses stated there.
+  The carrier proof must not be cited as a proof of the kernel's registration
+  procedure.
 ])
 
 == Term Grammar
@@ -1341,9 +1346,146 @@ $forall x,y:1. x = y$ is valid under both, as the proposition predicts.
 
 #lean-proof("TyConCongruence", ("valid_iff_of_tyCon_absent", "valid_allEq_one_unchanged", "valid_allEq_zero_changes"))
 
-These results change only the semantics. No gate yet allocates a constructor
-identifier, so the history-indexed interpretation and the type-definition step
-that use them are not part of this development.
+These results change only the semantics. The type-definition step that uses them
+is the subject of the next section.
+
+== Type-Definition Gate Semantics
+
+This section connects the semantic subtype construction to syntax. A gate allocates
+a constructor identifier and two constants of the total signature and changes the
+constructor interpretation. It models the semantic content of
+`ks_register_type_definition`: the closed predicate over the declared parameters, the
+Rep and Abs constants and the three laws. The derivation constructors that make the
+laws derivable in a declaration history, and the freshness of $k$, Rep and Abs with
+respect to that history, are a separate step; they are not part of this section.
+
+*Definition (Type-definition gate).* A gate over a signature $Sigma$ consists of
+
+- a constructor identifier $k$ and an arity $n$; the parameters are the type
+  variables $alpha_0,...,alpha_(n-1)$, written $bold(alpha)$;
+- a representation type $tau$ and a closed predicate
+  $P in "Tm"_(Sigma)([], tau -> "bool")$;
+- two distinct constant identifiers $r$ (Rep) and $a$ (Abs) with
+  $Sigma(r) = k(bold(alpha)) -> tau$ and $Sigma(a) = tau -> k(bold(alpha))$,
+
+subject to three side conditions: $"AVars"(P) subset.eq {0,...,n-1}$; $k in.not
+"Cons"(P)$; and neither $r$ nor $a$ occurs in $P$. The first is the kernel's check
+that the type variables of the predicate are parameters. It is stated for $"AVars"$
+and not for $"TVars"$ because the kernel counts the domain of every binder, and
+because evaluation depends on all annotations (previous section). The second makes
+the predicate independent of the carrier being defined, so the definition below is
+not circular. The third is local freshness of the new constants.
+
+#lean-def("TypeDefGate", ("TypeDefGate", "paramTy", "TypeDefGate.newTy"))
+
+*Definition (Subtype carrier).* For a type $E$ and a predicate $Q$ on $E$ let
+$"Sub"(E,Q) = {x in E : Q(x)}$ if $Q$ has a witness and the one-point carrier
+otherwise. It is always nonempty. If $Q$ has a witness, $"rep"$ is the projection and
+$"abs"$ is the abstraction of the previous section (an element satisfying $Q$ is kept,
+any other is sent to a fixed witness); otherwise $"rep"$ is constant. These are
+`SubCarrier`, `SubCarrier.rep` and `SubCarrier.abs`, and on the subtype branch they
+are `PredicateWitness.rep` and `PredicateWitness.abs`
+(`SubCarrier.rep_eq_witness`, `SubCarrier.abs_eq_witness`).
+
+#lean-def("TypeDefGeneric", ("SubCarrier", "SubCarrier.rep", "SubCarrier.abs"))
+#lean-proof("TypeDefGeneric", ("SubCarrier.nonempty", "SubCarrier.abs_rep", "SubCarrier.pred_rep", "SubCarrier.rep_abs", "SubCarrier.rep_eq_witness", "SubCarrier.abs_eq_witness"))
+
+*Definition (Model after a type-definition step).* Let $(kappa,I)$ be a model with
+$kappa$ admissible. For a tuple of carriers $X = (X_0,...,X_(n-1))$ let $rho_X$ send
+$i < n$ to $X_i$ and every other variable to the one-point carrier, and let
+$P_X$ be the predicate on $D_(kappa,rho_X)(tau)$ defined by $P_X(x)$ iff
+$rho_X$ is admissible and $E_(I,rho_X,[])(P)(x)$ holds. The new constructor
+interpretation $kappa'$ agrees with $kappa$ except at $(k,n)$, where
+$kappa'(k,n,X) = "Sub"(D_(kappa,rho_X)(tau), P_X)$. The predicate is evaluated in the
+old model, so there is no fixed point to solve. The new constant interpretation $I'$
+sends $r$ to the Rep of this subtype carrier and $a$ to its Abs, both transported
+along the equality $D_(kappa,rho_X)(tau) = D_(kappa',rho)(tau)$ for $rho$ with $rho(i) = X_i$
+($i < n$), which holds by type congruence because $"TVars"(tau) subset.eq {0,...,n-1}$ and
+$k in.not "Cons"(tau)$. For any other constant $c$ whose schema avoids $k$, $I'(c)$ is
+$I(c)$ transported along the equality of the two denotations of its schema; for the
+remaining constants $I'(c)$ is a canonical element.
+
+#lean-def("TypeDefGate", ("TypeDefGate.holds", "TypeDefGate.holdsAny", "TypeDefGate.carrier", "TypeDefGate.newTyCon", "TypeDefGate.repVal", "TypeDefGate.absVal", "TypeDefGate.baseConst", "TypeDefGate.newConst"))
+#lean-def("ModelExtension", ("Model", "TypeDefGate.interpret"))
+
+*Proposition (Admissibility).* If $kappa$ is admissible, so is $kappa'$.
+
+*Proof.* At $(k,n)$ the carrier $"Sub"$ is nonempty whether or not the predicate has a
+witness; elsewhere $kappa'=kappa$.
+
+*Lemma (Agreement).* Let $rho$ be admissible for $kappa'$ and let $rho_0$ be the
+valuation sending $i < n$ to $rho(i)$ and every other variable to the one-point
+carrier. If $I$ is local on the constants of $P$, then for $x$ in $D_(kappa,rho_0)(tau)$,
+$P_X(x)$ holds iff $E_(I',rho,[])(P)$ holds of the transport of $x$ to $D_(kappa',rho)(tau)$.
+
+*Proof.* Apply evaluation congruence to $P$ under $(kappa',I',rho)$ and $(kappa,I,rho_0)$
+with the variable agreement region ${i : i < n}$ and the constructor agreement
+region ${j : j != k}$. These cover $"AVars"(P)$ and $"Cons"(P)$ by the first two side
+conditions. Every constant $c$ of $P$ is neither $r$ nor $a$ (third condition) and its
+instances avoid $k$, so $I'(c)$ is $I(c)$ at the pulled-back valuation of $rho$, and
+the two pulled-back valuations of an instance agree on the variables of $Sigma(c)$ by type
+congruence. Locality of $I$ on $c$ identifies the two values. The environment is empty.
+
+#lean-proof("TypeDefGate", ("TypeDefGate.holdsAny_iff", "TypeDefGate.agreeAt_new"))
+
+*Theorem (Type-definition laws).* Let $(kappa,I)$ be a model with $kappa$ admissible and
+$I$ local on the constants of $P$, and write $(kappa',I')$ for the new model. In
+$(kappa',I')$:
+$
+  tack.r "Abs"("Rep"(x)) = x quad (x : k(bold(alpha))),   P("Rep"(x)) quad (x : k(bold(alpha))),   P(y) tack.r "Rep"("Abs"(y)) = y quad (y : tau)
+$
+are valid, where the second needs the *witness hypothesis* that $P$ has a witness at every
+admissible valuation of the old model: for every $rho$ admissible for $kappa$ there is
+$x$ with $E_(I,rho,[])(P)(x)$. The first and third need no witness hypothesis.
+
+*Proof.* Let $rho$ be admissible for $kappa'$ and $T = kappa'(k,n,rho|_n)$, which is
+$"Sub"(D_(kappa,rho_0)(tau), P_(rho|_n))$ by definition of $kappa'$. The values of the terms
+$"Rep"$ and $"Abs"$ at $rho$ are the transports of $"rep"$ and $"abs"$ of this carrier. The first
+law is the law $"abs"("rep"(x)) = x$ of the subtype branch if there is a witness; without a
+witness $T$ is the one-point carrier and any two elements are equal. The third law
+follows from $"rep"("abs"(y)) = y$ for $P_(rho|_n)(y)$, which the Agreement lemma
+transfers to the hypothesis $P(y)$; the hypothesis $P(y)$ is itself a witness, so no
+further assumption is needed. The second law is the range property of $"rep"$, which holds
+on the subtype branch, and the witness hypothesis applied to $rho_0$ shows that this
+branch is taken.
+
+#lean-proof("TypeDefGate", ("TypeDefGate.valid_absRep", "TypeDefGate.valid_repRange", "TypeDefGate.valid_repAbs", "TypeDefGate.repVal_eq_val"))
+#lean-proof("ModelExtension", ("TypeDefGate.laws", "TypeDefGate.laws_of_witness_valid"))
+
+*Remark (the witness hypothesis).* The kernel requires a hypothesis-free theorem
+$tack.r P(w)$ with closed $w$. That derivation yields the witness hypothesis: by
+soundness, $P(w)$ is valid in the old model, so $E_(I,rho,[])(P)(w)$ holds for every
+admissible $rho$ (`TypeDefGate.witnessAt_of_valid`). The derivation constructor of the next step
+supplies $P(w)$ at the history preceding the gate and applies `extension_derivation_sound`
+there. The hypothesis cannot be dropped: for the gate with representation type `bool`
+and predicate $lambda x. "False"$, $P("Rep"(x))$ is not valid in the new model, although the other
+two laws are.
+
+#lean-proof("TypeDefGate", ("TypeDefGate.witnessAt_of_valid",))
+#lean-proof("TypeDefExamples", ("trueGate_laws", "falseGate_repRange_not_valid"))
+
+*Proposition (Old-language invariance of a type-definition step).* Let the sequent $s$
+mention neither $k$ nor the constants $r$ and $a$, and let $I$ be local on the constants of
+$s$. Then $s$ is valid in $(kappa',I')$ iff it is valid in $(kappa,I)$. For the canonical
+constant interpretation no locality hypothesis is needed.
+
+*Proof.* The model pair is cross-model valid (proposition of the congruence
+section) once the constants of $s$ are compared at the pulled-back valuations of one base
+valuation. For a constant $c$ of $s$, $I'(c)$ is $I(c)$ at the pull-back along
+$kappa'$, which differs from the pull-back along $kappa$ in the variables that the schema of $c$ does not
+use; those are exactly the variables on which locality asserts independence.
+
+#lean-proof("TypeDefGate", ("TypeDefGate.valid_iff_old", "TypeDefGate.valid_iff_old_canonical", "TypeDefGate.newTyCon_isAdmissible"))
+#lean-proof("ModelExtension", ("ModelExtension.valid_iff", "canonicalConstVal_local"))
+
+*Remark (locality is a model invariant).* Locality is not implied by the type of a constant
+interpretation, and it is needed for old-language invariance across a change of $kappa$: two
+valuations that differ in a variable the schema of $c$ does not use may be distinguished by a
+non-local $I(c)$. The canonical interpretation is local. A definition step preserves locality
+only if the right-hand side satisfies the annotation closure of the gate above; the present
+`DefinitionGate` states closure for $"TVars"$, so threading locality through histories is
+part of the integration step. The step-by-step statement is given for
+a single model; `interpretModels` composes steps but no sequence-level equivalence is claimed here.
 
 = Definitional Extension Discipline (Conservativity Gate)
 
@@ -2055,9 +2197,10 @@ argument from semantic validity to derivability.
 #keyblock("warning", [Exact Extension Claim], [
   History-indexed derivation soundness is proved for definition and witnessed
   specification steps over the fixed type grammar, with explicit freshness and
-  old-language side conditions. This is not a growing-signature construction:
-  globally compatible allocation, user type constructors, and derivation
-  erasure remain open. The former approximation sketches are not referenced as
+  old-language side conditions. The semantics of a type-definition step is proved
+  on model pairs, but it is not a derivation constructor. This is not a
+  growing-signature construction: globally compatible allocation, derivable
+  type-definition theorems, and derivation erasure remain open. The former approximation sketches are not referenced as
   their proofs.
 ])
 
@@ -2081,9 +2224,13 @@ complete row-by-row mapping is recorded in
   constant theorem. `Derivation.chooseWitness` remains a distinct Hilbert-choice
   inference rule. The proof does not certify the MoonBit witness representation
   (issue #8).
-- `ks_register_type_definition` maps to the carrier-level
-  `TypeDefContract` Abs/Rep laws. The checked type grammar has no user type
-  constructor, so registration does not yet extend Lean's object language.
+- `ks_register_type_definition` maps to `TypeDefGate` and its model step
+  `TypeDefGate.interpret`: closed predicate over the declared parameters, fresh
+  constructor and Rep/Abs constants, and the three laws as valid sequents about Rep and
+  Abs terms in the new model (the second under the witness hypothesis). The
+  carrier-level `TypeDefContract` is the family obtained at the old model. No
+  derivation constructor yet admits the laws in a history, history freshness of $k$, Rep
+  and Abs is not modelled, and the MoonBit gate itself is not verified.
 - `ks_ind_infinity_axiom` maps mathematically to `Derivation.indInfinity`,
   whose conclusion is the explicitly encoded `indInfinitySentence`. Its
   soundness case uses `indInfinitySentence_valid`, proved for every
@@ -2161,9 +2308,11 @@ the former and `ExtensionDerivation.specification` for the latter.
 #lean-proof("ExtensionDerivation", ("extension_derivation_sound", "typed_extension_derivation_sound"))
 
 This judgment composes constant extension proofs through finite histories but
-still uses one fixed `Signature` and the existing four-constructor `Ty`. The
-type-definition extension remains carrier-level only; syntactic conservativity
-and erasure to a growing-signature core derivation are not claimed.
+still uses one fixed `Signature` and one fixed constructor interpretation. The
+type-definition step changes the constructor interpretation and is modelled on
+model pairs (`ModelExtension`), not yet by a constructor of this judgment;
+syntactic conservativity and erasure to a growing-signature core derivation are
+not claimed.
 
 == Type Preservation for Application Congruence
 
@@ -3204,6 +3353,7 @@ derivations.
   [C10], [Concrete non-derivability], [`Concrete.lean`: `falseSentence_not_derivable`],
   [C11], [Typed HOL core proof package], [`Soundness.lean`: `typed_hol_core_proof_complete`],
   [C12], [Type, evaluation and cross-model validity congruence], [`Types.lean`: `Ty.denote_congr`; `Congruence.lean`: `Term.eval_congr_κ`, `Term.eval_congr_vars`; `Transport.lean`: `valid_transport_κ`, `valid_iff_κ`],
+  [C13], [Type-definition gate: admissible new model, three Abs/Rep laws, old-language invariance], [`TypeDefGate.lean`: `TypeDefGate.newTyCon_isAdmissible`, `valid_absRep`, `valid_repRange`, `valid_repAbs`, `valid_iff_old`; `ModelExtension.lean`: `TypeDefGate.laws`, `ModelExtension.valid_iff`],
 )
 }
 

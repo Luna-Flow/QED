@@ -43,7 +43,17 @@
     the old-language statements as corollaries; `HOL/TyConCongruence.lean` has the
     worked example and the counterexample showing that the sequent's constructor
     ids cannot be dropped from the hypothesis.
-12. `HOL/Soundness.lean` exports `typed_hol_core_proof_complete`, a package for
+12. `HOL/TypeDefGeneric.lean` defines the subtype carrier `SubCarrier` (predicate
+    subtype with a witness, `PUnit` without) and its rep/abs laws;
+    `HOL/TypeDefGate.lean` defines `TypeDefGate`, the new constructor interpretation
+    `TypeDefGate.newTyCon` and constant interpretation `TypeDefGate.newConst`, proves
+    the new constructor interpretation admissible, the three Abs/Rep laws as valid
+    sequents about `Rep`/`Abs` terms (`valid_absRep`, `valid_repRange`, `valid_repAbs`;
+    only `valid_repRange` needs the witness hypothesis `WitnessAt`) and old-language
+    invariance of the step (`valid_iff_old`); `HOL/ModelExtension.lean` adds model pairs
+    `Model` and `ModelExtension` as a parallel version of `Extension`;
+    `HOL/TypeDefExamples.lean` has a nonempty and an empty predicate.
+13. `HOL/Soundness.lean` exports `typed_hol_core_proof_complete`, a package for
     the checked core and its semantic results. It is not a completeness theorem
     or a full growing-theory development.
 
@@ -79,7 +89,7 @@ abstract type named `ind`.
 | type and term instantiation | `Derivation.instType`, `.instTerm`; `valid_inst_type`, `valid_inst_term` | Typed substitution preservation | Checked |
 | `ks_define_const`, `ks_define_const_thm` | `DefinitionGate`, `ExtensionDerivation.definition`; `extension_derivation_sound` | Defining equation; local RHS freshness is used, history-ID freshness is carried but unused by soundness | Fixed signature; name audit remains an implementation boundary |
 | `ks_specify_const` | `SpecificationExtension`, `ExtensionDerivation.specification`; `extension_derivation_sound` | Named constant theorem from a witness derivation in the preceding history; local gate freshness is used, history-ID freshness is carried but unused by soundness | Fixed signature; MoonBit certificate remains an implementation boundary |
-| `ks_register_type_definition` | `TypeDefContract` | Nonempty predicate subtype and Abs/Rep laws | `Ty.con` and the constructor interpretation `TyConVal` exist but are not connected to the contract; interpretation update is not modeled |
+| `ks_register_type_definition` | `TypeDefGate`, `TypeDefGate.interpret`, `ModelExtension.typeDefinition`; carrier-level `TypeDefContract` | New constructor interpretation (predicate subtype or `PUnit`) is admissible; `Abs (Rep a) = a`, `P (Rep a)` (under the witness hypothesis `WitnessAt`) and `P r ⊢ Rep (Abs r) = r` are valid in the new model; sequents not mentioning `k`, `rep`, `abs` keep their validity (for a local old interpretation) | Semantics over model pairs only: no `ExtensionDerivation` constructor, so the laws are not yet derivable in a history; history freshness of `k`, `rep`, `abs` and the kernel's string-name lowering are not modelled; MoonBit gate not verified |
 | `ks_ind_infinity_axiom` | `Derivation.indInfinity`; `indInfinitySentence` | Exact infinity sentence is valid in every model, witnessed by `Nat.succ` | MoonBit registration gate is not verified; see issue #7 |
 | eta | no kernel primitive found | Not applicable | Not a primitive of the current kernel calculus |
 
@@ -95,13 +105,16 @@ abstract type named `ind`.
 | Definition equation under its model override | `valid_definition_equation` | proved semantically |
 | Specification from a closed typed witness | `valid_choose_from_witness`, `SpecificationGate.valid_constant_from_typed_derivation` | proved semantically |
 | Type-variable closure under instantiation | `DefinitionGate.instType_type_vars_closed`, `SpecificationGate.instType_type_vars_closed` | proved |
-| Type, evaluation and cross-model validity congruence over constructor ids and type variables | `Ty.denote_congr`, `Term.eval_congr_κ`, `Term.eval_congr_vars`, `valid_transport_κ`, `valid_iff_κ`, `valid_allEq_one_unchanged`, `valid_allEq_zero_changes` | proved; no typedef gate uses it yet |
+| Type, evaluation and cross-model validity congruence over constructor ids and type variables | `Ty.denote_congr`, `Term.eval_congr_κ`, `Term.eval_congr_vars`, `valid_transport_κ`, `valid_iff_κ`, `valid_allEq_one_unchanged`, `valid_allEq_zero_changes` | proved; used by the type-definition gate |
 | Predicate-subtype type-definition laws | `HOL/TypeDefinitions.lean` | proved at carrier level |
+| Type-definition gate: admissible new model | `TypeDefGate.newTyCon_isAdmissible` | proved |
+| Type-definition Abs/Rep laws as valid sequents about `Rep`/`Abs` terms | `TypeDefGate.valid_absRep`, `valid_repAbs` (no witness needed), `valid_repRange` (under `WitnessAt`), `TypeDefGate.laws`, `TypeDefGate.laws_of_witness_valid` | proved semantically; the witness hypothesis is necessary (`falseGate_repRange_not_valid`) and is discharged in the derivation step from `⊢ P w` |
+| Old-language invariance of a type-definition step | `TypeDefGate.valid_iff_old`, `valid_iff_old_canonical`, `ModelExtension.valid_iff` | proved for a local old interpretation (the canonical one is local); not yet composed over histories |
 | Finite old-language validity equivalence | `valid_interpretSequence_iff` | proved for fixed-signature overrides |
 | Object-language infinity admission | `Derivation.indInfinity`, `indInfinitySentence_valid` | proved for the exact sentence in all models |
 | History-indexed definition/specification derivations | `extension_derivation_sound` | proved for fresh constant IDs over a fixed signature |
 | Growing-signature syntax and semantic interpretation | no history-indexed `Signature` or type constructors | open |
-| User type-constructor syntax and semantics | `Ty.con` node and `TyConVal` interpretation, core calculus sound for every admissible `κ`; validity is invariant under changing `κ` on constructor ids a sequent does not mention; no typedef gate, history-indexed `κ` or constructor registration | partial |
+| User type-constructor syntax and semantics | `Ty.con` node and `TyConVal` interpretation, core calculus sound for every admissible `κ`; validity is invariant under changing `κ` on constructor ids a sequent does not mention; type-definition gate semantics over model pairs; no derivation constructor, history freshness or history-indexed `κ` | partial |
 | MoonBit-to-Lean refinement and theorem provenance | no Typed HOL theorem | refinement excluded; MoonBit lineage invariant is tested separately |
 | Syntactic conservativity/derivation erasure | no growing-theory derivation | open |
 
@@ -147,8 +160,13 @@ used to assert soundness. The Lean/mathlib foundations reported by the audit are
 - `typst compile` and `lunadoc check . --compile` validate the normative
   specification and its references.
 
-The extension interpretation is still over a fixed `Signature`; its
-`typeDefinition` case is the identity. User type constructors must become part
-of both syntax and carrier interpretation before typedef soundness can be
-claimed at the object-language level. This limitation is explicit in the
-current theorem statements.
+The extension interpretation is still over a fixed `Signature`. The legacy
+`Extension.typeDefinition` case is the identity; the type-definition step is
+modelled separately over model pairs (`ModelExtension`) and is not yet a
+constructor of `ExtensionDerivation`, so typedef soundness at the level of
+derivations in a history cannot be claimed. Old-language invariance across a
+change of the constructor interpretation needs locality of the old constant
+interpretation, which the canonical interpretation has and which definition
+steps preserve only under an annotation-closure condition the present
+`DefinitionGate` does not state. These limitations are explicit in the current
+theorem statements.

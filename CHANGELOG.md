@@ -4,6 +4,17 @@ All notable changes to QED are recorded here. The format follows [Keep a Changel
 
 ## Unreleased
 
+### Added
+
+- Lean (`formal_verification`): semantics of a type-definition step. `TypeDefGate`
+  models the checks of `ks_register_type_definition` (closed predicate over the
+  declared parameters, new constructor, Rep and Abs constants); `TypeDefGate.interpret`
+  builds the new model from an old one, with an admissible constructor interpretation;
+  the three laws `Abs (Rep a) = a`, `P (Rep a)` and `P r ⊢ Rep (Abs r) = r` are proved
+  valid in the new model (the second under the witness hypothesis), and validity of
+  sequents that do not mention the new constructor or constants is preserved. The step
+  is not yet a derivation constructor (planned follow-up). Refs #17.
+
 ### Changed
 
 - Upgrade the QED dependency on `moonbitlang/x` to `0.5.5` and verify it with
