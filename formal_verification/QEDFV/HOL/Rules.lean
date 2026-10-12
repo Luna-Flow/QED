@@ -4,12 +4,14 @@ import QEDFV.HOL.Evaluation
 validity-preservation result; no soundness law is stored as a model field. -/
 namespace QEDFV.HOL
 
+variable {κ : TyConVal}
+
 structure Sequent (S : Signature) (Γ : List Ty) where
   hyps : List (Term S Γ .bool)
   concl : Term S Γ .bool
 
-def Valid (I : ConstVal S) (s : Sequent S Γ) : Prop :=
-  ∀ (ρ : TypeVal) (hρ : Admissible ρ) (η : Env ρ Γ),
+def Valid (I : ConstVal κ S) (s : Sequent S Γ) : Prop :=
+  ∀ (ρ : TypeVal) (hρ : Admissible κ ρ) (η : Env κ ρ Γ),
     (∀ h, h ∈ s.hyps → h.eval I ρ hρ η) → s.concl.eval I ρ hρ η
 
 def union (xs ys : List α) : List α := xs ++ ys
@@ -23,8 +25,8 @@ theorem mem_remove_of_mem_ne {xs : List α} {x y : α}
   simp [remove, hy, hne]
 
 private theorem valid_of_union_left
-    (I : ConstVal S) (A B : Sequent S Γ)
-    (hA : Valid I A) (ρ : TypeVal) (hρ : Admissible ρ) (η : Env ρ Γ)
+    (I : ConstVal κ S) (A B : Sequent S Γ)
+    (hA : Valid I A) (ρ : TypeVal) (hρ : Admissible κ ρ) (η : Env κ ρ Γ)
     (hHyps : ∀ h, h ∈ union A.hyps B.hyps → h.eval I ρ hρ η) :
     A.concl.eval I ρ hρ η := by
   apply hA ρ hρ η
@@ -32,25 +34,25 @@ private theorem valid_of_union_left
   exact hHyps h (List.mem_append_left _ hh)
 
 private theorem valid_of_union_right
-    (I : ConstVal S) (A B : Sequent S Γ)
-    (hB : Valid I B) (ρ : TypeVal) (hρ : Admissible ρ) (η : Env ρ Γ)
+    (I : ConstVal κ S) (A B : Sequent S Γ)
+    (hB : Valid I B) (ρ : TypeVal) (hρ : Admissible κ ρ) (η : Env κ ρ Γ)
     (hHyps : ∀ h, h ∈ union A.hyps B.hyps → h.eval I ρ hρ η) :
     B.concl.eval I ρ hρ η := by
   apply hB ρ hρ η
   intro h hh
   exact hHyps h (List.mem_append_right _ hh)
 
-theorem valid_refl (I : ConstVal S) (t : Term S Γ a) :
+theorem valid_refl (I : ConstVal κ S) (t : Term S Γ a) :
     Valid I { hyps := [], concl := t.equal t } := by
   intro ρ hρ η _
   rfl
 
-theorem valid_assume (I : ConstVal S) (p : Term S Γ .bool) :
+theorem valid_assume (I : ConstVal κ S) (p : Term S Γ .bool) :
     Valid I { hyps := [p], concl := p } := by
   intro ρ hρ η hh
   exact hh p (by simp)
 
-theorem valid_add_assum (I : ConstVal S) (s : Sequent S Γ)
+theorem valid_add_assum (I : ConstVal κ S) (s : Sequent S Γ)
     (p : Term S Γ .bool) (hValid : Valid I s) :
     Valid I { hyps := p :: s.hyps, concl := s.concl } := by
   intro ρ hρ η hh
@@ -58,7 +60,7 @@ theorem valid_add_assum (I : ConstVal S) (s : Sequent S Γ)
   intro h hh'
   exact hh h (List.mem_cons_of_mem p hh')
 
-theorem valid_choose_from_witness (I : ConstVal S)
+theorem valid_choose_from_witness (I : ConstVal κ S)
     (p : Term S (a :: Γ) .bool) (w : Term S Γ a)
     (hWitness : Valid I
       { hyps := [], concl := p.substitute (Sub.single w) }) :
@@ -71,19 +73,19 @@ theorem valid_choose_from_witness (I : ConstVal S)
     cases hh)
   rw [Term.eval_substitute, Sub.eval_single]
   rw [Term.eval_substitute, Sub.eval_single] at hw
-  letI : Nonempty (Ty.denote ρ a) := a.carrier_nonempty ρ hρ
+  letI : Nonempty (Ty.denote κ ρ a) := a.carrier_nonempty κ ρ hρ
   change p.eval I ρ hρ
     (Env.extend η ((Term.choice.app (Term.lam p)).eval I ρ hρ η))
   change p.eval I ρ hρ
     (Env.extend η
-      (select (Ty.denote ρ a)
+      (select (Ty.denote κ ρ a)
         (fun q ↦ p.eval I ρ hρ (Env.extend η q))))
-  exact select_spec (Ty.denote ρ a)
+  exact select_spec (Ty.denote κ ρ a)
     (fun q ↦ p.eval I ρ hρ (Env.extend η q))
     ⟨w.eval I ρ hρ η, hw⟩
 
 theorem valid_trans
-    (I : ConstVal S) (A B : Sequent S Γ) (x y z : Term S Γ a)
+    (I : ConstVal κ S) (A B : Sequent S Γ) (x y z : Term S Γ a)
     (hA : A.concl = x.equal y) (hB : B.concl = y.equal z)
     (hValidA : Valid I A) (hValidB : Valid I B) :
     Valid I { hyps := union A.hyps B.hyps, concl := x.equal z } := by
@@ -95,7 +97,7 @@ theorem valid_trans
   exact Eq.trans hxy hyz
 
 theorem valid_mkComb
-    (I : ConstVal S) (A B : Sequent S Γ)
+    (I : ConstVal κ S) (A B : Sequent S Γ)
     (f g : Term S Γ (.arr a b)) (x y : Term S Γ a)
     (hA : A.concl = f.equal g) (hB : B.concl = x.equal y)
     (hValidA : Valid I A) (hValidB : Valid I B) :
@@ -109,7 +111,7 @@ theorem valid_mkComb
   exact congrArg₂ (fun u v ↦ u v) hfg hxy
 
 theorem valid_abs_closed
-    (I : ConstVal S) (s t : Term S (a :: Γ) b)
+    (I : ConstVal κ S) (s t : Term S (a :: Γ) b)
     (hValid : Valid I { hyps := [], concl := s.equal t }) :
     Valid I { hyps := [], concl := (Term.lam s).equal (Term.lam t) } := by
   intro ρ hρ η _
@@ -123,7 +125,7 @@ def weakenSequent (s : Sequent S Γ) : Sequent S (b :: Γ) :=
   , concl := weakenTerm s.concl }
 
 theorem valid_abs
-    (I : ConstVal S) (A : Sequent S Γ) (s t : Term S (a :: Γ) b)
+    (I : ConstVal κ S) (A : Sequent S Γ) (s t : Term S (a :: Γ) b)
     (hValid : Valid I { hyps := (weakenSequent A).hyps, concl := s.equal t }) :
     Valid I { hyps := A.hyps, concl := (Term.lam s).equal (Term.lam t) } := by
   intro ρ hρ η hh
@@ -135,7 +137,7 @@ theorem valid_abs
   exact hst
 
 theorem valid_beta
-    (I : ConstVal S) (s : Term S (a :: Γ) b) (x : Term S Γ a) :
+    (I : ConstVal κ S) (s : Term S (a :: Γ) b) (x : Term S Γ a) :
     Valid I { hyps := [], concl := (Term.lam s).app x |>.equal (s.substitute (Sub.single x)) } := by
   intro ρ hρ η _
   exact Term.eval_beta I ρ hρ η s x
@@ -145,7 +147,7 @@ def termSubstSequent (σ : Sub S Γ Δ) (s : Sequent S Γ) : Sequent S Δ :=
   , concl := s.concl.substitute σ }
 
 theorem valid_inst_term
-    (I : ConstVal S) (σ : Sub S Γ Δ) (s : Sequent S Γ)
+    (I : ConstVal κ S) (σ : Sub S Γ Δ) (s : Sequent S Γ)
     (hValid : Valid I s) :
     Valid I (termSubstSequent σ s) := by
   intro ρ hρ η hh
@@ -157,7 +159,7 @@ theorem valid_inst_term
     (List.mem_map.mpr ⟨h, hh', rfl⟩)
 
 theorem valid_eqMp
-    (I : ConstVal S) (A B : Sequent S Γ) (p q : Term S Γ .bool)
+    (I : ConstVal κ S) (A B : Sequent S Γ) (p q : Term S Γ .bool)
     (hA : A.concl = p.equal q) (hB : B.concl = p)
     (hValidA : Valid I A) (hValidB : Valid I B) :
     Valid I { hyps := union A.hyps B.hyps, concl := q } := by
@@ -170,7 +172,7 @@ theorem valid_eqMp
   exact hpq.mp hp
 
 theorem valid_deduct
-    (I : ConstVal S) (A B : Sequent S Γ)
+    (I : ConstVal κ S) (A B : Sequent S Γ)
     (hValidA : Valid I A) (hValidB : Valid I B) :
     Valid I
       { hyps := union (remove A.hyps B.concl) (remove B.hyps A.concl)

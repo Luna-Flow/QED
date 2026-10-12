@@ -2,6 +2,8 @@ import QEDFV.HOL.Instantiation
 
 namespace QEDFV.HOL
 
+variable {κ : TyConVal}
+
 def indInjectiveBody (S : Signature) :
     Term S [Ty.arr .ind .ind] .bool :=
   .all (.all (
@@ -23,7 +25,7 @@ def indNonSurjectiveBody (S : Signature) :
 def indInfinitySentence (S : Signature) : Term S [] .bool :=
   .ex (.conj (indInjectiveBody S) (indNonSurjectiveBody S))
 
-theorem indInfinitySentence_valid (S : Signature) (I : ConstVal S) :
+theorem indInfinitySentence_valid (S : Signature) (I : ConstVal κ S) :
     Valid I { hyps := [], concl := indInfinitySentence S } := by
   intro ρ hρ η _
   simp only [indInfinitySentence, indInjectiveBody, indNonSurjectiveBody,

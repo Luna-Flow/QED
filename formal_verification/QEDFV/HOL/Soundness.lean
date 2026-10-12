@@ -6,44 +6,46 @@ import QEDFV.HOL.Concrete
 
 namespace QEDFV.HOL
 
+variable {κ : TyConVal}
+
 /-! Public Typed HOL soundness entry points. These declarations only compose the
 independent proofs in the intrinsically typed HOL namespace; any MoonBit
 refinement remains outside this semantic package. -/
 
-structure TypedHOLModel (S : Signature) where
-  constVal : ConstVal S
+structure TypedHOLModel (κ : TyConVal) (S : Signature) where
+  constVal : ConstVal κ S
   choiceNatural : ChoiceNatural
 
-noncomputable def canonicalModel (S : Signature) : TypedHOLModel S :=
-  { constVal := canonicalConstVal S
+noncomputable def canonicalModel (κ : TyConVal) (S : Signature) : TypedHOLModel κ S :=
+  { constVal := canonicalConstVal κ S
   , choiceNatural := select_natural }
 
 noncomputable def canonicalExtendedModel
-    (es : List (Extension S)) : TypedHOLModel S :=
-  { constVal := interpretSequence es (canonicalConstVal S)
+    (es : List (Extension κ S)) : TypedHOLModel κ S :=
+  { constVal := interpretSequence es (canonicalConstVal κ S)
   , choiceNatural := select_natural }
 
-theorem typed_model_nonempty (S : Signature) : Nonempty (TypedHOLModel S) :=
-  ⟨canonicalModel S⟩
+theorem typed_model_nonempty (κ : TyConVal) (S : Signature) : Nonempty (TypedHOLModel κ S) :=
+  ⟨canonicalModel κ S⟩
 
 theorem typed_extended_model_nonempty
-    (es : List (Extension S)) : Nonempty (TypedHOLModel S) :=
+    (es : List (Extension κ S)) : Nonempty (TypedHOLModel κ S) :=
   ⟨canonicalExtendedModel es⟩
 
 theorem typed_canonical_derivation_sound
     {S : Signature} {Γ : List Ty} {s : Sequent S Γ}
-    (d : Derivation S s) : Valid (canonicalConstVal S) s :=
-  derivation_sound select_natural (canonicalConstVal S) d
+    (d : Derivation S s) : Valid (canonicalConstVal κ S) s :=
+  derivation_sound select_natural (canonicalConstVal κ S) d
 
 theorem TypedHOLModel.derivation_sound
-    (M : TypedHOLModel S) {Γ : List Ty} {s : Sequent S Γ}
+    (M : TypedHOLModel κ S) {Γ : List Ty} {s : Sequent S Γ}
     (d : Derivation S s) : Valid M.constVal s :=
   QEDFV.HOL.derivation_sound M.choiceNatural M.constVal d
 
 theorem typed_derivation_sound_all
     {S : Signature} {Γ : List Ty} {s : Sequent S Γ}
     (d : Derivation S s) :
-    ∀ (M : TypedHOLModel S), Valid M.constVal s := by
+    ∀ (M : TypedHOLModel κ S), Valid M.constVal s := by
   intro M
   exact M.derivation_sound d
 
@@ -51,33 +53,33 @@ theorem typed_choice_natural : ChoiceNatural :=
   select_natural
 
 theorem typed_finite_extension_semantic_conservativity
-    (es : List (Extension S)) {Γ : List Ty} (s : Sequent S Γ)
+    (es : List (Extension κ S)) {Γ : List Ty} (s : Sequent S Γ)
     (hOld : oldLanguageSequence es s) :
-    Valid (interpretSequence es (canonicalConstVal S)) s ↔
-      Valid (canonicalConstVal S) s :=
+    Valid (interpretSequence es (canonicalConstVal κ S)) s ↔
+      Valid (canonicalConstVal κ S) s :=
   typed_global_semantic_conservativity es s hOld
 
 theorem typed_extended_derivation_sound
-    (es : List (Extension S)) {Γ : List Ty} {s : Sequent S Γ}
+    (es : List (Extension κ S)) {Γ : List Ty} {s : Sequent S Γ}
     (d : Derivation S s) :
-    Valid (interpretSequence es (canonicalConstVal S)) s :=
+    Valid (interpretSequence es (canonicalConstVal κ S)) s :=
   typed_derivation_sound_in_extension es d
 
 theorem typed_definition_semantic_conservativity
-    (D : DefinitionGate S) (I : ConstVal S) (s : Sequent S Γ)
+    (D : DefinitionGate S) (I : ConstVal κ S) (s : Sequent S Γ)
     (hOld : D.id ∉ s.constIds) :
     Valid (I.withDefinition D) s ↔ Valid I s :=
   valid_definition_old_language_iff D I s hOld
 
 theorem typed_specification_semantic_conservativity
-    (G : SpecificationGate S) (I : ConstVal S) (hTy : S G.id = G.ty)
+    (G : SpecificationGate S) (I : ConstVal κ S) (hTy : S G.id = G.ty)
     (s : Sequent S Γ) (hOld : G.id ∉ s.constIds) :
     Valid (I.withSpecification G hTy) s ↔ Valid I s :=
   G.valid_old_language_iff I hTy s hOld
 
 theorem typed_type_definition_nonempty
-    (C : TypeDefContract) (ρ : TypeVal) (hρ : Admissible ρ) :
-    Nonempty {y : Ty.denote ρ C.family.repTy // C.family.pred ρ hρ y} :=
+    (C : TypeDefContract κ) (ρ : TypeVal) (hρ : Admissible κ ρ) :
+    Nonempty {y : Ty.denote κ ρ C.family.repTy // C.family.pred ρ hρ y} :=
   C.nonempty ρ hρ
 
 theorem typed_concrete_consistency
@@ -90,11 +92,11 @@ theorem typed_signature_generic_consistency (S : Signature) :
   signatureGenericFalseSentence_not_derivable S select_natural
 
 theorem typed_signature_generic_nonvalid_in_extension
-    (es : List (Extension S)) :
-    ¬ Valid (interpretSequence es (canonicalConstVal S))
+    (es : List (Extension κ S)) (hκ : Admissible κ baseTypeVal) :
+    ¬ Valid (interpretSequence es (canonicalConstVal κ S))
       { hyps := [], concl := signatureGenericFalseSentence S } :=
   signatureGenericFalseSentence_not_valid S
-    (interpretSequence es (canonicalConstVal S))
+    (interpretSequence es (canonicalConstVal κ S)) hκ
 
 /-! The complete mathematical deliverable for the Typed HOL mainline.  Every
 field is a theorem or a constructed witness; there is no model-law, gate, or
@@ -102,54 +104,54 @@ implementation-correctness assumption hidden in this package. -/
 structure TypedHOLCoreProofPackage : Prop where
   choiceNatural : ChoiceNatural
   carrierNonempty :
-    ∀ (a : Ty) (ρ : TypeVal), Admissible ρ → Nonempty (a.denote ρ)
+    ∀ {κ : TyConVal} (a : Ty) (ρ : TypeVal), Admissible κ ρ → Nonempty (a.denote κ ρ)
   modelNonempty :
-    ∀ (S : Signature), Nonempty (TypedHOLModel S)
+    ∀ (κ : TyConVal) (S : Signature), Nonempty (TypedHOLModel κ S)
   renameEvaluation :
-    ∀ {S : Signature} {Γ Δ : List Ty} {a : Ty} (I : ConstVal S)
-      (ρ : TypeVal) (hρ : Admissible ρ) (t : Term S Γ a) (r : Ren Γ Δ)
-      (η : Env ρ Δ),
+    ∀ {κ : TyConVal} {S : Signature} {Γ Δ : List Ty} {a : Ty} (I : ConstVal κ S)
+      (ρ : TypeVal) (hρ : Admissible κ ρ) (t : Term S Γ a) (r : Ren Γ Δ)
+      (η : Env κ ρ Δ),
       (t.rename r).eval I ρ hρ η = t.eval I ρ hρ (Env.pull η r)
   substitutionEvaluation :
-    ∀ {S : Signature} {Γ Δ : List Ty} {a : Ty} (I : ConstVal S)
-      (ρ : TypeVal) (hρ : Admissible ρ) (t : Term S Γ a)
-      (σ : Sub S Γ Δ) (η : Env ρ Δ),
+    ∀ {κ : TyConVal} {S : Signature} {Γ Δ : List Ty} {a : Ty} (I : ConstVal κ S)
+      (ρ : TypeVal) (hρ : Admissible κ ρ) (t : Term S Γ a)
+      (σ : Sub S Γ Δ) (η : Env κ ρ Δ),
       (t.substitute σ).eval I ρ hρ η =
         t.eval I ρ hρ (Sub.evalSubst σ I ρ hρ η)
   betaEvaluation :
-    ∀ {S : Signature} {Γ : List Ty} {a b : Ty} (I : ConstVal S)
-      (ρ : TypeVal) (hρ : Admissible ρ) (η : Env ρ Γ)
+    ∀ {κ : TyConVal} {S : Signature} {Γ : List Ty} {a b : Ty} (I : ConstVal κ S)
+      (ρ : TypeVal) (hρ : Admissible κ ρ) (η : Env κ ρ Γ)
       (t : Term S (a :: Γ) b) (x : Term S Γ a),
       (Term.app (.lam t) x).eval I ρ hρ η =
         (t.substitute (Sub.single x)).eval I ρ hρ η
   typeInstantiationEvaluation :
-    ∀ {S : Signature} {Γ : List Ty} {a : Ty} (I : ConstVal S)
-      (ρ : TypeVal) (hρ : Admissible ρ) (t : Term S Γ a) (θ : TypeSub)
-      (η : Env ρ (Γ.map (Ty.subst θ))),
+    ∀ {κ : TyConVal} {S : Signature} {Γ : List Ty} {a : Ty} (I : ConstVal κ S)
+      (ρ : TypeVal) (hρ : Admissible κ ρ) (t : Term S Γ a) (θ : TypeSub)
+      (η : Env κ ρ (Γ.map (Ty.subst θ))),
       HEq ((t.instType θ).eval I ρ hρ η)
-        (t.eval I (θ.pull ρ) (θ.pull_admissible ρ hρ) (Env.instPull θ η))
+        (t.eval I (θ.pull κ ρ) (θ.pull_admissible κ ρ hρ) (Env.instPull θ η))
   derivationSound :
-    ∀ {S : Signature} {Γ : List Ty} {s : Sequent S Γ},
-      Derivation S s → ∀ (I : ConstVal S), Valid I s
+    ∀ {κ : TyConVal} {S : Signature} {Γ : List Ty} {s : Sequent S Γ},
+      Derivation S s → ∀ (I : ConstVal κ S), Valid I s
   addAssumSound :
-    ∀ {S : Signature} {Γ : List Ty} (I : ConstVal S)
+    ∀ {κ : TyConVal} {S : Signature} {Γ : List Ty} (I : ConstVal κ S)
       (s : Sequent S Γ) (p : Term S Γ .bool),
       Valid I s → Valid I { hyps := p :: s.hyps, concl := s.concl }
   choiceSpecificationSound :
-    ∀ {S : Signature} {Γ : List Ty} {a : Ty} (I : ConstVal S)
+    ∀ {κ : TyConVal} {S : Signature} {Γ : List Ty} {a : Ty} (I : ConstVal κ S)
       (p : Term S (a :: Γ) .bool) (w : Term S Γ a),
       Valid I { hyps := [], concl := p.substitute (Sub.single w) } →
       Valid I { hyps := [], concl := p.substitute (Sub.single (Term.choice.app (Term.lam p))) }
   definitionEquation :
-    ∀ {S : Signature} (D : DefinitionGate S) (I : ConstVal S),
+    ∀ {κ : TyConVal} {S : Signature} (D : DefinitionGate S) (I : ConstVal κ S),
       Valid (I.withDefinition D)
         { hyps := [], concl := (D.head.equal D.rhs) }
   definitionConservativity :
-    ∀ {S : Signature} {Γ : List Ty} (D : DefinitionGate S) (I : ConstVal S)
+    ∀ {κ : TyConVal} {S : Signature} {Γ : List Ty} (D : DefinitionGate S) (I : ConstVal κ S)
       (s : Sequent S Γ), D.id ∉ s.constIds →
       (Valid (I.withDefinition D) s ↔ Valid I s)
   specificationValidity :
-    ∀ {S : Signature} (G : SpecificationGate S) (I : ConstVal S)
+    ∀ {κ : TyConVal} {S : Signature} (G : SpecificationGate S) (I : ConstVal κ S)
       (hTy : S G.id = G.ty)
       (d : Derivation S { hyps := [], concl := G.body }),
       let _witnessDerivation := d
@@ -157,46 +159,47 @@ structure TypedHOLCoreProofPackage : Prop where
         { hyps := [], concl := G.predicate.substitute
             (Sub.single (G.constant hTy)) }
   specificationConservativity :
-    ∀ {S : Signature} {Γ : List Ty} (G : SpecificationGate S) (I : ConstVal S)
+    ∀ {κ : TyConVal} {S : Signature} {Γ : List Ty} (G : SpecificationGate S) (I : ConstVal κ S)
       (hTy : S G.id = G.ty) (s : Sequent S Γ), G.id ∉ s.constIds →
       (Valid (I.withSpecification G hTy) s ↔ Valid I s)
   extensionDerivationSound :
-    ∀ {S : Signature} (es : List (Extension S)) (I : ConstVal S)
+    ∀ {κ : TyConVal} {S : Signature} (es : List (Extension κ S)) (I : ConstVal κ S)
       {Γ : List Ty} {s : Sequent S Γ}, ExtensionDerivation S es s →
       Valid (interpretSequence es I) s
   typeDefinitionNonempty :
-    ∀ (C : TypeDefContract) (ρ : TypeVal) (hρ : Admissible ρ),
-      Nonempty {y : Ty.denote ρ C.family.repTy // C.family.pred ρ hρ y}
+    ∀ {κ : TyConVal} (C : TypeDefContract κ) (ρ : TypeVal) (hρ : Admissible κ ρ),
+      Nonempty {y : Ty.denote κ ρ C.family.repTy // C.family.pred ρ hρ y}
   typeDefinitionAbsRep :
-    ∀ (C : TypeDefContract) (ρ : TypeVal) (hρ : Admissible ρ)
-      (x : {y : Ty.denote ρ C.family.repTy // C.family.pred ρ hρ y}),
+    ∀ {κ : TyConVal} (C : TypeDefContract κ) (ρ : TypeVal) (hρ : Admissible κ ρ)
+      (x : {y : Ty.denote κ ρ C.family.repTy // C.family.pred ρ hρ y}),
       C.abs ρ hρ (C.rep ρ hρ x) = x
   typeDefinitionRepRange :
-    ∀ (C : TypeDefContract) (ρ : TypeVal) (hρ : Admissible ρ)
-      (x : {y : Ty.denote ρ C.family.repTy // C.family.pred ρ hρ y}),
+    ∀ {κ : TyConVal} (C : TypeDefContract κ) (ρ : TypeVal) (hρ : Admissible κ ρ)
+      (x : {y : Ty.denote κ ρ C.family.repTy // C.family.pred ρ hρ y}),
       C.family.pred ρ hρ (C.rep ρ hρ x)
   typeDefinitionRepAbs :
-    ∀ (C : TypeDefContract) (ρ : TypeVal) (hρ : Admissible ρ)
-      {x : Ty.denote ρ C.family.repTy}, C.family.pred ρ hρ x →
+    ∀ {κ : TyConVal} (C : TypeDefContract κ) (ρ : TypeVal) (hρ : Admissible κ ρ)
+      {x : Ty.denote κ ρ C.family.repTy}, C.family.pred ρ hρ x →
       C.rep ρ hρ (C.abs ρ hρ x) = x
   finiteExtensionConservativity :
-    ∀ {S : Signature} {Γ : List Ty} (es : List (Extension S))
+    ∀ {κ : TyConVal} {S : Signature} {Γ : List Ty} (es : List (Extension κ S))
       (s : Sequent S Γ), oldLanguageSequence es s →
-      (Valid (interpretSequence es (canonicalConstVal S)) s ↔
-        Valid (canonicalConstVal S) s)
+      (Valid (interpretSequence es (canonicalConstVal κ S)) s ↔
+        Valid (canonicalConstVal κ S) s)
   concreteConsistency :
     ¬ Derivation standardSignature { hyps := [], concl := falseSentence }
   infinityAnchor :
     Function.Injective Nat.succ ∧ ¬ Function.Surjective Nat.succ
   infinitySentenceValidity :
-    ∀ (S : Signature) (I : ConstVal S),
+    ∀ {κ : TyConVal} (S : Signature) (I : ConstVal κ S),
       Valid I { hyps := [], concl := indInfinitySentence S }
   signatureGenericConsistency :
     ∀ (S : Signature),
       ¬ Derivation S { hyps := [], concl := signatureGenericFalseSentence S }
   signatureGenericExtensionNonvalidity :
-    ∀ {S : Signature} (es : List (Extension S)),
-      ¬ Valid (interpretSequence es (canonicalConstVal S))
+    ∀ {κ : TyConVal} {S : Signature} (es : List (Extension κ S)),
+      Admissible κ baseTypeVal →
+      ¬ Valid (interpretSequence es (canonicalConstVal κ S))
         { hyps := [], concl := signatureGenericFalseSentence S }
 
 noncomputable def typedHOLCoreProofPackage : TypedHOLCoreProofPackage := by
@@ -227,41 +230,41 @@ noncomputable def typedHOLCoreProofPackage : TypedHOLCoreProofPackage := by
     signatureGenericConsistency := typed_signature_generic_consistency
     signatureGenericExtensionNonvalidity := typed_signature_generic_nonvalid_in_extension
   }
-  · exact fun a ρ hρ ↦ a.carrier_nonempty ρ hρ
+  · exact fun {κ} a ρ hρ ↦ a.carrier_nonempty κ ρ hρ
   · exact typed_model_nonempty
-  · intro S Γ Δ a I ρ hρ t r η
+  · intro κ S Γ Δ a I ρ hρ t r η
     exact Term.eval_rename I ρ hρ t r η
-  · intro S Γ Δ a I ρ hρ t σ η
+  · intro κ S Γ Δ a I ρ hρ t σ η
     exact Term.eval_substitute I ρ hρ t σ η
-  · intro S Γ a b I ρ hρ η t x
+  · intro κ S Γ a b I ρ hρ η t x
     exact Term.eval_beta I ρ hρ η t x
-  · intro S Γ a I ρ hρ t θ η
+  · intro κ S Γ a I ρ hρ t θ η
     exact Term.eval_instType select_natural I ρ hρ t θ η
-  · intro S Γ s d I
+  · intro κ S Γ s d I
     exact derivation_sound select_natural I d
-  · intro S Γ I s p hValid
+  · intro κ S Γ I s p hValid
     exact valid_add_assum I s p hValid
-  · intro S Γ a I p w hValid
+  · intro κ S Γ a I p w hValid
     exact valid_choose_from_witness I p w hValid
-  · intro S D I
+  · intro κ S D I
     exact valid_definition_equation D I
-  · intro S Γ D I s hOld
+  · intro κ S Γ D I s hOld
     exact valid_definition_old_language_iff D I s hOld
-  · intro S G I hTy d
+  · intro κ S G I hTy d
     exact G.valid_constant_from_typed_derivation I hTy d
-  · intro S Γ G I hTy s hOld
+  · intro κ S Γ G I hTy s hOld
     exact G.valid_old_language_iff I hTy s hOld
-  · intro S es I Γ s d
+  · intro κ S es I Γ s d
     exact extension_derivation_sound I d
-  · intro C ρ hρ
+  · intro κ C ρ hρ
     exact C.nonempty ρ hρ
-  · intro C ρ hρ x
+  · intro κ C ρ hρ x
     exact C.abs_rep ρ hρ x
-  · intro C ρ hρ x
+  · intro κ C ρ hρ x
     exact C.rep_in_range ρ hρ x
-  · intro C ρ hρ x hx
+  · intro κ C ρ hρ x hx
     exact C.rep_abs_of_pred ρ hρ hx
-  · intro S Γ es s hOld
+  · intro κ S Γ es s hOld
     exact typed_global_semantic_conservativity es s hOld
 
 theorem typed_hol_core_proof_complete : Nonempty TypedHOLCoreProofPackage :=

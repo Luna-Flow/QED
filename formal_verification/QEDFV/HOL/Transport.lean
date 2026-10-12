@@ -2,6 +2,8 @@ import QEDFV.HOL.Derivation
 
 namespace QEDFV.HOL
 
+variable {κ : TyConVal}
+
 def Term.constIds : Term S Γ a → Finset Nat
   | .var _ => ∅
   | .const c _ => {c}
@@ -16,16 +18,16 @@ def Term.constIds : Term S Γ a → Finset Nat
   | .eq => ∅
   | .choice => ∅
 
-theorem Term.eval_agree (t : Term S Γ a) (I J : ConstVal S)
-    (ρ : TypeVal) (hρ : Admissible ρ) (η : Env ρ Γ)
-    (hAgree : ∀ c, c ∈ t.constIds → ∀ (ρ : TypeVal) (hρ : Admissible ρ),
+theorem Term.eval_agree (t : Term S Γ a) (I J : ConstVal κ S)
+    (ρ : TypeVal) (hρ : Admissible κ ρ) (η : Env κ ρ Γ)
+    (hAgree : ∀ c, c ∈ t.constIds → ∀ (ρ : TypeVal) (hρ : Admissible κ ρ),
       I ρ hρ c = J ρ hρ c) :
     t.eval I ρ hρ η = t.eval J ρ hρ η := by
   induction t with
   | var v => rfl
   | const c σ =>
       have hc := hAgree c (by simp [Term.constIds])
-        (σ.pull ρ) (σ.pull_admissible ρ hρ)
+        (σ.pull κ ρ) (σ.pull_admissible κ ρ hρ)
       simp only [Term.eval]
       rw [hc]
   | app f x ihf ihx =>
@@ -118,8 +120,8 @@ theorem Sequent.mem_constIds_concl {s : Sequent S Γ} {c : Nat}
     (hc : c ∈ s.concl.constIds) : c ∈ s.constIds := by
   simp [Sequent.constIds, hc]
 
-theorem valid_transport {s : Sequent S Γ} (I J : ConstVal S)
-    (hAgree : ∀ c, c ∈ s.constIds → ∀ (ρ : TypeVal) (hρ : Admissible ρ),
+theorem valid_transport {s : Sequent S Γ} (I J : ConstVal κ S)
+    (hAgree : ∀ c, c ∈ s.constIds → ∀ (ρ : TypeVal) (hρ : Admissible κ ρ),
       I ρ hρ c = J ρ hρ c) (hValid : Valid I s) :
     Valid J s := by
   intro ρ hρ η hh
@@ -141,8 +143,8 @@ def oldLanguage (oldIds : Finset Nat) (s : Sequent S Γ) : Prop :=
   s.constIds ⊆ oldIds
 
 theorem valid_old_language_transport {oldIds : Finset Nat} {s : Sequent S Γ}
-    (hOld : oldLanguage oldIds s) (I J : ConstVal S)
-    (hAgree : ∀ c, c ∈ oldIds → ∀ (ρ : TypeVal) (hρ : Admissible ρ),
+    (hOld : oldLanguage oldIds s) (I J : ConstVal κ S)
+    (hAgree : ∀ c, c ∈ oldIds → ∀ (ρ : TypeVal) (hρ : Admissible κ ρ),
       I ρ hρ c = J ρ hρ c) (hValid : Valid I s) :
     Valid J s := by
   apply valid_transport I J
@@ -151,8 +153,8 @@ theorem valid_old_language_transport {oldIds : Finset Nat} {s : Sequent S Γ}
   exact hValid
 
 theorem valid_old_language_iff {oldIds : Finset Nat} {s : Sequent S Γ}
-    (hOld : oldLanguage oldIds s) (I J : ConstVal S)
-    (hAgree : ∀ c, c ∈ oldIds → ∀ (ρ : TypeVal) (hρ : Admissible ρ),
+    (hOld : oldLanguage oldIds s) (I J : ConstVal κ S)
+    (hAgree : ∀ c, c ∈ oldIds → ∀ (ρ : TypeVal) (hρ : Admissible κ ρ),
       I ρ hρ c = J ρ hρ c) :
     Valid I s ↔ Valid J s := by
   constructor
@@ -166,8 +168,8 @@ theorem valid_old_language_iff {oldIds : Finset Nat} {s : Sequent S Γ}
 theorem derivation_old_language_transport
     (hChoice : ChoiceNatural) {oldIds : Finset Nat}
     {s : Sequent S Γ} (hOld : oldLanguage oldIds s)
-    (I J : ConstVal S)
-    (hAgree : ∀ c, c ∈ oldIds → ∀ (ρ : TypeVal) (hρ : Admissible ρ),
+    (I J : ConstVal κ S)
+    (hAgree : ∀ c, c ∈ oldIds → ∀ (ρ : TypeVal) (hρ : Admissible κ ρ),
       I ρ hρ c = J ρ hρ c)
     (d : Derivation S s) : Valid J s :=
   valid_old_language_transport hOld I J hAgree (derivation_sound hChoice I d)

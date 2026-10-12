@@ -2,6 +2,8 @@ import QEDFV.HOL.Rules
 
 namespace QEDFV.HOL
 
+variable {κ : TyConVal}
+
 theorem heq_app_cast {α β γ δ : Sort u}
     {f : α → β} {g : γ → δ} {x : α} {y : γ}
     (hα : α = γ) (hβ : β = δ) (hf : f ≍ g) (hx : x ≍ y) :
@@ -26,36 +28,36 @@ theorem eq_natural {A B : Type} (h : A = B) :
   rfl
 
 theorem eval_term_cast {S : Signature} {Γ : List Ty} {a b : Ty}
-    (I : ConstVal S) (ρ : TypeVal) (hρ : Admissible ρ) (η : Env ρ Γ)
+    (I : ConstVal κ S) (ρ : TypeVal) (hρ : Admissible κ ρ) (η : Env κ ρ Γ)
     (h : a = b) (t : Term S Γ a) :
     HEq ((h ▸ t).eval I ρ hρ η) (t.eval I ρ hρ η) := by
   cases h
   rfl
 
-theorem constVal_heq {S : Signature} (I : ConstVal S) {ρ σ : TypeVal}
-    (h : ρ = σ) (hρ : Admissible ρ) (hσ : Admissible σ) (c : Nat) :
+theorem constVal_heq {S : Signature} (I : ConstVal κ S) {ρ σ : TypeVal}
+    (h : ρ = σ) (hρ : Admissible κ ρ) (hσ : Admissible κ σ) (c : Nat) :
     HEq (I ρ hρ c) (I σ hσ c) := by
   cases h
   rfl
 
 def Env.instPull {ρ : TypeVal} {Γ : List Ty} (θ : TypeSub)
-    (η : Env ρ (Γ.map (Ty.subst θ))) :
-    Env (θ.pull ρ) Γ := fun a v ↦ cast (a.denote_subst θ ρ) (η (a.subst θ) (v.mapTypes θ))
+    (η : Env κ ρ (Γ.map (Ty.subst θ))) :
+    Env κ (θ.pull κ ρ) Γ := fun a v ↦ cast (a.denote_subst κ θ ρ) (η (a.subst θ) (v.mapTypes θ))
 
 theorem Env.instPull_extend {ρ : TypeVal} {Γ : List Ty} (θ : TypeSub)
-    (η : Env ρ (Γ.map (Ty.subst θ)))
-    (x : Ty.denote ρ (a.subst θ)) :
+    (η : Env κ ρ (Γ.map (Ty.subst θ)))
+    (x : Ty.denote κ ρ (a.subst θ)) :
     Env.instPull θ (Env.extend (a := a.subst θ) η x) =
-      Env.extend (a := a) (Env.instPull θ η) (cast (a.denote_subst θ ρ) x) := by
+      Env.extend (a := a) (Env.instPull θ η) (cast (a.denote_subst κ θ ρ) x) := by
   funext b v
   cases v <;> rfl
 
 structure ChoiceNatural : Prop where
-  choice_natural : ∀ (θ : TypeSub) (ρ : TypeVal) (hρ : Admissible ρ) (a : Ty),
-    letI : Nonempty (Ty.denote ρ (a.subst θ)) := (a.subst θ).carrier_nonempty ρ hρ
-    letI : Nonempty (Ty.denote (θ.pull ρ) a) := a.carrier_nonempty (θ.pull ρ)
-      (θ.pull_admissible ρ hρ)
-    HEq (select (Ty.denote ρ (a.subst θ))) (select (Ty.denote (θ.pull ρ) a))
+  choice_natural : ∀ (κ : TyConVal) (θ : TypeSub) (ρ : TypeVal) (hρ : Admissible κ ρ) (a : Ty),
+    letI : Nonempty (Ty.denote κ ρ (a.subst θ)) := (a.subst θ).carrier_nonempty κ ρ hρ
+    letI : Nonempty (Ty.denote κ (θ.pull κ ρ) a) := a.carrier_nonempty κ (θ.pull κ ρ)
+      (θ.pull_admissible κ ρ hρ)
+    HEq (select (Ty.denote κ ρ (a.subst θ))) (select (Ty.denote κ (θ.pull κ ρ) a))
 
 theorem select_heq_of_type_eq {A B : Type} [Nonempty A] [Nonempty B]
     (h : A = B) : HEq (select A) (select B) := by
@@ -64,24 +66,24 @@ theorem select_heq_of_type_eq {A B : Type} [Nonempty A] [Nonempty B]
 
 theorem select_natural : ChoiceNatural := by
   constructor
-  intro θ ρ hρ a
-  letI : Nonempty (Ty.denote ρ (a.subst θ)) := (a.subst θ).carrier_nonempty ρ hρ
-  letI : Nonempty (Ty.denote (θ.pull ρ) a) :=
-    a.carrier_nonempty (θ.pull ρ) (θ.pull_admissible ρ hρ)
-  exact select_heq_of_type_eq (Ty.denote_subst a θ ρ)
+  intro κ θ ρ hρ a
+  letI : Nonempty (Ty.denote κ ρ (a.subst θ)) := (a.subst θ).carrier_nonempty κ ρ hρ
+  letI : Nonempty (Ty.denote κ (θ.pull κ ρ) a) :=
+    a.carrier_nonempty κ (θ.pull κ ρ) (θ.pull_admissible κ ρ hρ)
+  exact select_heq_of_type_eq (Ty.denote_subst a κ θ ρ)
 
 theorem Term.eval_instType
     (hChoice : ChoiceNatural)
-    (I : ConstVal S) (ρ : TypeVal) (hρ : Admissible ρ)
+    (I : ConstVal κ S) (ρ : TypeVal) (hρ : Admissible κ ρ)
     (t : Term S Γ a) (θ : TypeSub)
-    (η : Env ρ (Γ.map (Ty.subst θ))) :
+    (η : Env κ ρ (Γ.map (Ty.subst θ))) :
     HEq ((t.instType θ).eval I ρ hρ η)
-      (t.eval I (θ.pull ρ) (θ.pull_admissible ρ hρ) (Env.instPull θ η)) := by
+      (t.eval I (θ.pull κ ρ) (θ.pull_admissible κ ρ hρ) (Env.instPull θ η)) := by
   induction t with
   | var v =>
-      exact (cast_heq (Ty.denote_subst _ θ ρ) (η _ (v.mapTypes θ))).symm
+      exact (cast_heq (Ty.denote_subst _ κ θ ρ) (η _ (v.mapTypes θ))).symm
   | const c σ =>
-      have hpull : (θ.comp σ).pull ρ = σ.pull (θ.pull ρ) := by
+      have hpull : (θ.comp σ).pull κ ρ = σ.pull κ (θ.pull κ ρ) := by
         funext i
         simp [TypeSub.pull, TypeSub.comp, Ty.denote_subst]
       simp only [Term.instType, Term.eval]
@@ -89,22 +91,22 @@ theorem Term.eval_instType
         (Ty.subst_comp (S c) θ σ).symm (.const c (θ.comp σ))
       have hraw : HEq
           ((Term.const c (θ.comp σ)).eval I ρ hρ η)
-          ((Term.const c σ).eval I (θ.pull ρ) (θ.pull_admissible ρ hρ)
+          ((Term.const c σ).eval I (θ.pull κ ρ) (θ.pull_admissible κ ρ hρ)
             (Env.instPull θ η)) := by
         simp only [Term.eval]
         have hi := constVal_heq I hpull
-          ((θ.comp σ).pull_admissible ρ hρ)
-          (σ.pull_admissible (θ.pull ρ) (θ.pull_admissible ρ hρ)) c
+          ((θ.comp σ).pull_admissible κ ρ hρ)
+          (σ.pull_admissible κ (θ.pull κ ρ) (θ.pull_admissible κ ρ hρ)) c
         exact (cast_heq _ _).trans (hi.trans (cast_heq _ _).symm)
       exact hcast.trans hraw
   | @app Γ a b f x ihf ihx =>
       simp only [Term.instType, Term.eval]
       have hf := ihf η
       have hx := ihx η
-      exact heq_app_cast (Ty.denote_subst a θ ρ) (Ty.denote_subst b θ ρ) hf hx
+      exact heq_app_cast (Ty.denote_subst a κ θ ρ) (Ty.denote_subst b κ θ ρ) hf hx
   | @lam a Γ b body ih =>
       simp only [Term.instType, Term.eval]
-      apply heq_fun_cast (a.denote_subst θ ρ) (b.denote_subst θ ρ)
+      apply heq_fun_cast (a.denote_subst κ θ ρ) (b.denote_subst κ θ ρ)
       intro x
       have hb := ih (Env.extend η x)
       rw [Env.instPull_extend] at hb
@@ -127,16 +129,16 @@ theorem Term.eval_instType
       apply propext
       constructor
       · intro h x
-        let x' : Ty.denote ρ (a.subst θ) :=
-          cast (Ty.denote_subst a θ ρ).symm x
+        let x' : Ty.denote κ ρ (a.subst θ) :=
+          cast (Ty.denote_subst a κ θ ρ).symm x
         have hb := ih (Env.extend η x')
         rw [Env.instPull_extend] at hb
         simpa [x'] using (eq_of_heq hb).mp (h x')
       · intro h x
-        let x' : Ty.denote ρ (a.subst θ) := x
+        let x' : Ty.denote κ ρ (a.subst θ) := x
         have hb := ih (Env.extend η x')
         rw [Env.instPull_extend] at hb
-        simpa [x'] using (eq_of_heq hb).mpr (h (cast (Ty.denote_subst a θ ρ) x'))
+        simpa [x'] using (eq_of_heq hb).mpr (h (cast (Ty.denote_subst a κ θ ρ) x'))
   | @ex a Γ p ih =>
       simp only [Term.instType, Term.eval]
       apply heq_of_eq
@@ -145,17 +147,17 @@ theorem Term.eval_instType
       · rintro ⟨x, hx⟩
         have hb := ih (Env.extend η x)
         rw [Env.instPull_extend] at hb
-        exact ⟨cast (Ty.denote_subst a θ ρ) x, (eq_of_heq hb).mp hx⟩
+        exact ⟨cast (Ty.denote_subst a κ θ ρ) x, (eq_of_heq hb).mp hx⟩
       · rintro ⟨x, hx⟩
-        let x' : Ty.denote ρ (a.subst θ) :=
-          cast (Ty.denote_subst a θ ρ).symm x
+        let x' : Ty.denote κ ρ (a.subst θ) :=
+          cast (Ty.denote_subst a κ θ ρ).symm x
         have hb := ih (Env.extend η x')
         rw [Env.instPull_extend] at hb
         exact ⟨x', (eq_of_heq hb).mpr (by simpa [x'] using hx)⟩
   | @eq Γ a =>
-      simpa only [Term.instType, Term.eval] using eq_natural (a.denote_subst θ ρ)
+      simpa only [Term.instType, Term.eval] using eq_natural (a.denote_subst κ θ ρ)
   | @choice Γ a =>
-      exact hChoice.choice_natural θ ρ hρ a
+      exact hChoice.choice_natural κ θ ρ hρ a
 
 def typeSubstSequent (θ : TypeSub) (s : Sequent S Γ) :
     Sequent S (Γ.map (Ty.subst θ)) :=
@@ -163,13 +165,13 @@ def typeSubstSequent (θ : TypeSub) (s : Sequent S Γ) :
   , concl := s.concl.instType θ }
 
 theorem valid_inst_type
-    (hChoice : ChoiceNatural) (I : ConstVal S) (θ : TypeSub)
+    (hChoice : ChoiceNatural) (I : ConstVal κ S) (θ : TypeSub)
     (s : Sequent S Γ) (hValid : Valid I s) :
     Valid I (typeSubstSequent θ s) := by
   intro ρ hρ η hh
   change (s.concl.instType θ).eval I ρ hρ η
   have hEval := Term.eval_instType hChoice I ρ hρ s.concl θ η
-  have hOrig := hValid (θ.pull ρ) (θ.pull_admissible ρ hρ) (Env.instPull θ η) (by
+  have hOrig := hValid (θ.pull κ ρ) (θ.pull_admissible κ ρ hρ) (Env.instPull θ η) (by
     intro h hh'
     have h0valid := hh (h.instType θ) (List.mem_map.mpr ⟨h, hh', rfl⟩)
     have hEvalHyp := Term.eval_instType hChoice I ρ hρ h θ η

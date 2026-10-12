@@ -1,5 +1,14 @@
 # Formal specification changelog
 
+## 2026-10-13 Type-constructor nodes and constructor interpretations
+
+- Added `Ty.con k n args` and the constructor interpretation `TyConVal` (default:
+  every constructor denotes `PUnit`) to the Lean development. `Ty.denote`,
+  `Admissible`, `ConstVal`, evaluation, instantiation, the rules, `Derivation`,
+  extension histories and the soundness package are parameterized by it; the core
+  theorems hold for every constructor interpretation. No user type constructor or
+  typedef semantics is added, and the MoonBit implementation is unchanged.
+
 ## 2026-10-12 Detailed mathematical exposition restored
 
 - Restored the original page design, callouts, diagrams, two-part structure,
