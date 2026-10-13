@@ -22,6 +22,11 @@ All notable changes to QED are recorded here. The format follows [Keep a Changel
   `extension_derivation_old_language_valid`. A worked example derives the three laws for
   the one-element subtype of `bool` and shows the extended model is non-trivial. Refs #17.
 
+### Fixed
+
+- Kernel boundary: theorem creation and lifting, the signature and extension-certificate accessors, and constants read from the signature now snapshot caller-owned type arrays, so mutating an array after admission cannot change admitted theorem data or kernel state. Terms and types built by the caller are not copied by `mk_*` and `dest_*`, so building and walking a term stays linear; the regression file `kernel_immutability_test.mbt` covers both, including a deep-term test.
+- `thm_bind_const_ids` rejects rebinding of a theorem that has acquired declaration lineage and still contains an unstamped occurrence of a constant other than `=` and `@` (error `InvalidInstantiation`); this closes the descendant-shadowing admission path and is covered by a deterministic kernel regression.
+
 ### Changed
 
 - Lean (`formal_verification`): `DefinitionGate.typeVarsClosed` and

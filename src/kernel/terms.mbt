@@ -18,6 +18,17 @@ pub enum DbTerm {
 }
 
 ///|
+fn snapshot_db_term(term : DbTerm) -> DbTerm {
+  match term {
+    DbBound(index, ty) => DbBound(index, snapshot_hol_type(ty))
+    DbFree(name, ty) => DbFree(name, snapshot_hol_type(ty))
+    DbConst(name, ty, id) => DbConst(name, snapshot_hol_type(ty), id)
+    DbComb(f, x) => DbComb(snapshot_db_term(f), snapshot_db_term(x))
+    DbAbs(ty, body) => DbAbs(snapshot_hol_type(ty), snapshot_db_term(body))
+  }
+}
+
+///|
 /// Constructors
 pub fn mk_var(name : String, ty : HolType) -> Term {
   Var(name, ty)
@@ -196,11 +207,12 @@ fn to_db_term_with_env(term : Term, env : Array[(String, HolType)]) -> DbTerm? {
   match term {
     Var(name, ty) =>
       match lookup_db_index(env, name, ty) {
-        BoundIndex(i) => Some(DbBound(i, ty))
-        FreeVar => Some(DbFree(name, ty))
+        BoundIndex(i) => Some(DbBound(i, snapshot_hol_type(ty)))
+        FreeVar => Some(DbFree(name, snapshot_hol_type(ty)))
         TypeMismatch => None
       }
-    Const(name, ty, const_id) => Some(DbConst(name, ty, const_id))
+    Const(name, ty, const_id) =>
+      Some(DbConst(name, snapshot_hol_type(ty), const_id))
     Comb(f, x) =>
       match (to_db_term_with_env(f, env), to_db_term_with_env(x, env)) {
         (Some(f2), Some(x2)) => Some(DbComb(f2, x2))
@@ -212,7 +224,7 @@ fn to_db_term_with_env(term : Term, env : Array[(String, HolType)]) -> DbTerm? {
           let env2 = env.copy()
           env2.push((name, ty))
           match to_db_term_with_env(body, env2) {
-            Some(body2) => Some(DbAbs(ty, body2))
+            Some(body2) => Some(DbAbs(snapshot_hol_type(ty), body2))
             None => None
           }
         }
@@ -272,14 +284,15 @@ fn from_db_term_with_env(
       } else {
         let (name, ty2) = env[n - 1 - i]
         if ty_eq(ty, ty2) {
-          Some(Var(name, ty))
+          Some(Var(name, snapshot_hol_type(ty)))
         } else {
           None
         }
       }
     }
-    DbFree(name, ty) => Some(Var(name, ty))
-    DbConst(name, ty, const_id) => Some(Const(name, ty, const_id))
+    DbFree(name, ty) => Some(Var(name, snapshot_hol_type(ty)))
+    DbConst(name, ty, const_id) =>
+      Some(Const(name, snapshot_hol_type(ty), const_id))
     DbComb(f, x) =>
       match
         (
@@ -296,7 +309,7 @@ fn from_db_term_with_env(
       let used2 = used.copy()
       used2.push(name)
       match from_db_term_with_env(body, env2, forbidden, used2) {
-        Some(body2) => Some(Abs(Var(name, ty), body2))
+        Some(body2) => Some(Abs(Var(name, snapshot_hol_type(ty)), body2))
         None => None
       }
     }
@@ -505,7 +518,7 @@ fn db_apply_ty_subst_to_type(
   match ty {
     TyVal(name) =>
       match lookup_ty_subst_term(subst, name) {
-        Some(t) => t
+        Some(t) => snapshot_hol_type(t)
         None => ty
       }
     TyApp(tycon, args) =>
@@ -568,7 +581,10 @@ pub fn db_subst_free_parallel(
     }
   }
 
-  walk(0, term, subst)
+  match walk(0, term, subst) {
+    Some(out) => Some(snapshot_db_term(out))
+    None => None
+  }
 }
 
 ///|
@@ -602,7 +618,11 @@ pub fn db_beta_reduce_once(term : DbTerm) -> DbTerm? {
       match db_shift_walk(1, 0, arg) {
         Some(arg1) =>
           match db_subst_walk(0, arg1, 0, body) {
-            Some(body1) => db_shift_walk(-1, 0, body1)
+            Some(body1) =>
+              match db_shift_walk(-1, 0, body1) {
+                Some(out) => Some(snapshot_db_term(out))
+                None => None
+              }
             None => None
           }
         None => None

@@ -30,8 +30,8 @@ fn mk_thm_with_origin(
   def_origin : String?,
 ) -> Thm {
   Thm::{
-    hyps: db_hyps_dedup(hyps),
-    concl,
+    hyps: db_hyps_dedup(hyps.map(snapshot_db_term)),
+    concl: snapshot_db_term(concl),
     def_origin,
     const_ids: [],
     origin_lineage: [],
@@ -54,7 +54,7 @@ fn thm_with_const_ids(th : Thm, const_ids : Array[(String, ConstId)]) -> Thm {
     hyps: th.hyps,
     concl: th.concl,
     def_origin: th.def_origin,
-    const_ids,
+    const_ids: const_ids.copy(),
     origin_lineage: th.origin_lineage,
   }
 }
@@ -80,7 +80,7 @@ fn lower_term(term : Term) -> Result[DbTerm, LogicError] {
 
 ///|
 fn lift_term(term : DbTerm) -> Result[Term, LogicError] {
-  match from_db_term(term) {
+  match from_db_term(snapshot_db_term(term)) {
     Some(t) => Ok(t)
     None => Err(BoundaryFailure)
   }
@@ -536,6 +536,17 @@ fn theorem_const_names(th : Thm) -> Array[String] {
 }
 
 ///|
+fn theorem_has_unbound_const_ids(th : Thm) -> Bool {
+  let consts : Array[(String, HolType, ConstId)] = []
+  th.hyps.each(fn(h) { collect_theorem_consts_with_ids(h, consts) })
+  collect_theorem_consts_with_ids(th.concl, consts)
+  consts.any(fn(item) {
+    let (name, _, const_id) = item
+    name != "=" && name != "@" && const_id < 0
+  })
+}
+
+///|
 fn resolve_bound_thm_const_ids(
   th : Thm,
 ) -> Result[Array[(String, ConstId)], LogicError] {
@@ -676,6 +687,9 @@ pub fn thm_bind_const_ids(
   state : KernelState,
   th : Thm,
 ) -> Result[Thm, LogicError] {
+  if th.origin_lineage.length() > 0 && theorem_has_unbound_const_ids(th) {
+    return Err(InvalidInstantiation)
+  }
   match thm_stamp_const_ids(state, th) {
     Ok(stamped) =>
       match ensure_thm_admissible(state, stamped) {
