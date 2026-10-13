@@ -9,6 +9,15 @@ QED is a theorem prover for higher-order logic written in MoonBit, built kernel-
 - `cmd`: a file-first command-line tool with structured `error[...]` and `warning[unfinished]` reports.
 
 The [user manual](doc/manual/manual.md) has the exact support matrix.
+The [proof-obligation matrix](doc/manual/qed_proof_obligations.md) records the
+normative obligations and separates Lean, MoonBit, refinement, and test
+evidence.
+The [formal branch contract](formal_verification/branch_contract.md) fixes the
+promotion order from HOL theory through declaration growth to MoonBit
+refinement and independent checking.
+The dated [initial verification audit](research/qed-verification/2026-10-14-initial-audit.md)
+records the evidence baseline and remaining research work; it is not a shipped
+implementation contract.
 
 ## Install
 

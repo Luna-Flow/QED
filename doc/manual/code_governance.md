@@ -87,7 +87,7 @@ Default maintenance order:
 3. The package pages of the affected packages (`api/`, `design/`, `tutorial/`)
 4. [Specification conformance](conformance.md)
 5. `README.md` and `CHANGELOG.md`
-6. [Workspace audit (2026-04-18)](current_workspace_audit.md) (only when the point-in-time conclusions change)
+6. [Current workspace audit (2026-10-14)](current_workspace_audit.md) (only when the point-in-time conclusions change)
 
 ## Review checklist
 

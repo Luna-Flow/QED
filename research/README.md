@@ -4,7 +4,7 @@ Status: research-only
 Audience: maintainers, designers
 Authority: non-authoritative design notes; subordinate to `doc/attachments/qed_formal_spec.typ`, current code/tests, and `doc/manual/governance.md`
 Scope: unshipped design exploration, promotion gates, and go/no-go conclusions
-Last reviewed: 2026-04-16
+Last reviewed: 2026-10-14
 
 `research/` 用来放未 shipped 的设计研究档，不放当前实现合同。
 
@@ -24,3 +24,5 @@ Last reviewed: 2026-04-16
 
 - `research/rewrite-simplify/`
   rewrite/simplify 研究线，当前仍是 `research-only`，不在默认产品路径中。
+- [`research/qed-verification/2026-10-14-initial-audit.md`](qed-verification/2026-10-14-initial-audit.md)
+  QED 验证工程的初始审计：记录基线、证据边界、已完成修复和下一晋级门槛，不定义当前产品合同。

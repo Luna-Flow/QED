@@ -99,7 +99,6 @@ msgid "Each theorem produces one block, in file order."
 msgstr ""
 
 #: manual/api/cmd.md:42
-#: manual/conformance.md:25
 msgid "Result"
 msgstr ""
 
@@ -136,7 +135,6 @@ msgid "Exit status"
 msgstr ""
 
 #: manual/api/cmd.md:52
-#: manual/qed_formal_audit_matrices.md:9
 msgid "Status"
 msgstr ""
 
@@ -2830,12 +2828,12 @@ msgid "Default maintenance order:"
 msgstr ""
 
 #: manual/code_governance.md:85
-#: manual/governance.md:142
+#: manual/governance.md:144
 msgid "Code and tests"
 msgstr ""
 
 #: manual/code_governance.md:86
-#: manual/governance.md:143
+#: manual/governance.md:145
 #: manual/index.md:52
 msgid "[User manual](manual.md)"
 msgstr ""
@@ -2845,18 +2843,18 @@ msgid "The package pages of the affected packages (`api/`, `design/`, `tutorial/
 msgstr ""
 
 #: manual/code_governance.md:88
-#: manual/governance.md:145
+#: manual/governance.md:147
 #: manual/index.md:54
 msgid "[Specification conformance](conformance.md)"
 msgstr ""
 
 #: manual/code_governance.md:89
-#: manual/governance.md:146
+#: manual/governance.md:148
 msgid "`README.md` and `CHANGELOG.md`"
 msgstr ""
 
 #: manual/code_governance.md:90
-msgid "[Workspace audit (2026-04-18)](current_workspace_audit.md) (only when the point-in-time conclusions change)"
+msgid "[Current workspace audit (2026-10-14)](current_workspace_audit.md) (only when the point-in-time conclusions change)"
 msgstr ""
 
 #: manual/code_governance.md:92
@@ -2892,529 +2890,333 @@ msgid "Specification conformance"
 msgstr ""
 
 #: manual/conformance.md:3
-msgid "Status: Typed HOL proof line active"
+msgid "Status: active implementation evidence"
 msgstr ""
 
 #: manual/conformance.md:4
+#: manual/current_workspace_audit.md:4
 msgid "Audience: maintainers and reviewers"
 msgstr ""
 
 #: manual/conformance.md:5
-msgid "Authority: [QED Typed HOL Core](../attachments/qed_formal_spec.typ)"
+msgid "Authority: [`qed_formal_spec.typ`](../attachments/qed_formal_spec.typ) and current code/tests"
 msgstr ""
 
 #: manual/conformance.md:6
-msgid "Scope: Lean mathematical core and the explicitly separated MoonBit boundary"
+msgid "Scope: MoonBit implementation mapping, evidence boundaries and contributor checks"
 msgstr ""
 
 #: manual/conformance.md:7
-msgid "Last reviewed: 2026-10-12"
+#: manual/current_workspace_audit.md:7
+#: manual/qed_formal_spec_changelog.md:7
+msgid "Last reviewed: 2026-10-14"
 msgstr ""
 
 #: manual/conformance.md:9
-msgid "The repository has one formal proof line: `formal_verification/QEDFV/HOL`. The Lean library defines an intrinsically typed HOL calculus and proves its semantic soundness. The MoonBit implementation remains a separate realization until a checked refinement connects its terms, theorem objects, and kernel operations to the Lean calculus."
-msgstr ""
-
-#: manual/conformance.md:15
-msgid "Evidence hierarchy"
-msgstr ""
-
-#: manual/conformance.md:17
-msgid "The Typst specification states the mathematical contract."
+msgid "This page describes what the shipped implementation and its tests establish. It does not turn implementation evidence into a Lean refinement theorem. The formal dependency and theorem map lives in [`formal_verification/theory-proof-plan.md`](../../formal_verification/theory-proof-plan.md); the branch promotion policy lives in [`formal_verification/branch_contract.md`](../../formal_verification/branch_contract.md). The machine-readable registry is [`qed_obligations.json`](qed_obligations.json), and [`qed_proof_obligations.md`](qed_proof_obligations.md) is generated from it."
 msgstr ""
 
 #: manual/conformance.md:18
-msgid "`formal_verification/QEDFV/HOL` defines and proves that contract in Lean."
-msgstr ""
-
-#: manual/conformance.md:19
-msgid "MoonBit code and tests describe the current realization and its behavior."
+msgid "Evidence boundary"
 msgstr ""
 
 #: manual/conformance.md:20
-msgid "This document records the boundary and verification commands; it does not add logical assumptions."
+msgid "The Typst attachment is the normative contract."
+msgstr ""
+
+#: manual/conformance.md:21
+msgid "Lean proves the stated Typed HOL calculus and its explicit assumptions."
+msgstr ""
+
+#: manual/conformance.md:22
+msgid "MoonBit source and tests describe the current realization."
 msgstr ""
 
 #: manual/conformance.md:23
-msgid "Typed HOL evidence"
+msgid "This page maps implementation surfaces to evidence and records limits."
 msgstr ""
 
 #: manual/conformance.md:25
-#: manual/conformance.md:75
-msgid "Area"
-msgstr ""
-
-#: manual/conformance.md:25
-msgid "Lean source"
-msgstr ""
-
-#: manual/conformance.md:27
-msgid "Types and non-empty carriers"
-msgstr ""
-
-#: manual/conformance.md:27
-#: manual/conformance.md:28
-#: manual/conformance.md:29
-#: manual/conformance.md:30
-#: manual/conformance.md:31
-#: manual/conformance.md:32
-#: manual/conformance.md:36
-#: manual/conformance.md:39
-#: manual/conformance.md:40
-#: manual/conformance.md:41
-#: manual/conformance.md:42
-#: manual/qed_formal_audit_matrices.md:11
-#: manual/qed_formal_audit_matrices.md:12
-#: manual/qed_formal_audit_matrices.md:13
-#: manual/qed_formal_audit_matrices.md:14
-#: manual/qed_formal_audit_matrices.md:15
-#: manual/qed_formal_audit_matrices.md:16
-#: manual/qed_formal_audit_matrices.md:17
-#: manual/qed_formal_audit_matrices.md:18
-#: manual/qed_formal_audit_matrices.md:22
-#: manual/qed_formal_audit_matrices.md:23
-#: manual/qed_formal_audit_matrices.md:24
-#: manual/qed_formal_audit_matrices.md:25
-msgid "proved"
-msgstr ""
-
-#: manual/conformance.md:28
-msgid "Intrinsic terms, renaming, substitution"
+msgid "A passing Lean build does not prove MoonBit behavior. A passing regression does not prove the absence of all theorem-forging paths. A negative test is evidence for its reproduced attack, not a universal absence theorem."
 msgstr ""
 
 #: manual/conformance.md:29
-msgid "Evaluation and beta"
-msgstr ""
-
-#: manual/conformance.md:30
-#: manual/qed_formal_audit_matrices.md:13
-msgid "Type instantiation and choice coherence"
+msgid "Implementation mapping"
 msgstr ""
 
 #: manual/conformance.md:31
-msgid "Primitive rule validity, including `ADD_ASSUM` and witness `SPECIFY`"
+#: manual/manual.md:616
+#: manual/manual.md:659
+msgid "Surface"
 msgstr ""
 
-#: manual/conformance.md:32
-msgid "Derivation soundness for all constructors, including infinity"
+#: manual/conformance.md:31
+msgid "Implementation"
+msgstr ""
+
+#: manual/conformance.md:31
+#: manual/qed_proof_obligations.md:72
+msgid "Evidence"
+msgstr ""
+
+#: manual/conformance.md:31
+msgid "Boundary"
 msgstr ""
 
 #: manual/conformance.md:33
-msgid "Object-language connectives and quantifiers"
+msgid "Typed core and boundary conversion"
 msgstr ""
 
 #: manual/conformance.md:33
-msgid "semantic clauses and substitution/type-instantiation laws proved"
+msgid "kernel type and term tests"
+msgstr ""
+
+#: manual/conformance.md:33
+msgid "No Lean source refinement"
 msgstr ""
 
 #: manual/conformance.md:34
-msgid "Infinity sentence and admission rule"
+msgid "Primitive rules and theorem admission"
 msgstr ""
 
 #: manual/conformance.md:34
-msgid "exact sentence valid in all models; soundness case proved"
+msgid "theorem tests, white-box tests and audit corpus"
+msgstr ""
+
+#: manual/conformance.md:34
+msgid "Opaque `Thm` still depends on immutable transitive data"
 msgstr ""
 
 #: manual/conformance.md:35
-msgid "History-indexed definition, specification and type-definition derivations"
+msgid "Scoped state and extension gates"
 msgstr ""
 
 #: manual/conformance.md:35
-msgid "proved at the history's model pair over a fixed total signature; history freshness is carried, not used"
+msgid "signature and audit tests"
+msgstr ""
+
+#: manual/conformance.md:35
+msgid "MoonBit gate correspondence to Lean remains open"
 msgstr ""
 
 #: manual/conformance.md:36
-msgid "Type-definition carrier laws"
+msgid "Snapshot and provenance invariants"
+msgstr ""
+
+#: manual/conformance.md:36
+msgid "`kernel_immutability_test.mbt`, sibling-history regressions"
+msgstr ""
+
+#: manual/conformance.md:36
+msgid "Deterministic implementation evidence"
 msgstr ""
 
 #: manual/conformance.md:37
-msgid "Type-definition gate semantics: new model, Abs/Rep laws, old-language invariance"
+msgid "Elaboration boundary"
 msgstr ""
 
 #: manual/conformance.md:37
-#: manual/qed_formal_audit_matrices.md:19
-msgid "proved over model pairs"
+msgid "elaborator tests"
+msgstr ""
+
+#: manual/conformance.md:37
+msgid "Proposition-preservation theorem is open"
 msgstr ""
 
 #: manual/conformance.md:38
-msgid "Locality of the constant interpretation preserved by every declaration step; old-language invariance along a history"
+msgid "Parser boundary"
 msgstr ""
 
 #: manual/conformance.md:38
-msgid "proved for a local base model (the canonical ones are)"
+msgid "parser tests and raw-offset corpus"
+msgstr ""
+
+#: manual/conformance.md:38
+msgid "Parser correctness is separate from kernel validity"
 msgstr ""
 
 #: manual/conformance.md:39
-msgid "Worked typedef derivation (one-element subtype of `bool`)"
+msgid "Tactic replay"
+msgstr ""
+
+#: manual/conformance.md:39
+msgid "proof-state, positive, negative and unfinished corpora"
+msgstr ""
+
+#: manual/conformance.md:39
+msgid "Replay is not a second proof kernel"
 msgstr ""
 
 #: manual/conformance.md:40
-#: manual/qed_formal_audit_matrices.md:23
-msgid "Finite semantic conservativity"
+msgid "CLI integration"
 msgstr ""
 
-#: manual/conformance.md:41
-msgid "Concrete and signature-generic non-triviality"
+#: manual/conformance.md:40
+msgid "command white-box tests and corpus anchors"
+msgstr ""
+
+#: manual/conformance.md:40
+msgid "CLI output is not logical evidence"
 msgstr ""
 
 #: manual/conformance.md:42
-msgid "Typed HOL core proof package"
-msgstr ""
-
-#: manual/conformance.md:44
-msgid "The public entry point is `QEDFV.HOL.typed_hol_core_proof_complete`. It covers the typed core and history-indexed definition, specification and type-definition extensions over a fixed total signature. It does not certify growing-signature syntax or a MoonBit refinement. The default `QEDFV` target imports `QEDFV.HOL.Soundness` only."
-msgstr ""
-
-#: manual/conformance.md:50
-msgid "Explicit limits"
+msgid "The current kernel repairs snapshot caller-owned arrays where data enters or leaves kernel-held state: when a theorem is created or lifted back to a term, when a signature or extension certificate is read, and for constants taken from the signature. Terms and types a caller builds are the caller's own values and are not copied by the public constructors and destructors, so building and walking a deep term stays linear (a regression test builds and walks a chain of 10,000 combinations). Lineage-bearing theorems containing raw shadowable constants are rejected during rebinding. These repairs address concrete implementation invariants; they do not promote the `Refinement/MoonBit` branch."
 msgstr ""
 
 #: manual/conformance.md:52
-msgid "The Typed HOL theorem has a neutral type-constructor node `Ty.con` with an explicit constructor interpretation, and it models the semantics of a type-definition step over model pairs and as a history-indexed derivation constructor whose three laws are sound at the history's model pair. History freshness of the new constructor and constants is carried as a side condition that soundness does not use; consequences that chain the derived laws with core rules would need a history-indexed full calculus, which is not provided. It does not establish the MoonBit infinity registration gate, syntactic derivation erasure (for a type definition this would need a relativisation translation), the kernel's string-name lowering, or a MoonBit-to-Lean refinement. It also does not certify the parser, elaborator, tactics, theorem replay, or mutable scope history. MoonBit theorem provenance is covered separately by the issue #15 implementation invariant and regression tests; it must not be presented as evidence for the Lean theorem."
+msgid "Claim vocabulary"
+msgstr ""
+
+#: manual/conformance.md:54
+msgid "The registry uses these meanings:"
+msgstr ""
+
+#: manual/conformance.md:56
+msgid "`proved-and-refined`: a mathematical proof and a checked implementation correspondence exist;"
+msgstr ""
+
+#: manual/conformance.md:57
+msgid "`proved-abstractly`: the Lean result exists, but source correspondence is absent;"
+msgstr ""
+
+#: manual/conformance.md:58
+msgid "`tested-only`: executable evidence exists without a formal proof;"
+msgstr ""
+
+#: manual/conformance.md:59
+msgid "`implemented-unverified`: code exists without sufficient proof or regression evidence;"
+msgstr ""
+
+#: manual/conformance.md:60
+msgid "`partial`: only a declared subset is covered;"
+msgstr ""
+
+#: manual/conformance.md:61
+msgid "`not-implemented`: no implementation evidence is claimed;"
+msgstr ""
+
+#: manual/conformance.md:62
+msgid "`known-deviation`: behavior is deliberately different from the normative contract;"
+msgstr ""
+
+#: manual/conformance.md:63
+msgid "`not-applicable`: the obligation does not apply to the supported subset."
 msgstr ""
 
 #: manual/conformance.md:65
-msgid "Implementation evidence"
+msgid "These dimensions remain independent: Lean, MoonBit, refinement and tests are reported separately in the generated matrix."
 msgstr ""
 
-#: manual/conformance.md:67
-msgid "The following mappings and contributor rules remain implementation evidence, not a checked refinement theorem. Issue #15 is covered by lineage-prefix admissibility in `src/kernel/thm.mbt` and sibling-state regression tests in `src/kernel/kernel_audit_test.mbt`; the implementation repair does not enlarge the Typed HOL theorem."
+#: manual/conformance.md:68
+msgid "Documentation example contract"
 msgstr ""
 
-#: manual/conformance.md:73
-msgid "Code and test mapping"
-msgstr ""
-
-#: manual/conformance.md:75
-msgid "Current implementation"
-msgstr ""
-
-#: manual/conformance.md:75
-msgid "Regression coverage"
+#: manual/conformance.md:70
+msgid "Public examples must be anchored to existing regression tests. The canonical script corpus is under `src/prover`; tactic examples use `src/tactics`; parser and CLI examples use their corresponding package tests. A documentation change that adds or changes a runnable example must update its regression anchor in the same change. Unsupported behavior must fail or report `unfinished`; it must not be presented as a successful proof."
 msgstr ""
 
 #: manual/conformance.md:77
-msgid "Typed core + boundary conversion"
-msgstr ""
-
-#: manual/conformance.md:78
-msgid "Scoped state + extension gates"
+msgid "Contributor checks"
 msgstr ""
 
 #: manual/conformance.md:79
-msgid "Primitive rules + admissibility"
+msgid "`kernel` remains the only theorem-construction boundary."
 msgstr ""
 
 #: manual/conformance.md:80
-msgid "Resolved elaboration boundary"
+msgid "`logic` may provide definitions, checked wrappers and replay helpers, but no new authority."
 msgstr ""
 
 #: manual/conformance.md:81
-msgid "Parser bridge + normalize/raw-offset contract"
+msgid "`elab` freezes resolved identities and fails closed on schema drift."
 msgstr ""
 
 #: manual/conformance.md:82
-msgid "Parser-to-tactics explicit goal bridge"
+msgid "`parser` preserves local-over-constant lookup and raw source offsets."
 msgstr ""
 
 #: manual/conformance.md:83
-msgid "Surface connector basis expansion"
+msgid "`tactics` returns a theorem only after replay through checked kernel paths."
 msgstr ""
 
 #: manual/conformance.md:84
-msgid "Proposition theorem replay/catalog seeds"
+msgid "`prover` reports `Ok` only when replay succeeds and keeps unfinished proofs explicit."
 msgstr ""
 
 #: manual/conformance.md:85
-msgid "Operational proof scripting + M1 subset replay"
+msgid "`cmd` remains a thin integration layer."
 msgstr ""
 
 #: manual/conformance.md:86
-msgid "File-first `cmd` integration surface"
+msgid "Extension certificates are audit artifacts, not substitutes for theorem acceptance."
 msgstr ""
 
-#: manual/conformance.md:87
-msgid "Quantifier-facing binder / raw-`forall` corpus + CLI contract"
+#: manual/conformance.md:88
+msgid "Reproduction"
 msgstr ""
 
-#: manual/conformance.md:89
-msgid "Regression points that deserve particular attention:"
-msgstr ""
-
-#: manual/conformance.md:91
-msgid "`src/kernel/kernel_audit_test.mbt` already covers high-risk scenarios such as def-head monotonicity, typedef witness validity, const-id drift, typed beta/trans guards, and conservative replay."
-msgstr ""
-
-#: manual/conformance.md:94
-msgid "`src/parser/parser_test.mbt` already covers the normalize/raw-offset contract and the fail-closed rejection of non-`bool` connectors."
-msgstr ""
-
-#: manual/conformance.md:96
-msgid "`src/parser/parser_test.mbt` currently also covers theorem-header binders, structured branch block parsing, and raw-span regressions."
-msgstr ""
-
-#: manual/conformance.md:98
-msgid "`src/parser/parser_test.mbt` and `src/prover/prover_positive_corpus_test.mbt` together currently pin down the contract for parser-owned goal lowering and the explicit upper-layer bridge to `tactics.Goal`."
-msgstr ""
-
-#: manual/conformance.md:101
-msgid "`src/prover/prover_test.mbt` currently pins down script scheduling, branch path attribution, and the step blame convention for structured branch blocks."
+#: manual/conformance.md:90
+msgid "The narrow implementation gate is:"
 msgstr ""
 
 #: manual/conformance.md:103
-msgid "`src/prover/prover_test.mbt` currently covers positive `Ok((KernelState, Thm))` cases for the supported M1 subset, as well as several direct-close / implication-backed theorem-name paths."
-msgstr ""
-
-#: manual/conformance.md:105
-msgid "`src/prover/prover_positive_corpus_test.mbt` / `src/prover/prover_negative_corpus_test.mbt` currently hold the canonical script corpus for the shipped subset, used to pin down capability coverage and the honest failure convention."
-msgstr ""
-
-#: manual/conformance.md:108
-msgid "`src/prover/prover_test.mbt`, `src/prover/prover_mapping_matrix_test.mbt`, and `src/cmd/cmd_corpus_wbtest.mbt` currently also cover the structured contract for unfinished-proof / hole reporting and the canonical unfinished corpus anchors."
-msgstr ""
-
-#: manual/conformance.md:111
-msgid "`src/prover/prover_mapping_matrix_test.mbt` and `src/cmd/cmd_corpus_wbtest.mbt` currently also cover the nested branch unfinished path and stable empty-marker rendering."
-msgstr ""
-
-#: manual/conformance.md:113
-msgid "`src/cmd/cmd_corpus_wbtest.mbt` and `src/cmd/cmd_wbtest.mbt` currently also pin down the success / failure / unfinished CLI contract for shipped quantifier-facing binder / raw-`forall` scripts, including goal, locals, branch path, and step blame."
-msgstr ""
-
-#: manual/conformance.md:116
-msgid "`src/prover/prover_mapping_matrix_test.mbt` currently binds the positive / negative / unfinished canonical case ids, the quantifier binder / raw-`forall` case ids, the capability tags, and the public example anchors in [User manual](manual.md) into a single set of regression constraints."
-msgstr ""
-
-#: manual/conformance.md:119
-msgid "`src/cmd/cmd_wbtest.mbt` currently covers success rendering, parse/io/usage failures, tactic failure context rendering, branch-path rendering, and the file-first argv workflow."
-msgstr ""
-
-#: manual/conformance.md:123
-msgid "Documentation example source contract"
-msgstr ""
-
-#: manual/conformance.md:125
-msgid "To keep the documentation from presenting planned capabilities as delivered ones, documentation examples must currently follow these source constraints:"
-msgstr ""
-
-#: manual/conformance.md:128
-msgid "`README.md` only publishes a summary of the current shipped subset and does not invent new example semantics on its own."
-msgstr ""
-
-#: manual/conformance.md:130
-msgid "Runnable theorem-script examples in [User manual](manual.md) must come from existing regression test coverage."
-msgstr ""
-
-#: manual/conformance.md:132
-msgid "Theorem-producing positive example scripts currently use `src/prover/prover_test.mbt` and `src/prover/prover_positive_corpus_test.mbt` as their primary anchors."
-msgstr ""
-
-#: manual/conformance.md:135
-msgid "Negative / honest failure examples for the shipped subset currently use `src/prover/prover_negative_corpus_test.mbt` as their primary anchor."
-msgstr ""
-
-#: manual/conformance.md:137
-msgid "Canonical unfinished-proof examples currently use `src/prover/prover_test.mbt`, `src/prover/prover_mapping_matrix_test.mbt`, and `src/cmd/cmd_corpus_wbtest.mbt` as their primary anchors; both root-level unfinished and nested branch unfinished samples must be kept in sync."
-msgstr ""
-
-#: manual/conformance.md:141
-msgid "Quantifier-facing binder / raw-`forall` examples currently also use `src/prover/corpus.mbt`, `src/prover/prover_mapping_matrix_test.mbt`, and `src/cmd/cmd_corpus_wbtest.mbt` as their primary anchors; public documentation may only cite these canonical case ids."
-msgstr ""
-
-#: manual/conformance.md:145
-msgid "The mapping from case ids to example anchors in public documentation currently uses `src/prover/prover_mapping_matrix_test.mbt` as its primary anchor."
-msgstr ""
-
-#: manual/conformance.md:147
-msgid "Tactic-level examples, local-over-name conflicts, and wrong-mode honest failures currently use `src/tactics/proof_state_test.mbt` as their primary anchor."
-msgstr ""
-
-#: manual/conformance.md:149
-msgid "Theorem scripts quoted on the package pages (`api/`, `design/`, `tutorial/`) reuse scripts from the anchors above; they do not introduce new script semantics."
-msgstr ""
-
-#: manual/conformance.md:151
-msgid "MoonBit API examples on the package pages are complete programs that call the public functions of the current code and record their results with `assert_eq`, `assert_true` or `inspect` snapshots. Every such block is compiled and run against the current code before the page changes; a block that is not meant to run is fenced `moonbit nocheck`."
-msgstr ""
-
-#: manual/conformance.md:155
-msgid "If the documentation adds, modifies, or removes a public example, the corresponding regression test must be added, modified, or removed at the same time."
-msgstr ""
-
-#: manual/conformance.md:159
-msgid "Contributor checklist"
-msgstr ""
-
-#: manual/conformance.md:161
-msgid "`logic` may only provide checked wrappers, definition/unfold helpers, replay helpers, and organization of non-authoritative theorem references; it must not bypass the kernel to invent new rules."
-msgstr ""
-
-#: manual/conformance.md:164
-msgid "`parser` must preserve `local > const` and the normalize + raw-offset contract, and must share the same connector contract with `logic`."
-msgstr ""
-
-#: manual/conformance.md:166
-msgid "`elab` must freeze resolved identity; when later typing encounters const-id or schema drift, it must fail closed."
-msgstr ""
-
-#: manual/conformance.md:168
-msgid "`tactics` may hand out a theorem through `ps_qed` only when replay through `logic` constructs a `Thm` consistent with the sequent; otherwise it must fail closed."
-msgstr ""
-
-#: manual/conformance.md:170
-msgid "Final acceptance in `ps_qed` must currently use strict normalized sequent equality; the old boundary that admitted results based only on shape-aware compatibility must not be kept."
-msgstr ""
-
-#: manual/conformance.md:172
-msgid "`prover` returns `Ok` and a `Thm` only when replay succeeds; otherwise it keeps returning honest errors."
-msgstr ""
-
-#: manual/conformance.md:174
-msgid "`cmd` may only be a new non-authoritative integration layer and must not become a second proof kernel."
-msgstr ""
-
-#: manual/conformance.md:176
-msgid "Extension certificates may only be audit artifacts; they must not be treated as a substitute for theorem acceptance."
-msgstr ""
-
-#: manual/conformance.md:179
-msgid "Verification"
-msgstr ""
-
-#: manual/conformance.md:181
-msgid "Run the checks serially from the repository root:"
-msgstr ""
-
-#: manual/conformance.md:193
-msgid "The public package reports only the Lean/Mathlib foundations `propext`, `Classical.choice`, and `Quot.sound` under `#print axioms`. The exact audited output and its role are recorded in `formal_verification/axioms.txt`. Typst compilation is:"
-msgstr ""
-
-#: manual/conformance.md:202
-msgid "MoonBit tests remain useful evidence for the realization, but they do not enlarge the Typed HOL proof boundary."
+msgid "The broader formal and documentation gates are listed in the dated [initial verification audit](../../research/qed-verification/2026-10-14-initial-audit.md). Do not lower strictness, discard failed cases or change denominators to make a conformance result pass."
 msgstr ""
 
 #: manual/current_workspace_audit.md:1
-msgid "Workspace audit (2026-10-12)"
+msgid "Current workspace audit (2026-10-14)"
 msgstr ""
 
 #: manual/current_workspace_audit.md:3
-msgid "Status: Typed HOL is the sole formal proof line."
-msgstr ""
-
-#: manual/current_workspace_audit.md:4
-msgid "Authority: [QED Typed HOL Core](../attachments/qed_formal_spec.typ)."
+msgid "Status: point-in-time audit"
 msgstr ""
 
 #: manual/current_workspace_audit.md:5
-msgid "Scope: Typed HOL proof status and material implementation risks."
+msgid "Authority: subordinate to [`qed_formal_spec.typ`](../attachments/qed_formal_spec.typ)"
 msgstr ""
 
 #: manual/current_workspace_audit.md:6
-msgid "Excluded: MoonBit implementation refinement and user-facing proof workflow."
+msgid "Scope: a short current-state pointer; the dated research report contains the evidence narrative"
 msgstr ""
 
-#: manual/current_workspace_audit.md:8
-msgid "The former approximate Lean proof tree has been removed. The current formal library contains only the intrinsically typed development under `formal_verification/QEDFV/HOL`; the root module imports its public `Soundness` entry point. The library builds with `lake build`."
-msgstr ""
-
-#: manual/current_workspace_audit.md:13
-msgid "Verified results"
+#: manual/current_workspace_audit.md:9
+msgid "This page is intentionally brief. The detailed audit and its reproducible commands are in the [initial QED verification audit](../../research/qed-verification/2026-10-14-initial-audit.md). The current implementation mapping is [Specification conformance](conformance.md), and the current obligation status is generated from [`qed_obligations.json`](qed_obligations.json)."
 msgstr ""
 
 #: manual/current_workspace_audit.md:15
-msgid "Intrinsic simple types and De Bruijn terms, with typed renaming, substitution, beta, and type-instantiation evaluation laws."
+msgid "Current boundary"
 msgstr ""
 
 #: manual/current_workspace_audit.md:17
-msgid "Semantic validity preservation for all thirteen derivation constructors, including `ADD_ASSUM`, witness-based `SPECIFY`, and infinity admission."
+msgid "The Typst attachment is the only normative logical specification."
 msgstr ""
 
-#: manual/current_workspace_audit.md:19
-msgid "Object-language truth, falsity, conjunction, implication, universal and existential quantification with proved evaluation characterizations."
+#: manual/current_workspace_audit.md:18
+msgid "The Typed HOL development proves the fixed-signature core and history-indexed extension closure stated by the formal branch contract."
 msgstr ""
 
-#: manual/current_workspace_audit.md:21
-msgid "The closed infinity sentence is valid in every model; its derivation constructor has a direct soundness case."
+#: manual/current_workspace_audit.md:20
+msgid "The finite `DeclTable` allocation lemmas are checked, but growing-signature syntax, embeddings and model transport remain open."
 msgstr ""
 
-#: manual/current_workspace_audit.md:23
-msgid "Derivation soundness by induction, for every constant interpretation."
+#: manual/current_workspace_audit.md:22
+msgid "MoonBit snapshot and theorem-lineage repairs have deterministic regression evidence. They are not a MoonBit-to-Lean refinement theorem."
 msgstr ""
 
 #: manual/current_workspace_audit.md:24
-msgid "History-indexed definition and specification derivations. A specification witness is derived at the preceding history; soundness composes over fresh constant IDs in the fixed signature."
+msgid "An independent certificate checker is planned and is not shipped."
 msgstr ""
 
-#: manual/current_workspace_audit.md:27
-msgid "Semantic extension contracts and witnessed predicate subtype carrier laws."
+#: manual/current_workspace_audit.md:26
+msgid "Current risks"
 msgstr ""
 
 #: manual/current_workspace_audit.md:28
-msgid "Old-language semantic validity equivalence over finite modeled extension sequences."
-msgstr ""
-
-#: manual/current_workspace_audit.md:30
-msgid "A concrete interpretation in which `succ(0) = 0` is false and therefore underivable."
+msgid "The open obligations are tracked by stable IDs in the generated proof-obligation matrix. Do not infer a stronger result from a passing Lean build, a passing MoonBit test, or a negative regression case. Each evidence dimension has its own status and promotion gate."
 msgstr ""
 
 #: manual/current_workspace_audit.md:33
-msgid "The public theorem is `QEDFV.HOL.typed_hol_core_proof_complete`. Audited `#print axioms` output is `propext`, `Classical.choice`, and `Quot.sound`. There are no project-defined axioms, `sorry`, or `admit` in the retained Lean tree."
-msgstr ""
-
-#: manual/current_workspace_audit.md:38
-#: manual/design/cmd.md:70
-#: manual/design/elab.md:74
-#: manual/design/kernel.md:286
-#: manual/design/logic.md:154
-#: manual/design/parser.md:119
-#: manual/design/prover.md:87
-#: manual/design/research_rewrite.md:79
-#: manual/design/tactics.md:92
-msgid "Boundaries"
-msgstr ""
-
-#: manual/current_workspace_audit.md:40
-msgid "The proof does not establish growing-signature derivations, a history-indexed full calculus that chains the derived type-definition laws with core rules (the laws are derivation conclusions at the extended history and sound at its model pair, and history freshness is carried but unused by soundness), the MoonBit infinity registration gate, syntactic derivation erasure for extensions, or a MoonBit-to-Lean refinement. Parser, elaborator, tactic, replay, and mutable-state behavior remain separate implementation evidence. The MoonBit theorem-provenance condition in issue #15 is now enforced independently by the kernel and covered by regression tests."
-msgstr ""
-
-#: manual/current_workspace_audit.md:50
-msgid "This status supersedes older audit claims about conditional proof packs or MoonBit conformance being part of the formal target."
-msgstr ""
-
-#: manual/current_workspace_audit.md:53
-msgid "Issue #15 implementation repair"
-msgstr ""
-
-#: manual/current_workspace_audit.md:55
-msgid "[Issue #15](https://github.com/Luna-Flow/QED/issues/15) is repaired in the current implementation work. Every theorem carries the declaration lineage at which it was first admitted, and admissibility requires that lineage to be a prefix of the receiving state's history. Sibling histories therefore reject a theorem before constant-id reuse can combine incompatible declarations, while linear descendants continue to accept inherited theorems. Infinity-anchor, typedef, and specification registration also reject sibling witnesses."
-msgstr ""
-
-#: manual/current_workspace_audit.md:63
-msgid "The repair is an independently tested MoonBit invariant, not a MoonBit-to-Lean refinement theorem. The Typed HOL build still certifies only the formal calculus and its stated fixed-signature extension results."
-msgstr ""
-
-#: manual/current_workspace_audit.md:67
-msgid "Remaining engineering follow-up"
-msgstr ""
-
-#: manual/current_workspace_audit.md:69
-msgid "Maintain checked lowering and replay as structured proof blocks expand."
-msgstr ""
-
-#: manual/current_workspace_audit.md:70
-msgid "Keep hole and unfinished-proof diagnostics aligned with the canonical corpus."
-msgstr ""
-
-#: manual/current_workspace_audit.md:71
-msgid "Keep quantifier-facing frontend lowering and CLI diagnostics covered."
-msgstr ""
-
-#: manual/current_workspace_audit.md:72
-msgid "Keep the research rewrite/simplify path outside theorem authority."
-msgstr ""
-
-#: manual/current_workspace_audit.md:74
-msgid "These are implementation tasks, not additional assumptions of the Typed HOL proof. The current work records the issue #15 invariant and the MoonBit 0.10.15 compatibility check without extending the Lean proof boundary."
+msgid "The former static Typed HOL audit matrix was merged into the generated matrix and removed to prevent two manually maintained status tables from drifting."
 msgstr ""
 
 #: manual/design/cmd.md:1
@@ -3586,6 +3388,17 @@ msgstr ""
 
 #: manual/design/cmd.md:68
 msgid "**Pretty-printing terms in surface syntax.** A printer that re-introduces `∧` and `->` would be a second interpretation of the encodings that could drift from the parser; the structural printer has no such risk."
+msgstr ""
+
+#: manual/design/cmd.md:70
+#: manual/design/elab.md:74
+#: manual/design/kernel.md:286
+#: manual/design/logic.md:154
+#: manual/design/parser.md:119
+#: manual/design/prover.md:87
+#: manual/design/research_rewrite.md:79
+#: manual/design/tactics.md:92
+msgid "Boundaries"
 msgstr ""
 
 #: manual/design/cmd.md:72
@@ -5174,7 +4987,7 @@ msgid "Implementation layer The current code and regression tests determine the 
 msgstr ""
 
 #: manual/governance.md:21
-msgid "Implementation documentation layer [User manual](manual.md), [Specification conformance](conformance.md), the package pages under `api/`, `design/` and `tutorial/`, and [Workspace audit (2026-04-18)](current_workspace_audit.md) describe the current implementation contract, engineering conformance, the per-package public surface, and point-in-time audits."
+msgid "Implementation documentation layer [User manual](manual.md), [Specification conformance](conformance.md), the package pages under `api/`, `design/` and `tutorial/`, and [Current workspace audit (2026-10-14)](current_workspace_audit.md) describe the current implementation contract, engineering conformance, the per-package public surface, and point-in-time audits."
 msgstr ""
 
 #: manual/governance.md:25
@@ -5214,7 +5027,7 @@ msgid "Engineering conformance and code/test mapping: [Specification conformance
 msgstr ""
 
 #: manual/governance.md:45
-msgid "Point-in-time risks and gaps: [Workspace audit (2026-04-18)](current_workspace_audit.md)"
+msgid "Point-in-time risks and gaps: [Current workspace audit (2026-10-14)](current_workspace_audit.md); the detailed dated research record is the [initial verification audit](../../research/qed-verification/2026-10-14-initial-audit.md)"
 msgstr ""
 
 #: manual/governance.md:46
@@ -5330,7 +5143,7 @@ msgid "[Specification conformance](conformance.md) describes specification align
 msgstr ""
 
 #: manual/governance.md:102
-msgid "[Workspace audit (2026-04-18)](current_workspace_audit.md) only records risks, gaps, and follow-ups that still hold at a given point in time, and does not repeat the stable facts of manual/conformance over the long term."
+msgid "[Current workspace audit](current_workspace_audit.md) is a short point-in-time pointer. Dated research audits under `research/qed-verification/` contain the evidence narrative and do not define the shipped contract."
 msgstr ""
 
 #: manual/governance.md:103
@@ -5394,34 +5207,38 @@ msgid "[Code governance](code_governance.md) Package layering, alias entry point
 msgstr ""
 
 #: manual/governance.md:130
-msgid "[Workspace audit (2026-04-18)](current_workspace_audit.md) Point-in-time audit of the current workspace."
+msgid "[Current workspace audit (2026-10-14)](current_workspace_audit.md) Short point-in-time pointer to the current verification audit."
 msgstr ""
 
 #: manual/governance.md:132
-msgid "[Formal specification changelog](qed_formal_spec_changelog.md) Specification changelog; auxiliary material for specification maintenance."
+msgid "[Initial verification audit (2026-10-14)](../../research/qed-verification/2026-10-14-initial-audit.md) Research-only evidence record and development programme."
 msgstr ""
 
 #: manual/governance.md:134
+msgid "[Formal specification changelog](qed_formal_spec_changelog.md) Specification changelog; auxiliary material for specification maintenance."
+msgstr ""
+
+#: manual/governance.md:136
 msgid "`research/README.md` Research directory entry point and boundary statement."
 msgstr ""
 
-#: manual/governance.md:137
+#: manual/governance.md:139
 msgid "Maintenance rule"
 msgstr ""
 
-#: manual/governance.md:139
+#: manual/governance.md:141
 msgid "When a change affects the implementation, the public capability claims, and research judgments at the same time, maintain the documents in the following order:"
 msgstr ""
 
-#: manual/governance.md:144
+#: manual/governance.md:146
 msgid "The affected package pages (`api/`, `design/`, `tutorial/`)"
 msgstr ""
 
-#: manual/governance.md:147
-msgid "[Workspace audit (2026-04-18)](current_workspace_audit.md)"
+#: manual/governance.md:149
+msgid "[Current workspace audit](current_workspace_audit.md)"
 msgstr ""
 
-#: manual/governance.md:148
+#: manual/governance.md:150
 msgid "Related `research/` documents"
 msgstr ""
 
@@ -5666,90 +5483,98 @@ msgid "Revisions of the specification"
 msgstr ""
 
 #: manual/index.md:57
-msgid "[Workspace audit (2026-10-12)](current_workspace_audit.md)"
+msgid "[Current workspace audit (2026-10-14)](current_workspace_audit.md)"
 msgstr ""
 
 #: manual/index.md:57
-msgid "A point-in-time record of risks and gaps"
+msgid "A short pointer to the current risks and evidence boundary"
 msgstr ""
 
-#: manual/index.md:59
+#: manual/index.md:58
+msgid "[Initial verification audit (2026-10-14)](../../research/qed-verification/2026-10-14-initial-audit.md)"
+msgstr ""
+
+#: manual/index.md:58
+msgid "Research-only baseline, reproducible evidence and next promotion"
+msgstr ""
+
+#: manual/index.md:60
 msgid "Blackbox test files (`*_test.mbt`) and the alias files `alias.mbt` and `alias_test.mbt` belong to their packages; [code governance](code_governance.md) defines their rules. The theorem files in `examples/` and `prelude/` are inputs for the command-line tool, not packages."
 msgstr ""
 
-#: manual/index.md:61
+#: manual/index.md:62
 msgid "Exported items"
 msgstr ""
 
-#: manual/index.md:63
+#: manual/index.md:64
 msgid "Trusted kernel"
 msgstr ""
 
-#: manual/index.md:65
+#: manual/index.md:66
 msgid "Types and terms: `HolType`, `Term`, `DbTerm` and their constructors, destructors and substitutions"
 msgstr ""
 
-#: manual/index.md:66
+#: manual/index.md:67
 msgid "Theorems: the abstract `Thm`, read with `thm_concl`, `thm_hyps` and `thm_is_admissible`"
 msgstr ""
 
-#: manual/index.md:67
+#: manual/index.md:68
 msgid "Primitive rules: `refl_checked`, `assume_checked`, `trans_checked`, `mk_comb_rule_checked`, `abs_rule_checked`, `beta_rule_checked`, `eq_mp_checked`, `deduct_antisym_rule_checked`, `inst_type`, `inst_checked`, and the derived `add_assum_checked`"
 msgstr ""
 
-#: manual/index.md:68
+#: manual/index.md:69
 msgid "State and gates: `KernelState`, scopes, `ks_define_const_thm` (`DefOK`), `ks_register_type_definition` (`TypeDefOK`), `ks_specify_const` (`SpecOK`), audit certificates"
 msgstr ""
 
-#: manual/index.md:70
+#: manual/index.md:71
 msgid "Untrusted layers"
 msgstr ""
 
-#: manual/index.md:72
+#: manual/index.md:73
 msgid "`logic`: `install_prop_prelude`, the connective builders `prop_mk_*` and recognisers `prop_dest_*`, the natural-deduction rules `logic_prop_*_thm`, the theorem catalog"
 msgstr ""
 
-#: manual/index.md:74
+#: manual/index.md:75
 msgid "`parser`: `parse_term`, `parse_goal`, `parse_theorem_script_raw` and their `_raw` and `_with_env` variants, `ParseError` with raw offsets"
 msgstr ""
 
-#: manual/index.md:75
+#: manual/index.md:76
 msgid "`tactics`: `ProofState`, `ps_init`, `ps_apply`, `ps_qed`, the steps `step_intro`, `step_split`, `step_left`, `step_right`, `step_apply`, `step_exact`, `step_assumption`"
 msgstr ""
 
-#: manual/index.md:76
+#: manual/index.md:77
 msgid "`prover`: `prove_theorem_script_detailed`, `prove_theorem_file_results_detailed`, `ProverRunResult`, the regression corpus"
 msgstr ""
 
-#: manual/index.md:78
+#: manual/index.md:79
 msgid "Where to read next"
 msgstr ""
 
-#: manual/index.md:80
+#: manual/index.md:81
 msgid "New to proof assistants: read \"For readers new to HOL\" and the quick start in the [user manual](manual.md), then run the examples with the [cmd tutorial](tutorial/cmd.md). The [syntax guide](syntax.md) answers \"how do I write this step\"."
 msgstr ""
 
-#: manual/index.md:81
+#: manual/index.md:82
 msgid "Using QED from MoonBit: start with the [prover tutorial](tutorial/prover.md) to run scripts and read results. Go down to the [tactics tutorial](tutorial/tactics.md) to drive proofs step by step, and to the [logic](tutorial/logic.md) and [kernel](tutorial/kernel.md) tutorials to build theorems forwards. Keep the API pages at hand; each lists the failure cases of every function."
 msgstr ""
 
-#: manual/index.md:82
+#: manual/index.md:83
 msgid "Checking why it is sound: read the [kernel design](design/kernel.md), which derives the rules and explains why soundness reduces to the kernel, then the [logic](design/logic.md) and [tactics](design/tactics.md) designs, which show that the upper layers add no authority. The formal specification above is normative."
 msgstr ""
 
-#: manual/index.md:83
-msgid "Contributing: read [code governance](code_governance.md) and [documentation governance](governance.md) first, then [specification conformance](conformance.md) for the code/test mapping and the rules for examples. The [workspace audit](current_workspace_audit.md) lists open risks; the [specification changelog](qed_formal_spec_changelog.md) records revisions of the specification."
+#: manual/index.md:84
+msgid "Contributing: read [code governance](code_governance.md) and [documentation governance](governance.md) first, then [specification conformance](conformance.md) for the code/test mapping and the rules for examples. The [workspace audit](current_workspace_audit.md) points to open risks; the [initial verification audit](../../research/qed-verification/2026-10-14-initial-audit.md) records the dated evidence; the [specification changelog](qed_formal_spec_changelog.md) records revisions of the specification."
 msgstr ""
 
-#: manual/index.md:85
+#: manual/index.md:86
 msgid "Validation"
 msgstr ""
 
-#: manual/index.md:87
+#: manual/index.md:88
 msgid "Recommended release checks:"
 msgstr ""
 
-#: manual/index.md:94
+#: manual/index.md:95
 msgid "The examples on the package pages compile against the current code; [specification conformance](conformance.md) describes how they are checked. The Typed HOL proof builds separately with `lake build` in `formal_verification/`; it formalizes the mathematical calculus and does not yet prove a refinement from the MoonBit implementation."
 msgstr ""
 
@@ -6741,11 +6566,6 @@ msgid "Stable theorem-name surface"
 msgstr ""
 
 #: manual/manual.md:616
-#: manual/manual.md:659
-msgid "Surface"
-msgstr ""
-
-#: manual/manual.md:616
 msgid "Current supported capability"
 msgstr ""
 
@@ -7245,120 +7065,6 @@ msgstr ""
 msgid "For paper alignment, the code/test mapping, and the checklist for the surrounding tooling, read [Specification conformance](conformance.md)."
 msgstr ""
 
-#: manual/qed_formal_audit_matrices.md:1
-msgid "Typed HOL audit matrix"
-msgstr ""
-
-#: manual/qed_formal_audit_matrices.md:3
-msgid "Audit basis: `doc/attachments/qed_formal_spec.typ` and `formal_verification/QEDFV/HOL`. Status means the stated Lean proposition typechecks; it does not silently certify the separate MoonBit implementation."
-msgstr ""
-
-#: manual/qed_formal_audit_matrices.md:7
-msgid "Proof-obligation matrix"
-msgstr ""
-
-#: manual/qed_formal_audit_matrices.md:9
-msgid "Obligation"
-msgstr ""
-
-#: manual/qed_formal_audit_matrices.md:9
-msgid "Lean evidence"
-msgstr ""
-
-#: manual/qed_formal_audit_matrices.md:11
-msgid "Typed syntax and non-empty carriers"
-msgstr ""
-
-#: manual/qed_formal_audit_matrices.md:12
-msgid "Renaming, substitution, beta"
-msgstr ""
-
-#: manual/qed_formal_audit_matrices.md:14
-msgid "Primitive rule preservation"
-msgstr ""
-
-#: manual/qed_formal_audit_matrices.md:15
-msgid "Inductive derivation soundness"
-msgstr ""
-
-#: manual/qed_formal_audit_matrices.md:16
-msgid "Definition semantic equation and old-language invariance"
-msgstr ""
-
-#: manual/qed_formal_audit_matrices.md:17
-msgid "Specification validity and old-language invariance"
-msgstr ""
-
-#: manual/qed_formal_audit_matrices.md:18
-msgid "Predicate-subtype type-definition laws"
-msgstr ""
-
-#: manual/qed_formal_audit_matrices.md:19
-msgid "Type-definition gate semantics (new model, Abs/Rep laws, old-language invariance)"
-msgstr ""
-
-#: manual/qed_formal_audit_matrices.md:20
-msgid "Locality preserved by definition, specification and type-definition steps"
-msgstr ""
-
-#: manual/qed_formal_audit_matrices.md:20
-msgid "proved (gate closure fields stated for `Term.annotVars`)"
-msgstr ""
-
-#: manual/qed_formal_audit_matrices.md:21
-msgid "Type-definition derivation constructor; soundness and old-language conservativity along a history"
-msgstr ""
-
-#: manual/qed_formal_audit_matrices.md:21
-msgid "proved at the history's model pair; freshness carried, not used"
-msgstr ""
-
-#: manual/qed_formal_audit_matrices.md:22
-msgid "Worked typedef derivation and non-triviality of the extended model"
-msgstr ""
-
-#: manual/qed_formal_audit_matrices.md:24
-msgid "Concrete non-triviality"
-msgstr ""
-
-#: manual/qed_formal_audit_matrices.md:25
-msgid "Public package integration"
-msgstr ""
-
-#: manual/qed_formal_audit_matrices.md:25
-msgid "`HOL/Soundness.lean` and root target"
-msgstr ""
-
-#: manual/qed_formal_audit_matrices.md:26
-msgid "MoonBit-to-Lean refinement"
-msgstr ""
-
-#: manual/qed_formal_audit_matrices.md:26
-#: manual/qed_formal_audit_matrices.md:27
-msgid "no retained Typed HOL theorem"
-msgstr ""
-
-#: manual/qed_formal_audit_matrices.md:26
-#: manual/qed_formal_audit_matrices.md:27
-msgid "excluded"
-msgstr ""
-
-#: manual/qed_formal_audit_matrices.md:27
-msgid "Syntactic extension erasure"
-msgstr ""
-
-#: manual/qed_formal_audit_matrices.md:29
-msgid "Trust basis"
-msgstr ""
-
-#: manual/qed_formal_audit_matrices.md:31
-msgid "The retained proof line has no local `axiom`, `sorry`, or `admit`. The public package depends on `propext`, `Classical.choice`, and `Quot.sound`, as reported by Lean's `#print axioms`."
-msgstr ""
-
-#: manual/qed_formal_audit_matrices.md:35
-msgid "The old conditional and approximation modules were removed from `formal_verification/QEDFV`. They must not be reintroduced as parallel evidence; future work must extend the Typed HOL definitions and derivation induction."
-msgstr ""
-
 #: manual/qed_formal_spec_changelog.md:1
 msgid "Formal specification changelog"
 msgstr ""
@@ -7377,10 +7083,6 @@ msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:6
 msgid "Scope: historical changes to the formal specification and its Lean evidence"
-msgstr ""
-
-#: manual/qed_formal_spec_changelog.md:7
-msgid "Last reviewed: 2026-10-14"
 msgstr ""
 
 #: manual/qed_formal_spec_changelog.md:9
@@ -8873,10 +8575,6 @@ msgstr ""
 #: manual/qed_proof_obligations.md:70
 #: manual/qed_proof_obligations.md:196
 msgid "MoonBit types, terms, theorem objects, state transitions, and theorem constructors are connected to the Typed HOL calculus by a checked refinement or proof-producing translation."
-msgstr ""
-
-#: manual/qed_proof_obligations.md:72
-msgid "Evidence"
 msgstr ""
 
 #: manual/qed_proof_obligations.md:78
