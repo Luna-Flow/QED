@@ -20,7 +20,7 @@ QED currently uses the following document layers:
    The current code and regression tests determine the real shipped state.
 3. Implementation documentation layer
    [User manual](manual.md), [Specification conformance](conformance.md), the package pages under `api/`,
-   `design/` and `tutorial/`, and [Workspace audit (2026-04-18)](current_workspace_audit.md) describe the current
+   `design/` and `tutorial/`, and [Current workspace audit (2026-10-14)](current_workspace_audit.md) describe the current
    implementation contract, engineering conformance, the per-package public surface, and point-in-time audits.
 4. Summary and navigation layer
    `README.md`, `CHANGELOG.md` and the [manual overview](index.md) only provide summaries, release history and
@@ -42,7 +42,7 @@ Every category of information must have a single primary entry point:
   `tutorial/`, listed in the [manual overview](index.md)
 - Quick reference for the current user input syntax: [Syntax guide](syntax.md)
 - Engineering conformance and code/test mapping: [Specification conformance](conformance.md)
-- Point-in-time risks and gaps: [Workspace audit (2026-04-18)](current_workspace_audit.md)
+- Point-in-time risks and gaps: [Current workspace audit (2026-10-14)](current_workspace_audit.md); the detailed dated research record is the [initial verification audit](../../research/qed-verification/2026-10-14-initial-audit.md)
 - Repository summary and quick entry point: `README.md`
 - Release history: `CHANGELOG.md`
 - Research directory entry point: `research/README.md`
@@ -99,7 +99,7 @@ Status labels use the following vocabulary:
   They do not repeat the support matrix of [User manual](manual.md); they link to it.
 - [Syntax guide](syntax.md) only describes the current shipped theorem-script input syntax and known limitations; it does not serve as the implementation contract.
 - [Specification conformance](conformance.md) describes specification alignment, code/test mapping, contributor checklists, and constraints on documentation examples.
-- [Workspace audit (2026-04-18)](current_workspace_audit.md) only records risks, gaps, and follow-ups that still hold at a given point in time, and does not repeat the stable facts of manual/conformance over the long term.
+- [Current workspace audit](current_workspace_audit.md) is a short point-in-time pointer. Dated research audits under `research/qed-verification/` contain the evidence narrative and do not define the shipped contract.
 - `research/` documents must explicitly declare `research-only`, `not shipped`, and `non-authoritative`.
 
 ## Example and reference rules
@@ -127,8 +127,10 @@ Status labels use the following vocabulary:
   Code/test mapping and engineering conformance.
 - [Code governance](code_governance.md)
   Package layering, alias entry points, and code maintenance obligations.
-- [Workspace audit (2026-04-18)](current_workspace_audit.md)
-  Point-in-time audit of the current workspace.
+- [Current workspace audit (2026-10-14)](current_workspace_audit.md)
+  Short point-in-time pointer to the current verification audit.
+- [Initial verification audit (2026-10-14)](../../research/qed-verification/2026-10-14-initial-audit.md)
+  Research-only evidence record and development programme.
 - [Formal specification changelog](qed_formal_spec_changelog.md)
   Specification changelog; auxiliary material for specification maintenance.
 - `research/README.md`
@@ -144,5 +146,5 @@ time, maintain the documents in the following order:
 3. The affected package pages (`api/`, `design/`, `tutorial/`)
 4. [Specification conformance](conformance.md)
 5. `README.md` and `CHANGELOG.md`
-6. [Workspace audit (2026-04-18)](current_workspace_audit.md)
+6. [Current workspace audit](current_workspace_audit.md)
 7. Related `research/` documents

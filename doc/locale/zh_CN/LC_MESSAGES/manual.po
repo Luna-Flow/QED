@@ -99,7 +99,6 @@ msgid "Each theorem produces one block, in file order."
 msgstr "每个定理按文件顺序产生一个输出块。"
 
 #: manual/api/cmd.md:42
-#: manual/conformance.md:25
 msgid "Result"
 msgstr "结果"
 
@@ -136,7 +135,6 @@ msgid "Exit status"
 msgstr "退出状态"
 
 #: manual/api/cmd.md:52
-#: manual/qed_formal_audit_matrices.md:9
 msgid "Status"
 msgstr "状态"
 
@@ -2840,12 +2838,12 @@ msgid "Default maintenance order:"
 msgstr "默认维护顺序："
 
 #: manual/code_governance.md:85
-#: manual/governance.md:142
+#: manual/governance.md:144
 msgid "Code and tests"
 msgstr "代码与测试"
 
 #: manual/code_governance.md:86
-#: manual/governance.md:143
+#: manual/governance.md:145
 #: manual/index.md:52
 msgid "[User manual](manual.md)"
 msgstr "[用户手册](manual.md)"
@@ -2855,19 +2853,19 @@ msgid "The package pages of the affected packages (`api/`, `design/`, `tutorial/
 msgstr "受影响各包的包页面（`api/`、`design/`、`tutorial/`）"
 
 #: manual/code_governance.md:88
-#: manual/governance.md:145
+#: manual/governance.md:147
 #: manual/index.md:54
 msgid "[Specification conformance](conformance.md)"
 msgstr "[规范符合性](conformance.md)"
 
 #: manual/code_governance.md:89
-#: manual/governance.md:146
+#: manual/governance.md:148
 msgid "`README.md` and `CHANGELOG.md`"
 msgstr "`README.md` 与 `CHANGELOG.md`"
 
 #: manual/code_governance.md:90
-msgid "[Workspace audit (2026-04-18)](current_workspace_audit.md) (only when the point-in-time conclusions change)"
-msgstr "[工作区审计（2026-04-18）](current_workspace_audit.md)（仅在阶段结论变化时）"
+msgid "[Current workspace audit (2026-10-14)](current_workspace_audit.md) (only when the point-in-time conclusions change)"
+msgstr "[当前工作区审计（2026-10-14）](current_workspace_audit.md)（仅当阶段性结论发生变化时）"
 
 #: manual/code_governance.md:92
 msgid "Review checklist"
@@ -2902,530 +2900,334 @@ msgid "Specification conformance"
 msgstr "规范符合性"
 
 #: manual/conformance.md:3
-msgid "Status: Typed HOL proof line active"
-msgstr "状态：Typed HOL 证明主线已启用"
+msgid "Status: active implementation evidence"
+msgstr "状态：active 实现证据"
 
 #: manual/conformance.md:4
+#: manual/current_workspace_audit.md:4
 msgid "Audience: maintainers and reviewers"
 msgstr "读者：维护者与审阅者"
 
 #: manual/conformance.md:5
-msgid "Authority: [QED Typed HOL Core](../attachments/qed_formal_spec.typ)"
-msgstr "权威来源：[QED Typed HOL 核心](../attachments/qed_formal_spec.typ)"
+msgid "Authority: [`qed_formal_spec.typ`](../attachments/qed_formal_spec.typ) and current code/tests"
+msgstr "权威性：[`qed_formal_spec.typ`](../attachments/qed_formal_spec.typ) 以及当前代码/测试"
 
 #: manual/conformance.md:6
-msgid "Scope: Lean mathematical core and the explicitly separated MoonBit boundary"
-msgstr "范围：Lean 数学核心及明确划分的 MoonBit 边界"
+msgid "Scope: MoonBit implementation mapping, evidence boundaries and contributor checks"
+msgstr "范围：MoonBit 实现映射、证据边界与贡献者检查项"
 
 #: manual/conformance.md:7
-msgid "Last reviewed: 2026-10-12"
-msgstr "最后审阅：2026-10-12"
+#: manual/current_workspace_audit.md:7
+#: manual/qed_formal_spec_changelog.md:7
+msgid "Last reviewed: 2026-10-14"
+msgstr "最后审阅：2026-10-14"
 
 #: manual/conformance.md:9
-msgid "The repository has one formal proof line: `formal_verification/QEDFV/HOL`. The Lean library defines an intrinsically typed HOL calculus and proves its semantic soundness. The MoonBit implementation remains a separate realization until a checked refinement connects its terms, theorem objects, and kernel operations to the Lean calculus."
-msgstr "仓库只有一条形式化证明主线：`formal_verification/QEDFV/HOL`。Lean 库定义了内在类型化的 HOL 演算，并证明其语义可靠性。在经检查的精化证明将 MoonBit 的项、定理对象和内核操作对应到 Lean 演算之前，MoonBit 实现仍是独立的实现。"
-
-#: manual/conformance.md:15
-msgid "Evidence hierarchy"
-msgstr "证据层级"
-
-#: manual/conformance.md:17
-msgid "The Typst specification states the mathematical contract."
-msgstr "Typst 规范陈述数学契约。"
+msgid "This page describes what the shipped implementation and its tests establish. It does not turn implementation evidence into a Lean refinement theorem. The formal dependency and theorem map lives in [`formal_verification/theory-proof-plan.md`](../../formal_verification/theory-proof-plan.md); the branch promotion policy lives in [`formal_verification/branch_contract.md`](../../formal_verification/branch_contract.md). The machine-readable registry is [`qed_obligations.json`](qed_obligations.json), and [`qed_proof_obligations.md`](qed_proof_obligations.md) is generated from it."
+msgstr "本页描述已发布的实现及其测试所能确立的内容。它不会把实现证据变成 Lean 精化定理。形式依赖与定理图见 [`formal_verification/theory-proof-plan.md`](../../formal_verification/theory-proof-plan.md)；分支晋升策略见 [`formal_verification/branch_contract.md`](../../formal_verification/branch_contract.md)。机器可读的登记表是 [`qed_obligations.json`](qed_obligations.json)，[`qed_proof_obligations.md`](qed_proof_obligations.md) 由它生成。"
 
 #: manual/conformance.md:18
-msgid "`formal_verification/QEDFV/HOL` defines and proves that contract in Lean."
-msgstr "`formal_verification/QEDFV/HOL` 在 Lean 中定义并证明该契约。"
-
-#: manual/conformance.md:19
-msgid "MoonBit code and tests describe the current realization and its behavior."
-msgstr "MoonBit 代码和测试描述当前实现及其行为。"
+msgid "Evidence boundary"
+msgstr "证据边界"
 
 #: manual/conformance.md:20
-msgid "This document records the boundary and verification commands; it does not add logical assumptions."
-msgstr "本文记录证明边界和验证命令，不增加逻辑假设。"
+msgid "The Typst attachment is the normative contract."
+msgstr "Typst 附件是规范性契约。"
+
+#: manual/conformance.md:21
+msgid "Lean proves the stated Typed HOL calculus and its explicit assumptions."
+msgstr "Lean 证明所述的 Typed HOL 演算及其显式假设。"
+
+#: manual/conformance.md:22
+msgid "MoonBit source and tests describe the current realization."
+msgstr "MoonBit 源码与测试描述当前的实现。"
 
 #: manual/conformance.md:23
-msgid "Typed HOL evidence"
-msgstr "Typed HOL 证据"
+msgid "This page maps implementation surfaces to evidence and records limits."
+msgstr "本页把实现层面映射到证据，并记录其局限。"
 
 #: manual/conformance.md:25
-#: manual/conformance.md:75
-msgid "Area"
-msgstr "领域"
-
-#: manual/conformance.md:25
-msgid "Lean source"
-msgstr "Lean 源码"
-
-#: manual/conformance.md:27
-msgid "Types and non-empty carriers"
-msgstr "类型与非空载体"
-
-#: manual/conformance.md:27
-#: manual/conformance.md:28
-#: manual/conformance.md:29
-#: manual/conformance.md:30
-#: manual/conformance.md:31
-#: manual/conformance.md:32
-#: manual/conformance.md:36
-#: manual/conformance.md:39
-#: manual/conformance.md:40
-#: manual/conformance.md:41
-#: manual/conformance.md:42
-#: manual/qed_formal_audit_matrices.md:11
-#: manual/qed_formal_audit_matrices.md:12
-#: manual/qed_formal_audit_matrices.md:13
-#: manual/qed_formal_audit_matrices.md:14
-#: manual/qed_formal_audit_matrices.md:15
-#: manual/qed_formal_audit_matrices.md:16
-#: manual/qed_formal_audit_matrices.md:17
-#: manual/qed_formal_audit_matrices.md:18
-#: manual/qed_formal_audit_matrices.md:22
-#: manual/qed_formal_audit_matrices.md:23
-#: manual/qed_formal_audit_matrices.md:24
-#: manual/qed_formal_audit_matrices.md:25
-msgid "proved"
-msgstr "证明了"
-
-#: manual/conformance.md:28
-msgid "Intrinsic terms, renaming, substitution"
-msgstr "内在类型化的项、重命名与替换"
+msgid "A passing Lean build does not prove MoonBit behavior. A passing regression does not prove the absence of all theorem-forging paths. A negative test is evidence for its reproduced attack, not a universal absence theorem."
+msgstr "Lean 构建通过并不证明 MoonBit 的行为。回归测试通过并不证明不存在任何伪造定理的路径。否定测试只是对其所复现的攻击的证据，而不是普遍的不存在性定理。"
 
 #: manual/conformance.md:29
-msgid "Evaluation and beta"
-msgstr "求值与 beta"
-
-#: manual/conformance.md:30
-#: manual/qed_formal_audit_matrices.md:13
-msgid "Type instantiation and choice coherence"
-msgstr "类型实例化与选择一致性"
+msgid "Implementation mapping"
+msgstr "实现映射"
 
 #: manual/conformance.md:31
-msgid "Primitive rule validity, including `ADD_ASSUM` and witness `SPECIFY`"
-msgstr "原始规则可靠性，包括 `ADD_ASSUM` 和基于见证的 `SPECIFY`"
-
-#: manual/conformance.md:32
-msgid "Derivation soundness for all constructors, including infinity"
-msgstr "所有推导构造子的可靠性，包括无穷规则"
-
-#: manual/conformance.md:33
-msgid "Object-language connectives and quantifiers"
-msgstr "对象语言连接词与量词"
-
-#: manual/conformance.md:33
-msgid "semantic clauses and substitution/type-instantiation laws proved"
-msgstr "语义子句及替换/类型实例化定律已证明"
-
-#: manual/conformance.md:34
-msgid "Infinity sentence and admission rule"
-msgstr "无穷句与准入规则"
-
-#: manual/conformance.md:34
-msgid "exact sentence valid in all models; soundness case proved"
-msgstr "该精确句子在所有模型中有效；可靠性分支已证明"
-
-#: manual/conformance.md:35
-msgid "History-indexed definition, specification and type-definition derivations"
-msgstr "按历史索引的定义、指定与类型定义推导"
-
-#: manual/conformance.md:35
-msgid "proved at the history's model pair over a fixed total signature; history freshness is carried, not used"
-msgstr "在固定全函数签名上、于该历史的模型对处已证明；历史新鲜性被携带但未使用"
-
-#: manual/conformance.md:36
-msgid "Type-definition carrier laws"
-msgstr "类型定义的载体规律"
-
-#: manual/conformance.md:37
-msgid "Type-definition gate semantics: new model, Abs/Rep laws, old-language invariance"
-msgstr "类型定义门的语义：新模型、Abs/Rep 定律、旧语言不变性"
-
-#: manual/conformance.md:37
-#: manual/qed_formal_audit_matrices.md:19
-msgid "proved over model pairs"
-msgstr "在模型对上已证明"
-
-#: manual/conformance.md:38
-msgid "Locality of the constant interpretation preserved by every declaration step; old-language invariance along a history"
-msgstr "每个声明步骤都保持常量解释的局部性；沿历史的旧语言不变性"
-
-#: manual/conformance.md:38
-msgid "proved for a local base model (the canonical ones are)"
-msgstr "对局部的基模型已证明（典范模型都是局部的）"
-
-#: manual/conformance.md:39
-msgid "Worked typedef derivation (one-element subtype of `bool`)"
-msgstr "类型定义推导的示例（`bool` 的单元素子类型）"
-
-#: manual/conformance.md:40
-#: manual/qed_formal_audit_matrices.md:23
-msgid "Finite semantic conservativity"
-msgstr "有限语义保守性"
-
-#: manual/conformance.md:41
-msgid "Concrete and signature-generic non-triviality"
-msgstr "具体及任意签名下的非平凡性"
-
-#: manual/conformance.md:42
-msgid "Typed HOL core proof package"
-msgstr "Typed HOL 核心证明包"
-
-#: manual/conformance.md:44
-msgid "The public entry point is `QEDFV.HOL.typed_hol_core_proof_complete`. It covers the typed core and history-indexed definition, specification and type-definition extensions over a fixed total signature. It does not certify growing-signature syntax or a MoonBit refinement. The default `QEDFV` target imports `QEDFV.HOL.Soundness` only."
-msgstr "公开入口是 `QEDFV.HOL.typed_hol_core_proof_complete`。它覆盖类型化核心，以及固定全函数签名上的、按历史索引的定义、指定与类型定义扩展；不认证增长签名的语法或 MoonBit 精化。默认 `QEDFV` 目标仅导入 `QEDFV.HOL.Soundness`。"
-
-#: manual/conformance.md:50
-msgid "Explicit limits"
-msgstr "明确的限制"
-
-#: manual/conformance.md:52
-msgid "The Typed HOL theorem has a neutral type-constructor node `Ty.con` with an explicit constructor interpretation, and it models the semantics of a type-definition step over model pairs and as a history-indexed derivation constructor whose three laws are sound at the history's model pair. History freshness of the new constructor and constants is carried as a side condition that soundness does not use; consequences that chain the derived laws with core rules would need a history-indexed full calculus, which is not provided. It does not establish the MoonBit infinity registration gate, syntactic derivation erasure (for a type definition this would need a relativisation translation), the kernel's string-name lowering, or a MoonBit-to-Lean refinement. It also does not certify the parser, elaborator, tactics, theorem replay, or mutable scope history. MoonBit theorem provenance is covered separately by the issue #15 implementation invariant and regression tests; it must not be presented as evidence for the Lean theorem."
-msgstr "Typed HOL 定理含有一个中性的类型构造子节点 `Ty.con` 及显式的构造子解释，并在模型对上，以及作为按历史索引的推导构造子，刻画了类型定义步骤的语义；其三条定律在该历史的模型对上是可靠的。新构造子与新常量的历史新鲜性只作为附带条件携带，可靠性证明并不使用它；若要把导出的定律与核心规则串联得出结论，需要按历史索引的完整演算，这里并未提供。它没有建立 MoonBit 无穷注册门、推导的语法擦除（对类型定义而言需要一个相对化翻译）、内核的字符串名称降级，也没有建立 MoonBit 到 Lean 的精化。它也不认证解析器、精化器、策略、定理重放或可变作用域历史。MoonBit 定理来源由 issue #15 的实现不变量与回归测试单独覆盖，不得作为 Lean 定理的证据。"
-
-#: manual/conformance.md:65
-msgid "Implementation evidence"
-msgstr "实现证据"
-
-#: manual/conformance.md:67
-msgid "The following mappings and contributor rules remain implementation evidence, not a checked refinement theorem. Issue #15 is covered by lineage-prefix admissibility in `src/kernel/thm.mbt` and sibling-state regression tests in `src/kernel/kernel_audit_test.mbt`; the implementation repair does not enlarge the Typed HOL theorem."
-msgstr "以下映射与贡献者规则仍属于实现层面的证据，而不是经过检查的精化定理。Issue #15 由 `src/kernel/thm.mbt` 中的谱系前缀可接受性以及 `src/kernel/kernel_audit_test.mbt` 中的兄弟状态回归测试覆盖；该实现修复并不扩大 Typed HOL 定理。"
-
-#: manual/conformance.md:73
-msgid "Code and test mapping"
-msgstr "代码与测试映射"
-
-#: manual/conformance.md:75
-msgid "Current implementation"
-msgstr "当前实现"
-
-#: manual/conformance.md:75
-msgid "Regression coverage"
-msgstr "回归覆盖"
-
-#: manual/conformance.md:77
-msgid "Typed core + boundary conversion"
-msgstr "带类型核心 + 边界转换"
-
-#: manual/conformance.md:78
-msgid "Scoped state + extension gates"
-msgstr "带作用域的状态 + 扩展闸门"
-
-#: manual/conformance.md:79
-msgid "Primitive rules + admissibility"
-msgstr "原始规则 + 可容许性"
-
-#: manual/conformance.md:80
-msgid "Resolved elaboration boundary"
-msgstr "已解析的精化边界"
-
-#: manual/conformance.md:81
-msgid "Parser bridge + normalize/raw-offset contract"
-msgstr "解析器桥接 + 规范化/原始偏移契约"
-
-#: manual/conformance.md:82
-msgid "Parser-to-tactics explicit goal bridge"
-msgstr "解析器到 tactics 的显式目标桥接"
-
-#: manual/conformance.md:83
-msgid "Surface connector basis expansion"
-msgstr "表层联结词基的展开"
-
-#: manual/conformance.md:84
-msgid "Proposition theorem replay/catalog seeds"
-msgstr "命题定理重放/目录种子"
-
-#: manual/conformance.md:85
-msgid "Operational proof scripting + M1 subset replay"
-msgstr "可操作的证明脚本 + M1 子集重放"
-
-#: manual/conformance.md:86
-msgid "File-first `cmd` integration surface"
-msgstr "以文件为先的 `cmd` 集成界面"
-
-#: manual/conformance.md:87
-msgid "Quantifier-facing binder / raw-`forall` corpus + CLI contract"
-msgstr "面向量词的绑定子 (binder) / 原始 `forall` 语料 + CLI 契约"
-
-#: manual/conformance.md:89
-msgid "Regression points that deserve particular attention:"
-msgstr "值得特别注意的回归点："
-
-#: manual/conformance.md:91
-msgid "`src/kernel/kernel_audit_test.mbt` already covers high-risk scenarios such as def-head monotonicity, typedef witness validity, const-id drift, typed beta/trans guards, and conservative replay."
-msgstr "`src/kernel/kernel_audit_test.mbt` 已覆盖 def-head monotonicity、typedef witness validity、const-id drift、typed beta/trans guard、conservative replay 等高风险场景。"
-
-#: manual/conformance.md:94
-msgid "`src/parser/parser_test.mbt` already covers the normalize/raw-offset contract and the fail-closed rejection of non-`bool` connectors."
-msgstr "`src/parser/parser_test.mbt` 已覆盖 normalize/raw-offset contract 与非 `bool` connector 的 fail-closed rejection。"
-
-#: manual/conformance.md:96
-msgid "`src/parser/parser_test.mbt` currently also covers theorem-header binders, structured branch block parsing, and raw-span regressions."
-msgstr "`src/parser/parser_test.mbt` 当前也覆盖 theorem-header binder、structured branch block 解析，以及 raw-span 回归。"
-
-#: manual/conformance.md:98
-msgid "`src/parser/parser_test.mbt` and `src/prover/prover_positive_corpus_test.mbt` together currently pin down the contract for parser-owned goal lowering and the explicit upper-layer bridge to `tactics.Goal`."
-msgstr "`src/parser/parser_test.mbt` 与 `src/prover/prover_positive_corpus_test.mbt` 当前共同固定 parser-owned goal lowering 与上层显式 bridge 到 `tactics.Goal` 的合同。"
-
-#: manual/conformance.md:101
-msgid "`src/prover/prover_test.mbt` currently pins down script scheduling, branch path attribution, and the step blame convention for structured branch blocks."
-msgstr "`src/prover/prover_test.mbt` 当前固定 structured branch block 的脚本调度、branch path 归因与 step blame 口径。"
-
-#: manual/conformance.md:103
-msgid "`src/prover/prover_test.mbt` currently covers positive `Ok((KernelState, Thm))` cases for the supported M1 subset, as well as several direct-close / implication-backed theorem-name paths."
-msgstr "`src/prover/prover_test.mbt` 当前覆盖了 M1 已支持子集的 `Ok((KernelState, Thm))` 正例，以及若干 direct-close / implication-backed theorem-name path。"
-
-#: manual/conformance.md:105
-msgid "`src/prover/prover_positive_corpus_test.mbt` / `src/prover/prover_negative_corpus_test.mbt` currently hold the canonical script corpus for the shipped subset, used to pin down capability coverage and the honest failure convention."
-msgstr "`src/prover/prover_positive_corpus_test.mbt` / `src/prover/prover_negative_corpus_test.mbt` 当前承载 shipped subset 的 canonical script corpus，用于固定 capability 覆盖与 honest failure 口径。"
-
-#: manual/conformance.md:108
-msgid "`src/prover/prover_test.mbt`, `src/prover/prover_mapping_matrix_test.mbt`, and `src/cmd/cmd_corpus_wbtest.mbt` currently also cover the structured contract for unfinished-proof / hole reporting and the canonical unfinished corpus anchors."
-msgstr "`src/prover/prover_test.mbt`、`src/prover/prover_mapping_matrix_test.mbt` 与 `src/cmd/cmd_corpus_wbtest.mbt` 当前也覆盖了 unfinished-proof / hole reporting 的结构化合同与 canonical unfinished corpus 锚点。"
-
-#: manual/conformance.md:111
-msgid "`src/prover/prover_mapping_matrix_test.mbt` and `src/cmd/cmd_corpus_wbtest.mbt` currently also cover the nested branch unfinished path and stable empty-marker rendering."
-msgstr "`src/prover/prover_mapping_matrix_test.mbt` 与 `src/cmd/cmd_corpus_wbtest.mbt` 当前也覆盖了 nested branch unfinished path 与 stable empty-marker rendering。"
-
-#: manual/conformance.md:113
-msgid "`src/cmd/cmd_corpus_wbtest.mbt` and `src/cmd/cmd_wbtest.mbt` currently also pin down the success / failure / unfinished CLI contract for shipped quantifier-facing binder / raw-`forall` scripts, including goal, locals, branch path, and step blame."
-msgstr "`src/cmd/cmd_corpus_wbtest.mbt` 与 `src/cmd/cmd_wbtest.mbt` 当前也固定了 shipped quantifier-facing binder / raw-`forall` scripts 的 success / failure / unfinished CLI contract，包括 goal、locals、branch path 与 step blame。"
-
-#: manual/conformance.md:116
-msgid "`src/prover/prover_mapping_matrix_test.mbt` currently binds the positive / negative / unfinished canonical case ids, the quantifier binder / raw-`forall` case ids, the capability tags, and the public example anchors in [User manual](manual.md) into a single set of regression constraints."
-msgstr "`src/prover/prover_mapping_matrix_test.mbt` 当前把 positive / negative / unfinished 三类 canonical case id、量词 binder / raw-`forall` case id、能力标签与 [用户手册](manual.md) 的公开示例锚点绑定在同一份回归约束里。"
-
-#: manual/conformance.md:119
-msgid "`src/cmd/cmd_wbtest.mbt` currently covers success rendering, parse/io/usage failures, tactic failure context rendering, branch-path rendering, and the file-first argv workflow."
-msgstr "`src/cmd/cmd_wbtest.mbt` 当前覆盖 success rendering、parse/io/usage failure、 tactic failure context rendering、branch-path rendering，以及 file-first argv workflow。"
-
-#: manual/conformance.md:123
-msgid "Documentation example source contract"
-msgstr "文档示例来源契约"
-
-#: manual/conformance.md:125
-msgid "To keep the documentation from presenting planned capabilities as delivered ones, documentation examples must currently follow these source constraints:"
-msgstr "为避免文档把规划能力写成已交付能力，当前文档示例必须遵守以下来源约束："
-
-#: manual/conformance.md:128
-msgid "`README.md` only publishes a summary of the current shipped subset and does not invent new example semantics on its own."
-msgstr "`README.md` 只发布当前 shipped subset 的摘要，不单独发明新示例语义。"
-
-#: manual/conformance.md:130
-msgid "Runnable theorem-script examples in [User manual](manual.md) must come from existing regression test coverage."
-msgstr "[用户手册](manual.md) 中的 runnable theorem-script examples 必须来自现有回归测试覆盖。"
-
-#: manual/conformance.md:132
-msgid "Theorem-producing positive example scripts currently use `src/prover/prover_test.mbt` and `src/prover/prover_positive_corpus_test.mbt` as their primary anchors."
-msgstr "theorem-producing 正例脚本当前以 `src/prover/prover_test.mbt` 与 `src/prover/prover_positive_corpus_test.mbt` 为主锚点。"
-
-#: manual/conformance.md:135
-msgid "Negative / honest failure examples for the shipped subset currently use `src/prover/prover_negative_corpus_test.mbt` as their primary anchor."
-msgstr "shipped subset 的负例 / honest failure 示例当前以 `src/prover/prover_negative_corpus_test.mbt` 为主锚点。"
-
-#: manual/conformance.md:137
-msgid "Canonical unfinished-proof examples currently use `src/prover/prover_test.mbt`, `src/prover/prover_mapping_matrix_test.mbt`, and `src/cmd/cmd_corpus_wbtest.mbt` as their primary anchors; both root-level unfinished and nested branch unfinished samples must be kept in sync."
-msgstr "canonical unfinished-proof 示例当前以 `src/prover/prover_test.mbt`、`src/prover/prover_mapping_matrix_test.mbt` 与 `src/cmd/cmd_corpus_wbtest.mbt` 为主锚点；root-level unfinished 与 nested branch unfinished 两类样例都要保持同步。"
-
-#: manual/conformance.md:141
-msgid "Quantifier-facing binder / raw-`forall` examples currently also use `src/prover/corpus.mbt`, `src/prover/prover_mapping_matrix_test.mbt`, and `src/cmd/cmd_corpus_wbtest.mbt` as their primary anchors; public documentation may only cite these canonical case ids."
-msgstr "quantifier-facing binder / raw-`forall` 示例当前也以 `src/prover/corpus.mbt`、`src/prover/prover_mapping_matrix_test.mbt` 与 `src/cmd/cmd_corpus_wbtest.mbt` 为主锚点；公开文档只允许引用这些 canonical case id。"
-
-#: manual/conformance.md:145
-msgid "The mapping from case ids to example anchors in public documentation currently uses `src/prover/prover_mapping_matrix_test.mbt` as its primary anchor."
-msgstr "公开文档中的 case-id 到示例锚点映射当前以 `src/prover/prover_mapping_matrix_test.mbt` 为主锚点。"
-
-#: manual/conformance.md:147
-msgid "Tactic-level examples, local-over-name conflicts, and wrong-mode honest failures currently use `src/tactics/proof_state_test.mbt` as their primary anchor."
-msgstr "tactic-level 例子、local-over-name 冲突与 wrong-mode honest failure 当前以 `src/tactics/proof_state_test.mbt` 为主锚点。"
-
-#: manual/conformance.md:149
-msgid "Theorem scripts quoted on the package pages (`api/`, `design/`, `tutorial/`) reuse scripts from the anchors above; they do not introduce new script semantics."
-msgstr "包页面（`api/`、`design/`、`tutorial/`）中引用的定理脚本复用上述锚点处的脚本，不引入新的脚本语义。"
-
-#: manual/conformance.md:151
-msgid "MoonBit API examples on the package pages are complete programs that call the public functions of the current code and record their results with `assert_eq`, `assert_true` or `inspect` snapshots. Every such block is compiled and run against the current code before the page changes; a block that is not meant to run is fenced `moonbit nocheck`."
-msgstr "包页面中的 MoonBit API 示例是完整程序，调用当前代码的公开函数，并用 `assert_eq`、`assert_true` 或 `inspect` 快照记录结果。每个这样的代码块在页面变更之前都会针对当前代码编译并运行；不打算运行的代码块使用 `moonbit nocheck` 围栏标注。"
-
-#: manual/conformance.md:155
-msgid "If the documentation adds, modifies, or removes a public example, the corresponding regression test must be added, modified, or removed at the same time."
-msgstr "若文档要新增、修改或删除公开示例，应同步新增、修改或删除对应回归测试。"
-
-#: manual/conformance.md:159
-msgid "Contributor checklist"
-msgstr "贡献者清单"
-
-#: manual/conformance.md:161
-msgid "`logic` may only provide checked wrappers, definition/unfold helpers, replay helpers, and organization of non-authoritative theorem references; it must not bypass the kernel to invent new rules."
-msgstr "`logic` 只能做 checked wrapper、definition/unfold helper、replay helper 和非权威 theorem reference 组织；不能绕过 kernel invent 新规则。"
-
-#: manual/conformance.md:164
-msgid "`parser` must preserve `local > const` and the normalize + raw-offset contract, and must share the same connector contract with `logic`."
-msgstr "`parser` 必须保持 `local > const`、normalize + raw-offset contract，并与 `logic` 共用同一套 connector contract。"
-
-#: manual/conformance.md:166
-msgid "`elab` must freeze resolved identity; when later typing encounters const-id or schema drift, it must fail closed."
-msgstr "`elab` 必须冻结 resolved identity；后续 typing 遇到 const-id 或 schema drift 时必须 fail-closed。"
-
-#: manual/conformance.md:168
-msgid "`tactics` may hand out a theorem through `ps_qed` only when replay through `logic` constructs a `Thm` consistent with the sequent; otherwise it must fail closed."
-msgstr "`tactics` 只能在通过 `logic` 回放构造出与相继式一致的 `Thm` 时，由 `ps_qed` 交出定理；否则必须 fail-closed。"
-
-#: manual/conformance.md:170
-msgid "Final acceptance in `ps_qed` must currently use strict normalized sequent equality; the old boundary that admitted results based only on shape-aware compatibility must not be kept."
-msgstr "`ps_qed` 的最终验收当前必须按 strict normalized sequent equality 执行；不得保留仅按 shape-aware compatibility 放行的旧边界。"
-
-#: manual/conformance.md:172
-msgid "`prover` returns `Ok` and a `Thm` only when replay succeeds; otherwise it keeps returning honest errors."
-msgstr "`prover` 仅在回放成功时返回 `Ok` 与 `Thm`；否则继续返回诚实错误。"
-
-#: manual/conformance.md:174
-msgid "`cmd` may only be a new non-authoritative integration layer and must not become a second proof kernel."
-msgstr "`cmd` 只能是新的非权威集成层，不得成为第二证明内核。"
-
-#: manual/conformance.md:176
-msgid "Extension certificates may only be audit artifacts; they must not be treated as a substitute for theorem acceptance."
-msgstr "extension certificate 只能是 audit artifact；不能被当成 theorem acceptance 的替代物。"
-
-#: manual/conformance.md:179
-msgid "Verification"
-msgstr "验证"
-
-#: manual/conformance.md:181
-msgid "Run the checks serially from the repository root:"
-msgstr "从仓库根目录串行运行检查："
-
-#: manual/conformance.md:193
-msgid "The public package reports only the Lean/Mathlib foundations `propext`, `Classical.choice`, and `Quot.sound` under `#print axioms`. The exact audited output and its role are recorded in `formal_verification/axioms.txt`. Typst compilation is:"
-msgstr "公开证明包在 `#print axioms` 下仅报告 Lean/Mathlib 基础公理 `propext`、`Classical.choice` 和 `Quot.sound`。完整审计输出及其作用记录在 `formal_verification/axioms.txt`。Typst 编译命令如下："
-
-#: manual/conformance.md:202
-msgid "MoonBit tests remain useful evidence for the realization, but they do not enlarge the Typed HOL proof boundary."
-msgstr "MoonBit 测试仍是实现的有用证据，但不会扩大 Typed HOL 的证明边界。"
-
-#: manual/current_workspace_audit.md:1
-msgid "Workspace audit (2026-10-12)"
-msgstr "工作区审计（2026-10-12）"
-
-#: manual/current_workspace_audit.md:3
-msgid "Status: Typed HOL is the sole formal proof line."
-msgstr "状态：Typed HOL 是唯一的形式化证明主线。"
-
-#: manual/current_workspace_audit.md:4
-msgid "Authority: [QED Typed HOL Core](../attachments/qed_formal_spec.typ)."
-msgstr "权威来源：[QED Typed HOL 核心](../attachments/qed_formal_spec.typ)。"
-
-#: manual/current_workspace_audit.md:5
-msgid "Scope: Typed HOL proof status and material implementation risks."
-msgstr "范围：Typed HOL 证明状态与重要实现风险。"
-
-#: manual/current_workspace_audit.md:6
-msgid "Excluded: MoonBit implementation refinement and user-facing proof workflow."
-msgstr "排除：MoonBit 实现精化与面向用户的证明工作流。"
-
-#: manual/current_workspace_audit.md:8
-msgid "The former approximate Lean proof tree has been removed. The current formal library contains only the intrinsically typed development under `formal_verification/QEDFV/HOL`; the root module imports its public `Soundness` entry point. The library builds with `lake build`."
-msgstr "旧的近似 Lean 证明树已移除。当前形式化库只包含 `formal_verification/QEDFV/HOL` 下的内在类型化开发；根模块导入其公开 `Soundness` 入口。该库通过 `lake build` 构建。"
-
-#: manual/current_workspace_audit.md:13
-msgid "Verified results"
-msgstr "已验证结果"
-
-#: manual/current_workspace_audit.md:15
-msgid "Intrinsic simple types and De Bruijn terms, with typed renaming, substitution, beta, and type-instantiation evaluation laws."
-msgstr "内在类型化的简单类型与 De Bruijn 项，以及类型化重命名、替换、beta 和类型实例化的求值规律。"
-
-#: manual/current_workspace_audit.md:17
-msgid "Semantic validity preservation for all thirteen derivation constructors, including `ADD_ASSUM`, witness-based `SPECIFY`, and infinity admission."
-msgstr "全部十三个推导构造子均保持语义有效性，包括 `ADD_ASSUM`、基于见证的 `SPECIFY` 和无穷准入。"
-
-#: manual/current_workspace_audit.md:19
-msgid "Object-language truth, falsity, conjunction, implication, universal and existential quantification with proved evaluation characterizations."
-msgstr "对象语言中的真、假、合取、蕴涵、全称量化和存在量化均有已证明的求值刻画。"
-
-#: manual/current_workspace_audit.md:21
-msgid "The closed infinity sentence is valid in every model; its derivation constructor has a direct soundness case."
-msgstr "闭合无穷句在每个模型中都有效；其推导构造子具有直接的可靠性证明情形。"
-
-#: manual/current_workspace_audit.md:23
-msgid "Derivation soundness by induction, for every constant interpretation."
-msgstr "对任意常量解释，归纳证明推导可靠性。"
-
-#: manual/current_workspace_audit.md:24
-msgid "History-indexed definition and specification derivations. A specification witness is derived at the preceding history; soundness composes over fresh constant IDs in the fixed signature."
-msgstr "按历史索引的定义与指定推导。指定步骤的见证须在前序历史中导出；对于固定签名中的新鲜常量 ID，可靠性可沿历史组合。"
-
-#: manual/current_workspace_audit.md:27
-msgid "Semantic extension contracts and witnessed predicate subtype carrier laws."
-msgstr "语义扩展契约，以及有见证的谓词子类型载体规律。"
-
-#: manual/current_workspace_audit.md:28
-msgid "Old-language semantic validity equivalence over finite modeled extension sequences."
-msgstr "有限建模扩展序列中旧语言语义有效性的等价性。"
-
-#: manual/current_workspace_audit.md:30
-msgid "A concrete interpretation in which `succ(0) = 0` is false and therefore underivable."
-msgstr "具体解释使 `succ(0) = 0` 为假，因此该命题不可推导。"
-
-#: manual/current_workspace_audit.md:33
-msgid "The public theorem is `QEDFV.HOL.typed_hol_core_proof_complete`. Audited `#print axioms` output is `propext`, `Classical.choice`, and `Quot.sound`. There are no project-defined axioms, `sorry`, or `admit` in the retained Lean tree."
-msgstr "公开定理是 `QEDFV.HOL.typed_hol_core_proof_complete`。经审计的 `#print axioms` 输出为 `propext`、`Classical.choice` 和 `Quot.sound`。保留的 Lean 树没有项目自定义公理、`sorry` 或 `admit`。"
-
-#: manual/current_workspace_audit.md:38
-#: manual/design/cmd.md:70
-#: manual/design/elab.md:74
-#: manual/design/kernel.md:286
-#: manual/design/logic.md:154
-#: manual/design/parser.md:119
-#: manual/design/prover.md:87
-#: manual/design/research_rewrite.md:79
-#: manual/design/tactics.md:92
-msgid "Boundaries"
+#: manual/manual.md:616
+#: manual/manual.md:659
+msgid "Surface"
+msgstr "界面"
+
+#: manual/conformance.md:31
+msgid "Implementation"
+msgstr "实现"
+
+#: manual/conformance.md:31
+#: manual/qed_proof_obligations.md:72
+msgid "Evidence"
+msgstr "证据"
+
+#: manual/conformance.md:31
+msgid "Boundary"
 msgstr "边界"
 
-#: manual/current_workspace_audit.md:40
-msgid "The proof does not establish growing-signature derivations, a history-indexed full calculus that chains the derived type-definition laws with core rules (the laws are derivation conclusions at the extended history and sound at its model pair, and history freshness is carried but unused by soundness), the MoonBit infinity registration gate, syntactic derivation erasure for extensions, or a MoonBit-to-Lean refinement. Parser, elaborator, tactic, replay, and mutable-state behavior remain separate implementation evidence. The MoonBit theorem-provenance condition in issue #15 is now enforced independently by the kernel and covered by regression tests."
-msgstr "该证明没有建立增长签名上的推导、把导出的类型定义定律与核心规则串联起来的按历史索引的完整演算（这些定律是扩展历史上的推导结论，在其模型对上可靠，历史新鲜性被携带但可靠性证明并不使用它）、MoonBit 无穷注册门、扩展推导的语法擦除或 MoonBit 到 Lean 的精化。解析器、精化器、策略、重放与可变状态行为仍是独立的实现证据。issue #15 中的 MoonBit 定理来源条件现在由内核独立强制，并由回归测试覆盖。"
+#: manual/conformance.md:33
+msgid "Typed core and boundary conversion"
+msgstr "类型化内核与边界转换"
 
-#: manual/current_workspace_audit.md:50
-msgid "This status supersedes older audit claims about conditional proof packs or MoonBit conformance being part of the formal target."
-msgstr "本状态取代旧审计中关于条件性证明包或将 MoonBit 符合性纳入形式化目标的声明。"
+#: manual/conformance.md:33
+msgid "kernel type and term tests"
+msgstr "内核类型与项测试"
 
-#: manual/current_workspace_audit.md:53
-msgid "Issue #15 implementation repair"
-msgstr "Issue #15 的实现修复"
+#: manual/conformance.md:33
+msgid "No Lean source refinement"
+msgstr "没有 Lean 源码级精化"
 
-#: manual/current_workspace_audit.md:55
-msgid "[Issue #15](https://github.com/Luna-Flow/QED/issues/15) is repaired in the current implementation work. Every theorem carries the declaration lineage at which it was first admitted, and admissibility requires that lineage to be a prefix of the receiving state's history. Sibling histories therefore reject a theorem before constant-id reuse can combine incompatible declarations, while linear descendants continue to accept inherited theorems. Infinity-anchor, typedef, and specification registration also reject sibling witnesses."
-msgstr "[Issue #15](https://github.com/Luna-Flow/QED/issues/15) 已在当前实现工作中修复。每个定理都携带其首次被接纳时的声明谱系，接纳要求该谱系是接收状态历史的前缀。因此兄弟历史会在常量编号复用之前拒绝该定理，避免不相容的声明被组合，而线性后代仍接受继承的定理。无穷锚、类型定义与规约注册同样拒绝兄弟历史中的见证。"
+#: manual/conformance.md:34
+msgid "Primitive rules and theorem admission"
+msgstr "原始规则与定理准入"
 
-#: manual/current_workspace_audit.md:63
-msgid "The repair is an independently tested MoonBit invariant, not a MoonBit-to-Lean refinement theorem. The Typed HOL build still certifies only the formal calculus and its stated fixed-signature extension results."
-msgstr "该修复是经过独立测试的 MoonBit 不变量，而不是 MoonBit 到 Lean 的精化定理。Typed HOL 构建仍然只认证形式演算及其所陈述的固定签名扩展结果。"
+#: manual/conformance.md:34
+msgid "theorem tests, white-box tests and audit corpus"
+msgstr "定理测试、白盒测试与审计语料"
 
-#: manual/current_workspace_audit.md:67
-msgid "Remaining engineering follow-up"
-msgstr "剩余工程后续工作"
+#: manual/conformance.md:34
+msgid "Opaque `Thm` still depends on immutable transitive data"
+msgstr "不透明的 `Thm` 仍依赖不可变的传递数据"
 
-#: manual/current_workspace_audit.md:69
-msgid "Maintain checked lowering and replay as structured proof blocks expand."
-msgstr "扩展结构化证明块时维持经检查的 lowering 与重放。"
+#: manual/conformance.md:35
+msgid "Scoped state and extension gates"
+msgstr "带作用域的状态与扩张闸门"
 
-#: manual/current_workspace_audit.md:70
-msgid "Keep hole and unfinished-proof diagnostics aligned with the canonical corpus."
-msgstr "保持洞和未完成证明诊断与规范测试语料一致。"
+#: manual/conformance.md:35
+msgid "signature and audit tests"
+msgstr "签名与审计测试"
 
-#: manual/current_workspace_audit.md:71
-msgid "Keep quantifier-facing frontend lowering and CLI diagnostics covered."
-msgstr "保持面向量词的前端 lowering 和 CLI 诊断的测试覆盖。"
+#: manual/conformance.md:35
+msgid "MoonBit gate correspondence to Lean remains open"
+msgstr "MoonBit 闸门与 Lean 的对应仍未解决"
 
-#: manual/current_workspace_audit.md:72
-msgid "Keep the research rewrite/simplify path outside theorem authority."
-msgstr "将研究性 rewrite/simplify 路径保持在定理权威边界之外。"
+#: manual/conformance.md:36
+msgid "Snapshot and provenance invariants"
+msgstr "快照与来源不变量"
 
-#: manual/current_workspace_audit.md:74
-msgid "These are implementation tasks, not additional assumptions of the Typed HOL proof. The current work records the issue #15 invariant and the MoonBit 0.10.15 compatibility check without extending the Lean proof boundary."
-msgstr "这些是实现任务，不是 Typed HOL 证明的额外假设。当前工作记录了 issue #15 不变量与 MoonBit 0.10.15 兼容性检查，但没有扩展 Lean 证明的边界。"
+#: manual/conformance.md:36
+msgid "`kernel_immutability_test.mbt`, sibling-history regressions"
+msgstr "`kernel_immutability_test.mbt`、兄弟历史回归测试"
+
+#: manual/conformance.md:36
+msgid "Deterministic implementation evidence"
+msgstr "确定性的实现证据"
+
+#: manual/conformance.md:37
+msgid "Elaboration boundary"
+msgstr "elaboration 边界"
+
+#: manual/conformance.md:37
+msgid "elaborator tests"
+msgstr "elaborator 测试"
+
+#: manual/conformance.md:37
+msgid "Proposition-preservation theorem is open"
+msgstr "命题保持定理尚未解决"
+
+#: manual/conformance.md:38
+msgid "Parser boundary"
+msgstr "解析器边界"
+
+#: manual/conformance.md:38
+msgid "parser tests and raw-offset corpus"
+msgstr "解析器测试与原始偏移语料"
+
+#: manual/conformance.md:38
+msgid "Parser correctness is separate from kernel validity"
+msgstr "解析器的正确性与内核有效性是两回事"
+
+#: manual/conformance.md:39
+msgid "Tactic replay"
+msgstr "策略重放"
+
+#: manual/conformance.md:39
+msgid "proof-state, positive, negative and unfinished corpora"
+msgstr "证明状态、正例、反例与未完成语料"
+
+#: manual/conformance.md:39
+msgid "Replay is not a second proof kernel"
+msgstr "重放不是第二个证明内核"
+
+#: manual/conformance.md:40
+msgid "CLI integration"
+msgstr "命令行集成"
+
+#: manual/conformance.md:40
+msgid "command white-box tests and corpus anchors"
+msgstr "命令白盒测试与语料锚点"
+
+#: manual/conformance.md:40
+msgid "CLI output is not logical evidence"
+msgstr "命令行输出不是逻辑证据"
+
+#: manual/conformance.md:42
+msgid "The current kernel repairs snapshot caller-owned arrays where data enters or leaves kernel-held state: when a theorem is created or lifted back to a term, when a signature or extension certificate is read, and for constants taken from the signature. Terms and types a caller builds are the caller's own values and are not copied by the public constructors and destructors, so building and walking a deep term stays linear (a regression test builds and walks a chain of 10,000 combinations). Lineage-bearing theorems containing raw shadowable constants are rejected during rebinding. These repairs address concrete implementation invariants; they do not promote the `Refinement/MoonBit` branch."
+msgstr "当前内核会修复快照：在数据进入或离开内核持有状态的地方，复制调用者拥有的数组——创建定理或把定理提升回项时、读取签名或扩张证书时，以及取自签名的常量。调用者构造的项和类型是调用者自己的值，公开的构造函数和析构函数不会复制它们，因此构造和遍历很深的项仍保持线性（一项回归测试构造并遍历了由 10,000 个组合构成的链）。带谱系的定理若含有原始的可遮蔽常量，会在重新绑定时被拒绝。这些修复针对具体的实现不变量；它们不会晋升 `Refinement/MoonBit` 分支。"
+
+#: manual/conformance.md:52
+msgid "Claim vocabulary"
+msgstr "声明词汇"
+
+#: manual/conformance.md:54
+msgid "The registry uses these meanings:"
+msgstr "登记表使用以下含义："
+
+#: manual/conformance.md:56
+msgid "`proved-and-refined`: a mathematical proof and a checked implementation correspondence exist;"
+msgstr "`proved-and-refined`：存在数学证明，且存在经过检查的实现对应；"
+
+#: manual/conformance.md:57
+msgid "`proved-abstractly`: the Lean result exists, but source correspondence is absent;"
+msgstr "`proved-abstractly`：存在 Lean 结果，但缺少源码对应；"
+
+#: manual/conformance.md:58
+msgid "`tested-only`: executable evidence exists without a formal proof;"
+msgstr "`tested-only`：存在可执行的证据，但没有形式证明；"
+
+#: manual/conformance.md:59
+msgid "`implemented-unverified`: code exists without sufficient proof or regression evidence;"
+msgstr "`implemented-unverified`：存在代码，但缺少足够的证明或回归证据；"
+
+#: manual/conformance.md:60
+msgid "`partial`: only a declared subset is covered;"
+msgstr "`partial`：仅覆盖声明的子集；"
+
+#: manual/conformance.md:61
+msgid "`not-implemented`: no implementation evidence is claimed;"
+msgstr "`not-implemented`：不声称有任何实现证据；"
+
+#: manual/conformance.md:62
+msgid "`known-deviation`: behavior is deliberately different from the normative contract;"
+msgstr "`known-deviation`：行为有意与规范性契约不同；"
+
+#: manual/conformance.md:63
+msgid "`not-applicable`: the obligation does not apply to the supported subset."
+msgstr "`not-applicable`：该义务不适用于所支持的子集。"
+
+#: manual/conformance.md:65
+msgid "These dimensions remain independent: Lean, MoonBit, refinement and tests are reported separately in the generated matrix."
+msgstr "这些维度保持相互独立：Lean、MoonBit、精化与测试在生成的矩阵中分别报告。"
+
+#: manual/conformance.md:68
+msgid "Documentation example contract"
+msgstr "文档示例契约"
+
+#: manual/conformance.md:70
+msgid "Public examples must be anchored to existing regression tests. The canonical script corpus is under `src/prover`; tactic examples use `src/tactics`; parser and CLI examples use their corresponding package tests. A documentation change that adds or changes a runnable example must update its regression anchor in the same change. Unsupported behavior must fail or report `unfinished`; it must not be presented as a successful proof."
+msgstr "公开示例必须锚定到现有的回归测试。规范的脚本语料位于 `src/prover` 下；策略示例使用 `src/tactics`；解析器和命令行示例使用其对应的包测试。新增或修改可运行示例的文档变更，必须在同一变更中更新其回归锚点。不受支持的行为必须失败或报告 `unfinished`；不得将其呈现为成功的证明。"
+
+#: manual/conformance.md:77
+msgid "Contributor checks"
+msgstr "贡献者检查项"
+
+#: manual/conformance.md:79
+msgid "`kernel` remains the only theorem-construction boundary."
+msgstr "`kernel` 仍是唯一的定理构造边界。"
+
+#: manual/conformance.md:80
+msgid "`logic` may provide definitions, checked wrappers and replay helpers, but no new authority."
+msgstr "`logic` 可以提供定义、带检查的包装和重放辅助函数，但不提供新的权限。"
+
+#: manual/conformance.md:81
+msgid "`elab` freezes resolved identities and fails closed on schema drift."
+msgstr "`elab` 冻结已解析的标识，并在模式漂移时以失败告终（fail closed）。"
+
+#: manual/conformance.md:82
+msgid "`parser` preserves local-over-constant lookup and raw source offsets."
+msgstr "`parser` 保持局部变量优先于常量的查找顺序，并保留原始源码偏移。"
+
+#: manual/conformance.md:83
+msgid "`tactics` returns a theorem only after replay through checked kernel paths."
+msgstr "`tactics` 只有在经由带检查的内核路径重放之后才返回定理。"
+
+#: manual/conformance.md:84
+msgid "`prover` reports `Ok` only when replay succeeds and keeps unfinished proofs explicit."
+msgstr "`prover` 仅在重放成功时才报告 `Ok`，并让未完成的证明保持显式。"
+
+#: manual/conformance.md:85
+msgid "`cmd` remains a thin integration layer."
+msgstr "`cmd` 仍是一层薄的集成层。"
+
+#: manual/conformance.md:86
+msgid "Extension certificates are audit artifacts, not substitutes for theorem acceptance."
+msgstr "扩张证书是审计产物，不能替代对定理的接受。"
+
+#: manual/conformance.md:88
+msgid "Reproduction"
+msgstr "复现"
+
+#: manual/conformance.md:90
+msgid "The narrow implementation gate is:"
+msgstr "最小的实现闸门是："
+
+#: manual/conformance.md:103
+msgid "The broader formal and documentation gates are listed in the dated [initial verification audit](../../research/qed-verification/2026-10-14-initial-audit.md). Do not lower strictness, discard failed cases or change denominators to make a conformance result pass."
+msgstr "更广泛的形式与文档闸门列于带日期的[初始验证审计](../../research/qed-verification/2026-10-14-initial-audit.md)。不要为了让符合性结果通过而降低严格度、丢弃失败用例或更改分母。"
+
+#: manual/current_workspace_audit.md:1
+msgid "Current workspace audit (2026-10-14)"
+msgstr "当前工作区审计（2026-10-14）"
+
+#: manual/current_workspace_audit.md:3
+msgid "Status: point-in-time audit"
+msgstr "状态：point-in-time audit（阶段性审计）"
+
+#: manual/current_workspace_audit.md:5
+msgid "Authority: subordinate to [`qed_formal_spec.typ`](../attachments/qed_formal_spec.typ)"
+msgstr "权威性：从属于 [`qed_formal_spec.typ`](../attachments/qed_formal_spec.typ)"
+
+#: manual/current_workspace_audit.md:6
+msgid "Scope: a short current-state pointer; the dated research report contains the evidence narrative"
+msgstr "范围：简短的当前状态指引；带日期的研究报告包含证据叙述"
+
+#: manual/current_workspace_audit.md:9
+msgid "This page is intentionally brief. The detailed audit and its reproducible commands are in the [initial QED verification audit](../../research/qed-verification/2026-10-14-initial-audit.md). The current implementation mapping is [Specification conformance](conformance.md), and the current obligation status is generated from [`qed_obligations.json`](qed_obligations.json)."
+msgstr "本页有意保持简短。详细的审计及其可复现的命令见[初始 QED 验证审计](../../research/qed-verification/2026-10-14-initial-audit.md)。当前的实现映射是[规范符合性](conformance.md)，当前的义务状态由 [`qed_obligations.json`](qed_obligations.json) 生成。"
+
+#: manual/current_workspace_audit.md:15
+msgid "Current boundary"
+msgstr "当前边界"
+
+#: manual/current_workspace_audit.md:17
+msgid "The Typst attachment is the only normative logical specification."
+msgstr "Typst 附件是唯一的规范性逻辑规范。"
+
+#: manual/current_workspace_audit.md:18
+msgid "The Typed HOL development proves the fixed-signature core and history-indexed extension closure stated by the formal branch contract."
+msgstr "Typed HOL 的开发证明了形式分支契约所陈述的固定签名内核与按历史索引的扩张闭包。"
+
+#: manual/current_workspace_audit.md:20
+msgid "The finite `DeclTable` allocation lemmas are checked, but growing-signature syntax, embeddings and model transport remain open."
+msgstr "有限的 `DeclTable` 分配引理已经检查，但增长签名的语法、嵌入与模型传输仍未解决。"
+
+#: manual/current_workspace_audit.md:22
+msgid "MoonBit snapshot and theorem-lineage repairs have deterministic regression evidence. They are not a MoonBit-to-Lean refinement theorem."
+msgstr "MoonBit 快照与定理谱系的修复有确定性的回归证据。它们不是 MoonBit 到 Lean 的精化定理。"
+
+#: manual/current_workspace_audit.md:24
+msgid "An independent certificate checker is planned and is not shipped."
+msgstr "独立的证书检查器已在计划中，但尚未发布。"
+
+#: manual/current_workspace_audit.md:26
+msgid "Current risks"
+msgstr "当前风险"
+
+#: manual/current_workspace_audit.md:28
+msgid "The open obligations are tracked by stable IDs in the generated proof-obligation matrix. Do not infer a stronger result from a passing Lean build, a passing MoonBit test, or a negative regression case. Each evidence dimension has its own status and promotion gate."
+msgstr "未完成的义务由生成的证明义务矩阵中的稳定 ID 跟踪。不要从 Lean 构建通过、MoonBit 测试通过或否定回归用例通过推断出更强的结论。每个证据维度都有自己的状态和晋升闸门。"
+
+#: manual/current_workspace_audit.md:33
+msgid "The former static Typed HOL audit matrix was merged into the generated matrix and removed to prevent two manually maintained status tables from drifting."
+msgstr "原先静态的 Typed HOL 审计矩阵已并入生成的矩阵并被移除，以免两张手工维护的状态表出现漂移。"
 
 #: manual/design/cmd.md:1
 msgid "cmd design"
@@ -3597,6 +3399,17 @@ msgstr "**用 `--no-warn` 隐藏警告。** 会删除输出的标志会让 hole 
 #: manual/design/cmd.md:68
 msgid "**Pretty-printing terms in surface syntax.** A printer that re-introduces `∧` and `->` would be a second interpretation of the encodings that could drift from the parser; the structural printer has no such risk."
 msgstr "**用表面语法美化打印项。** 重新引入 `∧` 和 `->` 的打印器会成为对编码的第二种解释，可能与解析器出现偏差；结构化打印器没有这种风险。"
+
+#: manual/design/cmd.md:70
+#: manual/design/elab.md:74
+#: manual/design/kernel.md:286
+#: manual/design/logic.md:154
+#: manual/design/parser.md:119
+#: manual/design/prover.md:87
+#: manual/design/research_rewrite.md:79
+#: manual/design/tactics.md:92
+msgid "Boundaries"
+msgstr "边界"
 
 #: manual/design/cmd.md:72
 msgid "One file per run; no directories, no imports between files, no watch mode."
@@ -5213,8 +5026,8 @@ msgid "Implementation layer The current code and regression tests determine the 
 msgstr "实现层当前代码与回归测试决定真实 shipped state。"
 
 #: manual/governance.md:21
-msgid "Implementation documentation layer [User manual](manual.md), [Specification conformance](conformance.md), the package pages under `api/`, `design/` and `tutorial/`, and [Workspace audit (2026-04-18)](current_workspace_audit.md) describe the current implementation contract, engineering conformance, the per-package public surface, and point-in-time audits."
-msgstr "实现文档层 [用户手册](manual.md)、[规范符合性](conformance.md)、`api/`、`design/` 和 `tutorial/` 下的包页面，以及[工作区审计（2026-04-18）](current_workspace_audit.md)，描述当前实现契约、工程符合性、各包的公开界面和阶段性审计。"
+msgid "Implementation documentation layer [User manual](manual.md), [Specification conformance](conformance.md), the package pages under `api/`, `design/` and `tutorial/`, and [Current workspace audit (2026-10-14)](current_workspace_audit.md) describe the current implementation contract, engineering conformance, the per-package public surface, and point-in-time audits."
+msgstr "实现文档层 [用户手册](manual.md)、[规范符合性](conformance.md)、`api/`、`design/` 和 `tutorial/` 下的包页面，以及[当前工作区审计（2026-10-14）](current_workspace_audit.md)，分别描述当前实现契约、工程符合性、各包的公开接口面，以及阶段性审计。"
 
 #: manual/governance.md:25
 msgid "Summary and navigation layer `README.md`, `CHANGELOG.md` and the [manual overview](index.md) only provide summaries, release history and entry-point navigation; they must not rank above the implementation layer or the implementation documentation layer."
@@ -5253,8 +5066,8 @@ msgid "Engineering conformance and code/test mapping: [Specification conformance
 msgstr "工程符合性与代码/测试映射：[规范符合性](conformance.md)"
 
 #: manual/governance.md:45
-msgid "Point-in-time risks and gaps: [Workspace audit (2026-04-18)](current_workspace_audit.md)"
-msgstr "阶段性风险与缺口：[工作区审计（2026-04-18）](current_workspace_audit.md)"
+msgid "Point-in-time risks and gaps: [Current workspace audit (2026-10-14)](current_workspace_audit.md); the detailed dated research record is the [initial verification audit](../../research/qed-verification/2026-10-14-initial-audit.md)"
+msgstr "阶段性风险与缺口：[当前工作区审计（2026-10-14）](current_workspace_audit.md)；详细的带日期研究记录是[初始验证审计](../../research/qed-verification/2026-10-14-initial-audit.md)"
 
 #: manual/governance.md:46
 msgid "Repository summary and quick entry point: `README.md`"
@@ -5369,8 +5182,8 @@ msgid "[Specification conformance](conformance.md) describes specification align
 msgstr "[规范符合性](conformance.md) 描述规范对齐、代码/测试映射、贡献者检查项和文档示例约束。"
 
 #: manual/governance.md:102
-msgid "[Workspace audit (2026-04-18)](current_workspace_audit.md) only records risks, gaps, and follow-ups that still hold at a given point in time, and does not repeat the stable facts of manual/conformance over the long term."
-msgstr "[工作区审计（2026-04-18）](current_workspace_audit.md) 只记录某一时间点仍然成立的风险、缺口和 follow-up，不长期重复 manual/conformance 的稳定事实。"
+msgid "[Current workspace audit](current_workspace_audit.md) is a short point-in-time pointer. Dated research audits under `research/qed-verification/` contain the evidence narrative and do not define the shipped contract."
+msgstr "[当前工作区审计](current_workspace_audit.md)是一份简短的阶段性指引。`research/qed-verification/` 下带日期的研究审计包含证据叙述，并不定义已发布的契约。"
 
 #: manual/governance.md:103
 msgid "`research/` documents must explicitly declare `research-only`, `not shipped`, and `non-authoritative`."
@@ -5433,34 +5246,38 @@ msgid "[Code governance](code_governance.md) Package layering, alias entry point
 msgstr "[代码治理](code_governance.md) 包分层、alias 入口与代码维护义务。"
 
 #: manual/governance.md:130
-msgid "[Workspace audit (2026-04-18)](current_workspace_audit.md) Point-in-time audit of the current workspace."
-msgstr "[工作区审计（2026-04-18）](current_workspace_audit.md) 当前工作区阶段性审计。"
+msgid "[Current workspace audit (2026-10-14)](current_workspace_audit.md) Short point-in-time pointer to the current verification audit."
+msgstr "[当前工作区审计（2026-10-14）](current_workspace_audit.md) 当前验证审计的简短阶段性指引。"
 
 #: manual/governance.md:132
+msgid "[Initial verification audit (2026-10-14)](../../research/qed-verification/2026-10-14-initial-audit.md) Research-only evidence record and development programme."
+msgstr "[初始验证审计（2026-10-14）](../../research/qed-verification/2026-10-14-initial-audit.md) 仅供研究的证据记录与开发计划。"
+
+#: manual/governance.md:134
 msgid "[Formal specification changelog](qed_formal_spec_changelog.md) Specification changelog; auxiliary material for specification maintenance."
 msgstr "[形式规范变更日志](qed_formal_spec_changelog.md) 规范变更记录，属于规范维护辅助材料。"
 
-#: manual/governance.md:134
+#: manual/governance.md:136
 msgid "`research/README.md` Research directory entry point and boundary statement."
 msgstr "`research/README.md` 研究目录入口与边界声明。"
 
-#: manual/governance.md:137
+#: manual/governance.md:139
 msgid "Maintenance rule"
 msgstr "维护规则"
 
-#: manual/governance.md:139
+#: manual/governance.md:141
 msgid "When a change affects the implementation, the public capability claims, and research judgments at the same time, maintain the documents in the following order:"
 msgstr "当一次改动同时影响实现、公开能力口径和研究判断时，应按下面顺序维护："
 
-#: manual/governance.md:144
+#: manual/governance.md:146
 msgid "The affected package pages (`api/`, `design/`, `tutorial/`)"
 msgstr "受影响的包页面（`api/`、`design/`、`tutorial/`）"
 
-#: manual/governance.md:147
-msgid "[Workspace audit (2026-04-18)](current_workspace_audit.md)"
-msgstr "[工作区审计（2026-04-18）](current_workspace_audit.md)"
+#: manual/governance.md:149
+msgid "[Current workspace audit](current_workspace_audit.md)"
+msgstr "[当前工作区审计](current_workspace_audit.md)"
 
-#: manual/governance.md:148
+#: manual/governance.md:150
 msgid "Related `research/` documents"
 msgstr "相关 `research/` 文档"
 
@@ -5705,90 +5522,98 @@ msgid "Revisions of the specification"
 msgstr "规范的修订记录"
 
 #: manual/index.md:57
-msgid "[Workspace audit (2026-10-12)](current_workspace_audit.md)"
-msgstr "[工作区审计（2026-10-12）](current_workspace_audit.md)"
+msgid "[Current workspace audit (2026-10-14)](current_workspace_audit.md)"
+msgstr "[当前工作区审计（2026-10-14）](current_workspace_audit.md)"
 
 #: manual/index.md:57
-msgid "A point-in-time record of risks and gaps"
-msgstr "对风险与缺口的阶段性记录"
+msgid "A short pointer to the current risks and evidence boundary"
+msgstr "指向当前风险与证据边界的简短指引"
 
-#: manual/index.md:59
+#: manual/index.md:58
+msgid "[Initial verification audit (2026-10-14)](../../research/qed-verification/2026-10-14-initial-audit.md)"
+msgstr "[初始验证审计（2026-10-14）](../../research/qed-verification/2026-10-14-initial-audit.md)"
+
+#: manual/index.md:58
+msgid "Research-only baseline, reproducible evidence and next promotion"
+msgstr "仅供研究的基线、可复现的证据与下一步晋升"
+
+#: manual/index.md:60
 msgid "Blackbox test files (`*_test.mbt`) and the alias files `alias.mbt` and `alias_test.mbt` belong to their packages; [code governance](code_governance.md) defines their rules. The theorem files in `examples/` and `prelude/` are inputs for the command-line tool, not packages."
 msgstr "黑盒测试文件（`*_test.mbt`）以及别名文件 `alias.mbt` 和 `alias_test.mbt` 属于各自的包；其规则由[代码治理](code_governance.md)定义。`examples/` 和 `prelude/` 中的定理文件是命令行工具的输入，不是包。"
 
-#: manual/index.md:61
+#: manual/index.md:62
 msgid "Exported items"
 msgstr "导出项"
 
-#: manual/index.md:63
+#: manual/index.md:64
 msgid "Trusted kernel"
 msgstr "可信内核"
 
-#: manual/index.md:65
+#: manual/index.md:66
 msgid "Types and terms: `HolType`, `Term`, `DbTerm` and their constructors, destructors and substitutions"
 msgstr "类型与项：`HolType`、`Term`、`DbTerm` 及其构造器、析构器与代换"
 
-#: manual/index.md:66
+#: manual/index.md:67
 msgid "Theorems: the abstract `Thm`, read with `thm_concl`, `thm_hyps` and `thm_is_admissible`"
 msgstr "定理：抽象的 `Thm`，通过 `thm_concl`、`thm_hyps` 和 `thm_is_admissible` 读取"
 
-#: manual/index.md:67
+#: manual/index.md:68
 msgid "Primitive rules: `refl_checked`, `assume_checked`, `trans_checked`, `mk_comb_rule_checked`, `abs_rule_checked`, `beta_rule_checked`, `eq_mp_checked`, `deduct_antisym_rule_checked`, `inst_type`, `inst_checked`, and the derived `add_assum_checked`"
 msgstr "原始规则：`refl_checked`、`assume_checked`、`trans_checked`、`mk_comb_rule_checked`、`abs_rule_checked`、`beta_rule_checked`、`eq_mp_checked`、`deduct_antisym_rule_checked`、`inst_type`、`inst_checked`，以及导出的 `add_assum_checked`"
 
-#: manual/index.md:68
+#: manual/index.md:69
 msgid "State and gates: `KernelState`, scopes, `ks_define_const_thm` (`DefOK`), `ks_register_type_definition` (`TypeDefOK`), `ks_specify_const` (`SpecOK`), audit certificates"
 msgstr "状态与闸门：`KernelState`、作用域、`ks_define_const_thm`（`DefOK`）、`ks_register_type_definition`（`TypeDefOK`）、`ks_specify_const`（`SpecOK`）、审计证书"
 
-#: manual/index.md:70
+#: manual/index.md:71
 msgid "Untrusted layers"
 msgstr "非可信层"
 
-#: manual/index.md:72
+#: manual/index.md:73
 msgid "`logic`: `install_prop_prelude`, the connective builders `prop_mk_*` and recognisers `prop_dest_*`, the natural-deduction rules `logic_prop_*_thm`, the theorem catalog"
 msgstr "`logic`：`install_prop_prelude`、联结词构造函数 `prop_mk_*` 与识别函数 `prop_dest_*`、自然演绎规则 `logic_prop_*_thm`、定理目录"
 
-#: manual/index.md:74
+#: manual/index.md:75
 msgid "`parser`: `parse_term`, `parse_goal`, `parse_theorem_script_raw` and their `_raw` and `_with_env` variants, `ParseError` with raw offsets"
 msgstr "`parser`：`parse_term`、`parse_goal`、`parse_theorem_script_raw` 及其 `_raw` 与 `_with_env` 变体，带原始偏移的 `ParseError`"
 
-#: manual/index.md:75
+#: manual/index.md:76
 msgid "`tactics`: `ProofState`, `ps_init`, `ps_apply`, `ps_qed`, the steps `step_intro`, `step_split`, `step_left`, `step_right`, `step_apply`, `step_exact`, `step_assumption`"
 msgstr "`tactics`：`ProofState`、`ps_init`、`ps_apply`、`ps_qed`，以及步骤 `step_intro`、`step_split`、`step_left`、`step_right`、`step_apply`、`step_exact`、`step_assumption`"
 
-#: manual/index.md:76
+#: manual/index.md:77
 msgid "`prover`: `prove_theorem_script_detailed`, `prove_theorem_file_results_detailed`, `ProverRunResult`, the regression corpus"
 msgstr "`prover`：`prove_theorem_script_detailed`、`prove_theorem_file_results_detailed`、`ProverRunResult`、回归语料"
 
-#: manual/index.md:78
+#: manual/index.md:79
 msgid "Where to read next"
 msgstr "接下来读什么"
 
-#: manual/index.md:80
+#: manual/index.md:81
 msgid "New to proof assistants: read \"For readers new to HOL\" and the quick start in the [user manual](manual.md), then run the examples with the [cmd tutorial](tutorial/cmd.md). The [syntax guide](syntax.md) answers \"how do I write this step\"."
 msgstr "初次接触证明助手：阅读[用户手册](manual.md)中的“面向 HOL 新读者”和快速入门，然后借助 [cmd 教程](tutorial/cmd.md)运行示例。[语法指南](syntax.md)回答“这一步该怎么写”。"
 
-#: manual/index.md:81
+#: manual/index.md:82
 msgid "Using QED from MoonBit: start with the [prover tutorial](tutorial/prover.md) to run scripts and read results. Go down to the [tactics tutorial](tutorial/tactics.md) to drive proofs step by step, and to the [logic](tutorial/logic.md) and [kernel](tutorial/kernel.md) tutorials to build theorems forwards. Keep the API pages at hand; each lists the failure cases of every function."
 msgstr "在 MoonBit 中使用 QED：先读 [prover 教程](tutorial/prover.md)，学习运行脚本并读取结果。再深入 [tactics 教程](tutorial/tactics.md)，逐步驱动证明；并通过 [logic](tutorial/logic.md) 和 [kernel](tutorial/kernel.md) 教程向前构造定理。把 API 页面放在手边；每个页面都列出了每个函数的失败情形。"
 
-#: manual/index.md:82
+#: manual/index.md:83
 msgid "Checking why it is sound: read the [kernel design](design/kernel.md), which derives the rules and explains why soundness reduces to the kernel, then the [logic](design/logic.md) and [tactics](design/tactics.md) designs, which show that the upper layers add no authority. The formal specification above is normative."
 msgstr "检查它为何可靠：阅读 [kernel 设计](design/kernel.md)，其中推导了各条规则，并解释了为何可靠性归结为内核；再读 [logic](design/logic.md) 和 [tactics](design/tactics.md) 设计，它们说明上层并未增加任何权限。上述形式化规范具有规范性。"
 
-#: manual/index.md:83
-msgid "Contributing: read [code governance](code_governance.md) and [documentation governance](governance.md) first, then [specification conformance](conformance.md) for the code/test mapping and the rules for examples. The [workspace audit](current_workspace_audit.md) lists open risks; the [specification changelog](qed_formal_spec_changelog.md) records revisions of the specification."
-msgstr "参与贡献：先读[代码治理](code_governance.md)和[文档治理](governance.md)，再读[规范符合性](conformance.md)，了解代码与测试的对应关系以及示例的规则。[工作区审计](current_workspace_audit.md)列出未解决的风险；[规范变更日志](qed_formal_spec_changelog.md)记录规范的修订。"
+#: manual/index.md:84
+msgid "Contributing: read [code governance](code_governance.md) and [documentation governance](governance.md) first, then [specification conformance](conformance.md) for the code/test mapping and the rules for examples. The [workspace audit](current_workspace_audit.md) points to open risks; the [initial verification audit](../../research/qed-verification/2026-10-14-initial-audit.md) records the dated evidence; the [specification changelog](qed_formal_spec_changelog.md) records revisions of the specification."
+msgstr "贡献：请先阅读[代码治理](code_governance.md)和[文档治理](governance.md)，然后阅读[规范符合性](conformance.md)了解代码/测试映射与示例规则。[工作区审计](current_workspace_audit.md)指出未解决的风险；[初始验证审计](../../research/qed-verification/2026-10-14-initial-audit.md)记录带日期的证据；[规范变更日志](qed_formal_spec_changelog.md)记录规范的修订。"
 
-#: manual/index.md:85
+#: manual/index.md:86
 msgid "Validation"
 msgstr "校验"
 
-#: manual/index.md:87
+#: manual/index.md:88
 msgid "Recommended release checks:"
 msgstr "建议的发布前检查："
 
-#: manual/index.md:94
+#: manual/index.md:95
 msgid "The examples on the package pages compile against the current code; [specification conformance](conformance.md) describes how they are checked. The Typed HOL proof builds separately with `lake build` in `formal_verification/`; it formalizes the mathematical calculus and does not yet prove a refinement from the MoonBit implementation."
 msgstr "各包页面上的示例都针对当前代码编译；[规范符合性](conformance.md)说明检查方式。Typed HOL 证明在 `formal_verification/` 中用 `lake build` 单独构建；它形式化数学演算，尚未证明 MoonBit 实现的精化。"
 
@@ -6782,11 +6607,6 @@ msgid "Stable theorem-name surface"
 msgstr "稳定的定理名称界面"
 
 #: manual/manual.md:616
-#: manual/manual.md:659
-msgid "Surface"
-msgstr "界面"
-
-#: manual/manual.md:616
 msgid "Current supported capability"
 msgstr "当前支持的能力"
 
@@ -7286,120 +7106,6 @@ msgstr "2026-04-05：`lake build` 通过；此后 `formal_verification/` 未发�
 msgid "For paper alignment, the code/test mapping, and the checklist for the surrounding tooling, read [Specification conformance](conformance.md)."
 msgstr "需要进一步看论文对齐、代码/测试映射和外围工程 checklist 时，请阅读 [规范符合性](conformance.md)。"
 
-#: manual/qed_formal_audit_matrices.md:1
-msgid "Typed HOL audit matrix"
-msgstr "Typed HOL 审计矩阵"
-
-#: manual/qed_formal_audit_matrices.md:3
-msgid "Audit basis: `doc/attachments/qed_formal_spec.typ` and `formal_verification/QEDFV/HOL`. Status means the stated Lean proposition typechecks; it does not silently certify the separate MoonBit implementation."
-msgstr "审计依据：`doc/attachments/qed_formal_spec.typ` 和 `formal_verification/QEDFV/HOL`。状态表示所陈述的 Lean 命题通过类型检查，不会隐含认证独立的 MoonBit 实现。"
-
-#: manual/qed_formal_audit_matrices.md:7
-msgid "Proof-obligation matrix"
-msgstr "证明义务矩阵"
-
-#: manual/qed_formal_audit_matrices.md:9
-msgid "Obligation"
-msgstr "义务"
-
-#: manual/qed_formal_audit_matrices.md:9
-msgid "Lean evidence"
-msgstr "Lean 证据"
-
-#: manual/qed_formal_audit_matrices.md:11
-msgid "Typed syntax and non-empty carriers"
-msgstr "类型化语法与非空载体"
-
-#: manual/qed_formal_audit_matrices.md:12
-msgid "Renaming, substitution, beta"
-msgstr "重命名、替换与 beta"
-
-#: manual/qed_formal_audit_matrices.md:14
-msgid "Primitive rule preservation"
-msgstr "原始规则保持性"
-
-#: manual/qed_formal_audit_matrices.md:15
-msgid "Inductive derivation soundness"
-msgstr "归纳推导可靠性"
-
-#: manual/qed_formal_audit_matrices.md:16
-msgid "Definition semantic equation and old-language invariance"
-msgstr "定义的语义方程与旧语言不变性"
-
-#: manual/qed_formal_audit_matrices.md:17
-msgid "Specification validity and old-language invariance"
-msgstr "指定有效性与旧语言不变性"
-
-#: manual/qed_formal_audit_matrices.md:18
-msgid "Predicate-subtype type-definition laws"
-msgstr "谓词子类型的类型定义规律"
-
-#: manual/qed_formal_audit_matrices.md:19
-msgid "Type-definition gate semantics (new model, Abs/Rep laws, old-language invariance)"
-msgstr "类型定义门的语义（新模型、Abs/Rep 定律、旧语言不变性）"
-
-#: manual/qed_formal_audit_matrices.md:20
-msgid "Locality preserved by definition, specification and type-definition steps"
-msgstr "定义、指定与类型定义步骤都保持局部性"
-
-#: manual/qed_formal_audit_matrices.md:20
-msgid "proved (gate closure fields stated for `Term.annotVars`)"
-msgstr "已证明（门的闭包字段针对 `Term.annotVars` 陈述）"
-
-#: manual/qed_formal_audit_matrices.md:21
-msgid "Type-definition derivation constructor; soundness and old-language conservativity along a history"
-msgstr "类型定义的推导构造子；沿历史的可靠性与旧语言保守性"
-
-#: manual/qed_formal_audit_matrices.md:21
-msgid "proved at the history's model pair; freshness carried, not used"
-msgstr "在该历史的模型对处已证明；新鲜性被携带但未使用"
-
-#: manual/qed_formal_audit_matrices.md:22
-msgid "Worked typedef derivation and non-triviality of the extended model"
-msgstr "类型定义推导的示例及扩展模型的非平凡性"
-
-#: manual/qed_formal_audit_matrices.md:24
-msgid "Concrete non-triviality"
-msgstr "具体非平凡性"
-
-#: manual/qed_formal_audit_matrices.md:25
-msgid "Public package integration"
-msgstr "公开定理包集成"
-
-#: manual/qed_formal_audit_matrices.md:25
-msgid "`HOL/Soundness.lean` and root target"
-msgstr "`HOL/Soundness.lean` 与根目标"
-
-#: manual/qed_formal_audit_matrices.md:26
-msgid "MoonBit-to-Lean refinement"
-msgstr "MoonBit 到 Lean 的精化"
-
-#: manual/qed_formal_audit_matrices.md:26
-#: manual/qed_formal_audit_matrices.md:27
-msgid "no retained Typed HOL theorem"
-msgstr "保留的 Typed HOL 中没有对应定理"
-
-#: manual/qed_formal_audit_matrices.md:26
-#: manual/qed_formal_audit_matrices.md:27
-msgid "excluded"
-msgstr "已排除"
-
-#: manual/qed_formal_audit_matrices.md:27
-msgid "Syntactic extension erasure"
-msgstr "扩展的语法擦除"
-
-#: manual/qed_formal_audit_matrices.md:29
-msgid "Trust basis"
-msgstr "信任基础"
-
-#: manual/qed_formal_audit_matrices.md:31
-msgid "The retained proof line has no local `axiom`, `sorry`, or `admit`. The public package depends on `propext`, `Classical.choice`, and `Quot.sound`, as reported by Lean's `#print axioms`."
-msgstr "保留的证明主线没有局部 `axiom`、`sorry` 或 `admit`。公开定理包依赖 `propext`、`Classical.choice` 和 `Quot.sound`，由 Lean 的 `#print axioms` 报告。"
-
-#: manual/qed_formal_audit_matrices.md:35
-msgid "The old conditional and approximation modules were removed from `formal_verification/QEDFV`. They must not be reintroduced as parallel evidence; future work must extend the Typed HOL definitions and derivation induction."
-msgstr "旧条件性和近似模块已从 `formal_verification/QEDFV` 移除。不得将它们重新引入作为并行证据；后续工作必须扩展 Typed HOL 定义和推导归纳。"
-
 #: manual/qed_formal_spec_changelog.md:1
 msgid "Formal specification changelog"
 msgstr "形式规范变更日志"
@@ -7419,10 +7125,6 @@ msgstr "权威性：当前的 Typst 规范仍是规范性来源；本文件仅�
 #: manual/qed_formal_spec_changelog.md:6
 msgid "Scope: historical changes to the formal specification and its Lean evidence"
 msgstr "范围：形式规范及其 Lean 证据的历史变更"
-
-#: manual/qed_formal_spec_changelog.md:7
-msgid "Last reviewed: 2026-10-14"
-msgstr "最后审阅：2026-10-14"
 
 #: manual/qed_formal_spec_changelog.md:9
 msgid "This is a history file, not a current proof-status entry point. Use the [branch contract](../../formal_verification/branch_contract.md), the [Typed HOL proof plan](../../formal_verification/theory-proof-plan.md) and the [generated obligation matrix](qed_proof_obligations.md) for current status."
@@ -8915,10 +8617,6 @@ msgstr "解析与 elaboration 保持提供给内核的命题和已解析的常�
 #: manual/qed_proof_obligations.md:196
 msgid "MoonBit types, terms, theorem objects, state transitions, and theorem constructors are connected to the Typed HOL calculus by a checked refinement or proof-producing translation."
 msgstr "MoonBit 的类型、项、定理对象、状态转移和定理构造函数，通过经过检查的精化或产生证明的翻译，与 Typed HOL 演算相连接。"
-
-#: manual/qed_proof_obligations.md:72
-msgid "Evidence"
-msgstr "证据"
 
 #: manual/qed_proof_obligations.md:78
 msgid "Specification: `doc/attachments/qed_formal_spec.typ::Type Grammar and Carrier Interpretation`"
@@ -10630,6 +10328,438 @@ msgstr "[tactics 设计](../design/tactics.md)解释了论证 (justification)，
 msgid "The [prover tutorial](prover.md) runs the same proofs from scripts."
 msgstr "[prover 教程](prover.md)从脚本运行相同的证明。"
 
+#~ msgid "Status: Typed HOL proof line active"
+#~ msgstr "状态：Typed HOL 证明主线已启用"
+
+#~ msgid "Authority: [QED Typed HOL Core](../attachments/qed_formal_spec.typ)"
+#~ msgstr "权威来源：[QED Typed HOL 核心](../attachments/qed_formal_spec.typ)"
+
+#~ msgid "Scope: Lean mathematical core and the explicitly separated MoonBit boundary"
+#~ msgstr "范围：Lean 数学核心及明确划分的 MoonBit 边界"
+
+#~ msgid "Last reviewed: 2026-10-12"
+#~ msgstr "最后审阅：2026-10-12"
+
+#~ msgid "The repository has one formal proof line: `formal_verification/QEDFV/HOL`. The Lean library defines an intrinsically typed HOL calculus and proves its semantic soundness. The MoonBit implementation remains a separate realization until a checked refinement connects its terms, theorem objects, and kernel operations to the Lean calculus."
+#~ msgstr "仓库只有一条形式化证明主线：`formal_verification/QEDFV/HOL`。Lean 库定义了内在类型化的 HOL 演算，并证明其语义可靠性。在经检查的精化证明将 MoonBit 的项、定理对象和内核操作对应到 Lean 演算之前，MoonBit 实现仍是独立的实现。"
+
+#~ msgid "Evidence hierarchy"
+#~ msgstr "证据层级"
+
+#~ msgid "The Typst specification states the mathematical contract."
+#~ msgstr "Typst 规范陈述数学契约。"
+
+#~ msgid "`formal_verification/QEDFV/HOL` defines and proves that contract in Lean."
+#~ msgstr "`formal_verification/QEDFV/HOL` 在 Lean 中定义并证明该契约。"
+
+#~ msgid "This document records the boundary and verification commands; it does not add logical assumptions."
+#~ msgstr "本文记录证明边界和验证命令，不增加逻辑假设。"
+
+#~ msgid "Typed HOL evidence"
+#~ msgstr "Typed HOL 证据"
+
+#~ msgid "Area"
+#~ msgstr "领域"
+
+#~ msgid "Types and non-empty carriers"
+#~ msgstr "类型与非空载体"
+
+#~ msgid "proved"
+#~ msgstr "证明了"
+
+#~ msgid "Intrinsic terms, renaming, substitution"
+#~ msgstr "内在类型化的项、重命名与替换"
+
+#~ msgid "Evaluation and beta"
+#~ msgstr "求值与 beta"
+
+#~ msgid "Type instantiation and choice coherence"
+#~ msgstr "类型实例化与选择一致性"
+
+#~ msgid "Primitive rule validity, including `ADD_ASSUM` and witness `SPECIFY`"
+#~ msgstr "原始规则可靠性，包括 `ADD_ASSUM` 和基于见证的 `SPECIFY`"
+
+#~ msgid "Derivation soundness for all constructors, including infinity"
+#~ msgstr "所有推导构造子的可靠性，包括无穷规则"
+
+#~ msgid "Object-language connectives and quantifiers"
+#~ msgstr "对象语言连接词与量词"
+
+#~ msgid "semantic clauses and substitution/type-instantiation laws proved"
+#~ msgstr "语义子句及替换/类型实例化定律已证明"
+
+#~ msgid "Infinity sentence and admission rule"
+#~ msgstr "无穷句与准入规则"
+
+#~ msgid "exact sentence valid in all models; soundness case proved"
+#~ msgstr "该精确句子在所有模型中有效；可靠性分支已证明"
+
+#~ msgid "History-indexed definition, specification and type-definition derivations"
+#~ msgstr "按历史索引的定义、指定与类型定义推导"
+
+#~ msgid "proved at the history's model pair over a fixed total signature; history freshness is carried, not used"
+#~ msgstr "在固定全函数签名上、于该历史的模型对处已证明；历史新鲜性被携带但未使用"
+
+#~ msgid "Type-definition carrier laws"
+#~ msgstr "类型定义的载体规律"
+
+#~ msgid "Type-definition gate semantics: new model, Abs/Rep laws, old-language invariance"
+#~ msgstr "类型定义门的语义：新模型、Abs/Rep 定律、旧语言不变性"
+
+#~ msgid "proved over model pairs"
+#~ msgstr "在模型对上已证明"
+
+#~ msgid "Locality of the constant interpretation preserved by every declaration step; old-language invariance along a history"
+#~ msgstr "每个声明步骤都保持常量解释的局部性；沿历史的旧语言不变性"
+
+#~ msgid "proved for a local base model (the canonical ones are)"
+#~ msgstr "对局部的基模型已证明（典范模型都是局部的）"
+
+#~ msgid "Worked typedef derivation (one-element subtype of `bool`)"
+#~ msgstr "类型定义推导的示例（`bool` 的单元素子类型）"
+
+#~ msgid "Finite semantic conservativity"
+#~ msgstr "有限语义保守性"
+
+#~ msgid "Concrete and signature-generic non-triviality"
+#~ msgstr "具体及任意签名下的非平凡性"
+
+#~ msgid "Typed HOL core proof package"
+#~ msgstr "Typed HOL 核心证明包"
+
+#~ msgid "The public entry point is `QEDFV.HOL.typed_hol_core_proof_complete`. It covers the typed core and history-indexed definition, specification and type-definition extensions over a fixed total signature. It does not certify growing-signature syntax or a MoonBit refinement. The default `QEDFV` target imports `QEDFV.HOL.Soundness` only."
+#~ msgstr "公开入口是 `QEDFV.HOL.typed_hol_core_proof_complete`。它覆盖类型化核心，以及固定全函数签名上的、按历史索引的定义、指定与类型定义扩展；不认证增长签名的语法或 MoonBit 精化。默认 `QEDFV` 目标仅导入 `QEDFV.HOL.Soundness`。"
+
+#~ msgid "Explicit limits"
+#~ msgstr "明确的限制"
+
+#~ msgid "The Typed HOL theorem has a neutral type-constructor node `Ty.con` with an explicit constructor interpretation, and it models the semantics of a type-definition step over model pairs and as a history-indexed derivation constructor whose three laws are sound at the history's model pair. History freshness of the new constructor and constants is carried as a side condition that soundness does not use; consequences that chain the derived laws with core rules would need a history-indexed full calculus, which is not provided. It does not establish the MoonBit infinity registration gate, syntactic derivation erasure (for a type definition this would need a relativisation translation), the kernel's string-name lowering, or a MoonBit-to-Lean refinement. It also does not certify the parser, elaborator, tactics, theorem replay, or mutable scope history. MoonBit theorem provenance is covered separately by the issue #15 implementation invariant and regression tests; it must not be presented as evidence for the Lean theorem."
+#~ msgstr "Typed HOL 定理含有一个中性的类型构造子节点 `Ty.con` 及显式的构造子解释，并在模型对上，以及作为按历史索引的推导构造子，刻画了类型定义步骤的语义；其三条定律在该历史的模型对上是可靠的。新构造子与新常量的历史新鲜性只作为附带条件携带，可靠性证明并不使用它；若要把导出的定律与核心规则串联得出结论，需要按历史索引的完整演算，这里并未提供。它没有建立 MoonBit 无穷注册门、推导的语法擦除（对类型定义而言需要一个相对化翻译）、内核的字符串名称降级，也没有建立 MoonBit 到 Lean 的精化。它也不认证解析器、精化器、策略、定理重放或可变作用域历史。MoonBit 定理来源由 issue #15 的实现不变量与回归测试单独覆盖，不得作为 Lean 定理的证据。"
+
+#~ msgid "The following mappings and contributor rules remain implementation evidence, not a checked refinement theorem. Issue #15 is covered by lineage-prefix admissibility in `src/kernel/thm.mbt` and sibling-state regression tests in `src/kernel/kernel_audit_test.mbt`; the implementation repair does not enlarge the Typed HOL theorem."
+#~ msgstr "以下映射与贡献者规则仍属于实现层面的证据，而不是经过检查的精化定理。Issue #15 由 `src/kernel/thm.mbt` 中的谱系前缀可接受性以及 `src/kernel/kernel_audit_test.mbt` 中的兄弟状态回归测试覆盖；该实现修复并不扩大 Typed HOL 定理。"
+
+#~ msgid "Code and test mapping"
+#~ msgstr "代码与测试映射"
+
+#~ msgid "Current implementation"
+#~ msgstr "当前实现"
+
+#~ msgid "Regression coverage"
+#~ msgstr "回归覆盖"
+
+#~ msgid "Primitive rules + admissibility"
+#~ msgstr "原始规则 + 可容许性"
+
+#~ msgid "Parser bridge + normalize/raw-offset contract"
+#~ msgstr "解析器桥接 + 规范化/原始偏移契约"
+
+#~ msgid "Parser-to-tactics explicit goal bridge"
+#~ msgstr "解析器到 tactics 的显式目标桥接"
+
+#~ msgid "Surface connector basis expansion"
+#~ msgstr "表层联结词基的展开"
+
+#~ msgid "Proposition theorem replay/catalog seeds"
+#~ msgstr "命题定理重放/目录种子"
+
+#~ msgid "Operational proof scripting + M1 subset replay"
+#~ msgstr "可操作的证明脚本 + M1 子集重放"
+
+#~ msgid "File-first `cmd` integration surface"
+#~ msgstr "以文件为先的 `cmd` 集成界面"
+
+#~ msgid "Quantifier-facing binder / raw-`forall` corpus + CLI contract"
+#~ msgstr "面向量词的绑定子 (binder) / 原始 `forall` 语料 + CLI 契约"
+
+#~ msgid "Regression points that deserve particular attention:"
+#~ msgstr "值得特别注意的回归点："
+
+#~ msgid "`src/kernel/kernel_audit_test.mbt` already covers high-risk scenarios such as def-head monotonicity, typedef witness validity, const-id drift, typed beta/trans guards, and conservative replay."
+#~ msgstr "`src/kernel/kernel_audit_test.mbt` 已覆盖 def-head monotonicity、typedef witness validity、const-id drift、typed beta/trans guard、conservative replay 等高风险场景。"
+
+#~ msgid "`src/parser/parser_test.mbt` already covers the normalize/raw-offset contract and the fail-closed rejection of non-`bool` connectors."
+#~ msgstr "`src/parser/parser_test.mbt` 已覆盖 normalize/raw-offset contract 与非 `bool` connector 的 fail-closed rejection。"
+
+#~ msgid "`src/parser/parser_test.mbt` currently also covers theorem-header binders, structured branch block parsing, and raw-span regressions."
+#~ msgstr "`src/parser/parser_test.mbt` 当前也覆盖 theorem-header binder、structured branch block 解析，以及 raw-span 回归。"
+
+#~ msgid "`src/parser/parser_test.mbt` and `src/prover/prover_positive_corpus_test.mbt` together currently pin down the contract for parser-owned goal lowering and the explicit upper-layer bridge to `tactics.Goal`."
+#~ msgstr "`src/parser/parser_test.mbt` 与 `src/prover/prover_positive_corpus_test.mbt` 当前共同固定 parser-owned goal lowering 与上层显式 bridge 到 `tactics.Goal` 的合同。"
+
+#~ msgid "`src/prover/prover_test.mbt` currently pins down script scheduling, branch path attribution, and the step blame convention for structured branch blocks."
+#~ msgstr "`src/prover/prover_test.mbt` 当前固定 structured branch block 的脚本调度、branch path 归因与 step blame 口径。"
+
+#~ msgid "`src/prover/prover_test.mbt` currently covers positive `Ok((KernelState, Thm))` cases for the supported M1 subset, as well as several direct-close / implication-backed theorem-name paths."
+#~ msgstr "`src/prover/prover_test.mbt` 当前覆盖了 M1 已支持子集的 `Ok((KernelState, Thm))` 正例，以及若干 direct-close / implication-backed theorem-name path。"
+
+#~ msgid "`src/prover/prover_positive_corpus_test.mbt` / `src/prover/prover_negative_corpus_test.mbt` currently hold the canonical script corpus for the shipped subset, used to pin down capability coverage and the honest failure convention."
+#~ msgstr "`src/prover/prover_positive_corpus_test.mbt` / `src/prover/prover_negative_corpus_test.mbt` 当前承载 shipped subset 的 canonical script corpus，用于固定 capability 覆盖与 honest failure 口径。"
+
+#~ msgid "`src/prover/prover_test.mbt`, `src/prover/prover_mapping_matrix_test.mbt`, and `src/cmd/cmd_corpus_wbtest.mbt` currently also cover the structured contract for unfinished-proof / hole reporting and the canonical unfinished corpus anchors."
+#~ msgstr "`src/prover/prover_test.mbt`、`src/prover/prover_mapping_matrix_test.mbt` 与 `src/cmd/cmd_corpus_wbtest.mbt` 当前也覆盖了 unfinished-proof / hole reporting 的结构化合同与 canonical unfinished corpus 锚点。"
+
+#~ msgid "`src/prover/prover_mapping_matrix_test.mbt` and `src/cmd/cmd_corpus_wbtest.mbt` currently also cover the nested branch unfinished path and stable empty-marker rendering."
+#~ msgstr "`src/prover/prover_mapping_matrix_test.mbt` 与 `src/cmd/cmd_corpus_wbtest.mbt` 当前也覆盖了 nested branch unfinished path 与 stable empty-marker rendering。"
+
+#~ msgid "`src/cmd/cmd_corpus_wbtest.mbt` and `src/cmd/cmd_wbtest.mbt` currently also pin down the success / failure / unfinished CLI contract for shipped quantifier-facing binder / raw-`forall` scripts, including goal, locals, branch path, and step blame."
+#~ msgstr "`src/cmd/cmd_corpus_wbtest.mbt` 与 `src/cmd/cmd_wbtest.mbt` 当前也固定了 shipped quantifier-facing binder / raw-`forall` scripts 的 success / failure / unfinished CLI contract，包括 goal、locals、branch path 与 step blame。"
+
+#~ msgid "`src/prover/prover_mapping_matrix_test.mbt` currently binds the positive / negative / unfinished canonical case ids, the quantifier binder / raw-`forall` case ids, the capability tags, and the public example anchors in [User manual](manual.md) into a single set of regression constraints."
+#~ msgstr "`src/prover/prover_mapping_matrix_test.mbt` 当前把 positive / negative / unfinished 三类 canonical case id、量词 binder / raw-`forall` case id、能力标签与 [用户手册](manual.md) 的公开示例锚点绑定在同一份回归约束里。"
+
+#~ msgid "`src/cmd/cmd_wbtest.mbt` currently covers success rendering, parse/io/usage failures, tactic failure context rendering, branch-path rendering, and the file-first argv workflow."
+#~ msgstr "`src/cmd/cmd_wbtest.mbt` 当前覆盖 success rendering、parse/io/usage failure、 tactic failure context rendering、branch-path rendering，以及 file-first argv workflow。"
+
+#~ msgid "To keep the documentation from presenting planned capabilities as delivered ones, documentation examples must currently follow these source constraints:"
+#~ msgstr "为避免文档把规划能力写成已交付能力，当前文档示例必须遵守以下来源约束："
+
+#~ msgid "`README.md` only publishes a summary of the current shipped subset and does not invent new example semantics on its own."
+#~ msgstr "`README.md` 只发布当前 shipped subset 的摘要，不单独发明新示例语义。"
+
+#~ msgid "Runnable theorem-script examples in [User manual](manual.md) must come from existing regression test coverage."
+#~ msgstr "[用户手册](manual.md) 中的 runnable theorem-script examples 必须来自现有回归测试覆盖。"
+
+#~ msgid "Theorem-producing positive example scripts currently use `src/prover/prover_test.mbt` and `src/prover/prover_positive_corpus_test.mbt` as their primary anchors."
+#~ msgstr "theorem-producing 正例脚本当前以 `src/prover/prover_test.mbt` 与 `src/prover/prover_positive_corpus_test.mbt` 为主锚点。"
+
+#~ msgid "Negative / honest failure examples for the shipped subset currently use `src/prover/prover_negative_corpus_test.mbt` as their primary anchor."
+#~ msgstr "shipped subset 的负例 / honest failure 示例当前以 `src/prover/prover_negative_corpus_test.mbt` 为主锚点。"
+
+#~ msgid "Canonical unfinished-proof examples currently use `src/prover/prover_test.mbt`, `src/prover/prover_mapping_matrix_test.mbt`, and `src/cmd/cmd_corpus_wbtest.mbt` as their primary anchors; both root-level unfinished and nested branch unfinished samples must be kept in sync."
+#~ msgstr "canonical unfinished-proof 示例当前以 `src/prover/prover_test.mbt`、`src/prover/prover_mapping_matrix_test.mbt` 与 `src/cmd/cmd_corpus_wbtest.mbt` 为主锚点；root-level unfinished 与 nested branch unfinished 两类样例都要保持同步。"
+
+#~ msgid "Quantifier-facing binder / raw-`forall` examples currently also use `src/prover/corpus.mbt`, `src/prover/prover_mapping_matrix_test.mbt`, and `src/cmd/cmd_corpus_wbtest.mbt` as their primary anchors; public documentation may only cite these canonical case ids."
+#~ msgstr "quantifier-facing binder / raw-`forall` 示例当前也以 `src/prover/corpus.mbt`、`src/prover/prover_mapping_matrix_test.mbt` 与 `src/cmd/cmd_corpus_wbtest.mbt` 为主锚点；公开文档只允许引用这些 canonical case id。"
+
+#~ msgid "The mapping from case ids to example anchors in public documentation currently uses `src/prover/prover_mapping_matrix_test.mbt` as its primary anchor."
+#~ msgstr "公开文档中的 case-id 到示例锚点映射当前以 `src/prover/prover_mapping_matrix_test.mbt` 为主锚点。"
+
+#~ msgid "Tactic-level examples, local-over-name conflicts, and wrong-mode honest failures currently use `src/tactics/proof_state_test.mbt` as their primary anchor."
+#~ msgstr "tactic-level 例子、local-over-name 冲突与 wrong-mode honest failure 当前以 `src/tactics/proof_state_test.mbt` 为主锚点。"
+
+#~ msgid "Theorem scripts quoted on the package pages (`api/`, `design/`, `tutorial/`) reuse scripts from the anchors above; they do not introduce new script semantics."
+#~ msgstr "包页面（`api/`、`design/`、`tutorial/`）中引用的定理脚本复用上述锚点处的脚本，不引入新的脚本语义。"
+
+#~ msgid "MoonBit API examples on the package pages are complete programs that call the public functions of the current code and record their results with `assert_eq`, `assert_true` or `inspect` snapshots. Every such block is compiled and run against the current code before the page changes; a block that is not meant to run is fenced `moonbit nocheck`."
+#~ msgstr "包页面中的 MoonBit API 示例是完整程序，调用当前代码的公开函数，并用 `assert_eq`、`assert_true` 或 `inspect` 快照记录结果。每个这样的代码块在页面变更之前都会针对当前代码编译并运行；不打算运行的代码块使用 `moonbit nocheck` 围栏标注。"
+
+#~ msgid "If the documentation adds, modifies, or removes a public example, the corresponding regression test must be added, modified, or removed at the same time."
+#~ msgstr "若文档要新增、修改或删除公开示例，应同步新增、修改或删除对应回归测试。"
+
+#~ msgid "Contributor checklist"
+#~ msgstr "贡献者清单"
+
+#~ msgid "`logic` may only provide checked wrappers, definition/unfold helpers, replay helpers, and organization of non-authoritative theorem references; it must not bypass the kernel to invent new rules."
+#~ msgstr "`logic` 只能做 checked wrapper、definition/unfold helper、replay helper 和非权威 theorem reference 组织；不能绕过 kernel invent 新规则。"
+
+#~ msgid "`parser` must preserve `local > const` and the normalize + raw-offset contract, and must share the same connector contract with `logic`."
+#~ msgstr "`parser` 必须保持 `local > const`、normalize + raw-offset contract，并与 `logic` 共用同一套 connector contract。"
+
+#~ msgid "`elab` must freeze resolved identity; when later typing encounters const-id or schema drift, it must fail closed."
+#~ msgstr "`elab` 必须冻结 resolved identity；后续 typing 遇到 const-id 或 schema drift 时必须 fail-closed。"
+
+#~ msgid "`tactics` may hand out a theorem through `ps_qed` only when replay through `logic` constructs a `Thm` consistent with the sequent; otherwise it must fail closed."
+#~ msgstr "`tactics` 只能在通过 `logic` 回放构造出与相继式一致的 `Thm` 时，由 `ps_qed` 交出定理；否则必须 fail-closed。"
+
+#~ msgid "Final acceptance in `ps_qed` must currently use strict normalized sequent equality; the old boundary that admitted results based only on shape-aware compatibility must not be kept."
+#~ msgstr "`ps_qed` 的最终验收当前必须按 strict normalized sequent equality 执行；不得保留仅按 shape-aware compatibility 放行的旧边界。"
+
+#~ msgid "`prover` returns `Ok` and a `Thm` only when replay succeeds; otherwise it keeps returning honest errors."
+#~ msgstr "`prover` 仅在回放成功时返回 `Ok` 与 `Thm`；否则继续返回诚实错误。"
+
+#~ msgid "`cmd` may only be a new non-authoritative integration layer and must not become a second proof kernel."
+#~ msgstr "`cmd` 只能是新的非权威集成层，不得成为第二证明内核。"
+
+#~ msgid "Extension certificates may only be audit artifacts; they must not be treated as a substitute for theorem acceptance."
+#~ msgstr "extension certificate 只能是 audit artifact；不能被当成 theorem acceptance 的替代物。"
+
+#~ msgid "Verification"
+#~ msgstr "验证"
+
+#~ msgid "Run the checks serially from the repository root:"
+#~ msgstr "从仓库根目录串行运行检查："
+
+#~ msgid "The public package reports only the Lean/Mathlib foundations `propext`, `Classical.choice`, and `Quot.sound` under `#print axioms`. The exact audited output and its role are recorded in `formal_verification/axioms.txt`. Typst compilation is:"
+#~ msgstr "公开证明包在 `#print axioms` 下仅报告 Lean/Mathlib 基础公理 `propext`、`Classical.choice` 和 `Quot.sound`。完整审计输出及其作用记录在 `formal_verification/axioms.txt`。Typst 编译命令如下："
+
+#~ msgid "MoonBit tests remain useful evidence for the realization, but they do not enlarge the Typed HOL proof boundary."
+#~ msgstr "MoonBit 测试仍是实现的有用证据，但不会扩大 Typed HOL 的证明边界。"
+
+#~ msgid "Status: Typed HOL is the sole formal proof line."
+#~ msgstr "状态：Typed HOL 是唯一的形式化证明主线。"
+
+#~ msgid "Authority: [QED Typed HOL Core](../attachments/qed_formal_spec.typ)."
+#~ msgstr "权威来源：[QED Typed HOL 核心](../attachments/qed_formal_spec.typ)。"
+
+#~ msgid "Scope: Typed HOL proof status and material implementation risks."
+#~ msgstr "范围：Typed HOL 证明状态与重要实现风险。"
+
+#~ msgid "Excluded: MoonBit implementation refinement and user-facing proof workflow."
+#~ msgstr "排除：MoonBit 实现精化与面向用户的证明工作流。"
+
+#~ msgid "The former approximate Lean proof tree has been removed. The current formal library contains only the intrinsically typed development under `formal_verification/QEDFV/HOL`; the root module imports its public `Soundness` entry point. The library builds with `lake build`."
+#~ msgstr "旧的近似 Lean 证明树已移除。当前形式化库只包含 `formal_verification/QEDFV/HOL` 下的内在类型化开发；根模块导入其公开 `Soundness` 入口。该库通过 `lake build` 构建。"
+
+#~ msgid "Verified results"
+#~ msgstr "已验证结果"
+
+#~ msgid "Intrinsic simple types and De Bruijn terms, with typed renaming, substitution, beta, and type-instantiation evaluation laws."
+#~ msgstr "内在类型化的简单类型与 De Bruijn 项，以及类型化重命名、替换、beta 和类型实例化的求值规律。"
+
+#~ msgid "Semantic validity preservation for all thirteen derivation constructors, including `ADD_ASSUM`, witness-based `SPECIFY`, and infinity admission."
+#~ msgstr "全部十三个推导构造子均保持语义有效性，包括 `ADD_ASSUM`、基于见证的 `SPECIFY` 和无穷准入。"
+
+#~ msgid "Object-language truth, falsity, conjunction, implication, universal and existential quantification with proved evaluation characterizations."
+#~ msgstr "对象语言中的真、假、合取、蕴涵、全称量化和存在量化均有已证明的求值刻画。"
+
+#~ msgid "The closed infinity sentence is valid in every model; its derivation constructor has a direct soundness case."
+#~ msgstr "闭合无穷句在每个模型中都有效；其推导构造子具有直接的可靠性证明情形。"
+
+#~ msgid "Derivation soundness by induction, for every constant interpretation."
+#~ msgstr "对任意常量解释，归纳证明推导可靠性。"
+
+#~ msgid "History-indexed definition and specification derivations. A specification witness is derived at the preceding history; soundness composes over fresh constant IDs in the fixed signature."
+#~ msgstr "按历史索引的定义与指定推导。指定步骤的见证须在前序历史中导出；对于固定签名中的新鲜常量 ID，可靠性可沿历史组合。"
+
+#~ msgid "Semantic extension contracts and witnessed predicate subtype carrier laws."
+#~ msgstr "语义扩展契约，以及有见证的谓词子类型载体规律。"
+
+#~ msgid "Old-language semantic validity equivalence over finite modeled extension sequences."
+#~ msgstr "有限建模扩展序列中旧语言语义有效性的等价性。"
+
+#~ msgid "A concrete interpretation in which `succ(0) = 0` is false and therefore underivable."
+#~ msgstr "具体解释使 `succ(0) = 0` 为假，因此该命题不可推导。"
+
+#~ msgid "The public theorem is `QEDFV.HOL.typed_hol_core_proof_complete`. Audited `#print axioms` output is `propext`, `Classical.choice`, and `Quot.sound`. There are no project-defined axioms, `sorry`, or `admit` in the retained Lean tree."
+#~ msgstr "公开定理是 `QEDFV.HOL.typed_hol_core_proof_complete`。经审计的 `#print axioms` 输出为 `propext`、`Classical.choice` 和 `Quot.sound`。保留的 Lean 树没有项目自定义公理、`sorry` 或 `admit`。"
+
+#~ msgid "The proof does not establish growing-signature derivations, a history-indexed full calculus that chains the derived type-definition laws with core rules (the laws are derivation conclusions at the extended history and sound at its model pair, and history freshness is carried but unused by soundness), the MoonBit infinity registration gate, syntactic derivation erasure for extensions, or a MoonBit-to-Lean refinement. Parser, elaborator, tactic, replay, and mutable-state behavior remain separate implementation evidence. The MoonBit theorem-provenance condition in issue #15 is now enforced independently by the kernel and covered by regression tests."
+#~ msgstr "该证明没有建立增长签名上的推导、把导出的类型定义定律与核心规则串联起来的按历史索引的完整演算（这些定律是扩展历史上的推导结论，在其模型对上可靠，历史新鲜性被携带但可靠性证明并不使用它）、MoonBit 无穷注册门、扩展推导的语法擦除或 MoonBit 到 Lean 的精化。解析器、精化器、策略、重放与可变状态行为仍是独立的实现证据。issue #15 中的 MoonBit 定理来源条件现在由内核独立强制，并由回归测试覆盖。"
+
+#~ msgid "This status supersedes older audit claims about conditional proof packs or MoonBit conformance being part of the formal target."
+#~ msgstr "本状态取代旧审计中关于条件性证明包或将 MoonBit 符合性纳入形式化目标的声明。"
+
+#~ msgid "Issue #15 implementation repair"
+#~ msgstr "Issue #15 的实现修复"
+
+#~ msgid "[Issue #15](https://github.com/Luna-Flow/QED/issues/15) is repaired in the current implementation work. Every theorem carries the declaration lineage at which it was first admitted, and admissibility requires that lineage to be a prefix of the receiving state's history. Sibling histories therefore reject a theorem before constant-id reuse can combine incompatible declarations, while linear descendants continue to accept inherited theorems. Infinity-anchor, typedef, and specification registration also reject sibling witnesses."
+#~ msgstr "[Issue #15](https://github.com/Luna-Flow/QED/issues/15) 已在当前实现工作中修复。每个定理都携带其首次被接纳时的声明谱系，接纳要求该谱系是接收状态历史的前缀。因此兄弟历史会在常量编号复用之前拒绝该定理，避免不相容的声明被组合，而线性后代仍接受继承的定理。无穷锚、类型定义与规约注册同样拒绝兄弟历史中的见证。"
+
+#~ msgid "The repair is an independently tested MoonBit invariant, not a MoonBit-to-Lean refinement theorem. The Typed HOL build still certifies only the formal calculus and its stated fixed-signature extension results."
+#~ msgstr "该修复是经过独立测试的 MoonBit 不变量，而不是 MoonBit 到 Lean 的精化定理。Typed HOL 构建仍然只认证形式演算及其所陈述的固定签名扩展结果。"
+
+#~ msgid "Remaining engineering follow-up"
+#~ msgstr "剩余工程后续工作"
+
+#~ msgid "Maintain checked lowering and replay as structured proof blocks expand."
+#~ msgstr "扩展结构化证明块时维持经检查的 lowering 与重放。"
+
+#~ msgid "Keep hole and unfinished-proof diagnostics aligned with the canonical corpus."
+#~ msgstr "保持洞和未完成证明诊断与规范测试语料一致。"
+
+#~ msgid "Keep quantifier-facing frontend lowering and CLI diagnostics covered."
+#~ msgstr "保持面向量词的前端 lowering 和 CLI 诊断的测试覆盖。"
+
+#~ msgid "Keep the research rewrite/simplify path outside theorem authority."
+#~ msgstr "将研究性 rewrite/simplify 路径保持在定理权威边界之外。"
+
+#~ msgid "These are implementation tasks, not additional assumptions of the Typed HOL proof. The current work records the issue #15 invariant and the MoonBit 0.10.15 compatibility check without extending the Lean proof boundary."
+#~ msgstr "这些是实现任务，不是 Typed HOL 证明的额外假设。当前工作记录了 issue #15 不变量与 MoonBit 0.10.15 兼容性检查，但没有扩展 Lean 证明的边界。"
+
+#~ msgid "Point-in-time risks and gaps: [Workspace audit (2026-04-18)](current_workspace_audit.md)"
+#~ msgstr "阶段性风险与缺口：[工作区审计（2026-04-18）](current_workspace_audit.md)"
+
+#~ msgid "[Workspace audit (2026-04-18)](current_workspace_audit.md) only records risks, gaps, and follow-ups that still hold at a given point in time, and does not repeat the stable facts of manual/conformance over the long term."
+#~ msgstr "[工作区审计（2026-04-18）](current_workspace_audit.md) 只记录某一时间点仍然成立的风险、缺口和 follow-up，不长期重复 manual/conformance 的稳定事实。"
+
+#~ msgid "A point-in-time record of risks and gaps"
+#~ msgstr "对风险与缺口的阶段性记录"
+
+#~ msgid "Typed HOL audit matrix"
+#~ msgstr "Typed HOL 审计矩阵"
+
+#~ msgid "Audit basis: `doc/attachments/qed_formal_spec.typ` and `formal_verification/QEDFV/HOL`. Status means the stated Lean proposition typechecks; it does not silently certify the separate MoonBit implementation."
+#~ msgstr "审计依据：`doc/attachments/qed_formal_spec.typ` 和 `formal_verification/QEDFV/HOL`。状态表示所陈述的 Lean 命题通过类型检查，不会隐含认证独立的 MoonBit 实现。"
+
+#~ msgid "Proof-obligation matrix"
+#~ msgstr "证明义务矩阵"
+
+#~ msgid "Obligation"
+#~ msgstr "义务"
+
+#~ msgid "Lean evidence"
+#~ msgstr "Lean 证据"
+
+#~ msgid "Typed syntax and non-empty carriers"
+#~ msgstr "类型化语法与非空载体"
+
+#~ msgid "Renaming, substitution, beta"
+#~ msgstr "重命名、替换与 beta"
+
+#~ msgid "Primitive rule preservation"
+#~ msgstr "原始规则保持性"
+
+#~ msgid "Inductive derivation soundness"
+#~ msgstr "归纳推导可靠性"
+
+#~ msgid "Definition semantic equation and old-language invariance"
+#~ msgstr "定义的语义方程与旧语言不变性"
+
+#~ msgid "Specification validity and old-language invariance"
+#~ msgstr "指定有效性与旧语言不变性"
+
+#~ msgid "Predicate-subtype type-definition laws"
+#~ msgstr "谓词子类型的类型定义规律"
+
+#~ msgid "Type-definition gate semantics (new model, Abs/Rep laws, old-language invariance)"
+#~ msgstr "类型定义门的语义（新模型、Abs/Rep 定律、旧语言不变性）"
+
+#~ msgid "Locality preserved by definition, specification and type-definition steps"
+#~ msgstr "定义、指定与类型定义步骤都保持局部性"
+
+#~ msgid "proved (gate closure fields stated for `Term.annotVars`)"
+#~ msgstr "已证明（门的闭包字段针对 `Term.annotVars` 陈述）"
+
+#~ msgid "Type-definition derivation constructor; soundness and old-language conservativity along a history"
+#~ msgstr "类型定义的推导构造子；沿历史的可靠性与旧语言保守性"
+
+#~ msgid "proved at the history's model pair; freshness carried, not used"
+#~ msgstr "在该历史的模型对处已证明；新鲜性被携带但未使用"
+
+#~ msgid "Worked typedef derivation and non-triviality of the extended model"
+#~ msgstr "类型定义推导的示例及扩展模型的非平凡性"
+
+#~ msgid "Concrete non-triviality"
+#~ msgstr "具体非平凡性"
+
+#~ msgid "Public package integration"
+#~ msgstr "公开定理包集成"
+
+#~ msgid "`HOL/Soundness.lean` and root target"
+#~ msgstr "`HOL/Soundness.lean` 与根目标"
+
+#~ msgid "MoonBit-to-Lean refinement"
+#~ msgstr "MoonBit 到 Lean 的精化"
+
+#~ msgid "no retained Typed HOL theorem"
+#~ msgstr "保留的 Typed HOL 中没有对应定理"
+
+#~ msgid "excluded"
+#~ msgstr "已排除"
+
+#~ msgid "Syntactic extension erasure"
+#~ msgstr "扩展的语法擦除"
+
+#~ msgid "Trust basis"
+#~ msgstr "信任基础"
+
+#~ msgid "The retained proof line has no local `axiom`, `sorry`, or `admit`. The public package depends on `propext`, `Classical.choice`, and `Quot.sound`, as reported by Lean's `#print axioms`."
+#~ msgstr "保留的证明主线没有局部 `axiom`、`sorry` 或 `admit`。公开定理包依赖 `propext`、`Classical.choice` 和 `Quot.sound`，由 Lean 的 `#print axioms` 报告。"
+
+#~ msgid "The old conditional and approximation modules were removed from `formal_verification/QEDFV`. They must not be reintroduced as parallel evidence; future work must extend the Typed HOL definitions and derivation induction."
+#~ msgstr "旧条件性和近似模块已从 `formal_verification/QEDFV` 移除。不得将它们重新引入作为并行证据；后续工作必须扩展 Typed HOL 定义和推导归纳。"
+
 #~ msgid "proved for fresh constant IDs over a fixed signature"
 #~ msgstr "已证明适用于固定签名上的新鲜常量 ID"
 
@@ -10671,9 +10801,6 @@ msgstr "[prover 教程](prover.md)从脚本运行相同的证明。"
 
 #~ msgid "Audience: contributors, reviewers"
 #~ msgstr "读者：贡献者、审阅者"
-
-#~ msgid "Authority: engineering conformance guide; subordinate to [QED formal specification](../attachments/qed_formal_spec.typ) and current code/tests"
-#~ msgstr "权威性：工程符合性指南；从属于 [QED 形式规范](../attachments/qed_formal_spec.typ)与当前代码/测试"
 
 #~ msgid "Scope: code/test mapping, implementation alignment, contributor obligations, and documentation example rules"
 #~ msgstr "范围：代码/测试映射、实现对齐、贡献者义务与文档示例规则"
@@ -10926,9 +11053,6 @@ msgstr "[prover 教程](prover.md)从脚本运行相同的证明。"
 
 #~ msgid "this document"
 #~ msgstr "本文档"
-
-#~ msgid "Status: point-in-time audit"
-#~ msgstr "状态：point-in-time audit（阶段性审计）"
 
 #~ msgid "Audience: maintainers, contributors"
 #~ msgstr "读者：维护者、贡献者"
@@ -11639,9 +11763,6 @@ msgstr "[prover 教程](prover.md)从脚本运行相同的证明。"
 
 #~ msgid "parser is part of Luna-Flow/QED. This page should describe the public types, constructors, functions, traits, and observable semantics that are implemented in the current branch."
 #~ msgstr "parser 属于 Luna-Flow/QED。本页描述当前分支已经实现的公开类型、构造器、函数、trait 以及可观察语义。"
-
-#~ msgid "Source boundary: `src/parser`"
-#~ msgstr "源码边界：`src/parser`"
 
 #~ msgid "prover is part of Luna-Flow/QED. This page should describe the public types, constructors, functions, traits, and observable semantics that are implemented in the current branch."
 #~ msgstr "prover 属于 Luna-Flow/QED。本页描述当前分支已经实现的公开类型、构造器、函数、trait 以及可观察语义。"
