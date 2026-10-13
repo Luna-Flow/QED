@@ -1,0 +1,466 @@
+{
+  "schema": "qed-proof-obligations/v1",
+  "authority": "doc/attachments/qed_formal_spec.typ",
+  "status_definitions": {
+    "proved-and-refined": "The mathematical obligation is proved and a checked refinement connects the implementation to it.",
+    "proved-abstractly": "The mathematical obligation is proved in Lean, but implementation refinement is absent.",
+    "tested-only": "Executable tests cover the behavior without a corresponding mechanized proof.",
+    "implemented-unverified": "The implementation exposes the behavior, but evidence is incomplete or not yet audited.",
+    "partial": "Only a stated fragment of the obligation is covered.",
+    "not-implemented": "The required behavior is absent.",
+    "known-deviation": "The implementation or formalization intentionally differs from the normative contract and the difference is recorded.",
+    "not-applicable": "The obligation is outside the supported QED calculus."
+  },
+  "obligations": [
+    {
+      "id": "HOL-TYPES-001",
+      "category": "logical-core",
+      "normative_statement": "HOL types, type constructors, non-empty carriers, and type substitution are well-formed.",
+      "requirement_level": "required",
+      "severity": "critical",
+      "spec": "doc/attachments/qed_formal_spec.typ",
+      "spec_anchor": "Type Grammar and Carrier Interpretation",
+      "moonbit_api": [
+        "src/kernel/types.mbt"
+      ],
+      "lean": [
+        {
+          "path": "formal_verification/QEDFV/HOL/Types.lean",
+          "symbol": "Ty.carrier_nonempty"
+        }
+      ],
+      "verification": [
+        "Lean theorem",
+        "MoonBit tests"
+      ],
+      "evidence": [
+        "formal_verification/QEDFV/HOL/Types.lean",
+        "src/kernel/kernel_types_test.mbt"
+      ],
+      "status": {
+        "lean": "proved-abstractly",
+        "moonbit": "implemented-unverified",
+        "refinement": "not-implemented",
+        "tests": "tested-only"
+      },
+      "issues": [
+        17
+      ],
+      "assumptions": [
+        "The fixed total signature and admissible constructor interpretation are explicit Lean parameters."
+      ],
+      "exclusions": [
+        "No MoonBit-to-Lean refinement theorem exists."
+      ]
+    },
+    {
+      "id": "HOL-TERMS-001",
+      "category": "logical-core",
+      "normative_statement": "Typed terms, alpha-equivalence, capture-avoiding substitution, beta evaluation, and type instantiation preserve typing and meaning.",
+      "requirement_level": "required",
+      "severity": "critical",
+      "spec": "doc/attachments/qed_formal_spec.typ",
+      "spec_anchor": "Alpha-Equivalence and the Named Boundary",
+      "moonbit_api": [
+        "src/kernel/terms.mbt"
+      ],
+      "lean": [
+        {
+          "path": "formal_verification/QEDFV/HOL/Terms.lean",
+          "symbol": "Term"
+        },
+        {
+          "path": "formal_verification/QEDFV/HOL/Evaluation.lean",
+          "symbol": "Term.eval_substitute"
+        }
+      ],
+      "verification": [
+        "Lean theorem",
+        "MoonBit regression tests"
+      ],
+      "evidence": [
+        "formal_verification/QEDFV/HOL/Evaluation.lean",
+        "src/kernel/kernel_terms_test.mbt"
+      ],
+      "status": {
+        "lean": "proved-abstractly",
+        "moonbit": "implemented-unverified",
+        "refinement": "not-implemented",
+        "tests": "tested-only"
+      },
+      "issues": [
+        17
+      ],
+      "assumptions": [],
+      "exclusions": [
+        "Frontend lowering is outside this proof."
+      ]
+    },
+    {
+      "id": "HOL-RULES-001",
+      "category": "logical-core",
+      "normative_statement": "Every primitive theorem rule preserves semantic validity under its stated side conditions.",
+      "requirement_level": "required",
+      "severity": "critical",
+      "spec": "doc/attachments/qed_formal_spec.typ",
+      "spec_anchor": "Primitive Inference Rules",
+      "moonbit_api": [
+        "src/kernel/thm.mbt"
+      ],
+      "lean": [
+        {
+          "path": "formal_verification/QEDFV/HOL/Rules.lean",
+          "symbol": "valid_refl"
+        },
+        {
+          "path": "formal_verification/QEDFV/HOL/Derivation.lean",
+          "symbol": "derivation_sound"
+        }
+      ],
+      "verification": [
+        "Lean induction",
+        "MoonBit kernel tests"
+      ],
+      "evidence": [
+        "formal_verification/QEDFV/HOL/Derivation.lean",
+        "src/kernel/kernel_thm_test.mbt",
+        "src/kernel/kernel_thm_wbtest.mbt"
+      ],
+      "status": {
+        "lean": "proved-abstractly",
+        "moonbit": "implemented-unverified",
+        "refinement": "not-implemented",
+        "tests": "tested-only"
+      },
+      "issues": [
+        17
+      ],
+      "assumptions": [],
+      "exclusions": [
+        "The Lean derivation constructors are not a source-level refinement of MoonBit constructors."
+      ]
+    },
+    {
+      "id": "HOL-EXT-001",
+      "category": "theory-extension",
+      "normative_statement": "Definition, specification, and type-definition extensions have their stated local semantic laws and preserve validity of old-language sequents.",
+      "requirement_level": "required",
+      "severity": "critical",
+      "spec": "doc/attachments/qed_formal_spec.typ",
+      "spec_anchor": "Kernel Extension Mapping and Open Gates",
+      "moonbit_api": [
+        "src/kernel/sig.mbt"
+      ],
+      "lean": [
+        {
+          "path": "formal_verification/QEDFV/HOL/ExtensionDerivation.lean",
+          "symbol": "extension_derivation_sound"
+        },
+        {
+          "path": "formal_verification/QEDFV/HOL/ModelExtension.lean",
+          "symbol": "valid_interpretModels_iff"
+        }
+      ],
+      "verification": [
+        "Lean model-extension proofs",
+        "MoonBit gate tests"
+      ],
+      "evidence": [
+        "formal_verification/QEDFV/HOL/TypeDefGate.lean",
+        "formal_verification/QEDFV/HOL/ExtensionDerivation.lean",
+        "src/kernel/kernel_sig_test.mbt"
+      ],
+      "status": {
+        "lean": "proved-abstractly",
+        "moonbit": "implemented-unverified",
+        "refinement": "not-implemented",
+        "tests": "tested-only"
+      },
+      "issues": [
+        7,
+        8,
+        9,
+        17
+      ],
+      "assumptions": [
+        "Type-definition derivations are interpreted through model pairs."
+      ],
+      "exclusions": [
+        "Growing-signature syntax and syntactic erasure remain open."
+      ]
+    },
+    {
+      "id": "HOL-EXT-002",
+      "category": "theory-extension",
+      "normative_statement": "History-indexed derivations require extension witnesses at the preceding history and preserve old-language validity across supported histories.",
+      "requirement_level": "required",
+      "severity": "high",
+      "spec": "doc/attachments/qed_formal_spec.typ",
+      "spec_anchor": "History-Indexed Extension Derivations",
+      "moonbit_api": [
+        "src/kernel/sig.mbt",
+        "src/kernel/thm.mbt"
+      ],
+      "lean": [
+        {
+          "path": "formal_verification/QEDFV/HOL/ExtensionDerivation.lean",
+          "symbol": "typed_extension_derivation_sound"
+        }
+      ],
+      "verification": [
+        "Lean history induction",
+        "MoonBit lineage regression tests"
+      ],
+      "evidence": [
+        "formal_verification/QEDFV/HOL/ExtensionDerivation.lean",
+        "src/kernel/kernel_audit_test.mbt"
+      ],
+      "status": {
+        "lean": "proved-abstractly",
+        "moonbit": "tested-only",
+        "refinement": "not-implemented",
+        "tests": "tested-only"
+      },
+      "issues": [
+        15,
+        22
+      ],
+      "assumptions": [],
+      "exclusions": [
+        "Lean does not certify the MoonBit lineage representation."
+      ]
+    },
+    {
+      "id": "HOL-GROW-001",
+      "category": "theory-extension",
+      "normative_statement": "A finite declaration table records fresh constant allocation and preserves compatibility with the fixed total signature; old declarations remain available after a fresh allocation.",
+      "requirement_level": "required",
+      "severity": "high",
+      "spec": "doc/attachments/qed_formal_spec.typ",
+      "spec_anchor": "Signature Integration Boundary",
+      "moonbit_api": [
+        "src/kernel/sig.mbt"
+      ],
+      "lean": [
+        {
+          "path": "formal_verification/QEDFV/HOL/DeclarationAllocation.lean",
+          "symbol": "DeclTable.compatible_add"
+        },
+        {
+          "path": "formal_verification/QEDFV/HOL/DeclarationAllocationExamples.lean",
+          "symbol": "trueTable2_compatible"
+        }
+      ],
+      "verification": [
+        "Lean finite-allocation lemmas",
+        "Concrete Rep/Abs allocation example"
+      ],
+      "evidence": [
+        "formal_verification/QEDFV/HOL/DeclarationAllocation.lean",
+        "formal_verification/QEDFV/HOL/DeclarationAllocationExamples.lean"
+      ],
+      "status": {
+        "lean": "proved-abstractly",
+        "moonbit": "partial",
+        "refinement": "not-implemented",
+        "tests": "not-applicable"
+      },
+      "issues": [
+        17
+      ],
+      "assumptions": [
+        "The fixed total signature supplies the declared type slot."
+      ],
+      "exclusions": [
+        "This does not prove constructor allocation, growing-signature model transport, committed-equation preservation, or MoonBit refinement."
+      ]
+    },
+    {
+      "id": "HOL-INFINITY-001",
+      "category": "axiom-admission",
+      "normative_statement": "Infinity admission identifies exactly the canonical object-language infinity sentence.",
+      "requirement_level": "required",
+      "severity": "high",
+      "spec": "doc/attachments/qed_formal_spec.typ",
+      "spec_anchor": "indInfinitySentence",
+      "moonbit_api": [
+        "src/kernel/sig.mbt"
+      ],
+      "lean": [
+        {
+          "path": "formal_verification/QEDFV/HOL/Infinity.lean",
+          "symbol": "indInfinitySentence_valid"
+        }
+      ],
+      "verification": [
+        "Lean validity theorem",
+        "MoonBit known-deviation marker regressions"
+      ],
+      "evidence": [
+        "formal_verification/QEDFV/HOL/Infinity.lean",
+        "src/kernel/kernel_sig_test.mbt"
+      ],
+      "status": {
+        "lean": "proved-abstractly",
+        "moonbit": "partial",
+        "refinement": "not-implemented",
+        "tests": "tested-only"
+      },
+      "issues": [
+        7
+      ],
+      "assumptions": [],
+      "exclusions": [
+        "The MoonBit gate is not connected to the Lean sentence by a refinement proof."
+      ]
+    },
+    {
+      "id": "KERNEL-BOUNDARY-001",
+      "category": "trusted-kernel",
+      "normative_statement": "Only checked kernel constructors and extension gates can produce theorem objects; frontend code cannot forge them.",
+      "requirement_level": "required",
+      "severity": "critical",
+      "spec": "doc/attachments/qed_formal_spec.typ",
+      "spec_anchor": "The LCF Boundary",
+      "moonbit_api": [
+        "src/kernel/pkg.generated.mbti",
+        "src/kernel/thm.mbt",
+        "src/kernel/sig.mbt"
+      ],
+      "lean": [],
+      "verification": [
+        "MoonBit package visibility audit",
+        "kernel regression tests"
+      ],
+      "evidence": [
+        "src/kernel/pkg.generated.mbti",
+        "src/kernel/kernel_audit_test.mbt",
+        "src/kernel/kernel_immutability_test.mbt"
+      ],
+      "status": {
+        "lean": "not-applicable",
+        "moonbit": "implemented-unverified",
+        "refinement": "not-implemented",
+        "tests": "tested-only"
+      },
+      "issues": [
+        17
+      ],
+      "assumptions": [
+        "MoonBit package abstraction remains enforced by the toolchain."
+      ],
+      "exclusions": [
+        "No independent proof checker is shipped yet."
+      ]
+    },
+    {
+      "id": "KERNEL-PROVENANCE-001",
+      "category": "trusted-kernel",
+      "normative_statement": "A theorem is admissible only in a compatible declaration lineage; sibling histories cannot exchange theorem evidence.",
+      "requirement_level": "required",
+      "severity": "critical",
+      "spec": "doc/attachments/qed_formal_spec.typ",
+      "spec_anchor": "Stability Theorem for Scope Mutation",
+      "moonbit_api": [
+        "src/kernel/sig.mbt",
+        "src/kernel/thm.mbt"
+      ],
+      "lean": [],
+      "verification": [
+        "Deterministic adversarial regression corpus"
+      ],
+      "evidence": [
+        "src/kernel/kernel_audit_test.mbt",
+        "src/kernel/kernel_thm_wbtest.mbt",
+        "src/kernel/kernel_immutability_test.mbt"
+      ],
+      "status": {
+        "lean": "not-applicable",
+        "moonbit": "tested-only",
+        "refinement": "not-implemented",
+        "tests": "tested-only"
+      },
+      "issues": [
+        15,
+        22
+      ],
+      "assumptions": [],
+      "exclusions": [
+        "Formalization does not model MoonBit state lineage."
+      ]
+    },
+    {
+      "id": "FRONTEND-LOWERING-001",
+      "category": "frontend-boundary",
+      "normative_statement": "Parsing and elaboration preserve the proposition and resolved constant identity supplied to the kernel, or fail closed.",
+      "requirement_level": "required",
+      "severity": "high",
+      "spec": "doc/attachments/qed_formal_spec.typ",
+      "spec_anchor": "Elaboration and Core Typing Judgments",
+      "moonbit_api": [
+        "src/parser/parser.mbt",
+        "src/elab/resolved.mbt"
+      ],
+      "lean": [],
+      "verification": [
+        "Parser/elaborator regression corpus"
+      ],
+      "evidence": [
+        "src/parser/parser_test.mbt",
+        "src/elab/elab_test.mbt"
+      ],
+      "status": {
+        "lean": "not-applicable",
+        "moonbit": "tested-only",
+        "refinement": "not-implemented",
+        "tests": "tested-only"
+      },
+      "issues": [
+        3,
+        4,
+        5,
+        6
+      ],
+      "assumptions": [],
+      "exclusions": [
+        "Frontend tests do not prove kernel soundness or semantic refinement."
+      ]
+    },
+    {
+      "id": "REFINEMENT-001",
+      "category": "implementation-correspondence",
+      "normative_statement": "MoonBit types, terms, theorem objects, state transitions, and theorem constructors are connected to the Typed HOL calculus by a checked refinement or proof-producing translation.",
+      "requirement_level": "required",
+      "severity": "critical",
+      "spec": "doc/attachments/qed_formal_spec.typ",
+      "spec_anchor": "Engineering Correspondence",
+      "moonbit_api": [
+        "src/kernel/types.mbt",
+        "src/kernel/terms.mbt",
+        "src/kernel/thm.mbt",
+        "src/kernel/sig.mbt"
+      ],
+      "lean": [],
+      "verification": [
+        "Not yet implemented"
+      ],
+      "evidence": [
+        "doc/manual/current_workspace_audit.md",
+        "formal_verification/theory-proof-plan.md"
+      ],
+      "status": {
+        "lean": "not-implemented",
+        "moonbit": "implemented-unverified",
+        "refinement": "not-implemented",
+        "tests": "tested-only"
+      },
+      "issues": [
+        17
+      ],
+      "assumptions": [],
+      "exclusions": [
+        "Passing MoonBit and Lean builds is not refinement evidence."
+      ]
+    }
+  ]
+}

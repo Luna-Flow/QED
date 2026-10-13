@@ -6,6 +6,12 @@ on:
       - 'formal_verification/**'
       - 'doc/attachments/qed_formal_spec.typ'
       - 'formal_verification/theory-proof-plan.md'
+      - 'doc/manual/qed_obligations.json'
+      - 'doc/manual/qed_proof_obligations.md'
+      - 'tools/qed_obligations.py'
+      - 'tools/qed_formal_gate.py'
+      - 'tools/test_qed_formal_gate.py'
+      - 'src/**'
       - '.github/workflows/lean.yml'
   push:
     branches: [main]
@@ -13,6 +19,12 @@ on:
       - 'formal_verification/**'
       - 'doc/attachments/qed_formal_spec.typ'
       - 'formal_verification/theory-proof-plan.md'
+      - 'doc/manual/qed_obligations.json'
+      - 'doc/manual/qed_proof_obligations.md'
+      - 'tools/qed_obligations.py'
+      - 'tools/qed_formal_gate.py'
+      - 'tools/test_qed_formal_gate.py'
+      - 'src/**'
       - '.github/workflows/lean.yml'
 
 jobs:
@@ -20,7 +32,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Validate proof-obligation matrix
+        run: python3 tools/qed_obligations.py
+      - name: Test formal gate rejection paths
+        run: python3 -m unittest discover -s tools -p 'test_*.py'
       - uses: leanprover/lean-action@v1
         with:
           lake-package-directory: formal_verification
           build: true
+      - name: Check Lean proof admissions and axiom dependencies
+        run: python3 tools/qed_formal_gate.py
