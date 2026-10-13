@@ -10,8 +10,9 @@
 The short [branch contract](branch_contract.md) defines promotion order. This
 file is its technical appendix: it names the Lean modules and the theorem
 families that must exist before a branch can be promoted. Cross-dimensional
-status belongs to a machine-readable obligation registry (introduced with the
-verification tooling), not to another hand-maintained matrix here.
+status belongs to the machine-readable
+[`qed_obligations.json`](../doc/manual/qed_obligations.json), not to another
+hand-maintained matrix here.
 
 ## Dependency graph
 
@@ -87,12 +88,12 @@ axiom audit and registry evidence are present.
 
 ## Verification
 
-Build the Lean project and run the axiom audit from `formal_verification`:
+Run the formal gate from the repository root:
 
 ```text
-lake build
-lake env lean QEDFV/HOL/AxiomAudit.lean
+python3 tools/qed_formal_gate.py
 ```
 
-The checked-in `formal_verification/axioms.txt` records the
+The gate builds the Lean project, runs the axiom audit and checks the registry
+and generated view. The checked-in `formal_verification/axioms.txt` records the
 current foundations: `propext`, `Classical.choice` and `Quot.sound`.

@@ -25,8 +25,8 @@ documentation statement cannot satisfy a missing correspondence gate.
 ## Evidence rules
 
 The branch names are architectural labels, not status values. The status of each
-obligation lives in the machine-readable obligation registry (introduced with
-the verification tooling). Keep the following claims separate:
+obligation lives in [`doc/manual/qed_obligations.json`](../doc/manual/qed_obligations.json)
+and its generated view. Keep the following claims separate:
 
 - fixed-signature semantic validity;
 - history-indexed derivation soundness;

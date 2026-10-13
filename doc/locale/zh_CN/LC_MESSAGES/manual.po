@@ -1182,6 +1182,9 @@ msgid "`SigError` is raised as a value by signature operations and extension gat
 msgstr "`SigError` 由签名操作和扩张闸门以值的形式抛出。"
 
 #: manual/api/kernel.md:1102
+#: manual/qed_proof_obligations.md:20
+#: manual/qed_proof_obligations.md:31
+#: manual/qed_proof_obligations.md:37
 msgid "Group"
 msgstr "分组"
 
@@ -7422,8 +7425,8 @@ msgid "Last reviewed: 2026-10-14"
 msgstr "最后审阅：2026-10-14"
 
 #: manual/qed_formal_spec_changelog.md:9
-msgid "This is a history file, not a current proof-status entry point. Use the [branch contract](../../formal_verification/branch_contract.md) and the [Typed HOL proof plan](../../formal_verification/theory-proof-plan.md) for current status."
-msgstr "这是一份历史文件，不是当前证明状态的入口。当前状态请使用[分支契约](../../formal_verification/branch_contract.md)和 [Typed HOL 证明计划](../../formal_verification/theory-proof-plan.md)。"
+msgid "This is a history file, not a current proof-status entry point. Use the [branch contract](../../formal_verification/branch_contract.md), the [Typed HOL proof plan](../../formal_verification/theory-proof-plan.md) and the [generated obligation matrix](qed_proof_obligations.md) for current status."
+msgstr "这是一份历史文件，不是当前证明状态的入口。当前状态请使用[分支契约](../../formal_verification/branch_contract.md)、[Typed HOL 证明计划](../../formal_verification/theory-proof-plan.md)和[生成的义务矩阵](qed_proof_obligations.md)。"
 
 #: manual/qed_formal_spec_changelog.md:14
 msgid "2026-10-13 Type definitions as history-indexed derivations"
@@ -8533,6 +8536,661 @@ msgstr "语义解释记号统一为 `\"denote\"(t, rho, M)`（与后文 denotati
 #: manual/qed_formal_spec_changelog.md:543
 msgid "the predicates related to `ConservativeReplayOK` are now defined by name in the text, reducing implicit terminology."
 msgstr "`ConservativeReplayOK` 相关谓词在文中具名定义，减少隐式术语。"
+
+#: manual/qed_proof_obligations.md:1
+msgid "QED Proof-Obligation Matrix"
+msgstr "QED 证明义务矩阵"
+
+#: manual/qed_proof_obligations.md:3
+msgid "Generated from [`qed_obligations.json`](qed_obligations.json). The dimensions are independent: a Lean proof does not certify the MoonBit implementation, and tests do not establish refinement."
+msgstr "由 [`qed_obligations.json`](qed_obligations.json) 生成。各维度相互独立：Lean 证明并不保证 MoonBit 实现，测试也不能确立精化。"
+
+#: manual/qed_proof_obligations.md:5
+msgid "A checked checklist item requires `proved-and-refined` in the refinement dimension. Open means an applicable obligation lacks checked implementation refinement; it does not mean a soundness defect has been demonstrated. Severity records the impact if the obligation is unsatisfied."
+msgstr "勾选的检查项要求精化维度为 `proved-and-refined`。“未解决”表示某项适用的义务缺少经过检查的实现精化；这并不表示已经证明存在可靠性缺陷。严重度记录该义务未被满足时的影响。"
+
+#: manual/qed_proof_obligations.md:7
+msgid "Total: **11**; complete: **0**; not applicable: **0**; open: **11**."
+msgstr "总计：**11**；已完成：**0**；不适用：**0**；未解决：**11**。"
+
+#: manual/qed_proof_obligations.md:9
+msgid "Status Counts"
+msgstr "状态计数"
+
+#: manual/qed_proof_obligations.md:11
+msgid "Dimension"
+msgstr "维度"
+
+#: manual/qed_proof_obligations.md:11
+msgid "proved and refined"
+msgstr "已证明且已精化"
+
+#: manual/qed_proof_obligations.md:11
+msgid "proved abstractly"
+msgstr "仅在抽象层面已证明"
+
+#: manual/qed_proof_obligations.md:11
+msgid "tested only"
+msgstr "仅测试"
+
+#: manual/qed_proof_obligations.md:11
+msgid "implemented unverified"
+msgstr "已实现未验证"
+
+#: manual/qed_proof_obligations.md:11
+#: manual/qed_proof_obligations.md:65
+#: manual/qed_proof_obligations.md:66
+msgid "partial"
+msgstr "部分"
+
+#: manual/qed_proof_obligations.md:11
+msgid "not implemented"
+msgstr "未实现"
+
+#: manual/qed_proof_obligations.md:11
+msgid "known deviation"
+msgstr "已知偏差"
+
+#: manual/qed_proof_obligations.md:11
+msgid "not applicable"
+msgstr "不适用"
+
+#: manual/qed_proof_obligations.md:13
+msgid "lean"
+msgstr "lean"
+
+#: manual/qed_proof_obligations.md:14
+msgid "moonbit"
+msgstr "moonbit"
+
+#: manual/qed_proof_obligations.md:15
+msgid "refinement"
+msgstr "精化"
+
+#: manual/qed_proof_obligations.md:16
+msgid "tests"
+msgstr "测试"
+
+#: manual/qed_proof_obligations.md:18
+msgid "Counts by Logical Subsystem"
+msgstr "按逻辑子系统统计"
+
+#: manual/qed_proof_obligations.md:20
+#: manual/qed_proof_obligations.md:31
+#: manual/qed_proof_obligations.md:37
+msgid "Total"
+msgstr "总计"
+
+#: manual/qed_proof_obligations.md:20
+#: manual/qed_proof_obligations.md:31
+#: manual/qed_proof_obligations.md:37
+msgid "Complete"
+msgstr "已完成"
+
+#: manual/qed_proof_obligations.md:20
+#: manual/qed_proof_obligations.md:31
+#: manual/qed_proof_obligations.md:37
+msgid "Not applicable"
+msgstr "不适用"
+
+#: manual/qed_proof_obligations.md:20
+#: manual/qed_proof_obligations.md:31
+#: manual/qed_proof_obligations.md:37
+msgid "Open"
+msgstr "未解决"
+
+#: manual/qed_proof_obligations.md:22
+#: manual/qed_proof_obligations.md:66
+msgid "axiom-admission"
+msgstr "axiom-admission"
+
+#: manual/qed_proof_obligations.md:23
+#: manual/qed_proof_obligations.md:69
+msgid "frontend-boundary"
+msgstr "frontend-boundary"
+
+#: manual/qed_proof_obligations.md:24
+#: manual/qed_proof_obligations.md:70
+msgid "implementation-correspondence"
+msgstr "implementation-correspondence"
+
+#: manual/qed_proof_obligations.md:25
+#: manual/qed_proof_obligations.md:60
+#: manual/qed_proof_obligations.md:61
+#: manual/qed_proof_obligations.md:62
+msgid "logical-core"
+msgstr "logical-core"
+
+#: manual/qed_proof_obligations.md:26
+#: manual/qed_proof_obligations.md:63
+#: manual/qed_proof_obligations.md:64
+#: manual/qed_proof_obligations.md:65
+msgid "theory-extension"
+msgstr "theory-extension"
+
+#: manual/qed_proof_obligations.md:27
+#: manual/qed_proof_obligations.md:67
+#: manual/qed_proof_obligations.md:68
+msgid "trusted-kernel"
+msgstr "trusted-kernel"
+
+#: manual/qed_proof_obligations.md:29
+msgid "Counts by Requirement Level"
+msgstr "按要求级别统计"
+
+#: manual/qed_proof_obligations.md:33
+#: manual/qed_proof_obligations.md:60
+#: manual/qed_proof_obligations.md:61
+#: manual/qed_proof_obligations.md:62
+#: manual/qed_proof_obligations.md:63
+#: manual/qed_proof_obligations.md:64
+#: manual/qed_proof_obligations.md:65
+#: manual/qed_proof_obligations.md:66
+#: manual/qed_proof_obligations.md:67
+#: manual/qed_proof_obligations.md:68
+#: manual/qed_proof_obligations.md:69
+#: manual/qed_proof_obligations.md:70
+msgid "required"
+msgstr "required"
+
+#: manual/qed_proof_obligations.md:35
+msgid "Counts by Severity if Unsatisfied"
+msgstr "按未满足时的严重度统计"
+
+#: manual/qed_proof_obligations.md:39
+#: manual/qed_proof_obligations.md:60
+#: manual/qed_proof_obligations.md:61
+#: manual/qed_proof_obligations.md:62
+#: manual/qed_proof_obligations.md:63
+#: manual/qed_proof_obligations.md:67
+#: manual/qed_proof_obligations.md:68
+#: manual/qed_proof_obligations.md:70
+msgid "critical"
+msgstr "critical"
+
+#: manual/qed_proof_obligations.md:40
+#: manual/qed_proof_obligations.md:64
+#: manual/qed_proof_obligations.md:65
+#: manual/qed_proof_obligations.md:66
+#: manual/qed_proof_obligations.md:69
+msgid "high"
+msgstr "high"
+
+#: manual/qed_proof_obligations.md:42
+msgid "Checklist"
+msgstr "检查清单"
+
+#: manual/qed_proof_obligations.md:44
+msgid "[ ] `HOL-TYPES-001` [required; critical] HOL types, type constructors, non-empty carriers, and type substitution are well-formed. (open)"
+msgstr "[ ] `HOL-TYPES-001` [required; critical] HOL 类型、类型构造子、非空载体和类型替换都是良构的。（未解决）"
+
+#: manual/qed_proof_obligations.md:45
+msgid "[ ] `HOL-TERMS-001` [required; critical] Typed terms, alpha-equivalence, capture-avoiding substitution, beta evaluation, and type instantiation preserve typing and meaning. (open)"
+msgstr "[ ] `HOL-TERMS-001` [required; critical] 类型化项、α 等价、避免捕获的代换、β 求值和类型实例化都保持类型与含义。（未解决）"
+
+#: manual/qed_proof_obligations.md:46
+msgid "[ ] `HOL-RULES-001` [required; critical] Every primitive theorem rule preserves semantic validity under its stated side conditions. (open)"
+msgstr "[ ] `HOL-RULES-001` [required; critical] 每条原始定理规则在其所述的旁条件下都保持语义有效性。（未解决）"
+
+#: manual/qed_proof_obligations.md:47
+msgid "[ ] `HOL-EXT-001` [required; critical] Definition, specification, and type-definition extensions have their stated local semantic laws and preserve validity of old-language sequents. (open)"
+msgstr "[ ] `HOL-EXT-001` [required; critical] 定义、规约和类型定义扩张具有其所述的局部语义定律，并保持旧语言相继式的有效性。（未解决）"
+
+#: manual/qed_proof_obligations.md:48
+msgid "[ ] `HOL-EXT-002` [required; high] History-indexed derivations require extension witnesses at the preceding history and preserve old-language validity across supported histories. (open)"
+msgstr "[ ] `HOL-EXT-002` [required; high] 按历史索引的推导要求在前一历史处提供扩张见证，并在所支持的各历史上保持旧语言的有效性。（未解决）"
+
+#: manual/qed_proof_obligations.md:49
+msgid "[ ] `HOL-GROW-001` [required; high] A finite declaration table records fresh constant allocation and preserves compatibility with the fixed total signature; old declarations remain available after a fresh allocation. (open)"
+msgstr "[ ] `HOL-GROW-001` [required; high] 有限声明表记录新常量的分配，并保持与固定总签名的相容性；新分配之后，旧声明仍然可用。（未解决）"
+
+#: manual/qed_proof_obligations.md:50
+msgid "[ ] `HOL-INFINITY-001` [required; high] Infinity admission identifies exactly the canonical object-language infinity sentence. (open)"
+msgstr "[ ] `HOL-INFINITY-001` [required; high] 无穷公理的准入恰好识别规范的对象语言无穷语句。（未解决）"
+
+#: manual/qed_proof_obligations.md:51
+msgid "[ ] `KERNEL-BOUNDARY-001` [required; critical] Only checked kernel constructors and extension gates can produce theorem objects; frontend code cannot forge them. (open)"
+msgstr "[ ] `KERNEL-BOUNDARY-001` [required; critical] 只有经过检查的内核构造函数和扩张闸门才能产生定理对象；前端代码无法伪造它们。（未解决）"
+
+#: manual/qed_proof_obligations.md:52
+msgid "[ ] `KERNEL-PROVENANCE-001` [required; critical] A theorem is admissible only in a compatible declaration lineage; sibling histories cannot exchange theorem evidence. (open)"
+msgstr "[ ] `KERNEL-PROVENANCE-001` [required; critical] 定理只有在相容的声明谱系中才可接受；兄弟历史之间不能交换定理证据。（未解决）"
+
+#: manual/qed_proof_obligations.md:53
+msgid "[ ] `FRONTEND-LOWERING-001` [required; high] Parsing and elaboration preserve the proposition and resolved constant identity supplied to the kernel, or fail closed. (open)"
+msgstr "[ ] `FRONTEND-LOWERING-001` [required; high] 解析与 elaboration 保持提供给内核的命题和已解析的常量标识，否则以失败告终（fail closed）。（未解决）"
+
+#: manual/qed_proof_obligations.md:54
+msgid "[ ] `REFINEMENT-001` [required; critical] MoonBit types, terms, theorem objects, state transitions, and theorem constructors are connected to the Typed HOL calculus by a checked refinement or proof-producing translation. (open)"
+msgstr "[ ] `REFINEMENT-001` [required; critical] MoonBit 的类型、项、定理对象、状态转移和定理构造函数，通过经过检查的精化或产生证明的翻译，与 Typed HOL 演算相连接。（未解决）"
+
+#: manual/qed_proof_obligations.md:56
+msgid "Obligations"
+msgstr "义务"
+
+#: manual/qed_proof_obligations.md:58
+msgid "ID"
+msgstr "ID"
+
+#: manual/qed_proof_obligations.md:58
+msgid "Category"
+msgstr "类别"
+
+#: manual/qed_proof_obligations.md:58
+msgid "Requirement"
+msgstr "要求"
+
+#: manual/qed_proof_obligations.md:58
+msgid "Severity"
+msgstr "严重度"
+
+#: manual/qed_proof_obligations.md:58
+msgid "Normative statement"
+msgstr "规范性陈述"
+
+#: manual/qed_proof_obligations.md:58
+msgid "Lean"
+msgstr "Lean"
+
+#: manual/qed_proof_obligations.md:58
+msgid "MoonBit"
+msgstr "MoonBit"
+
+#: manual/qed_proof_obligations.md:58
+msgid "Refinement"
+msgstr "精化"
+
+#: manual/qed_proof_obligations.md:58
+msgid "Tests"
+msgstr "测试"
+
+#: manual/qed_proof_obligations.md:58
+msgid "Issues"
+msgstr "问题"
+
+#: manual/qed_proof_obligations.md:60
+#: manual/qed_proof_obligations.md:76
+msgid "HOL types, type constructors, non-empty carriers, and type substitution are well-formed."
+msgstr "HOL 类型、类型构造子、非空载体和类型替换都是良构的。"
+
+#: manual/qed_proof_obligations.md:60
+#: manual/qed_proof_obligations.md:61
+#: manual/qed_proof_obligations.md:62
+#: manual/qed_proof_obligations.md:63
+#: manual/qed_proof_obligations.md:64
+#: manual/qed_proof_obligations.md:65
+#: manual/qed_proof_obligations.md:66
+msgid "proved-abstractly"
+msgstr "proved-abstractly"
+
+#: manual/qed_proof_obligations.md:60
+#: manual/qed_proof_obligations.md:61
+#: manual/qed_proof_obligations.md:62
+#: manual/qed_proof_obligations.md:63
+#: manual/qed_proof_obligations.md:67
+#: manual/qed_proof_obligations.md:70
+msgid "implemented-unverified"
+msgstr "implemented-unverified"
+
+#: manual/qed_proof_obligations.md:60
+#: manual/qed_proof_obligations.md:61
+#: manual/qed_proof_obligations.md:62
+#: manual/qed_proof_obligations.md:63
+#: manual/qed_proof_obligations.md:64
+#: manual/qed_proof_obligations.md:65
+#: manual/qed_proof_obligations.md:66
+#: manual/qed_proof_obligations.md:67
+#: manual/qed_proof_obligations.md:68
+#: manual/qed_proof_obligations.md:69
+#: manual/qed_proof_obligations.md:70
+msgid "not-implemented"
+msgstr "not-implemented"
+
+#: manual/qed_proof_obligations.md:60
+#: manual/qed_proof_obligations.md:61
+#: manual/qed_proof_obligations.md:62
+#: manual/qed_proof_obligations.md:63
+#: manual/qed_proof_obligations.md:64
+#: manual/qed_proof_obligations.md:66
+#: manual/qed_proof_obligations.md:67
+#: manual/qed_proof_obligations.md:68
+#: manual/qed_proof_obligations.md:69
+#: manual/qed_proof_obligations.md:70
+msgid "tested-only"
+msgstr "tested-only"
+
+#: manual/qed_proof_obligations.md:61
+#: manual/qed_proof_obligations.md:88
+msgid "Typed terms, alpha-equivalence, capture-avoiding substitution, beta evaluation, and type instantiation preserve typing and meaning."
+msgstr "类型化项、α 等价、避免捕获的代换、β 求值和类型实例化都保持类型与含义。"
+
+#: manual/qed_proof_obligations.md:62
+#: manual/qed_proof_obligations.md:100
+msgid "Every primitive theorem rule preserves semantic validity under its stated side conditions."
+msgstr "每条原始定理规则在其所述的旁条件下都保持语义有效性。"
+
+#: manual/qed_proof_obligations.md:63
+#: manual/qed_proof_obligations.md:112
+msgid "Definition, specification, and type-definition extensions have their stated local semantic laws and preserve validity of old-language sequents."
+msgstr "定义、规约和类型定义扩张具有其所述的局部语义定律，并保持旧语言相继式的有效性。"
+
+#: manual/qed_proof_obligations.md:64
+#: manual/qed_proof_obligations.md:124
+msgid "History-indexed derivations require extension witnesses at the preceding history and preserve old-language validity across supported histories."
+msgstr "按历史索引的推导要求在前一历史处提供扩张见证，并在所支持的各历史上保持旧语言的有效性。"
+
+#: manual/qed_proof_obligations.md:65
+#: manual/qed_proof_obligations.md:136
+msgid "A finite declaration table records fresh constant allocation and preserves compatibility with the fixed total signature; old declarations remain available after a fresh allocation."
+msgstr "有限声明表记录新常量的分配，并保持与固定总签名的相容性；新分配之后，旧声明仍然可用。"
+
+#: manual/qed_proof_obligations.md:65
+#: manual/qed_proof_obligations.md:67
+#: manual/qed_proof_obligations.md:68
+#: manual/qed_proof_obligations.md:69
+msgid "not-applicable"
+msgstr "not-applicable"
+
+#: manual/qed_proof_obligations.md:66
+#: manual/qed_proof_obligations.md:148
+msgid "Infinity admission identifies exactly the canonical object-language infinity sentence."
+msgstr "无穷公理的准入恰好识别规范的对象语言无穷语句。"
+
+#: manual/qed_proof_obligations.md:67
+#: manual/qed_proof_obligations.md:160
+msgid "Only checked kernel constructors and extension gates can produce theorem objects; frontend code cannot forge them."
+msgstr "只有经过检查的内核构造函数和扩张闸门才能产生定理对象；前端代码无法伪造它们。"
+
+#: manual/qed_proof_obligations.md:68
+#: manual/qed_proof_obligations.md:172
+msgid "A theorem is admissible only in a compatible declaration lineage; sibling histories cannot exchange theorem evidence."
+msgstr "定理只有在相容的声明谱系中才可接受；兄弟历史之间不能交换定理证据。"
+
+#: manual/qed_proof_obligations.md:69
+#: manual/qed_proof_obligations.md:184
+msgid "Parsing and elaboration preserve the proposition and resolved constant identity supplied to the kernel, or fail closed."
+msgstr "解析与 elaboration 保持提供给内核的命题和已解析的常量标识，否则以失败告终（fail closed）。"
+
+#: manual/qed_proof_obligations.md:70
+#: manual/qed_proof_obligations.md:196
+msgid "MoonBit types, terms, theorem objects, state transitions, and theorem constructors are connected to the Typed HOL calculus by a checked refinement or proof-producing translation."
+msgstr "MoonBit 的类型、项、定理对象、状态转移和定理构造函数，通过经过检查的精化或产生证明的翻译，与 Typed HOL 演算相连接。"
+
+#: manual/qed_proof_obligations.md:72
+msgid "Evidence"
+msgstr "证据"
+
+#: manual/qed_proof_obligations.md:78
+msgid "Specification: `doc/attachments/qed_formal_spec.typ::Type Grammar and Carrier Interpretation`"
+msgstr "规范：`doc/attachments/qed_formal_spec.typ::Type Grammar and Carrier Interpretation`"
+
+#: manual/qed_proof_obligations.md:79
+msgid "MoonBit API: `src/kernel/types.mbt`"
+msgstr "MoonBit API：`src/kernel/types.mbt`"
+
+#: manual/qed_proof_obligations.md:80
+msgid "Lean: `formal_verification/QEDFV/HOL/Types.lean::Ty.carrier_nonempty`"
+msgstr "Lean: `formal_verification/QEDFV/HOL/Types.lean::Ty.carrier_nonempty`"
+
+#: manual/qed_proof_obligations.md:81
+msgid "Verification: Lean theorem; MoonBit tests"
+msgstr "验证：Lean 定理；MoonBit 测试"
+
+#: manual/qed_proof_obligations.md:82
+msgid "Evidence: `formal_verification/QEDFV/HOL/Types.lean`, `src/kernel/kernel_types_test.mbt`"
+msgstr "证据：`formal_verification/QEDFV/HOL/Types.lean`, `src/kernel/kernel_types_test.mbt`"
+
+#: manual/qed_proof_obligations.md:83
+msgid "Assumptions: The fixed total signature and admissible constructor interpretation are explicit Lean parameters."
+msgstr "假设：固定的总签名与可采纳的构造子解释是显式的 Lean 参数。"
+
+#: manual/qed_proof_obligations.md:84
+msgid "Exclusions: No MoonBit-to-Lean refinement theorem exists."
+msgstr "排除项：不存在 MoonBit 到 Lean 的精化定理。"
+
+#: manual/qed_proof_obligations.md:90
+msgid "Specification: `doc/attachments/qed_formal_spec.typ::Alpha-Equivalence and the Named Boundary`"
+msgstr "规范：`doc/attachments/qed_formal_spec.typ::Alpha-Equivalence and the Named Boundary`"
+
+#: manual/qed_proof_obligations.md:91
+msgid "MoonBit API: `src/kernel/terms.mbt`"
+msgstr "MoonBit API：`src/kernel/terms.mbt`"
+
+#: manual/qed_proof_obligations.md:92
+msgid "Lean: `formal_verification/QEDFV/HOL/Terms.lean::Term`, `formal_verification/QEDFV/HOL/Evaluation.lean::Term.eval_substitute`"
+msgstr "Lean: `formal_verification/QEDFV/HOL/Terms.lean::Term`, `formal_verification/QEDFV/HOL/Evaluation.lean::Term.eval_substitute`"
+
+#: manual/qed_proof_obligations.md:93
+msgid "Verification: Lean theorem; MoonBit regression tests"
+msgstr "验证：Lean 定理；MoonBit 回归测试"
+
+#: manual/qed_proof_obligations.md:94
+msgid "Evidence: `formal_verification/QEDFV/HOL/Evaluation.lean`, `src/kernel/kernel_terms_test.mbt`"
+msgstr "证据：`formal_verification/QEDFV/HOL/Evaluation.lean`, `src/kernel/kernel_terms_test.mbt`"
+
+#: manual/qed_proof_obligations.md:95
+#: manual/qed_proof_obligations.md:107
+#: manual/qed_proof_obligations.md:131
+#: manual/qed_proof_obligations.md:155
+#: manual/qed_proof_obligations.md:179
+#: manual/qed_proof_obligations.md:191
+#: manual/qed_proof_obligations.md:203
+msgid "Assumptions: -"
+msgstr "假设：-"
+
+#: manual/qed_proof_obligations.md:96
+msgid "Exclusions: Frontend lowering is outside this proof."
+msgstr "排除项：前端降级不在此证明范围之内。"
+
+#: manual/qed_proof_obligations.md:102
+msgid "Specification: `doc/attachments/qed_formal_spec.typ::Primitive Inference Rules`"
+msgstr "规范：`doc/attachments/qed_formal_spec.typ::Primitive Inference Rules`"
+
+#: manual/qed_proof_obligations.md:103
+msgid "MoonBit API: `src/kernel/thm.mbt`"
+msgstr "MoonBit API：`src/kernel/thm.mbt`"
+
+#: manual/qed_proof_obligations.md:104
+msgid "Lean: `formal_verification/QEDFV/HOL/Rules.lean::valid_refl`, `formal_verification/QEDFV/HOL/Derivation.lean::derivation_sound`"
+msgstr "Lean: `formal_verification/QEDFV/HOL/Rules.lean::valid_refl`, `formal_verification/QEDFV/HOL/Derivation.lean::derivation_sound`"
+
+#: manual/qed_proof_obligations.md:105
+msgid "Verification: Lean induction; MoonBit kernel tests"
+msgstr "验证：Lean 归纳；MoonBit 内核测试"
+
+#: manual/qed_proof_obligations.md:106
+msgid "Evidence: `formal_verification/QEDFV/HOL/Derivation.lean`, `src/kernel/kernel_thm_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`"
+msgstr "证据：`formal_verification/QEDFV/HOL/Derivation.lean`, `src/kernel/kernel_thm_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`"
+
+#: manual/qed_proof_obligations.md:108
+msgid "Exclusions: The Lean derivation constructors are not a source-level refinement of MoonBit constructors."
+msgstr "排除项：Lean 的推导构造子不是 MoonBit 构造函数的源码级精化。"
+
+#: manual/qed_proof_obligations.md:114
+msgid "Specification: `doc/attachments/qed_formal_spec.typ::Kernel Extension Mapping and Open Gates`"
+msgstr "规范：`doc/attachments/qed_formal_spec.typ::Kernel Extension Mapping and Open Gates`"
+
+#: manual/qed_proof_obligations.md:115
+#: manual/qed_proof_obligations.md:139
+#: manual/qed_proof_obligations.md:151
+msgid "MoonBit API: `src/kernel/sig.mbt`"
+msgstr "MoonBit API：`src/kernel/sig.mbt`"
+
+#: manual/qed_proof_obligations.md:116
+msgid "Lean: `formal_verification/QEDFV/HOL/ExtensionDerivation.lean::extension_derivation_sound`, `formal_verification/QEDFV/HOL/ModelExtension.lean::valid_interpretModels_iff`"
+msgstr "Lean: `formal_verification/QEDFV/HOL/ExtensionDerivation.lean::extension_derivation_sound`, `formal_verification/QEDFV/HOL/ModelExtension.lean::valid_interpretModels_iff`"
+
+#: manual/qed_proof_obligations.md:117
+msgid "Verification: Lean model-extension proofs; MoonBit gate tests"
+msgstr "验证：Lean 模型扩张证明；MoonBit 闸门测试"
+
+#: manual/qed_proof_obligations.md:118
+msgid "Evidence: `formal_verification/QEDFV/HOL/TypeDefGate.lean`, `formal_verification/QEDFV/HOL/ExtensionDerivation.lean`, `src/kernel/kernel_sig_test.mbt`"
+msgstr "证据：`formal_verification/QEDFV/HOL/TypeDefGate.lean`, `formal_verification/QEDFV/HOL/ExtensionDerivation.lean`, `src/kernel/kernel_sig_test.mbt`"
+
+#: manual/qed_proof_obligations.md:119
+msgid "Assumptions: Type-definition derivations are interpreted through model pairs."
+msgstr "假设：类型定义推导通过模型对来解释。"
+
+#: manual/qed_proof_obligations.md:120
+msgid "Exclusions: Growing-signature syntax and syntactic erasure remain open."
+msgstr "排除项：增长签名的语法与语法擦除仍未解决。"
+
+#: manual/qed_proof_obligations.md:126
+msgid "Specification: `doc/attachments/qed_formal_spec.typ::History-Indexed Extension Derivations`"
+msgstr "规范：`doc/attachments/qed_formal_spec.typ::History-Indexed Extension Derivations`"
+
+#: manual/qed_proof_obligations.md:127
+#: manual/qed_proof_obligations.md:175
+msgid "MoonBit API: `src/kernel/sig.mbt`, `src/kernel/thm.mbt`"
+msgstr "MoonBit API：`src/kernel/sig.mbt`, `src/kernel/thm.mbt`"
+
+#: manual/qed_proof_obligations.md:128
+msgid "Lean: `formal_verification/QEDFV/HOL/ExtensionDerivation.lean::typed_extension_derivation_sound`"
+msgstr "Lean: `formal_verification/QEDFV/HOL/ExtensionDerivation.lean::typed_extension_derivation_sound`"
+
+#: manual/qed_proof_obligations.md:129
+msgid "Verification: Lean history induction; MoonBit lineage regression tests"
+msgstr "验证：Lean 历史归纳；MoonBit 谱系回归测试"
+
+#: manual/qed_proof_obligations.md:130
+msgid "Evidence: `formal_verification/QEDFV/HOL/ExtensionDerivation.lean`, `src/kernel/kernel_audit_test.mbt`"
+msgstr "证据：`formal_verification/QEDFV/HOL/ExtensionDerivation.lean`, `src/kernel/kernel_audit_test.mbt`"
+
+#: manual/qed_proof_obligations.md:132
+msgid "Exclusions: Lean does not certify the MoonBit lineage representation."
+msgstr "排除项：Lean 并不认证 MoonBit 的谱系表示。"
+
+#: manual/qed_proof_obligations.md:138
+msgid "Specification: `doc/attachments/qed_formal_spec.typ::Signature Integration Boundary`"
+msgstr "规范：`doc/attachments/qed_formal_spec.typ::Signature Integration Boundary`"
+
+#: manual/qed_proof_obligations.md:140
+msgid "Lean: `formal_verification/QEDFV/HOL/DeclarationAllocation.lean::DeclTable.compatible_add`, `formal_verification/QEDFV/HOL/DeclarationAllocationExamples.lean::trueTable2_compatible`"
+msgstr "Lean: `formal_verification/QEDFV/HOL/DeclarationAllocation.lean::DeclTable.compatible_add`, `formal_verification/QEDFV/HOL/DeclarationAllocationExamples.lean::trueTable2_compatible`"
+
+#: manual/qed_proof_obligations.md:141
+msgid "Verification: Lean finite-allocation lemmas; Concrete Rep/Abs allocation example"
+msgstr "验证：Lean 有限分配引理；具体的 Rep/Abs 分配示例"
+
+#: manual/qed_proof_obligations.md:142
+msgid "Evidence: `formal_verification/QEDFV/HOL/DeclarationAllocation.lean`, `formal_verification/QEDFV/HOL/DeclarationAllocationExamples.lean`"
+msgstr "证据：`formal_verification/QEDFV/HOL/DeclarationAllocation.lean`, `formal_verification/QEDFV/HOL/DeclarationAllocationExamples.lean`"
+
+#: manual/qed_proof_obligations.md:143
+msgid "Assumptions: The fixed total signature supplies the declared type slot."
+msgstr "假设：固定的总签名提供所声明的类型槽位。"
+
+#: manual/qed_proof_obligations.md:144
+msgid "Exclusions: This does not prove constructor allocation, growing-signature model transport, committed-equation preservation, or MoonBit refinement."
+msgstr "排除项：这并不证明构造子的分配、增长签名的模型传输、已提交等式的保持，或 MoonBit 精化。"
+
+#: manual/qed_proof_obligations.md:150
+msgid "Specification: `doc/attachments/qed_formal_spec.typ::indInfinitySentence`"
+msgstr "规范：`doc/attachments/qed_formal_spec.typ::indInfinitySentence`"
+
+#: manual/qed_proof_obligations.md:152
+msgid "Lean: `formal_verification/QEDFV/HOL/Infinity.lean::indInfinitySentence_valid`"
+msgstr "Lean: `formal_verification/QEDFV/HOL/Infinity.lean::indInfinitySentence_valid`"
+
+#: manual/qed_proof_obligations.md:153
+msgid "Verification: Lean validity theorem; MoonBit known-deviation marker regressions"
+msgstr "验证：Lean 有效性定理；MoonBit 已知偏差标记回归测试"
+
+#: manual/qed_proof_obligations.md:154
+msgid "Evidence: `formal_verification/QEDFV/HOL/Infinity.lean`, `src/kernel/kernel_sig_test.mbt`"
+msgstr "证据：`formal_verification/QEDFV/HOL/Infinity.lean`, `src/kernel/kernel_sig_test.mbt`"
+
+#: manual/qed_proof_obligations.md:156
+msgid "Exclusions: The MoonBit gate is not connected to the Lean sentence by a refinement proof."
+msgstr "排除项：MoonBit 闸门并未通过精化证明与 Lean 语句相连接。"
+
+#: manual/qed_proof_obligations.md:162
+msgid "Specification: `doc/attachments/qed_formal_spec.typ::The LCF Boundary`"
+msgstr "规范：`doc/attachments/qed_formal_spec.typ::The LCF Boundary`"
+
+#: manual/qed_proof_obligations.md:163
+msgid "MoonBit API: `src/kernel/pkg.generated.mbti`, `src/kernel/thm.mbt`, `src/kernel/sig.mbt`"
+msgstr "MoonBit API：`src/kernel/pkg.generated.mbti`, `src/kernel/thm.mbt`, `src/kernel/sig.mbt`"
+
+#: manual/qed_proof_obligations.md:164
+#: manual/qed_proof_obligations.md:176
+#: manual/qed_proof_obligations.md:188
+#: manual/qed_proof_obligations.md:200
+msgid "Lean: -"
+msgstr "Lean: -"
+
+#: manual/qed_proof_obligations.md:165
+msgid "Verification: MoonBit package visibility audit; kernel regression tests"
+msgstr "验证：MoonBit 包可见性审计；内核回归测试"
+
+#: manual/qed_proof_obligations.md:166
+msgid "Evidence: `src/kernel/pkg.generated.mbti`, `src/kernel/kernel_audit_test.mbt`, `src/kernel/kernel_immutability_test.mbt`"
+msgstr "证据：`src/kernel/pkg.generated.mbti`, `src/kernel/kernel_audit_test.mbt`, `src/kernel/kernel_immutability_test.mbt`"
+
+#: manual/qed_proof_obligations.md:167
+msgid "Assumptions: MoonBit package abstraction remains enforced by the toolchain."
+msgstr "假设：MoonBit 的包抽象仍由工具链强制执行。"
+
+#: manual/qed_proof_obligations.md:168
+msgid "Exclusions: No independent proof checker is shipped yet."
+msgstr "排除项：尚未发布独立的证明检查器。"
+
+#: manual/qed_proof_obligations.md:174
+msgid "Specification: `doc/attachments/qed_formal_spec.typ::Stability Theorem for Scope Mutation`"
+msgstr "规范：`doc/attachments/qed_formal_spec.typ::Stability Theorem for Scope Mutation`"
+
+#: manual/qed_proof_obligations.md:177
+msgid "Verification: Deterministic adversarial regression corpus"
+msgstr "验证：确定性的对抗式回归语料"
+
+#: manual/qed_proof_obligations.md:178
+msgid "Evidence: `src/kernel/kernel_audit_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`, `src/kernel/kernel_immutability_test.mbt`"
+msgstr "证据：`src/kernel/kernel_audit_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`, `src/kernel/kernel_immutability_test.mbt`"
+
+#: manual/qed_proof_obligations.md:180
+msgid "Exclusions: Formalization does not model MoonBit state lineage."
+msgstr "排除项：形式化不对 MoonBit 的状态谱系建模。"
+
+#: manual/qed_proof_obligations.md:186
+msgid "Specification: `doc/attachments/qed_formal_spec.typ::Elaboration and Core Typing Judgments`"
+msgstr "规范：`doc/attachments/qed_formal_spec.typ::Elaboration and Core Typing Judgments`"
+
+#: manual/qed_proof_obligations.md:187
+msgid "MoonBit API: `src/parser/parser.mbt`, `src/elab/resolved.mbt`"
+msgstr "MoonBit API：`src/parser/parser.mbt`, `src/elab/resolved.mbt`"
+
+#: manual/qed_proof_obligations.md:189
+msgid "Verification: Parser/elaborator regression corpus"
+msgstr "验证：解析器/elaborator 回归语料"
+
+#: manual/qed_proof_obligations.md:190
+msgid "Evidence: `src/parser/parser_test.mbt`, `src/elab/elab_test.mbt`"
+msgstr "证据：`src/parser/parser_test.mbt`, `src/elab/elab_test.mbt`"
+
+#: manual/qed_proof_obligations.md:192
+msgid "Exclusions: Frontend tests do not prove kernel soundness or semantic refinement."
+msgstr "排除项：前端测试并不证明内核可靠性或语义精化。"
+
+#: manual/qed_proof_obligations.md:198
+msgid "Specification: `doc/attachments/qed_formal_spec.typ::Engineering Correspondence`"
+msgstr "规范：`doc/attachments/qed_formal_spec.typ::Engineering Correspondence`"
+
+#: manual/qed_proof_obligations.md:199
+msgid "MoonBit API: `src/kernel/types.mbt`, `src/kernel/terms.mbt`, `src/kernel/thm.mbt`, `src/kernel/sig.mbt`"
+msgstr "MoonBit API：`src/kernel/types.mbt`, `src/kernel/terms.mbt`, `src/kernel/thm.mbt`, `src/kernel/sig.mbt`"
+
+#: manual/qed_proof_obligations.md:201
+msgid "Verification: Not yet implemented"
+msgstr "验证：尚未实现"
+
+#: manual/qed_proof_obligations.md:202
+msgid "Evidence: `doc/manual/current_workspace_audit.md`, `formal_verification/theory-proof-plan.md`"
+msgstr "证据：`doc/manual/current_workspace_audit.md`, `formal_verification/theory-proof-plan.md`"
+
+#: manual/qed_proof_obligations.md:204
+msgid "Exclusions: Passing MoonBit and Lean builds is not refinement evidence."
+msgstr "排除项：MoonBit 与 Lean 构建通过不是精化的证据。"
 
 #: manual/syntax.md:1
 msgid "Syntax guide"
@@ -10128,9 +10786,6 @@ msgstr "[prover 教程](prover.md)从脚本运行相同的证明。"
 #~ msgid "These layers are not a complete frontend in which \"any user proof can produce a trusted theorem\"."
 #~ msgstr "这些层不是“任意用户证明都能产出可信 theorem”的完整前端。"
 
-#~ msgid "Not implemented"
-#~ msgstr "未实现"
-
 #~ msgid "The following are currently not implemented and should be treated explicitly as missing capabilities:"
 #~ msgstr "当前没有实现，应明确视为缺失能力的部分包括："
 
@@ -10449,9 +11104,6 @@ msgstr "[prover 教程](prover.md)从脚本运行相同的证明。"
 #~ msgid "Issue matrix"
 #~ msgstr "问题矩阵"
 
-#~ msgid "ID"
-#~ msgstr "ID"
-
 #~ msgid "Class"
 #~ msgstr "类别"
 
@@ -10463,9 +11115,6 @@ msgstr "[prover 教程](prover.md)从脚本运行相同的证明。"
 
 #~ msgid "Verification and acceptance"
 #~ msgstr "验证验收"
-
-#~ msgid "Issues"
-#~ msgstr "问题"
 
 #~ msgid "I1"
 #~ msgstr "Ⅰ1"
@@ -10568,9 +11217,6 @@ msgstr "[prover 教程](prover.md)从脚本运行相同的证明。"
 
 #~ msgid "Mathematical target"
 #~ msgstr "数学目标"
-
-#~ msgid "Current evidence"
-#~ msgstr "目前的证据"
 
 #~ msgid "Next witness"
 #~ msgstr "下一个证人"
@@ -11125,9 +11771,6 @@ msgstr "[prover 教程](prover.md)从脚本运行相同的证明。"
 
 #~ msgid "spec is part of Luna-Flow/QED. This page should describe the public types, constructors, functions, traits, and observable semantics that are implemented in the current branch."
 #~ msgstr "spec 属于 Luna-Flow/QED。本页描述当前分支已经实现的公开类型、构造器、函数、trait 以及可观察语义。"
-
-#~ msgid "Source boundary: `doc/qed_formal_spec.typ`"
-#~ msgstr "源码边界：`doc/qed_formal_spec.typ`"
 
 #~ msgid "Documentation Standard"
 #~ msgstr "文档标准"

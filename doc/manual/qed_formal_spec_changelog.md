@@ -7,9 +7,9 @@
 - Last reviewed: 2026-10-14
 
 This is a history file, not a current proof-status entry point. Use the
-[branch contract](../../formal_verification/branch_contract.md) and the
-[Typed HOL proof plan](../../formal_verification/theory-proof-plan.md) for
-current status.
+[branch contract](../../formal_verification/branch_contract.md), the
+[Typed HOL proof plan](../../formal_verification/theory-proof-plan.md) and the
+[generated obligation matrix](qed_proof_obligations.md) for current status.
 
 ## 2026-10-13 Type definitions as history-indexed derivations
 
