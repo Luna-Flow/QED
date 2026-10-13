@@ -1,0 +1,41 @@
+name: MoonBit
+
+on:
+  pull_request:
+    paths:
+      - 'moon.mod'
+      - 'src/**'
+      - 'examples/**'
+      - 'prelude/**'
+      - '.github/workflows/moon.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'moon.mod'
+      - 'src/**'
+      - 'examples/**'
+      - 'prelude/**'
+      - '.github/workflows/moon.yml'
+
+jobs:
+  moonbit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install MoonBit toolchain (latest)
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+      - name: Show toolchain
+        run: moon version --all
+      - name: Refresh registry index
+        run: moon update
+      - name: Check all targets
+        run: moon check --target all --deny-warn
+      - name: Format check
+        run: moon fmt --check
+      - name: Test all targets
+        run: |
+          for target in wasm wasm-gc js native; do
+            moon test --target "$target"
+          done
