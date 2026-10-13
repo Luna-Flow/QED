@@ -6,6 +6,7 @@ All notable changes to QED are recorded here. The format follows [Keep a Changel
 
 ### Added
 
+- CI: a `MoonBit` workflow (`.github/workflows/moon.yml`) installs the latest MoonBit toolchain (no pinned version), runs `moon check --target all --deny-warn`, `moon fmt --check` and `moon test` on wasm, wasm-gc, js and native for pull requests and pushes that touch the MoonBit sources ([#13](https://github.com/Luna-Flow/QED/issues/13)).
 - Lean (`formal_verification`): type definitions as history-indexed derivations.
   `ExtensionDerivation` is now indexed by histories of `ModelExtension` steps
   (definition, specification, type definition) and has one `typedef` constructor with a
