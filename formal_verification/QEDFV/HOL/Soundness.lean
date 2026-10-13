@@ -1,5 +1,10 @@
 import QEDFV.HOL.Conservativity
 import QEDFV.HOL.ExtensionDerivation
+import QEDFV.HOL.HistoryDerivation
+import QEDFV.HOL.HistoryDerivationExamples
+import QEDFV.HOL.HistoryAuditExamples
+import QEDFV.HOL.DeclarationAllocation
+import QEDFV.HOL.DeclarationAllocationExamples
 import QEDFV.HOL.Specification
 import QEDFV.HOL.TypeDefinitions
 import QEDFV.HOL.Concrete

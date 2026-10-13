@@ -7,6 +7,19 @@ All notable changes to QED are recorded here. The format follows [Keep a Changel
 ### Added
 
 - CI: a `MoonBit` workflow (`.github/workflows/moon.yml`) installs the latest MoonBit toolchain (no pinned version), runs `moon check --target all --deny-warn`, `moon fmt --check` and `moon test` on wasm, wasm-gc, js and native for pull requests and pushes that touch the MoonBit sources ([#13](https://github.com/Luna-Flow/QED/issues/13)).
+- Lean (`formal_verification`): `HistoryDerivation` closes the fixed-signature
+  history calculus under the supported core inference rules. Extension products
+  can now be used as premises of `abs`, `trans`, `mkComb`, `eqMp`, `deduct`,
+  instantiation, weakening, and witness-based choice; its soundness theorem is
+  proved at the history's model pair. A checked example composes the derived
+  `Abs (Rep a) = a` law into a closed function equation and records a local,
+  admissible model that refutes the generic false sentence. Growing signatures,
+  syntactic erasure, and MoonBit refinement remain outside this result.
+- Lean (`formal_verification`): `DeclTable`, a finite declaration-table interface
+  for the fixed-signature semantics, with the lemmas that a fresh allocation
+  preserves old declarations and stays compatible with the total signature. It is
+  an interface layer; it does not model name resolution or the executable kernel
+  state.
 - Lean (`formal_verification`): type definitions as history-indexed derivations.
   `ExtensionDerivation` is now indexed by histories of `ModelExtension` steps
   (definition, specification, type definition) and has one `typedef` constructor with a
@@ -43,8 +56,9 @@ All notable changes to QED are recorded here. The format follows [Keep a Changel
   builds the new model from an old one, with an admissible constructor interpretation;
   the three laws `Abs (Rep a) = a`, `P (Rep a)` and `P r ⊢ Rep (Abs r) = r` are proved
   valid in the new model (the second under the witness hypothesis), and validity of
-  sequents that do not mention the new constructor or constants is preserved. The step
-  is not yet a derivation constructor (planned follow-up). Refs #17.
+  sequents that do not mention the new constructor or constants is preserved. The
+  laws are available through the fixed-signature `ExtensionDerivation` and the
+  compositional `HistoryDerivation` calculus. Refs #17.
 
 - Upgrade the QED dependency on `moonbitlang/x` to `0.5.5` and verify it with
   MoonBit `0.10.15`.

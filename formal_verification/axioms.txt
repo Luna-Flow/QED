@@ -10,7 +10,11 @@ Output:
 
 The commands audited are the declarations in `QEDFV/HOL/AxiomAudit.lean`,
 including derivation soundness, the all-model object-language infinity sentence,
-and derivations indexed by a finite constant-extension history.
+and derivations indexed by a finite constant-extension history. The current
+audit also includes the full fixed-signature history closure and its checked
+non-vacuous composition example, plus independent negative checks showing that
+the empty type-definition predicate has no derivable witness and that the unit
+example's identifiers fail the freshness premises after introduction.
 
 'QEDFV.HOL.typed_hol_core_proof_complete' depends on axioms: [propext, Classical.choice, Quot.sound]
 'QEDFV.HOL.derivation_sound' depends on axioms: [propext, Classical.choice, Quot.sound]
@@ -20,6 +24,25 @@ and derivations indexed by a finite constant-extension history.
 'QEDFV.HOL.typed_signature_generic_nonvalid_in_extension' depends on axioms: [propext, Classical.choice, Quot.sound]
 'QEDFV.HOL.extension_derivation_sound' depends on axioms: [propext, Classical.choice, Quot.sound]
 'QEDFV.HOL.typed_extension_derivation_sound' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.history_derivation_sound' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.typed_history_derivation_sound' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.history_derivation_old_language_valid' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.history_generic_false_not_derivable' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.unit_absRep_function_valid' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.unit_history_composition_nonvacuous' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.falseGate_no_witness' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.falseGate_witness_not_valid' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.falseGate_witness_not_derivable' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.unitGate_ids_in_history' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.unitGate_not_fresh_after_introduction' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.DeclTable.old_declares_after_add' depends on axioms: [propext, Quot.sound]
+'QEDFV.HOL.DeclTable.old_ids_subset_after_add' depends on axioms: [propext, Quot.sound]
+'QEDFV.HOL.DeclTable.compatible_add' depends on axioms: [propext, Quot.sound]
+'QEDFV.HOL.DeclTable.declared_type_unique' does not depend on any axioms
+'QEDFV.HOL.DeclTable.add_allocation_compatible' depends on axioms: [propext, Quot.sound]
+'QEDFV.HOL.trueTable2_compatible' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.trueTable2_rep_type_is_stable' depends on axioms: [propext, Classical.choice, Quot.sound]
+'QEDFV.HOL.trueTable2_abs_type_is_stable' depends on axioms: [propext, Classical.choice, Quot.sound]
 'QEDFV.HOL.Ty.carrier_nonempty' does not depend on any axioms
 'QEDFV.HOL.Ty.denote_congr' depends on axioms: [propext, Quot.sound]
 'QEDFV.HOL.Ty.denote_congr_vars' depends on axioms: [propext, Quot.sound]
@@ -74,6 +97,6 @@ These are Lean/Mathlib foundation axioms, not project declarations:
   foundational extensionality/equality transport used by the development.
 
 There is no project-defined axiom asserting primitive-rule soundness or
-constant-extension history soundness. This report does not certify a growing
-signature, MoonBit refinement, derivation constructors for user type-constructor
-extensions, or the executable MoonBit infinity registration gate.
+constant-extension history soundness. The checked history closure remains over
+a fixed total signature; this audit does not certify a growing signature,
+MoonBit refinement, or the executable MoonBit infinity registration gate.

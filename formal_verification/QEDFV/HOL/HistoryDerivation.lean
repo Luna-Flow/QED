@@ -1,0 +1,132 @@
+import QEDFV.HOL.ExtensionDerivation
+import QEDFV.HOL.Concrete
+
+/-! A full inference calculus at a fixed declaration history. Extension products can be
+premises of the ordinary core rules, and composed derivations can witness later specification
+and type-definition steps. The signature remains total and fixed; this module does not model
+growing signatures or the executable kernel's state representation. -/
+namespace QEDFV.HOL
+
+/-- History-indexed derivations closed under the core inference rules and declaration gates.
+`extension` preserves the previously checked extension calculus as an embedded fragment.
+Freshness and old-language premises retain the contracts of `ExtensionDerivation`. -/
+inductive HistoryDerivation (S : Signature) :
+    List (ModelExtension S) → {Γ : List Ty} → Sequent S Γ → Prop where
+  | core {es Γ} {s : Sequent S Γ} (d : Derivation S s) :
+      HistoryDerivation S es s
+  | extension {es Γ} {s : Sequent S Γ} (d : ExtensionDerivation S es s) :
+      HistoryDerivation S es s
+  | weaken {es Γ} {s : Sequent S Γ} (e : ModelExtension S)
+      (d : HistoryDerivation S es s) (hOld : e.oldLanguage s) :
+      HistoryDerivation S (e :: es) s
+  | definition {es} (D : DefinitionGate S)
+      (hFresh : D.id ∉ modelHistoryIds es) :
+      HistoryDerivation S (.definition D :: es)
+        { hyps := [], concl := D.head.equal D.rhs }
+  | specification {es} (E : SpecificationExtension S)
+      (hFresh : E.gate.id ∉ modelHistoryIds es)
+      (d : HistoryDerivation S es { hyps := [], concl := E.gate.body }) :
+      HistoryDerivation S (.specification E :: es)
+        { hyps := [], concl := E.gate.predicate.substitute
+            (Sub.single (E.gate.constant E.typeEq)) }
+  | typedef {es} (G : TypeDefGate S) (l : TypeDefLaw)
+      (hk : G.k ∉ modelHistoryTyCons es) (hrep : G.rep ∉ modelHistoryIds es)
+      (habs : G.abs ∉ modelHistoryIds es) (w : Term S [] G.repTy)
+      (d : HistoryDerivation S es { hyps := [], concl := G.pred.app w }) :
+      HistoryDerivation S (.typeDefinition G :: es) (l.sequent G)
+  | addAssum {es Γ} {A : Sequent S Γ} (p : Term S Γ .bool)
+      (d : HistoryDerivation S es A) :
+      HistoryDerivation S es { hyps := p :: A.hyps, concl := A.concl }
+  | trans {es Γ} {a : Ty} {A B : Sequent S Γ} {x y z : Term S Γ a}
+      (hA : A.concl = x.equal y) (hB : B.concl = y.equal z)
+      (dA : HistoryDerivation S es A) (dB : HistoryDerivation S es B) :
+      HistoryDerivation S es { hyps := union A.hyps B.hyps, concl := x.equal z }
+  | mkComb {es Γ} {a b : Ty} {A B : Sequent S Γ}
+      {f g : Term S Γ (.arr a b)} {x y : Term S Γ a}
+      (hA : A.concl = f.equal g) (hB : B.concl = x.equal y)
+      (dA : HistoryDerivation S es A) (dB : HistoryDerivation S es B) :
+      HistoryDerivation S es
+        { hyps := union A.hyps B.hyps, concl := (f.app x).equal (g.app y) }
+  | abs {es Γ} {a b : Ty} {A : Sequent S Γ} {s t : Term S (a :: Γ) b}
+      (d : HistoryDerivation S es
+        { hyps := (weakenSequent A).hyps, concl := s.equal t }) :
+      HistoryDerivation S es
+        { hyps := A.hyps, concl := (Term.lam s).equal (Term.lam t) }
+  | eqMp {es Γ} {A B : Sequent S Γ} {p q : Term S Γ .bool}
+      (hA : A.concl = p.equal q) (hB : B.concl = p)
+      (dA : HistoryDerivation S es A) (dB : HistoryDerivation S es B) :
+      HistoryDerivation S es { hyps := union A.hyps B.hyps, concl := q }
+  | deduct {es Γ} {A B : Sequent S Γ}
+      (dA : HistoryDerivation S es A) (dB : HistoryDerivation S es B) :
+      HistoryDerivation S es
+        { hyps := union (remove A.hyps B.concl) (remove B.hyps A.concl)
+        , concl := A.concl.equal B.concl }
+  | instType {es Γ} {A : Sequent S Γ} (θ : TypeSub)
+      (d : HistoryDerivation S es A) :
+      HistoryDerivation S es (typeSubstSequent θ A)
+  | instTerm {es Γ Δ} {A : Sequent S Γ} (σ : Sub S Γ Δ)
+      (d : HistoryDerivation S es A) :
+      HistoryDerivation S es (termSubstSequent σ A)
+  | chooseWitness {es Γ} {a : Ty} (p : Term S (a :: Γ) .bool) (w : Term S Γ a)
+      (d : HistoryDerivation S es { hyps := [], concl := p.substitute (Sub.single w) }) :
+      HistoryDerivation S es
+        { hyps := [], concl := p.substitute
+            (Sub.single (Term.choice.app (Term.lam p))) }
+
+/-- Every full history derivation is valid at the history's model pair. Locality is
+preserved by every extension; witness derivations are interpreted at the preceding history. -/
+theorem history_derivation_sound (M : Model S) (hM : M.IsLocal)
+    {es : List (ModelExtension S)} {Γ : List Ty} {s : Sequent S Γ}
+    (d : HistoryDerivation S es s) : Valid (interpretModels es M).I s := by
+  induction d with
+  | core d => exact derivation_sound select_natural (interpretModels _ M).I d
+  | extension d => exact extension_derivation_sound M hM d
+  | weaken e d hOld ih =>
+      change Valid (e.interpret (interpretModels _ M)).I _
+      exact (e.valid_iff (interpretModels _ M) _ hOld
+        fun c _ ↦ interpretModels_isLocal _ hM c).2 ih
+  | @definition es D hFresh =>
+      exact valid_definition_equation D (interpretModels es M).I
+  | specification E hFresh d ih => exact E.valid_gate (interpretModels _ M).I ih
+  | typedef G l hk hrep habs w d ih =>
+      exact G.valid_law (interpretModels _ M)
+        (fun c _ ↦ interpretModels_isLocal _ hM c) (G.witnessAt_of_valid _ w ih) l
+  | addAssum p d ih => exact valid_add_assum (interpretModels _ M).I _ p ih
+  | trans hA hB dA dB ihA ihB =>
+      exact valid_trans (interpretModels _ M).I _ _ _ _ _ hA hB ihA ihB
+  | mkComb hA hB dA dB ihA ihB =>
+      exact valid_mkComb (interpretModels _ M).I _ _ _ _ _ _ hA hB ihA ihB
+  | abs d ih => exact valid_abs (interpretModels _ M).I _ _ _ ih
+  | eqMp hA hB dA dB ihA ihB =>
+      exact valid_eqMp (interpretModels _ M).I _ _ _ _ hA hB ihA ihB
+  | deduct dA dB ihA ihB => exact valid_deduct (interpretModels _ M).I _ _ ihA ihB
+  | instType θ d ih => exact valid_inst_type select_natural (interpretModels _ M).I θ _ ih
+  | instTerm σ d ih => exact valid_inst_term (interpretModels _ M).I σ _ ih
+  | chooseWitness p w d ih => exact valid_choose_from_witness (interpretModels _ M).I p w ih
+
+/-- Canonical admissible models discharge the locality premise of history soundness. -/
+theorem typed_history_derivation_sound {κ : TyConVal} (hκ : κ.IsAdmissible)
+    {es : List (ModelExtension S)} {Γ : List Ty} {s : Sequent S Γ}
+    (d : HistoryDerivation S es s) :
+    Valid (interpretModels es (Model.canonical hκ S)).I s :=
+  history_derivation_sound (Model.canonical hκ S) (Model.canonical_isLocal hκ S) d
+
+/-- The full calculus preserves the existing semantic old-language conservativity result. -/
+theorem history_derivation_old_language_valid {κ : TyConVal} (hκ : κ.IsAdmissible)
+    {es : List (ModelExtension S)} {Γ : List Ty} {s : Sequent S Γ}
+    (d : HistoryDerivation S es s) (hOld : oldLanguageModels es s) :
+    Valid (canonicalConstVal κ S) s :=
+  (typed_global_semantic_conservativity_models hκ es s hOld).1
+    (typed_history_derivation_sound hκ d)
+
+/-- The generic false sentence is underivable in the full history calculus. This uses an
+admissible local model, so history soundness is applied non-vacuously. -/
+theorem history_generic_false_not_derivable (S : Signature)
+    (es : List (ModelExtension S)) :
+    ¬ HistoryDerivation S es { hyps := [], concl := signatureGenericFalseSentence S } := by
+  intro d
+  exact signatureGenericFalseSentence_not_valid S (interpretModels es (Model.default S)).I
+    ⟨fun _ ↦ ⟨()⟩, (interpretModels es (Model.default S)).adm⟩
+    (typed_history_derivation_sound defaultTyCon_isAdmissible d)
+
+end QEDFV.HOL

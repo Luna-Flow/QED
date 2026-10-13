@@ -1,4 +1,7 @@
 import QEDFV.HOL.Soundness
+import QEDFV.HOL.HistoryAuditExamples
+import QEDFV.HOL.DeclarationAllocation
+import QEDFV.HOL.DeclarationAllocationExamples
 
 /-! Reproducible foundation audit for the public Typed HOL core results. -/
 
@@ -10,6 +13,25 @@ import QEDFV.HOL.Soundness
 #print axioms QEDFV.HOL.typed_signature_generic_nonvalid_in_extension
 #print axioms QEDFV.HOL.extension_derivation_sound
 #print axioms QEDFV.HOL.typed_extension_derivation_sound
+#print axioms QEDFV.HOL.history_derivation_sound
+#print axioms QEDFV.HOL.typed_history_derivation_sound
+#print axioms QEDFV.HOL.history_derivation_old_language_valid
+#print axioms QEDFV.HOL.history_generic_false_not_derivable
+#print axioms QEDFV.HOL.unit_absRep_function_valid
+#print axioms QEDFV.HOL.unit_history_composition_nonvacuous
+#print axioms QEDFV.HOL.falseGate_no_witness
+#print axioms QEDFV.HOL.falseGate_witness_not_valid
+#print axioms QEDFV.HOL.falseGate_witness_not_derivable
+#print axioms QEDFV.HOL.unitGate_ids_in_history
+#print axioms QEDFV.HOL.unitGate_not_fresh_after_introduction
+#print axioms QEDFV.HOL.DeclTable.old_declares_after_add
+#print axioms QEDFV.HOL.DeclTable.old_ids_subset_after_add
+#print axioms QEDFV.HOL.DeclTable.compatible_add
+#print axioms QEDFV.HOL.DeclTable.declared_type_unique
+#print axioms QEDFV.HOL.DeclTable.add_allocation_compatible
+#print axioms QEDFV.HOL.trueTable2_compatible
+#print axioms QEDFV.HOL.trueTable2_rep_type_is_stable
+#print axioms QEDFV.HOL.trueTable2_abs_type_is_stable
 #print axioms QEDFV.HOL.Ty.carrier_nonempty
 #print axioms QEDFV.HOL.Ty.denote_congr
 #print axioms QEDFV.HOL.Ty.denote_congr_vars
