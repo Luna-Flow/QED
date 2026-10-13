@@ -5,6 +5,19 @@ pub enum GlobalSig {
 }
 
 ///|
+fn snapshot_sig(sig : GlobalSig) -> GlobalSig {
+  let Sig(scopes) = sig
+  Sig(
+    scopes.map(fn(scope) {
+      scope.map(fn(entry) {
+        let (name, id, ty) = entry
+        (name, id, snapshot_hol_type(ty))
+      })
+    }),
+  )
+}
+
+///|
 /// Signature and admissibility errors.
 pub suberror SigError {
   DuplicateConstName
@@ -143,7 +156,7 @@ fn append_extension_cert(
   witness_digest : String,
 ) -> KernelState {
   let certs = state.theory.extension_certs.copy()
-  certs.push((gate, heads, witness_digest))
+  certs.push((gate, heads.copy(), witness_digest))
   let next = KernelState::{
     sig: state.sig,
     theory: TheoryState::{
@@ -178,7 +191,7 @@ pub fn empty_sig() -> GlobalSig {
 
 ///|
 pub fn sig_push_scope(sig : GlobalSig) -> GlobalSig {
-  match sig {
+  match snapshot_sig(sig) {
     Sig(scopes) => {
       let out = scopes.copy()
       out.push([])
@@ -204,7 +217,7 @@ fn sig_pop_scope(sig : GlobalSig) -> GlobalSig? {
 ///|
 pub fn sig_pop_scope_e(sig : GlobalSig) -> Result[GlobalSig, SigError] {
   match sig_pop_scope(sig) {
-    Some(sig2) => Ok(sig2)
+    Some(sig2) => Ok(snapshot_sig(sig2))
     None => Err(ScopeUnderflow)
   }
 }
@@ -243,7 +256,7 @@ pub fn sig_has_const(sig : GlobalSig, name : String) -> Bool {
 ///|
 pub fn sig_lookup_const(sig : GlobalSig, name : String) -> HolType? {
   match sig_lookup_const_with_id(sig, name) {
-    Some((_, ty)) => Some(ty)
+    Some((_, ty)) => Some(snapshot_hol_type(ty))
     None => None
   }
 }
@@ -309,7 +322,7 @@ fn sig_add_const(sig : GlobalSig, name : String, ty : HolType) -> GlobalSig? {
             let id = sig_next_const_id(sig)
             let out = scopes.copy()
             let top = out[out.length() - 1].copy()
-            top.push((name, id, ty))
+            top.push((name, id, snapshot_hol_type(ty)))
             out[out.length() - 1] = top
             Some(Sig(out))
           }
@@ -337,7 +350,7 @@ fn sig_add_const_with_id(
           } else {
             let out = scopes.copy()
             let top = out[out.length() - 1].copy()
-            top.push((name, id, ty))
+            top.push((name, id, snapshot_hol_type(ty)))
             out[out.length() - 1] = top
             Ok(Sig(out))
           }
@@ -357,13 +370,13 @@ pub fn sig_add_const_idempotent_e(
   match current_scope_lookup(sig, name) {
     Some((_, existing)) =>
       if ty_eq(existing, ty) {
-        Ok(sig)
+        Ok(snapshot_sig(sig))
       } else {
         Err(ConstTypeConflict)
       }
     None =>
       match sig_add_const(sig, name, ty) {
-        Some(sig2) => Ok(sig2)
+        Some(sig2) => Ok(snapshot_sig(sig2))
         None => Err(DuplicateConstName)
       }
   }
@@ -380,7 +393,7 @@ fn sig_mk_const(sig : GlobalSig, name : String) -> Term? {
 ///|
 pub fn sig_mk_const_e(sig : GlobalSig, name : String) -> Result[Term, SigError] {
   match sig_lookup_const_with_id(sig, name) {
-    Some((id, ty)) => Ok(mk_const_bound(name, ty, id))
+    Some((id, ty)) => Ok(mk_const_bound(name, snapshot_hol_type(ty), id))
     None => Err(UnknownConst)
   }
 }
@@ -451,7 +464,7 @@ pub fn empty_kernel_state() -> KernelState {
 
 ///|
 pub fn ks_sig(state : KernelState) -> GlobalSig {
-  state.sig
+  snapshot_sig(state.sig)
 }
 
 ///|
@@ -653,7 +666,8 @@ pub fn ks_extension_cert_at(state : KernelState, idx : Int32) -> ExtensionCert? 
   if idx < 0 || idx >= state.theory.extension_certs.length() {
     None
   } else {
-    Some(state.theory.extension_certs[idx])
+    let (gate, heads, digest) = state.theory.extension_certs[idx]
+    Some((gate, heads.copy(), digest))
   }
 }
 

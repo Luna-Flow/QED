@@ -6,6 +6,18 @@ pub enum HolType {
 }
 
 ///|
+/// Detach mutable type arguments before kernel-held data crosses the boundary.
+/// Used when a theorem or signature entry is created and when kernel-held state
+/// is observed; the public constructors and destructors do not copy, so building
+/// and walking a term stays linear.
+fn snapshot_hol_type(ty : HolType) -> HolType {
+  match ty {
+    TyVal(name) => TyVal(name)
+    TyApp(name, args) => TyApp(name, args.map(snapshot_hol_type))
+  }
+}
+
+///|
 /// Constructors
 pub fn mk_tyvar(name : String) -> HolType {
   TyVal(name)
