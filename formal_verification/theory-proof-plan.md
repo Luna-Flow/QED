@@ -1,198 +1,98 @@
-# Typed HOL Proof Plan
+# Typed HOL proof plan
 
-- Status: Typed HOL is the sole formal proof line.
-- Authority: [QED Typed HOL Core](../doc/attachments/qed_formal_spec.typ).
-- Scope: intrinsically typed core derivations, history-indexed extension
-  derivations (definition, specification and type definition), their semantic
-  soundness at the history's model pair, and non-triviality witnesses.
-- Excluded: MoonBit refinement, parser/tactic correctness, mutable signature
-  provenance, and derivation erasure for a growing theory.
+- Status: active formal work plan
+- Audience: formalization contributors and reviewers
+- Authority: [`qed_formal_spec.typ`](../doc/attachments/qed_formal_spec.typ)
+- Scope: Lean definitions, theorem dependencies and explicit mathematical limits
+- Boundary: this plan does not define MoonBit behavior or certify source-level refinement
+- Last reviewed: 2026-10-14
 
-## Proof Dependency
+The short [branch contract](branch_contract.md) defines promotion order. This
+file is its technical appendix: it names the Lean modules and the theorem
+families that must exist before a branch can be promoted. Cross-dimensional
+status belongs to a machine-readable obligation registry (introduced with the
+verification tooling), not to another hand-maintained matrix here.
 
-1. `HOL/Types.lean` defines the four core types, substitutions, denotations,
-   admissibility, and non-empty carriers.
-2. `HOL/Terms.lean` defines intrinsically typed De Bruijn terms, renaming,
-   capture-avoiding substitution, and type instantiation.
-3. `HOL/Evaluation.lean` defines environments and interpretations and proves
-   renaming, substitution, and beta evaluation laws.
-4. `HOL/Instantiation.lean` proves choice coherence and semantic type
-   instantiation.
-5. `HOL/Rules.lean` proves direct preservation for the core rules, including
-   `valid_add_assum` and witness-based `valid_choose_from_witness`.
-6. `HOL/Derivation.lean` has thirteen constructors, including object-language
-   infinity admission. `derivation_sound` proves
-   soundness by induction, with a case for every constructor.
-7. `HOL/Definitions.lean`, `HOL/Specification.lean`, and
-   `HOL/TypeDefinitions.lean` prove local semantic extension contracts.
-8. `HOL/ExtensionDerivation.lean` defines `ExtensionDerivation S es`, indexed
-   by newest-first histories `es : List (ModelExtension S)` of definition,
-   specification and type-definition steps. Specification and type-definition
-   steps require a witness derivation at the preceding history (for a type
-   definition: `⊢ P w`, hypothesis-free, closed `w`); every step carries history
-   freshness side conditions (constant ids, and the constructor id `k` for a type
-   definition), and old derivations lift (`weaken`) only across steps whose new
-   constants and type constructors are absent from their sequents. The type
-   definition is one constructor `typedef` with a three-valued selector
-   (`TypeDefLaw`: `Abs (Rep a) = a`, `P (Rep a)`, `P r ⊢ Rep (Abs r) = r`).
-   `extension_derivation_sound` is stated at the history's model pair
-   `interpretModels es M` for a local base model `M` (the canonical models are
-   local). The soundness induction does not use the history-freshness premises:
-   they constrain well-formed histories, while local gate freshness is used by the
-   product validity lemmas. This theorem does not establish global consistency of
-   all prior equations. The earlier `Extension κ S` / `interpretSequence`, indexed
-   by one fixed `κ`, remains for the typedef-free sequence-level conservativity.
-9. `HOL/Conservativity.lean` composes finite, old-language validity equivalence
-   for pointwise constant overrides on one fixed signature.
-10. `HOL/Concrete.lean` proves concrete and signature-generic non-derivability.
-11. `HOL/Congruence.lean` proves that evaluation depends only on the type
-    variables (`Term.annotVars`), type-constructor ids (`Term.tyCons`) and
-    constants occurring in a term (`Term.eval_congr`, `Term.eval_congr_κ`,
-    `Term.eval_congr_vars`); `HOL/Transport.lean` lifts this to validity across
-    constructor interpretations (`valid_transport_κ`, `valid_iff_κ`) and derives
-    the old-language statements as corollaries; `HOL/TyConCongruence.lean` has the
-    worked example and the counterexample showing that the sequent's constructor
-    ids cannot be dropped from the hypothesis.
-12. `HOL/TypeDefGeneric.lean` defines the subtype carrier `SubCarrier` (predicate
-    subtype with a witness, `PUnit` without) and its rep/abs laws;
-    `HOL/TypeDefGate.lean` defines `TypeDefGate`, the new constructor interpretation
-    `TypeDefGate.newTyCon` and constant interpretation `TypeDefGate.newConst`, proves
-    the new constructor interpretation admissible, the three Abs/Rep laws as valid
-    sequents about `Rep`/`Abs` terms (`valid_absRep`, `valid_repRange`, `valid_repAbs`;
-    only `valid_repRange` needs the witness hypothesis `WitnessAt`) and old-language
-    invariance of the step (`valid_iff_old`); `HOL/ModelExtension.lean` adds model pairs
-    `Model` and `ModelExtension` as a parallel version of `Extension`;
-    `HOL/TypeDefExamples.lean` has a nonempty and an empty predicate;
-    `HOL/TypeDefLocal.lean` proves that a type-definition step preserves locality
-    of the constant interpretation (`TypeDefGate.newConst_local`).
-    `HOL/ModelExtension.lean` also carries locality and old-language invariance
-    along a history (`interpretModels_isLocal`, `valid_interpretModels_iff`,
-    `typed_global_semantic_conservativity_models`).
-    `HOL/TypeDefDerivationExamples.lean` derives the three laws for a one-element
-    subtype of `bool` at an extended history.
-13. `HOL/Soundness.lean` exports `typed_hol_core_proof_complete`, a package for
-    the checked core and its semantic results. It is not a completeness theorem
-    or a full growing-theory development.
+## Dependency graph
 
-## Connective and Infinity Refinement Contract
+1. `Types.lean` defines `Ty`, substitutions, denotations, admissible carriers and non-empty interpretations.
+2. `Terms.lean` defines intrinsically typed De Bruijn terms, renaming, capture-avoiding substitution and type instantiation.
+3. `Evaluation.lean` proves renaming, substitution and beta evaluation laws.
+4. `Instantiation.lean` proves type-instantiation and choice coherence.
+5. `Rules.lean` proves preservation for the primitive rules, weakening and witness-based choice.
+6. `Derivation.lean` packages the thirteen constructors, including the exact infinity sentence; `derivation_sound` is the induction theorem.
+7. `Definitions.lean`, `Specification.lean` and `TypeDefinitions.lean` prove the local extension laws.
+8. `ModelExtension.lean` and `ExtensionDerivation.lean` interpret newest-first histories of definition, specification and type-definition steps. Witnesses are derivations at the preceding history; typedef laws are selected by `TypeDefLaw`; old derivations lift only when their sequents omit the new identifiers.
+9. `HistoryDerivation.lean` embeds those extension products and closes them under the core rules at one fixed total signature. The examples and negative audits check non-vacuity, empty predicates and repeated identifiers.
+10. `Conservativity.lean`, `Congruence.lean` and `Transport.lean` prove fixed-signature old-language validity transport. `Concrete.lean` supplies non-triviality and non-derivability examples.
+11. `TypeDefGeneric.lean`, `TypeDefGate.lean`, `TypeDefLocal.lean` and `TypeDefDerivationExamples.lean` give the predicate-subtype model, Rep/Abs laws, locality and a concrete one-element subtype.
+12. `Soundness.lean` exports `QEDFV.HOL.typed_hol_core_proof_complete`; it is a package theorem, not a completeness theorem or a growing-theory result.
 
-The Lean `Term` grammar gives truth, falsity, conjunction, implication, universal
-quantification, and existential quantification primitive constructors. The
-kernel frontend currently represents these forms through defined constants, so
-the eventual MoonBit-to-Lean refinement must map each definition to its Typed HOL
-constructor and prove the defining equation through lowering, evaluation,
-substitution, and type instantiation. The infinity registration must lower to
-the exact `indInfinitySentence`; a type match or an occurrence of `ind` alone is
-not evidence of that correspondence.
+The current induction proves validity at the history's model pair. History
+freshness is carried as a well-formedness premise; semantic induction uses the
+local gate conditions and locality of the base model. This distinction is
+intentional and must remain visible in later refinements.
 
-The validity theorem for this sentence uses the fixed interpretation
-`Ty.ind.denote κ ρ = Nat` and the witness `Nat.succ`. It is therefore a theorem
-about the present fixed type grammar, not about every possible carrier for an
-abstract type named `ind`.
+## Kernel-to-Lean correspondence targets
 
-## Kernel-to-Lean Map
-
-| Kernel primitive or extension | Lean representation | What is proved | Boundary |
-| --- | --- | --- | --- |
-| `refl_checked` | `Derivation.refl`; `valid_refl` | Equality reflexivity | Checked |
-| `assume_checked` | `Derivation.assume`; `valid_assume` | Singleton-hypothesis validity | Checked |
-| `add_assum_checked` (#10) | `Derivation.addAssum`; `valid_add_assum` | Weakening by an added boolean assumption | Checked in core calculus |
-| `trans_checked` | `Derivation.trans`; `valid_trans` | Equality transitivity | Checked |
-| `mk_comb_rule_checked` | `Derivation.mkComb`; `valid_mkComb` | Function and argument congruence | Checked |
-| `abs_rule_checked` | `Derivation.abs`; `valid_abs` | Extensionality under a binder | Checked |
-| `beta_rule_checked` | `Derivation.beta`; `valid_beta` | Beta equation | Checked |
-| `eq_mp_checked` | `Derivation.eqMp`; `valid_eqMp` | Boolean equality elimination | Checked |
-| `deduct_antisym_rule_checked` | `Derivation.deduct`; `valid_deduct` | Deduction antisymmetry | Checked |
-| type and term instantiation | `Derivation.instType`, `.instTerm`; `valid_inst_type`, `valid_inst_term` | Typed substitution preservation | Checked |
-| `ks_define_const`, `ks_define_const_thm` | `DefinitionGate`, `ExtensionDerivation.definition`; `extension_derivation_sound` | Defining equation; local RHS freshness is used, history-ID freshness is carried but unused by soundness; the closure field is stated for `Term.annotVars` (matching the kernel's `term_tyvars`), which makes the step preserve locality (`DefinitionGate.withDefinition_local`) | Fixed signature; name audit remains an implementation boundary |
-| `ks_specify_const` | `SpecificationExtension`, `ExtensionDerivation.specification`; `extension_derivation_sound` | Named constant theorem from a witness derivation in the preceding history; local gate freshness is used, history-ID freshness is carried but unused by soundness | Fixed signature; MoonBit certificate remains an implementation boundary |
-| `ks_register_type_definition` | `TypeDefGate`, `ExtensionDerivation.typedef` (selector `TypeDefLaw`), `ModelExtension.typeDefinition`; `extension_derivation_sound`; carrier-level `TypeDefContract` | The three laws `Abs (Rep a) = a`, `P (Rep a)` and `P r ⊢ Rep (Abs r) = r` are derivation conclusions at the extended history, from a mandatory hypothesis-free witness derivation `⊢ P w` at the preceding history; they are valid at the history's model pair (the witness derivation discharges `WitnessAt` through the induction hypothesis and `witnessAt_of_valid`); the new constructor interpretation is admissible; sequents not mentioning `k`, `rep`, `abs` keep their validity along the history (`weaken`) | History freshness of `k`, `rep`, `abs` is carried but unused by soundness; fixed total signature; string-name lowering (including the `ind` reservation question) not modelled; chaining typedef theorems with core rules needs a history-indexed full calculus (not provided); no syntactic erasure of typedef; MoonBit gate not verified |
-| `ks_ind_infinity_axiom` | `Derivation.indInfinity`; `indInfinitySentence` | Exact infinity sentence is valid in every model, witnessed by `Nat.succ` | MoonBit registration gate is not verified; see issue #7 |
-| eta | no kernel primitive found | Not applicable | Not a primitive of the current kernel calculus |
-
-## Acceptance Matrix
-
-| Obligation | Lean evidence | Status |
+| Implementation surface | Lean target | Current boundary |
 | --- | --- | --- |
-| Typed core syntax and non-empty carriers | `HOL/Types.lean`, `HOL/Terms.lean` | proved |
-| Renaming, substitution, beta | `HOL/Evaluation.lean` | proved |
-| Type instantiation and selector coherence | `HOL/Instantiation.lean` | proved |
-| Thirteen derivation-constructor preservation cases, including object-language infinity admission | `HOL/Rules.lean`, `HOL/Derivation.lean`, `HOL/Infinity.lean` | proved |
-| Arbitrary-signature non-triviality | `signatureGenericFalseSentence_not_derivable` | proved |
-| Definition equation under its model override | `valid_definition_equation` | proved semantically |
-| Specification from a closed typed witness | `valid_choose_from_witness`, `SpecificationGate.valid_constant_from_typed_derivation` | proved semantically |
-| Type-variable closure under instantiation | `DefinitionGate.instType_type_vars_closed`, `SpecificationGate.instType_type_vars_closed` | proved |
-| Type, evaluation and cross-model validity congruence over constructor ids and type variables | `Ty.denote_congr`, `Term.eval_congr_κ`, `Term.eval_congr_vars`, `valid_transport_κ`, `valid_iff_κ`, `valid_allEq_one_unchanged`, `valid_allEq_zero_changes` | proved; used by the type-definition gate |
-| Predicate-subtype type-definition laws | `HOL/TypeDefinitions.lean` | proved at carrier level |
-| Type-definition gate: admissible new model | `TypeDefGate.newTyCon_isAdmissible` | proved |
-| Type-definition Abs/Rep laws as valid sequents about `Rep`/`Abs` terms | `TypeDefGate.valid_absRep`, `valid_repAbs` (no witness needed), `valid_repRange` (under `WitnessAt`), `TypeDefGate.laws`, `TypeDefGate.laws_of_witness_valid` | proved semantically; the witness hypothesis is necessary (`falseGate_repRange_not_valid`) and is discharged in the derivation step from `⊢ P w` |
-| Old-language invariance of a type-definition step | `TypeDefGate.valid_iff_old`, `valid_iff_old_canonical`, `ModelExtension.valid_iff` | proved for a local old interpretation (the canonical one is local) |
-| Locality preserved by every declaration step | `DefinitionGate.withDefinition_local`, `SpecificationGate.withSpecification_local`, `TypeDefGate.newConst_local`, `ModelExtension.interpret_isLocal`, `interpretModels_isLocal` | proved (definition and specification need the `annotVars` closure fields) |
-| Old-language invariance and conservativity along a history with type definitions | `valid_interpretModels_iff`, `typed_global_semantic_conservativity_models`, `extension_derivation_old_language_valid` | proved for a local base model; no hypothesis remains over the canonical model |
-| Type-definition derivation constructor and soundness at the history's model pair | `ExtensionDerivation.typedef`, `extension_derivation_sound`, `typed_extension_derivation_sound` | proved |
-| Worked typedef derivation (one-element subtype of `bool`) and non-triviality of the extended model | `unit_absRep_derivation`, `unit_repRange_derivation`, `unit_repAbs_derivation`, `unit_laws_valid`, `unit_old_language_valid`, `unit_model_nontrivial` | proved |
-| Finite old-language validity equivalence | `valid_interpretSequence_iff` | proved for fixed-signature overrides |
-| Object-language infinity admission | `Derivation.indInfinity`, `indInfinitySentence_valid` | proved for the exact sentence in all models |
-| History-indexed definition/specification/type-definition derivations | `extension_derivation_sound` | proved at the history's model pair over a fixed total signature |
-| Growing-signature syntax and semantic interpretation | no history-indexed `Signature` or type constructors | open |
-| User type-constructor syntax and semantics | `Ty.con` node and `TyConVal` interpretation, core calculus sound for every admissible `κ`; validity is invariant under changing `κ` on constructor ids a sequent does not mention; type-definition gate semantics and derivation constructor over model pairs, history-indexed `(κ, I)`; history freshness is carried, not used | partial |
-| MoonBit-to-Lean refinement and theorem provenance | no Typed HOL theorem | refinement excluded; MoonBit lineage invariant is tested separately |
-| Syntactic conservativity/derivation erasure | no growing-theory derivation | open |
+| `refl_checked`, `assume_checked`, `add_assum_checked` | `Derivation.refl`, `.assume`, `.addAssum` | Core semantics proved |
+| `trans_checked`, `mk_comb_rule_checked`, `abs_rule_checked`, `beta_rule_checked` | corresponding derivation constructors | Core semantics proved |
+| `eq_mp_checked`, `deduct_antisym_rule_checked` | `.eqMp`, `.deduct` | Core semantics proved |
+| Type and term instantiation | `.instType`, `.instTerm` | Typed substitution preservation proved |
+| `ks_define_const` and `ks_define_const_thm` | `DefinitionGate`, `ExtensionDerivation.definition` | Fixed signature and local semantic law; name audit is separate |
+| `ks_specify_const` | `SpecificationExtension`, `ExtensionDerivation.specification` | Fixed signature and witness semantics; executable certificate correspondence is open |
+| `ks_register_type_definition` | `TypeDefGate`, `ModelExtension.typeDefinition`, `HistoryDerivation.typedef` | Fixed-signature model-pair semantics; allocation and erasure are open |
+| `ks_ind_infinity_axiom` | `Derivation.indInfinity`, `indInfinitySentence` | Exact Lean sentence proved; MoonBit gate correspondence is open |
 
-The levels of extension evidence must remain distinct: local semantic laws,
-history-indexed derivations over a fixed signature, growing-signature
-derivations, and syntactic erasure are different results. This development
-proves the first two where listed; it does not identify them with the latter two.
-In particular, type-definition conservativity here is semantic (old-language
-validity along a history); typedef erasure would need a relativisation
-translation and is not claimed.
+The frontend currently represents logical connectives through defined constants,
+while the Lean term grammar has primitive connective constructors. A future
+refinement must prove the translation, evaluation, substitution and instantiation
+compatibility for each definition. Seeing the right name or an `ind` occurrence
+does not establish that correspondence.
 
-## Open Kernel/Specification Issues
+## Mathematical limits
 
-- [Issue #7](https://github.com/Luna-Flow/QED/issues/7): the MoonBit infinity
-  anchor gate accepts a theorem that merely mentions `ind`; Lean proves the
-  exact object-language sentence but does not certify that executable gate.
-- [Issue #8](https://github.com/Luna-Flow/QED/issues/8): the specification gate
-  witness certificate differs from the mathematical witness contract. The Lean
-  `SpecificationGate` is a semantic object, not a proof of MoonBit certificate
-  validation.
-- [Issue #9](https://github.com/Luna-Flow/QED/issues/9): definition
-  non-circularity is checked by constant name. Lean uses `DefinitionGate.fresh`
-  to prove the local defining equation, but the separate history-ID freshness
-  premise in `ExtensionDerivation.definition` is unused by soundness and does
-  not prove the global dependency audit.
-- [Issue #10](https://github.com/Luna-Flow/QED/issues/10): `add_assum_checked`
-  was absent from the mapping. It now maps to `Derivation.addAssum` and has a
-  direct semantic preservation proof.
-- [Issue #13](https://github.com/Luna-Flow/QED/issues/13): PR CI should validate
-  MoonBit and Lean. This work adds the cached Lean job; MoonBit refinement is
-  still a separate soundness obligation.
+The current development uses a total `Signature := Nat → Ty` and explicit
+constructor interpretations. It proves fixed-signature semantic validity and
+old-language transport. It does not yet prove:
 
-## Trust Basis
+- a growing signature with embeddings, allocation and model transport;
+- preservation of every committed declaration equation across growth;
+- MoonBit representation, state or theorem-constructor refinement;
+- parser, elaborator, tactic, replay or mutable-scope correctness;
+- syntactic type-definition erasure, which would require a relativisation translation;
+- an independent checker for exported derivation certificates.
 
-`formal_verification/axioms.txt` records the `#print axioms` output for the
-public core proof and representative metatheorems. No project-defined axiom is
-used to assert soundness. The Lean/mathlib foundations reported by the audit are
-`propext`, `Classical.choice`, and `Quot.sound`.
+These limits are evidence boundaries, not reasons to weaken the normative
+specification. The relevant open entries are `HOL-GROW-001`,
+`HOL-INFINITY-001`, `KERNEL-BOUNDARY-001`, `KERNEL-PROVENANCE-001`,
+`FRONTEND-LOWERING-001` and `REFINEMENT-001` in the registry.
+
+## Planned growing-signature obligations
+
+The next branch must establish the following in order:
+
+| ID | Required result | Acceptance evidence |
+| --- | --- | --- |
+| `GROW-SIG-001` | A declaration state records allocated constant schemas and constructor arities, rejects duplicate or forward references, and preserves old entries | Extend `DeclarationAllocation.lean` with constructor allocation and state well-formedness |
+| `GROW-SIG-002` | Signature embeddings transport types, contexts and intrinsically typed terms and commute with substitution and instantiation | Embedding identity/composition and typing lemmas |
+| `GROW-SIG-003` | Evaluation and sequent validity transport along an embedding | Term evaluation transport followed by sequent validity transport |
+| `GROW-SIG-004` | Every extension step preserves old commitments and has a model extension compatible with the embedding | Definition, specification and typedef cases with explicit committed-equation preservation |
+| `GROW-SIG-005` | A growing-history derivation composes the transported core and extension rules | History induction over the growing state, followed by a soundness theorem |
+
+No proposed obligation becomes a published result until its Lean declarations,
+axiom audit and registry evidence are present.
 
 ## Verification
 
-- `lake build`: all targets in `formal_verification` build.
-- Axioms are captured by the checked-in `HOL/AxiomAudit.lean` declarations and
-  recorded in `axioms.txt`.
-- Manuscript anchors are compiled against the named Lean modules.
-- `typst compile` and `lunadoc check . --compile` validate the normative
-  specification and its references.
+Build the Lean project and run the axiom audit from `formal_verification`:
 
-The extension interpretation is still over a fixed total `Signature`. Histories are
-interpreted over model pairs `(κ, I)`: the type-definition step changes `κ`, so the
-earlier `Extension κ S`, indexed by one fixed `κ`, cannot represent it and is kept only
-for the typedef-free sequence-level conservativity. The soundness induction needs the
-base model to be local (`Model.IsLocal`, true of the canonical models) because
-old-language transport across a type-definition step compares valuations that differ in
-variables a constant does not depend on; every step preserves locality, which required
-the definition and specification closure fields to be stated for `Term.annotVars` (the
-kernel's `term_tyvars` counts binder domains) instead of `Term.typeVars`. Derivations
-chain only inside `core`: a consequence that uses a derived typedef law together with
-core rules needs a history-indexed full calculus, which is not part of this
-development. These limitations are explicit in the current theorem statements.
+```text
+lake build
+lake env lean QEDFV/HOL/AxiomAudit.lean
+```
+
+The checked-in `formal_verification/axioms.txt` records the
+current foundations: `propext`, `Classical.choice` and `Quot.sound`.

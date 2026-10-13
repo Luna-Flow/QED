@@ -7402,1111 +7402,1135 @@ msgid "Formal specification changelog"
 msgstr "形式仕様の変更履歴"
 
 #: manual/qed_formal_spec_changelog.md:3
+msgid "Status: archival reference"
+msgstr "状態：アーカイブ参照用"
+
+#: manual/qed_formal_spec_changelog.md:4
+msgid "Audience: specification maintainers and reviewers"
+msgstr "対象読者：仕様の保守担当者とレビュー担当者"
+
+#: manual/qed_formal_spec_changelog.md:5
+msgid "Authority: the current Typst specification remains normative; this file records revisions only"
+msgstr "権威：現行の Typst 仕様が引き続き規範であり、本ファイルは改訂のみを記録する"
+
+#: manual/qed_formal_spec_changelog.md:6
+msgid "Scope: historical changes to the formal specification and its Lean evidence"
+msgstr "範囲：形式仕様とその Lean による根拠の歴史的な変更"
+
+#: manual/qed_formal_spec_changelog.md:7
+msgid "Last reviewed: 2026-10-14"
+msgstr "最終レビュー：2026-10-14"
+
+#: manual/qed_formal_spec_changelog.md:9
+msgid "This is a history file, not a current proof-status entry point. Use the [branch contract](../../formal_verification/branch_contract.md) and the [Typed HOL proof plan](../../formal_verification/theory-proof-plan.md) for current status."
+msgstr "これは履歴ファイルであり、現在の証明状況の入口ではない。現在の状況については、[ブランチ契約](../../formal_verification/branch_contract.md)と [Typed HOL 証明計画](../../formal_verification/theory-proof-plan.md)を参照すること。"
+
+#: manual/qed_formal_spec_changelog.md:14
 msgid "2026-10-13 Type definitions as history-indexed derivations"
 msgstr "2026-10-13 履歴で添字付けられた導出としての型定義"
 
-#: manual/qed_formal_spec_changelog.md:5
+#: manual/qed_formal_spec_changelog.md:16
 msgid "`ExtensionDerivation` is indexed by histories of `ModelExtension` steps and has a `typedef` constructor: one constructor with the selector `TypeDefLaw` (`Abs (Rep a) = a`, `P (Rep a)`, `P r ⊢ Rep (Abs r) = r`), a mandatory hypothesis-free witness derivation `⊢ P w` at the preceding history, and carried freshness of `k`, `rep`, `abs`. `weaken` across a type definition requires the sequent not to mention `k`, `rep` or `abs`."
 msgstr "`ExtensionDerivation` は `ModelExtension` ステップの履歴で添字付けられ、`typedef` 構成子を持ちます。これは選択子 `TypeDefLaw`（`Abs (Rep a) = a`、`P (Rep a)`、`P r ⊢ Rep (Abs r) = r`）を持つ一つの構成子で、直前の履歴での仮定なしの証拠導出 `⊢ P w` を必須とし、`k`、`rep`、`abs` の新鮮さを持ち回ります。型定義をまたぐ `weaken` は、シークエントが `k`、`rep`、`abs` に言及しないことを要求します。"
 
-#: manual/qed_formal_spec_changelog.md:10
+#: manual/qed_formal_spec_changelog.md:21
 msgid "`extension_derivation_sound` now returns validity at the history's model pair `(κ, I)` (`interpretModels`) for a local base model; the typed wrappers use the canonical models. This changes the statement of the earlier theorem (histories of `Extension κ S` over a fixed `κ` are replaced by histories of `ModelExtension`)."
 msgstr "`extension_derivation_sound` は、局所的な基底モデルに対して、当該履歴のモデル対 `(κ, I)`（`interpretModels`）での妥当性を返すようになりました。型付きラッパーは標準モデルを使います。これにより以前の定理の主張が変わります（固定された `κ` 上の `Extension κ S` の履歴は `ModelExtension` の履歴に置き換えられます）。"
 
-#: manual/qed_formal_spec_changelog.md:14
+#: manual/qed_formal_spec_changelog.md:25
 msgid "The definition and specification closure fields are now stated for `Term.annotVars` (the kernel's `term_tyvars` counts binder domains); `type_vars_closed` and `instType_type_vars_closed` are kept for `Term.typeVars` as consequences."
 msgstr "定義と仕様指定の閉包フィールドは `Term.annotVars` で述べるようになりました（カーネルの `term_tyvars` は束縛子の定義域を数えます）。`type_vars_closed` と `instType_type_vars_closed` は帰結として `Term.typeVars` について残しています。"
 
-#: manual/qed_formal_spec_changelog.md:17
+#: manual/qed_formal_spec_changelog.md:28
 msgid "Proved that every declaration step preserves locality, hence `valid_interpretModels_iff`, `typed_global_semantic_conservativity_models` and `extension_derivation_old_language_valid` for histories with type definitions."
 msgstr "すべての宣言ステップが局所性を保存することを証明し、これにより型定義を含む履歴について `valid_interpretModels_iff`、`typed_global_semantic_conservativity_models`、`extension_derivation_old_language_valid` が得られます。"
 
-#: manual/qed_formal_spec_changelog.md:20
+#: manual/qed_formal_spec_changelog.md:31
 msgid "Worked example: the one-element subtype of `bool` with its witness derivation, the three laws as derivations, an old-language theorem lifted with `weaken`, and non-triviality of the extended model."
 msgstr "具体例：`bool` の一要素部分型とその証拠導出、導出としての三つの法則、`weaken` で持ち上げた旧言語の定理、拡張モデルの非自明性。"
 
-#: manual/qed_formal_spec_changelog.md:23
-msgid "Not claimed: freshness used by soundness, a history-indexed full calculus, syntactic erasure of a type definition (relativisation), string-name lowering, MoonBit refinement."
-msgstr "主張しないこと：健全性の証明での新鮮さの利用、履歴で添字付けられた完全な計算体系、型定義の構文的消去（相対化）、文字列名への下げ込み、MoonBit の精緻化。"
+#: manual/qed_formal_spec_changelog.md:34
+msgid "Not claimed: freshness used by the semantic soundness induction, growing-signature allocation, syntactic erasure of a type definition (relativisation), string-name lowering, or MoonBit refinement. The later `HistoryDerivation` relation closes the fixed-signature history under the supported core inference rules."
+msgstr "主張していないもの：意味論的健全性の帰納法で用いる新鮮性、成長するシグネチャの割り当て、型定義の構文的な消去（相対化）、文字列名のローワリング、および MoonBit のリファインメント。その後の `HistoryDerivation` 関係は、サポート対象のコア推論規則のもとで、固定シグネチャの履歴を閉じる。"
 
-#: manual/qed_formal_spec_changelog.md:26
+#: manual/qed_formal_spec_changelog.md:39
 msgid "2026-10-13 Semantics of a type-definition gate"
 msgstr "2026-10-13 型定義ゲートの意味論"
 
-#: manual/qed_formal_spec_changelog.md:28
+#: manual/qed_formal_spec_changelog.md:41
 msgid "Added `TypeDefGate` (constructor id, arity with parameters by index, representation type, closed predicate, Rep and Abs ids of the total signature) with the side conditions `Term.annotVars`-closure over the parameters, `k` not occurring in the predicate, `rep ≠ abs`, and `rep`, `abs` not occurring in the predicate. History freshness of `k`, `rep` and `abs` is deliberately not a gate field."
 msgstr "`TypeDefGate`（構成子 id、添字でパラメータを表すアリティ、表現型、閉じた述語、全域シグネチャ内の Rep と Abs の id）を追加した。付随条件は、述語の `Term.annotVars` がパラメータに収まること、`k` が述語に現れないこと、`rep ≠ abs`、および `rep`・`abs` が述語に現れないことである。`k`・`rep`・`abs` の宣言履歴に対する新鮮さは、意図的にゲートのフィールドとしていない。"
 
-#: manual/qed_formal_spec_changelog.md:33
+#: manual/qed_formal_spec_changelog.md:46
 msgid "Added the model step `TypeDefGate.interpret`: the new constructor interpretation sends `(k, n, as)` to the predicate subtype of the representation type, evaluated in the old model with the parameters at `as` and every other variable at `PUnit`, when the predicate has a witness there, and to `PUnit` otherwise; the new constants interpret `rep` by `Subtype.val` and `abs` by the abstraction of `PredicateWitness`. Proved the new constructor interpretation admissible."
 msgstr "モデルステップ `TypeDefGate.interpret` を追加した。述語が `(k, n, as)` で証人を持つとき、新しい構成子解釈はそれを表現型の述語部分型（旧モデルで評価し、パラメータは `as`、他の型変数は `PUnit`）へ送り、そうでなければ `PUnit` へ送る。新しい定数は `rep` を `Subtype.val` に、`abs` を `PredicateWitness` の抽象に解釈する。新しい構成子解釈が許容的であることを証明した。"
 
-#: manual/qed_formal_spec_changelog.md:39
+#: manual/qed_formal_spec_changelog.md:52
 msgid "Proved the three laws as valid sequents about Rep and Abs terms in the new model: `Abs (Rep a) = a` and `P r ⊢ Rep (Abs r) = r` unconditionally, and `P (Rep a)` under the witness hypothesis `TypeDefGate.WitnessAt` (the semantic form of the kernel's hypothesis-free witness theorem; `witnessAt_of_valid` discharges it from a valid `P w`). A worked pair of gates shows the hypothesis cannot be dropped."
 msgstr "三つの法則を、新しいモデルにおける Rep と Abs の項に関する妥当なシーケントとして証明した。`Abs (Rep a) = a` と `P r ⊢ Rep (Abs r) = r` は無条件に、`P (Rep a)` は証人仮定 `TypeDefGate.WitnessAt`（カーネルの仮定なし証人定理の意味論的な形。`witnessAt_of_valid` が妥当な `P w` からそれを導く）の下で成り立つ。具体的な一組のゲートにより、この仮定は外せないことを示した。"
 
-#: manual/qed_formal_spec_changelog.md:44
+#: manual/qed_formal_spec_changelog.md:57
 msgid "Proved old-language invariance of the step (`TypeDefGate.valid_iff_old`) for sequents mentioning neither `k`, `rep` nor `abs`. It needs locality (`ConstVal.Local`) of the old interpretation on the sequent's constants; the canonical interpretation is local."
 msgstr "このステップの旧言語不変性（`TypeDefGate.valid_iff_old`）を、`k` も `rep`・`abs` も含まないシーケントに対して証明した。旧解釈がシーケントの定数上で局所的（`ConstVal.Local`）であることを要し、標準解釈は局所的である。"
 
-#: manual/qed_formal_spec_changelog.md:47
-msgid "Added `Model`, `ModelExtension` (definition, specification and type-definition steps over model pairs), `ModelExtension.interpret` and `ModelExtension.valid_iff` as a parallel version of `Extension` (the earlier `Extension` with `TypeDefContract` is unchanged). The step is not yet a constructor of `ExtensionDerivation`, and `interpretModels` has no sequence-level equivalence theorem: that needs locality to be carried through definition steps."
-msgstr "`Extension` の並行版として `Model`、`ModelExtension`（モデル対上の定義・仕様・型定義ステップ）、`ModelExtension.interpret`、`ModelExtension.valid_iff` を追加した（`TypeDefContract` を持つ従来の `Extension` は変更しない）。このステップはまだ `ExtensionDerivation` の構成子ではなく、`interpretModels` には列レベルの同値定理がない。そのためには局所性を各定義ステップへ引き継ぐ必要がある。"
+#: manual/qed_formal_spec_changelog.md:60
+msgid "Added `Model`, `ModelExtension` (definition, specification and type-definition steps over model pairs), `ModelExtension.interpret` and `ModelExtension.valid_iff` as a parallel version of `Extension` (the earlier `Extension` with `TypeDefContract` is unchanged). The step is now a constructor of `ExtensionDerivation`; locality is carried through definition steps, yielding the history-level equivalence theorem. The separate `HistoryDerivation` relation now embeds these products and closes them under the core rules at a fixed total signature."
+msgstr "`Model`、`ModelExtension`（モデル対に対する定義・仕様・型定義のステップ）、`ModelExtension.interpret`、`ModelExtension.valid_iff` を、`Extension` の並行版として追加した（`TypeDefContract` を伴う従来の `Extension` は変更しない）。このステップは `ExtensionDerivation` のコンストラクタになった。局所性は定義ステップを通じて引き継がれ、履歴レベルの同値定理が得られる。独立した `HistoryDerivation` 関係は、これらの成果物を埋め込み、固定された全体シグネチャのもとでコア規則により閉じるようになった。"
 
-#: manual/qed_formal_spec_changelog.md:53
+#: manual/qed_formal_spec_changelog.md:67
 msgid "2026-10-13 Congruence over constructor interpretations"
 msgstr "2026-10-13 構成子解釈にわたる合同性"
 
-#: manual/qed_formal_spec_changelog.md:55
+#: manual/qed_formal_spec_changelog.md:69
 msgid "Added `Ty.tyCons` and `Term.tyCons` (constructor ids occurring in types and in binder, variable and constant-instance annotations), `Term.annotVars` (type variables in every annotation, including an unused binder's domain), and their behaviour under substitution and instantiation."
 msgstr "`Ty.tyCons` と `Term.tyCons`（型、および束縛子・変数・定数インスタンスの注釈に現れる型構成子 ID）、`Term.annotVars`（未使用の束縛子の定義域を含む、すべての注釈中の型変数）を追加し、置換と具体化のもとでの振る舞いを証明しました。"
 
-#: manual/qed_formal_spec_changelog.md:59
+#: manual/qed_formal_spec_changelog.md:73
 msgid "Proved `Ty.denote_congr`, `Ty.denote_congr_vars`, the general `Term.eval_congr` and its specialisations `Term.eval_congr_κ` and `Term.eval_congr_vars` (`HEq` statements). `Term.eval_agree` is now a corollary."
 msgstr "`Ty.denote_congr`、`Ty.denote_congr_vars`、一般形の `Term.eval_congr` とその特殊化 `Term.eval_congr_κ`・`Term.eval_congr_vars`（いずれも `HEq` の主張）を証明しました。`Term.eval_agree` はその系になりました。"
 
-#: manual/qed_formal_spec_changelog.md:62
+#: manual/qed_formal_spec_changelog.md:76
 msgid "Added `valid_transport_κ` and `valid_iff_κ`: validity is invariant when the constructor interpretation changes on ids the sequent does not mention. `valid_transport`, `valid_old_language_iff` and `valid_definition_old_language_iff` keep their statements and are derived from the general lemmas. The statements need `Admissible` to coincide for the two interpretations, and both the hypothesis on the sequent's constructor ids and the admissibility hypothesis are shown necessary by an example."
 msgstr "`valid_transport_κ` と `valid_iff_κ` を追加しました。シーケントが言及しない ID 上でのみ構成子解釈が変わる場合、妥当性は保たれます。`valid_transport`、`valid_old_language_iff`、`valid_definition_old_language_iff` は主張を変えず、一般の補題から導かれます。これらの主張は二つの解釈で `Admissible` が一致することを必要とし、シーケントの構成子 ID に関する仮定と許容性の仮定はどちらも反例によって必要であることが示されています。"
 
-#: manual/qed_formal_spec_changelog.md:69
+#: manual/qed_formal_spec_changelog.md:83
 msgid "`Term.typeVars` is unchanged and still omits an unused binder's domain; `Term.annotVars` is the support on which evaluation depends. No typedef gate, history-indexed interpretation or derivation constructor is added."
 msgstr "`Term.typeVars` は変更せず、未使用の束縛子の定義域は引き続き含めません。評価が依存する台は `Term.annotVars` です。typedef ゲート、履歴で添字付けた解釈、導出構成子は追加していません。"
 
-#: manual/qed_formal_spec_changelog.md:73
+#: manual/qed_formal_spec_changelog.md:87
 msgid "2026-10-13 Type-constructor nodes and constructor interpretations"
 msgstr "2026-10-13 型構成子ノードと構成子解釈"
 
-#: manual/qed_formal_spec_changelog.md:75
+#: manual/qed_formal_spec_changelog.md:89
 msgid "Added `Ty.con k n args` and the constructor interpretation `TyConVal` (default: every constructor denotes `PUnit`) to the Lean development. `Ty.denote`, `Admissible`, `ConstVal`, evaluation, instantiation, the rules, `Derivation`, extension histories and the soundness package are parameterized by it; the core theorems hold for every constructor interpretation. No user type constructor or typedef semantics is added, and the MoonBit implementation is unchanged."
 msgstr "Lean 開発に `Ty.con k n args` と構成子解釈 `TyConVal`（既定では全構成子が `PUnit` を表す）を追加しました。`Ty.denote`、`Admissible`、`ConstVal`、評価、具体化、規則、`Derivation`、拡張履歴、健全性パッケージはこれをパラメータとして持ち、中核の定理はあらゆる構成子解釈で成立します。ユーザー型構成子や typedef の意味論は追加しておらず、MoonBit 実装も変更していません。"
 
-#: manual/qed_formal_spec_changelog.md:82
+#: manual/qed_formal_spec_changelog.md:96
 msgid "2026-10-12 Detailed mathematical exposition restored"
 msgstr "2026-10-12 詳細な数学的記述を復元"
 
-#: manual/qed_formal_spec_changelog.md:84
+#: manual/qed_formal_spec_changelog.md:98
 msgid "Restored the original page design, callouts, diagrams, two-part structure, named-boundary and scoped-signature discussion, dictionary-passing blueprint, and detailed validation appendices. This revision supersedes the condensed eight-page rewrite while retaining the Typed HOL-only proof policy."
 msgstr "元のページ設計、注記枠、図、二部構成、名前付き境界とスコープ付きシグネチャの議論、辞書渡しの設計案、および詳細な検証付録を復元した。本改訂は簡略化した8ページの書き直し版を置き換え、Typed HOL のみを証明の主軸とする方針を維持する。"
 
-#: manual/qed_formal_spec_changelog.md:88
+#: manual/qed_formal_spec_changelog.md:102
 msgid "Expanded the intrinsic calculus and gave direct mathematical proofs for nonempty carriers, renaming, substitution, beta, type instantiation, selector coherence, all ten primitive rules, inductive soundness, semantic extension contracts, finite validity conservativity, and concrete non-derivability."
 msgstr "内在的に型付けされた計算体系を詳述し、担体の非空性、変数名変更、代入、beta、型のインスタンス化、選択演算子の整合性、全10個の原始規則、帰納的な健全性、意味論的拡張契約、有限列に対する妥当性の保守性、および具体的な導出不能性について直接的な数学的証明を示した。"
 
-#: manual/qed_formal_spec_changelog.md:92
+#: manual/qed_formal_spec_changelog.md:106
 msgid "Following Krantz's mathematical-writing guidance, distinguished type contexts from assumption lists and named contexts, object equality from meta equality, derivability from validity, and semantic interpretations from frontend instance stores. Defined type-variable support exactly as in Lean and replaced oversized symbolic premises with explicit hypotheses and structured prose."
 msgstr "Krantz の数学執筆指南に従い、型文脈を仮定リストおよび名前付き文脈から、対象言語の等式をメタ言語の等式から、導出可能性を意味論的妥当性から、意味論的解釈をフロントエンドのインスタンスストアから区別した。型変数の台を Lean と完全に一致する形で定義し、長すぎる記号的前提を明示的な仮定と構造化した文章に置き換えた。"
 
-#: manual/qed_formal_spec_changelog.md:97
+#: manual/qed_formal_spec_changelog.md:111
 msgid "Added adjacent Lean source/declaration annotations and a proof trace matrix. All 116 distinct referenced names pass Lean `#check`, and their annotated source modules were checked. Typst produces a 40-page manuscript; every page was rendered and reviewed, including the equations, diagrams, and tables."
 msgstr "記述のそばに Lean のソースと宣言の注記を加え、証明追跡表を設けた。参照する116個の異なる名前はすべて Lean の `#check` を通過し、記載したソースモジュールも確認した。Typst は40ページの原稿を生成し、数式、図、表を含む全ページを描画して確認した。"
 
-#: manual/qed_formal_spec_changelog.md:101
+#: manual/qed_formal_spec_changelog.md:115
 msgid "Retained frontend results as explicit proof obligations. Dictionary realization starts from schema typing and prerequisite law witnesses rather than assuming its own acceptance checks; recursive resolution requires decrease after type instantiation. No deleted approximation theorem is used as proof evidence."
 msgstr "フロントエンドの結果は明示的な証明義務として残した。辞書の実現は自身の受入検査を仮定せず、スキーマの型付けと前提の法則証拠から出発する。再帰的な解決では型のインスタンス化後に尺度が減少することを要求する。削除済みの近似定理を証明の根拠には用いていない。"
 
-#: manual/qed_formal_spec_changelog.md:105
+#: manual/qed_formal_spec_changelog.md:119
 msgid "The Lean theorem statements and MoonBit implementation are unchanged by this exposition revision. MoonBit refinement, implementation repair for issue #15, new type-constructor integration, and syntactic extension erasure remain open."
 msgstr "本記述改訂では Lean の定理文と MoonBit 実装を変更していない。MoonBit のリファインメント、issue #15 の実装修正、新しい型構成子の統合、および構文的な拡張消去は未完了である。"
 
-#: manual/qed_formal_spec_changelog.md:109
+#: manual/qed_formal_spec_changelog.md:123
 msgid "2026-10-12 Typed HOL-only specification rewrite"
 msgstr "2026-10-12 Typed HOL のみを残す仕様の書き直し"
 
-#: manual/qed_formal_spec_changelog.md:111
+#: manual/qed_formal_spec_changelog.md:125
 msgid "Replaced the accumulated implementation-oriented manuscript with a concise presentation of the typed calculus, semantics, primitive rules, proof dependency, extension contracts, and exact proof boundary."
 msgstr "蓄積された実装中心の原稿を、型付き計算体系、意味論、原始規則、証明依存関係、拡張契約、正確な証明境界を簡潔に提示する文書に置き換えました。"
 
-#: manual/qed_formal_spec_changelog.md:114
+#: manual/qed_formal_spec_changelog.md:128
 msgid "Removed all non-HOL Lean modules from `formal_verification/QEDFV`; the retained library contains only `QEDFV/HOL` and its public soundness entry point."
 msgstr "`formal_verification/QEDFV` から非 HOL の Lean モジュールをすべて削除しました。残したライブラリは `QEDFV/HOL` と公開健全性エントリーポイントだけを含みます。"
 
-#: manual/qed_formal_spec_changelog.md:116
+#: manual/qed_formal_spec_changelog.md:130
 msgid "Rewrote the proof plan, conformance guide, audit matrix, and current workspace status around the Typed HOL mainline. Historical entries below record prior states and are superseded where they describe retained approximate modules or the former specification structure."
 msgstr "Typed HOL 主系統に沿って証明計画、適合性ガイド、監査マトリックス、現在のワークスペース状況を書き直しました。以下の履歴は過去の状態を記録します。近似モジュールの保持や従来の仕様構造についての記述には、現在の記録が優先します。"
 
-#: manual/qed_formal_spec_changelog.md:120
+#: manual/qed_formal_spec_changelog.md:134
 msgid "Verified the distinction between semantic validity conservativity and syntactic derivation erasure; only the former is claimed by the current Lean theorem."
 msgstr "意味論的妥当性の保守性と構文的な導出消去の違いを確認しました。現在の Lean 定理が主張するのは前者だけです。"
 
-#: manual/qed_formal_spec_changelog.md:124
+#: manual/qed_formal_spec_changelog.md:138
 msgid "2026-10-12 Typed HOL mainline and audit status"
 msgstr "2026-10-12 Typed HOL 主系統と監査状況"
 
-#: manual/qed_formal_spec_changelog.md:126
+#: manual/qed_formal_spec_changelog.md:140
 msgid "Integrated `HOL/Concrete.lean`, `HOL/TypeDefinitions.lean`, `HOL/Definitions.lean`, `HOL/Specification.lean`, `HOL/Transport.lean`, `HOL/Conservativity.lean`, and the public `HOL/Soundness.lean` entry point into the aggregate Lean target."
 msgstr "`HOL/Concrete.lean`、`HOL/TypeDefinitions.lean`、`HOL/Definitions.lean`、`HOL/Specification.lean`、`HOL/Transport.lean`、`HOL/Conservativity.lean` と公開 `HOL/Soundness.lean` エントリーポイントを集約 Lean ターゲットへ統合しました。"
 
-#: manual/qed_formal_spec_changelog.md:129
+#: manual/qed_formal_spec_changelog.md:143
 msgid "Closed the remaining Typed HOL semantic layer: `HOL/Instantiation.lean` now constructs `select_natural`, `HOL/Evaluation.lean` provides a canonical constant valuation, and `HOL/Conservativity.lean` proves validity invariance for every finite sequence of definition, specification, and typedef interpretations. `HOL/Soundness.lean` exposes canonical model existence, extension soundness, and the concrete consistency witness for every old-language finite extension."
 msgstr "残る Typed HOL 意味論層を完了しました。`HOL/Instantiation.lean` は `select_natural` を構成し、`HOL/Evaluation.lean` は標準的な定数評価を与え、`HOL/Conservativity.lean` は定義・仕様指定・型定義の解釈からなる任意の有限列で妥当性が不変であることを証明します。`HOL/Soundness.lean` は標準モデルの存在、拡張での健全性、旧言語の有限拡張に対する具体的な無矛盾性の証人を公開します。"
 
-#: manual/qed_formal_spec_changelog.md:135
+#: manual/qed_formal_spec_changelog.md:149
 msgid "Typed HOL now proves constructed carrier non-emptiness, the ten typed rule capsules, general open-context `ABS`, exact assumption discharge `DEDUCT`, typed `INST_TYPE` and `INST`, and indexed `derivation_sound` with no local `sorry`, `axiom`, or `admit` declarations. `select_natural` constructs the required choice coherence, and definition/specification gates explicitly record their type-variable closure conditions."
 msgstr "Typed HOL は、構成された台集合の非空性、10 個の型付き規則、一般の開いた文脈での `ABS`、正確な仮定の解除 `DEDUCT`、型付き `INST_TYPE` と `INST`、添字付き `derivation_sound` を、局所的な `sorry`、`axiom`、`admit` 宣言なしで証明します。`select_natural` が必要な選択の整合性を構成し、定義・仕様指定ゲートは型変数の閉包条件を明示的に記録します。"
 
-#: manual/qed_formal_spec_changelog.md:141
+#: manual/qed_formal_spec_changelog.md:155
 msgid "Typed semantic contracts now cover typedef non-emptiness and Abs/Rep laws, fresh-constant definition equations, specification validity from a typed witness, bidirectional old-language validity invariance for definition/specification extensions, finite extension composition, and validity transport for old-language sequents under constant agreement. `HOL/Transport.lean` contains the shared transport layer."
 msgstr "型付き意味論契約は、型定義の非空性と Abs/Rep 法則、新鮮な定数の定義方程式、型付き証人による仕様指定の妥当性、定義・仕様指定拡張における旧言語の双方向の妥当性不変性、有限拡張の合成、定数解釈が一致する場合の旧言語シークエントの妥当性移送を扱います。`HOL/Transport.lean` は共通の移送層です。"
 
-#: manual/qed_formal_spec_changelog.md:147
+#: manual/qed_formal_spec_changelog.md:161
 msgid "`HOL/Concrete.lean` proves a closed `succ 0 = 0` countermodel and non-derivability result, giving a typed non-triviality witness."
 msgstr "`HOL/Concrete.lean` は閉じた `succ 0 = 0` の反例モデルと導出不能性を証明し、型付き非自明性の証人を与えます。"
 
-#: manual/qed_formal_spec_changelog.md:149
+#: manual/qed_formal_spec_changelog.md:163
 msgid "Verification: `lake build` passed with **642 jobs**. The axiom scan for all public Typed HOL entry points reports only `propext`, `Classical.choice`, and `Quot.sound`; the Typed HOL tree contains no local `sorry`, `axiom`, or `admit`."
 msgstr "検証：`lake build` は **642 ジョブ**で成功しました。公開 Typed HOL エントリーポイントすべての公理検査は `propext`、`Classical.choice`、`Quot.sound` のみを報告します。Typed HOL ツリーに局所的な `sorry`、`axiom`、`admit` はありません。"
 
-#: manual/qed_formal_spec_changelog.md:152
+#: manual/qed_formal_spec_changelog.md:166
 msgid "The Typed HOL semantic proof is complete. Remaining work is explicitly outside this proof scope: distinct-state syntactic erasure, the legacy `Lean.Expr`/MoonBit boundary, concrete implementation transfer, and the #15 theorem-provenance bug."
 msgstr "Typed HOL の意味論証明は完了しました。残る作業は明示的に証明範囲外です。異なる状態間の構文的消去、従来の `Lean.Expr`/MoonBit 境界、具体的実装への移行、および #15 の定理出自の欠陥です。"
 
-#: manual/qed_formal_spec_changelog.md:156
+#: manual/qed_formal_spec_changelog.md:170
 msgid "2026-10-12 Typed HOL release entry point"
 msgstr "2026-10-12 Typed HOL リリースエントリーポイント"
 
-#: manual/qed_formal_spec_changelog.md:158
+#: manual/qed_formal_spec_changelog.md:172
 msgid "Added `HOL.Soundness.TypedHOLProofPackage`, a single Lean-checked package whose fields are all constructed Typed HOL witnesses or theorems: carrier and model non-emptiness, renaming/substitution/beta/type-instantiation evaluation laws, Choice coherence, derivation soundness, definition/specification/typedef contracts, finite semantic conservativity, and concrete consistency."
 msgstr "`HOL.Soundness.TypedHOLProofPackage` を追加しました。これは、構成された Typed HOL の証人または定理のみをフィールドに持つ、Lean 検証済みの単一パッケージです。台集合・モデルの非空性、変数名変更・代入・beta・型具体化の評価法則、選択の整合性、導出の健全性、定義・仕様指定・型定義契約、有限意味論的保守性、具体的な無矛盾性を含みます。"
 
-#: manual/qed_formal_spec_changelog.md:163
+#: manual/qed_formal_spec_changelog.md:177
 msgid "Changed the default `QEDFV` target to import only `QEDFV.HOL.Soundness`, so the archival `Lean.Expr`/model-law/erasure modules cannot silently serve as proof evidence for the Typed HOL mainline."
 msgstr "既定の `QEDFV` ターゲットを `QEDFV.HOL.Soundness` のみのインポートに変更しました。これにより、保管されていた `Lean.Expr`、モデル法則、消去モジュールが Typed HOL 主系統の証明根拠として暗黙に使われることはありません。"
 
-#: manual/qed_formal_spec_changelog.md:166
+#: manual/qed_formal_spec_changelog.md:180
 msgid "The package uses only the standard trusted basis reported by the axiom scan; no local `sorry`, `admit`, or custom `axiom` was introduced."
 msgstr "このパッケージは公理検査で報告された標準の信頼基盤だけを使います。局所的な `sorry`、`admit`、独自の `axiom` は追加していません。"
 
-#: manual/qed_formal_spec_changelog.md:169
+#: manual/qed_formal_spec_changelog.md:183
 msgid "2026-10-12 typed HOL semantic core follow-up (historical snapshot)"
 msgstr "2026-10-12 型付き HOL 意味論コアのフォローアップ"
 
-#: manual/qed_formal_spec_changelog.md:171
+#: manual/qed_formal_spec_changelog.md:185
 msgid "Added `formal_verification/QEDFV/HOL/Types.lean`, an intrinsically typed HOL type grammar with actual `Prop`, `Nat`, function and variable carriers, plus a structural non-emptiness theorem."
 msgstr "`formal_verification/QEDFV/HOL/Types.lean` を追加した。実際の `Prop`、`Nat`、関数、変数キャリアを持つ内在型付き HOL 型文法と、構造的非空性定理を含む。"
 
-#: manual/qed_formal_spec_changelog.md:174
+#: manual/qed_formal_spec_changelog.md:188
 msgid "Added `HOL/Terms.lean` and `HOL/Evaluation.lean` for typed De Bruijn terms, capture-avoiding substitution, evaluation, and a machine-checked beta law."
 msgstr "型付き De Bruijn 項、捕獲回避置換、評価、機械検査済みのベータ法則のために `HOL/Terms.lean` と `HOL/Evaluation.lean` を追加した。"
 
-#: manual/qed_formal_spec_changelog.md:176
+#: manual/qed_formal_spec_changelog.md:190
 msgid "Added `HOL/Extensions.lean` with predicate-subtype carriers, non-emptiness, and the three semantic Abs/Rep witness equations used by a typedef contract."
 msgstr "typedef 契約で使う述語部分型キャリア、非空性、三つの意味論的 Abs/Rep 証人方程式を含む `HOL/Extensions.lean` を追加した。"
 
-#: manual/qed_formal_spec_changelog.md:178
+#: manual/qed_formal_spec_changelog.md:192
 msgid "Added `HOL/Rules.lean` with direct validity-preservation certificates for the typed core rules, including the exact assumption-discharge form of DEDUCT and term-instantiation validity. The restricted closed-context ABS theorem is named accordingly."
 msgstr "型付きコアルールの妥当性保存証明書を直接含む `HOL/Rules.lean` を追加した。正確な DEDUCT 仮定除去形式と項のインスタンス化の妥当性を含み、制限付き閉コンテキスト ABS 定理はその通り命名した。"
 
-#: manual/qed_formal_spec_changelog.md:182
+#: manual/qed_formal_spec_changelog.md:196
 msgid "At this earlier checkpoint, polymorphic `INST_TYPE` and general open-context ABS were still open. They are closed in the later Typed HOL mainline entry above; legacy `Lean.Expr`/MoonBit correspondence remains open."
 msgstr "この以前のチェックポイントでは、多相的な `INST_TYPE` と一般の開いた文脈での ABS は未完了でした。上の後続 Typed HOL 主系統の記録で完了しています。従来の `Lean.Expr`/MoonBit の対応は未解決です。"
 
-#: manual/qed_formal_spec_changelog.md:186
+#: manual/qed_formal_spec_changelog.md:200
 msgid "Verification at that checkpoint: `lake build` passed (633 jobs). The current verification and axiom basis are recorded in the mainline entry above."
 msgstr "当時のチェックポイントでの検証：`lake build` は成功しました（633 ジョブ）。現在の検証と公理基盤は上の主系統の記録にあります。"
 
-#: manual/qed_formal_spec_changelog.md:189
+#: manual/qed_formal_spec_changelog.md:203
 msgid "2026-10-12 review follow-up (#14, #15, #16)"
 msgstr "2026-10-12 レビューのフォローアップ (#14、#15、#16)"
 
-#: manual/qed_formal_spec_changelog.md:191
+#: manual/qed_formal_spec_changelog.md:205
 msgid "Closed the circularity reported in [#14](https://github.com/Luna-Flow/QED/issues/14): `GlobalAdmissibilityEnvelope` is now structural and no longer contains `primitive_sound_all`."
 msgstr "[#14](https://github.com/Luna-Flow/QED/issues/14) で報告された循環性を解決しました。`GlobalAdmissibilityEnvelope` は構造化され、`primitive_sound_all` が含まれなくなりました。"
 
-#: manual/qed_formal_spec_changelog.md:192
+#: manual/qed_formal_spec_changelog.md:206
 msgid "Recorded the [#15](https://github.com/Luna-Flow/QED/issues/15) forked-state provenance counterexample as an open implementation bug. The Lean pack does not model MoonBit state lineage, so it cannot close this defect by compilation alone."
 msgstr "[#15](https://github.com/Luna-Flow/QED/issues/15) フォーク状態の来歴の反例を未解決の実装バグとして記録しました。 Lean パックは MoonBit 状態の系統をモデル化していないため、コンパイルだけではこの欠陥を解決できません。"
 
-#: manual/qed_formal_spec_changelog.md:193
+#: manual/qed_formal_spec_changelog.md:207
 msgid "Renamed the same-state erasure result to `SEC15_SAME_STATE_ERASURE_FINITE` and made `SEC15_GLOBAL_CONSERVATIVITY_FINITE` a conditional theorem over an explicit `CrossTheoryFiniteErasureObligation`. The obligation's `erases` field is a required simulation conclusion; no theorem in the pack constructs it."
 msgstr "同じ状態の消去結果の名前を `SEC15_SAME_STATE_ERASURE_FINITE` に変更し、`SEC15_GLOBAL_CONSERVATIVITY_FINITE` を明示的な `CrossTheoryFiniteErasureObligation` に対する条件付き定理にしました。義務の `erases` フィールドは、必須のシミュレーション結果です。パック内の定理はそれを構築しません。"
 
-#: manual/qed_formal_spec_changelog.md:194
+#: manual/qed_formal_spec_changelog.md:208
 msgid "Replaced the model-class `soundKernel` assumption with an inductive `derivable_sound` proof, and replaced direct implementation derivability assumptions with recursive `CheckedDerivation` evidence. Conditional claims now use `_conditional_proved` or `_structural_proved` theorem names."
 msgstr "モデルクラスの `soundKernel` 仮定を帰納的 `derivable_sound` 証明に置き換え、直接実装導出可能性の仮定を再帰的 `CheckedDerivation` 証明に置き換えました。条件付きクレームでは、`_conditional_proved` または `_structural_proved` の定理名が使用されるようになりました。"
 
-#: manual/qed_formal_spec_changelog.md:195
+#: manual/qed_formal_spec_changelog.md:209
 msgid "Added fixed matrix statuses (`proved`, `conditional`, `open`, `bug`) and GitHub issue references. The manuscript now labels Construction Invariant, Semantic Non-Triviality, Consistency Witness, and Implementation-to-Logic Transfer with their actual conditional status."
 msgstr "固定マトリックス ステータス (`proved`、`conditional`、`open`、`bug`) と GitHub 問題リファレンスを追加しました。原稿では、構築不変性、意味論的非自明性、一貫性の証人、実装からロジックへの移行に実際の条件付きステータスをラベル付けしています。"
 
-#: manual/qed_formal_spec_changelog.md:196
+#: manual/qed_formal_spec_changelog.md:210
 msgid "Corrected the workspace audit language: `lake build` validates the Lean specification/conformance pack, not the MoonBit implementation or a closed model. The current Lean build completes 51 jobs."
 msgstr "ワークスペース監査言語を修正しました。`lake build` は、MoonBit 実装やクローズド モデルではなく、Lean仕様/適合パックを検証します。現在のLean ビルドは 51 個のジョブを完了します。"
 
-#: manual/qed_formal_spec_changelog.md:198
+#: manual/qed_formal_spec_changelog.md:212
 msgid "Verification for the review follow-up"
 msgstr "レビューフォローアップのための検証"
 
-#: manual/qed_formal_spec_changelog.md:200
-#: manual/qed_formal_spec_changelog.md:216
+#: manual/qed_formal_spec_changelog.md:214
+#: manual/qed_formal_spec_changelog.md:230
 msgid "`lake build` in `formal_verification`: passed, 51 jobs."
 msgstr "`formal_verification` の `lake build`: 合格、51 件のジョブ。"
 
-#: manual/qed_formal_spec_changelog.md:201
-#: manual/qed_formal_spec_changelog.md:217
+#: manual/qed_formal_spec_changelog.md:215
+#: manual/qed_formal_spec_changelog.md:231
 msgid "`typst compile doc/attachments/qed_formal_spec.typ /tmp/qed-formal-audit.pdf`: passed."
 msgstr "`typst compile doc/attachments/qed_formal_spec.typ /tmp/qed-formal-audit.pdf`: 合格しました。"
 
-#: manual/qed_formal_spec_changelog.md:202
-#: manual/qed_formal_spec_changelog.md:218
+#: manual/qed_formal_spec_changelog.md:216
+#: manual/qed_formal_spec_changelog.md:232
 msgid "`moon check`: passed."
 msgstr "`moon check`: 合格しました。"
 
-#: manual/qed_formal_spec_changelog.md:203
-#: manual/qed_formal_spec_changelog.md:219
+#: manual/qed_formal_spec_changelog.md:217
+#: manual/qed_formal_spec_changelog.md:233
 msgid "`moon test`: passed, 357/357."
 msgstr "`moon test`: 合格、357/357。"
 
-#: manual/qed_formal_spec_changelog.md:204
+#: manual/qed_formal_spec_changelog.md:218
 msgid "`lunadoc check . --compile`: passed, 0 errors and 0 warnings; `zh_CN` and `ja_JP` are each 2523/2523 translated."
 msgstr "`lunadoc check . --compile`：合格、エラー 0 件、警告 0 件。`zh_CN` と `ja_JP` はそれぞれ 2523/2523 件が翻訳済み。"
 
-#: manual/qed_formal_spec_changelog.md:206
+#: manual/qed_formal_spec_changelog.md:220
 msgid "2026-10-12 evidence-driven audit correction"
 msgstr "2026-10-12 証拠に基づく監査の修正"
 
-#: manual/qed_formal_spec_changelog.md:208
-msgid "Added `doc/manual/qed_formal_audit_matrices.md` with an issue matrix and a proof-obligation matrix covering the manuscript, Lean formalization, and MoonBit realization."
-msgstr "原稿、Lean形式化、MoonBit の実現をカバーする問題マトリックスと証明義務マトリックスを含む `doc/manual/qed_formal_audit_matrices.md` を追加しました。"
+#: manual/qed_formal_spec_changelog.md:222
+msgid "Added the former `doc/manual/qed_formal_audit_matrices.md` with an issue matrix and a proof-obligation matrix covering the manuscript, Lean formalization, and MoonBit realization. The static matrix was later retired in favor of the generated obligation view."
+msgstr "以前の `doc/manual/qed_formal_audit_matrices.md` を追加した。これには、原稿、Lean による形式化、MoonBit による実現を対象とする課題マトリックスと証明義務マトリックスが含まれる。この静的マトリックスは、その後廃止され、生成される義務ビューに置き換えられた。"
 
-#: manual/qed_formal_spec_changelog.md:209
+#: manual/qed_formal_spec_changelog.md:223
 msgid "Added `formal_verification/QEDFV/Conservativity/CrossTheoryObligations.lean`. It records the missing cross-theory simulation explicitly; it does not assert a proof without that premise."
 msgstr "`formal_verification/QEDFV/Conservativity/CrossTheoryObligations.lean` を追加しました。欠落している理論間シミュレーションを明示的に記録します。その前提なしに証明を主張することはできません。"
 
-#: manual/qed_formal_spec_changelog.md:210
+#: manual/qed_formal_spec_changelog.md:224
 msgid "Corrected the manuscript's proof-status language for definitional, specification, type-extension, and global conservativity. The previous erasure code keeps one `KernelState`, and its `OldLang` predicate does not inspect the base theory, so it proves same-state tree preservation rather than `T' ⊢ φ -> T ⊢ φ`."
 msgstr "定義、仕様、型拡張、および全体的な保守性に関して、原稿の校正ステータスの言語を修正しました。前の消去コードは 1 つの `KernelState` を保持し、その `OldLang` 述語は基本理論を検査しないため、`T' ⊢ φ -> T ⊢ φ` ではなく同一状態ツリーの保存を証明します。"
 
-#: manual/qed_formal_spec_changelog.md:211
+#: manual/qed_formal_spec_changelog.md:225
 msgid "Marked the current Lean `TypeDefOK`/typedef product contract, `DefOK` theorem shape, `SpecOK` conservativity predicate, abstract boundary laws, and model-law bundles as approximations or conditional obligations. These declarations compile, but they do not by themselves establish the stronger HOL/STT claims in the article."
 msgstr "現在のLean `TypeDefOK`/typedef 製品コントラクト、`DefOK` 定理形状、`SpecOK` 保守性述語、抽象境界法、およびモデル法バンドルを近似または条件付き義務としてマークしました。これらの宣言はコンパイルされますが、それ自体では記事内でより強力な HOL/STT 主張を確立するものではありません。"
 
-#: manual/qed_formal_spec_changelog.md:212
+#: manual/qed_formal_spec_changelog.md:226
 msgid "Added conformance clarification for the reserved `@` identity and the fact that MoonBit `Thm` stores typed De Bruijn terms at the kernel boundary."
 msgstr "予約された `@` ID と、MoonBit `Thm` がカーネル境界で型指定された De Bruijn 項を保存するという事実の適合性の明確化を追加しました。"
 
-#: manual/qed_formal_spec_changelog.md:214
+#: manual/qed_formal_spec_changelog.md:228
 msgid "Verification for this audit"
 msgstr "この監査の検証"
 
-#: manual/qed_formal_spec_changelog.md:221
+#: manual/qed_formal_spec_changelog.md:235
 msgid "Remaining open obligations are listed explicitly in the matrices and in the manuscript's proof-status notes; `Open items: None` from earlier rounds no longer applies to the stronger cross-theory and semantic claims."
 msgstr "残りの未解決の義務は、マトリックスおよび原稿の校正状況メモに明示的にリストされています。以前のラウンドの `Open items: None` は、より強力な理論横断および意味論的主張には適用されなくなりました。"
 
-#: manual/qed_formal_spec_changelog.md:223
+#: manual/qed_formal_spec_changelog.md:237
 msgid "Goals and scope of this round"
 msgstr "今回の目標と範囲"
 
-#: manual/qed_formal_spec_changelog.md:225
+#: manual/qed_formal_spec_changelog.md:239
 msgid "Goal: finalize the specification so that the structural link between `INST_TYPE` and `DefOK`/`TypeDefOK` is explicit at the rule level, and reviewers do not need to read across several sections to see where soundness comes from."
 msgstr "目標: 仕様を確定させ、`INST_TYPE` と `DefOK`/`TypeDefOK` の構造的なつながりを規則レベルで明示し、査読者が健全性の根拠を見つけるために複数の節を横断して読む必要がないようにすること。"
 
-#: manual/qed_formal_spec_changelog.md:228
+#: manual/qed_formal_spec_changelog.md:242
 msgid "Scope:"
 msgstr "範囲:"
 
-#: manual/qed_formal_spec_changelog.md:229
+#: manual/qed_formal_spec_changelog.md:243
 msgid "Consistency sweep of the manuscript (terminology, state model, non-empty type semantics);"
 msgstr "原稿の一貫性の総点検(用語、状態モデル、非空の型の意味論)"
 
-#: manual/qed_formal_spec_changelog.md:230
+#: manual/qed_formal_spec_changelog.md:244
 msgid "Rewrite of the `INST_TYPE` rule (premises, failure classification, bridge note);"
 msgstr "`INST_TYPE` 規則の書き直し(前提、失敗の分類、ブリッジ注記)"
 
-#: manual/qed_formal_spec_changelog.md:231
+#: manual/qed_formal_spec_changelog.md:245
 msgid "Production of the complete review package (main manuscript + PDF + this changelog)."
 msgstr "査読用の完全なパッケージ(本原稿 + PDF + 本変更履歴)の作成。"
 
-#: manual/qed_formal_spec_changelog.md:232
+#: manual/qed_formal_spec_changelog.md:246
 msgid "Out of scope: changes to the kernel implementation code."
 msgstr "範囲外: カーネル実装コードの変更。"
 
-#: manual/qed_formal_spec_changelog.md:234
+#: manual/qed_formal_spec_changelog.md:248
 msgid "Section-by-section changes"
 msgstr "節ごとの変更"
 
-#: manual/qed_formal_spec_changelog.md:237
+#: manual/qed_formal_spec_changelog.md:251
 msgid "Makes the two-layer state model `(T, S)` explicit: `T` is the global theory history, `S` is the local poppable visibility layer."
 msgstr "2 層の状態モデル `(T, S)` を明示した。`T` はグローバルな理論の履歴、`S` はローカルで pop 可能な可視性の層である。"
 
-#: manual/qed_formal_spec_changelog.md:239
+#: manual/qed_formal_spec_changelog.md:253
 msgid "Adds a proposition stating that `DefHeads(T)` is monotone and that pop does not roll back definition history."
 msgstr "`DefHeads(T)` が単調であり、pop は定義の履歴を巻き戻さないことを述べる命題を追加した。"
 
-#: manual/qed_formal_spec_changelog.md:240
+#: manual/qed_formal_spec_changelog.md:254
 msgid "Adds an equivalent implementation view: \"can be realized as a tombstone registry\"."
 msgstr "同等の実装上の見方「墓標レジストリとして実現できる」を追加した。"
 
-#: manual/qed_formal_spec_changelog.md:243
+#: manual/qed_formal_spec_changelog.md:257
 msgid "Adds the `TypeDefOK` admission condition and rule step for type extensions."
 msgstr "型拡張に対する `TypeDefOK` の受理条件と規則ステップを追加した。"
 
-#: manual/qed_formal_spec_changelog.md:244
+#: manual/qed_formal_spec_changelog.md:258
 msgid "Introduces the \"no empty-type escape\" construction invariant, which turns non-emptiness from a bare assumption into an auditable gate constraint."
 msgstr "「空の型からの逃げ道なし」という構築不変条件を導入し、非空性を単なる仮定から監査可能なゲート制約へと変えた。"
 
-#: manual/qed_formal_spec_changelog.md:247
+#: manual/qed_formal_spec_changelog.md:261
 msgid "`= Definitional Extension Discipline` and `== Definition Admissibility Judgment` (`doc/attachments/qed_formal_spec.typ:694`, `doc/attachments/qed_formal_spec.typ:731`)"
 msgstr "`= Definitional Extension Discipline` および `== Definition Admissibility Judgment`(`doc/attachments/qed_formal_spec.typ:694`、`doc/attachments/qed_formal_spec.typ:731`)"
 
-#: manual/qed_formal_spec_changelog.md:249
+#: manual/qed_formal_spec_changelog.md:263
 msgid "Unifies definition-head novelty as `c ∉ DefHeads(T)` (replacing the ambiguous check against current visibility)."
 msgstr "定義ヘッドの新規性を `c ∉ DefHeads(T)` に統一した(現在の可視性に対するあいまいな検査を置き換える)。"
 
-#: manual/qed_formal_spec_changelog.md:250
+#: manual/qed_formal_spec_changelog.md:264
 msgid "Keeps and strengthens `TVars(r) ⊆ TVars(tau)` as a normative condition, which continues to close the ghost-type loophole."
 msgstr "`TVars(r) ⊆ TVars(tau)` を規範的な条件として維持・強化し、ゴースト型の抜け穴を引き続き塞ぐ。"
 
-#: manual/qed_formal_spec_changelog.md:254
+#: manual/qed_formal_spec_changelog.md:268
 msgid "Extends the envelope: in addition to `DefOK`, adds `TypeDefOK` as a required gate for type extensions."
 msgstr "エンベロープを拡張した。`DefOK` に加えて、型拡張の必須ゲートとして `TypeDefOK` を追加した。"
 
-#: manual/qed_formal_spec_changelog.md:257
+#: manual/qed_formal_spec_changelog.md:271
 msgid "Rewrites the generic `valid(theta)` into structured premises:"
 msgstr "一般的な `valid(theta)` を構造化された前提に書き直した。"
 
-#: manual/qed_formal_spec_changelog.md:261
+#: manual/qed_formal_spec_changelog.md:275
 msgid "Extends the failure classification to 5 entries, each corresponding one-to-one to the premises above."
 msgstr "失敗の分類を 5 項目に拡張し、それぞれが上記の前提と一対一に対応する。"
 
-#: manual/qed_formal_spec_changelog.md:262
+#: manual/qed_formal_spec_changelog.md:276
 msgid "Adds a Bridge Note that states explicitly how the rule closes the loop with `DefOK`/`TypeDefOK`/Global Envelope."
 msgstr "この規則が `DefOK`/`TypeDefOK`/グローバルエンベロープとどのようにループを閉じるかを明示するブリッジ注記を追加した。"
 
-#: manual/qed_formal_spec_changelog.md:265
+#: manual/qed_formal_spec_changelog.md:279
 msgid "Introduces the principal type scheme of constants `kappa_c : tau_gen` and the instance relation `tau preceq tau_gen`."
 msgstr "定数の主型スキーム `kappa_c : tau_gen` とインスタンス関係 `tau preceq tau_gen` を導入した。"
 
-#: manual/qed_formal_spec_changelog.md:267
+#: manual/qed_formal_spec_changelog.md:281
 msgid "States that constant instantiation is a first-class relation at the specification level; the \"type in the term == registered type\" literal identity is no longer required."
 msgstr "定数のインスタンス化が仕様レベルで第一級の関係であることを述べた。「項中の型 == 登録された型」というリテラルな同一性はもはや要求されない。"
 
-#: manual/qed_formal_spec_changelog.md:271
+#: manual/qed_formal_spec_changelog.md:285
 msgid "Changes the `RConst` rule from \"exact type equality\" matching to \"principal scheme + instance relation\" matching."
 msgstr "`RConst` 規則を、「厳密な型の等しさ」による照合から「主スキーム + インスタンス関係」による照合へ変更した。"
 
-#: manual/qed_formal_spec_changelog.md:273
+#: manual/qed_formal_spec_changelog.md:287
 msgid "Adds a lemma on the availability of polymorphic constant instantiation, stating that the system is not locked into monomorphism."
 msgstr "多相定数のインスタンス化の利用可能性に関する補題を追加し、システムが単相に固定されていないことを述べた。"
 
-#: manual/qed_formal_spec_changelog.md:276
+#: manual/qed_formal_spec_changelog.md:290
 msgid "`= Soundness Strategy` and the dependency graph (`doc/attachments/qed_formal_spec.typ:1132`, `doc/attachments/qed_formal_spec.typ:1152`)"
 msgstr "`= Soundness Strategy` と依存関係グラフ(`doc/attachments/qed_formal_spec.typ:1132`、`doc/attachments/qed_formal_spec.typ:1152`)"
 
-#: manual/qed_formal_spec_changelog.md:277
+#: manual/qed_formal_spec_changelog.md:291
 msgid "Extends the obligations from 4 to 5, with \"type-level non-emptiness preservation\" listed separately."
 msgstr "義務を 4 から 5 に拡張し、「型レベルの非空性保存」を別立てにした。"
 
-#: manual/qed_formal_spec_changelog.md:278
+#: manual/qed_formal_spec_changelog.md:292
 msgid "Adds the nodes `Type Admissibility + TypeDefOK` and `Type Non-Emptiness Preservation` to the dependency graph."
 msgstr "依存関係グラフにノード `Type Admissibility + TypeDefOK` と `Type Non-Emptiness Preservation` を追加した。"
 
-#: manual/qed_formal_spec_changelog.md:281
+#: manual/qed_formal_spec_changelog.md:295
 msgid "Narrows \"all types are non-empty\" from a single global assumption to:"
 msgstr "「すべての型は非空である」を、単一のグローバルな仮定から次のものへ絞り込んだ。"
 
-#: manual/qed_formal_spec_changelog.md:282
+#: manual/qed_formal_spec_changelog.md:296
 msgid "a non-emptiness assumption for the base prelude;"
 msgstr "基底 prelude に対する非空性の仮定"
 
-#: manual/qed_formal_spec_changelog.md:283
+#: manual/qed_formal_spec_changelog.md:297
 msgid "a global non-emptiness preservation theorem under the `TypeDefOK` premise."
 msgstr "`TypeDefOK` の前提の下でのグローバルな非空性保存定理"
 
-#: manual/qed_formal_spec_changelog.md:285
+#: manual/qed_formal_spec_changelog.md:299
 msgid "Appendix updates (from `doc/attachments/qed_formal_spec.typ:1301` onward)"
 msgstr "付録の更新(`doc/attachments/qed_formal_spec.typ:1301` 以降)"
 
-#: manual/qed_formal_spec_changelog.md:286
+#: manual/qed_formal_spec_changelog.md:300
 msgid "Appendix A: `INST_TYPE` dependencies now include `TypeDefOK` and definitional coherence."
 msgstr "付録 A: `INST_TYPE` の依存関係に `TypeDefOK` と定義の整合性が含まれるようになった。"
 
-#: manual/qed_formal_spec_changelog.md:287
+#: manual/qed_formal_spec_changelog.md:301
 msgid "Appendix B: check items now cover the type gate and the separation of state history."
 msgstr "付録 B: チェック項目が型ゲートと状態履歴の分離をカバーするようになった。"
 
-#: manual/qed_formal_spec_changelog.md:288
+#: manual/qed_formal_spec_changelog.md:302
 msgid "Appendix C: extended to Definition + State scenarios, with a pop-then-redefine rejection case."
 msgstr "付録 C: Definition + State のシナリオに拡張し、pop 後の再定義を拒否するケースを追加した。"
 
-#: manual/qed_formal_spec_changelog.md:289
+#: manual/qed_formal_spec_changelog.md:303
 msgid "Appendix D: adds type soundness audit scenarios."
 msgstr "付録 D: 型の健全性監査シナリオを追加した。"
 
-#: manual/qed_formal_spec_changelog.md:291
+#: manual/qed_formal_spec_changelog.md:305
 msgid "Audit issue matrix (Issue -> Fix -> Location -> Residual Risk)"
 msgstr "監査課題表(課題 -> 修正 -> 箇所 -> 残存リスク)"
 
-#: manual/qed_formal_spec_changelog.md:293
+#: manual/qed_formal_spec_changelog.md:307
 msgid "Issue"
 msgstr "課題"
 
-#: manual/qed_formal_spec_changelog.md:293
+#: manual/qed_formal_spec_changelog.md:307
 msgid "Fix"
 msgstr "修正"
 
-#: manual/qed_formal_spec_changelog.md:293
+#: manual/qed_formal_spec_changelog.md:307
 msgid "Location"
 msgstr "箇所"
 
-#: manual/qed_formal_spec_changelog.md:293
+#: manual/qed_formal_spec_changelog.md:307
 msgid "Residual Risk"
 msgstr "残存リスク"
 
-#: manual/qed_formal_spec_changelog.md:295
+#: manual/qed_formal_spec_changelog.md:309
 msgid "Ghost Type Variable (free type variables escaping from a definition body)"
 msgstr "ゴースト型変数(定義本体から漏れ出す自由型変数)"
 
-#: manual/qed_formal_spec_changelog.md:295
+#: manual/qed_formal_spec_changelog.md:309
 msgid "Enforce `TVars(r) ⊆ TVars(tau)` + `INST_TYPE` Bridge Note + `def_inst_coherent` premise"
 msgstr "`TVars(r) ⊆ TVars(tau)` の強制 + `INST_TYPE` のブリッジ注記 + `def_inst_coherent` の前提"
 
-#: manual/qed_formal_spec_changelog.md:295
+#: manual/qed_formal_spec_changelog.md:309
 msgid "Low (the implementation must still enforce exactly the same condition)"
 msgstr "低(実装も、まったく同じ条件を強制しなければならない)"
 
-#: manual/qed_formal_spec_changelog.md:296
+#: manual/qed_formal_spec_changelog.md:310
 msgid "Empty Type Semantic Escape (semantic escape through empty types)"
 msgstr "空の型による意味論上の逃げ道(空の型を通じた意味論上の逃げ道)"
 
-#: manual/qed_formal_spec_changelog.md:296
+#: manual/qed_formal_spec_changelog.md:310
 msgid "Add `TypeDefOK` + non-emptiness witness gate + non-emptiness preservation theorem"
 msgstr "`TypeDefOK` + 非空性ウィットネスのゲート + 非空性保存定理を追加"
 
-#: manual/qed_formal_spec_changelog.md:296
+#: manual/qed_formal_spec_changelog.md:310
 msgid "Low to medium (future extensions of typedef syntax must keep the witness rule)"
 msgstr "低〜中(typedef 構文の将来の拡張でもウィットネス規則を維持しなければならない)"
 
-#: manual/qed_formal_spec_changelog.md:297
+#: manual/qed_formal_spec_changelog.md:311
 msgid "Stack vs Theory inconsistency (ambiguous redefinition after pop)"
 msgstr "スタックと理論の不整合(pop 後の再定義があいまい)"
 
-#: manual/qed_formal_spec_changelog.md:297
+#: manual/qed_formal_spec_changelog.md:311
 msgid "Separate `(T,S)`; bind definition-head novelty to `DefHeads(T)`; pop does not roll back history"
 msgstr "`(T,S)` を分離し、定義ヘッドの新規性を `DefHeads(T)` に結び付け、pop は履歴を巻き戻さない"
 
-#: manual/qed_formal_spec_changelog.md:297
+#: manual/qed_formal_spec_changelog.md:311
 msgid "Low (the UI layer must still show kernel identities to avoid symbol confusion)"
 msgstr "低(記号の混同を避けるため、UI 層は引き続きカーネル上の同一性を示さなければならない)"
 
-#: manual/qed_formal_spec_changelog.md:298
+#: manual/qed_formal_spec_changelog.md:312
 msgid "`INST_TYPE` not traceable in review (requires guessing across chapters)"
 msgstr "`INST_TYPE` が査読で追跡できない(章をまたいで推測する必要がある)"
 
-#: manual/qed_formal_spec_changelog.md:298
+#: manual/qed_formal_spec_changelog.md:312
 msgid "Add explicit admissibility anchors and failure mapping inside the rule"
 msgstr "規則内に明示的な許容性のアンカーと失敗の対応を追加"
 
-#: manual/qed_formal_spec_changelog.md:298
+#: manual/qed_formal_spec_changelog.md:312
 msgid "Low"
 msgstr "低"
 
-#: manual/qed_formal_spec_changelog.md:299
+#: manual/qed_formal_spec_changelog.md:313
 msgid "De Bruijn Type Erasure (type erasure at the kernel level)"
 msgstr "de Bruijn の型消去(カーネルレベルでの型消去)"
 
-#: manual/qed_formal_spec_changelog.md:299
+#: manual/qed_formal_spec_changelog.md:313
 msgid "Change the De Bruijn core syntax to carry explicit type labels (`DAbs(tau, ...)`, `DBound(..., tau)`), and change the `TRANS`/`BETA` matching conditions to typed-core guards"
 msgstr "de Bruijn コア構文を明示的な型ラベルを持つ形(`DAbs(tau, ...)`、`DBound(..., tau)`)に変更し、`TRANS`/`BETA` の照合条件を型付きコアのガードに変更"
 
-#: manual/qed_formal_spec_changelog.md:299
+#: manual/qed_formal_spec_changelog.md:313
 msgid "Low (the implementation must strictly preserve type labels during boundary lowering)"
 msgstr "低(実装は、境界のローワリング中に型ラベルを厳密に保持しなければならない)"
 
-#: manual/qed_formal_spec_changelog.md:300
+#: manual/qed_formal_spec_changelog.md:314
 msgid "Polymorphism Lockout (polymorphic constant instantiation locked out)"
 msgstr "多相のロックアウト(多相定数のインスタンス化が封じられる)"
 
-#: manual/qed_formal_spec_changelog.md:300
+#: manual/qed_formal_spec_changelog.md:314
 msgid "Introduce principal schemes for constants and the instance relation `tau ≼ tau_gen`, and add instance guards to elaboration, core typing and `INST_TYPE`"
 msgstr "定数の主スキームとインスタンス関係 `tau ≼ tau_gen` を導入し、エラボレーション、コア型付け、`INST_TYPE` にインスタンスのガードを追加"
 
-#: manual/qed_formal_spec_changelog.md:300
+#: manual/qed_formal_spec_changelog.md:314
 msgid "Low (the implementation must use the same instance judgment)"
 msgstr "低(実装も、同じインスタンス判定を用いなければならない)"
 
-#: manual/qed_formal_spec_changelog.md:302
+#: manual/qed_formal_spec_changelog.md:316
 msgid "Incremental revision (De Bruijn type erasure audit)"
 msgstr "増分改訂(de Bruijn の型消去の監査)"
 
-#: manual/qed_formal_spec_changelog.md:305
+#: manual/qed_formal_spec_changelog.md:319
 msgid "Replaces the untyped constructors (`Abs(t)`, `BVar(k)`) with typed core constructors (`DAbs(tau, t)`, `DBound(k, tau)`)."
 msgstr "型なしのコンストラクタ(`Abs(t)`、`BVar(k)`)を、型付きコアのコンストラクタ(`DAbs(tau, t)`、`DBound(k, tau)`)に置き換えた。"
 
-#: manual/qed_formal_spec_changelog.md:307
+#: manual/qed_formal_spec_changelog.md:321
 msgid "Adds a binder/argument type agreement side condition to the `beta` contraction rule."
 msgstr "`beta` 簡約規則に、束縛子と引数の型の一致という副条件を追加した。"
 
-#: manual/qed_formal_spec_changelog.md:308
+#: manual/qed_formal_spec_changelog.md:322
 msgid "Adds a typed-core injectivity invariant that prevents abstractions over different domain types from being structurally identified."
 msgstr "型付きコアの単射性の不変条件を追加し、異なる定義域の型に対する抽象が構造的に同一視されることを防ぐ。"
 
-#: manual/qed_formal_spec_changelog.md:312
+#: manual/qed_formal_spec_changelog.md:326
 msgid "Adds the Type-Sensitive Core Matching lemma, stating that boundary lowering does not erase binder-domain type labels."
 msgstr "型に敏感なコア照合の補題を追加し、境界のローワリングが束縛子の定義域の型ラベルを消去しないことを述べた。"
 
-#: manual/qed_formal_spec_changelog.md:316
+#: manual/qed_formal_spec_changelog.md:330
 msgid "Adds a typed De Bruijn core matching premise and the corresponding failure entry, which prevents middle terms from being mismatched by their \"erased structure\"."
 msgstr "型付き de Bruijn コアの照合の前提と対応する失敗項目を追加し、中間項がその「消去された構造」によって誤って照合されることを防ぐ。"
 
-#: manual/qed_formal_spec_changelog.md:320
+#: manual/qed_formal_spec_changelog.md:334
 msgid "Rewrites the redex shape into its typed version;"
 msgstr "レデックスの形を型付き版に書き直した。"
 
-#: manual/qed_formal_spec_changelog.md:321
+#: manual/qed_formal_spec_changelog.md:335
 msgid "Adds binder-domain label mismatch to the failure classification;"
 msgstr "失敗の分類に束縛子の定義域ラベルの不一致を追加した。"
 
-#: manual/qed_formal_spec_changelog.md:322
+#: manual/qed_formal_spec_changelog.md:336
 msgid "The antecedent form now explicitly includes `type_of(u) = tau`."
 msgstr "前件の形に `type_of(u) = tau` が明示的に含まれるようになった。"
 
-#: manual/qed_formal_spec_changelog.md:324
-#: manual/qed_formal_spec_changelog.md:345
+#: manual/qed_formal_spec_changelog.md:338
+#: manual/qed_formal_spec_changelog.md:359
 msgid "Appendix enhancements:"
 msgstr "付録の強化:"
 
-#: manual/qed_formal_spec_changelog.md:325
+#: manual/qed_formal_spec_changelog.md:339
 msgid "Appendix A adds the typed-core dependencies of `TRANS`/`BETA`;"
 msgstr "付録 A に `TRANS`/`BETA` の型付きコアの依存関係を追加した。"
 
-#: manual/qed_formal_spec_changelog.md:326
+#: manual/qed_formal_spec_changelog.md:340
 msgid "Appendix B adds a check item for type-sensitive De Bruijn matching;"
 msgstr "付録 B に型に敏感な de Bruijn 照合のチェック項目を追加した。"
 
-#: manual/qed_formal_spec_changelog.md:327
+#: manual/qed_formal_spec_changelog.md:341
 msgid "Adds Appendix E (Typed De Bruijn Core Audit Scenarios)."
 msgstr "付録 E(型付き de Bruijn コア監査シナリオ)を追加した。"
 
-#: manual/qed_formal_spec_changelog.md:329
+#: manual/qed_formal_spec_changelog.md:343
 msgid "Incremental revision (Polymorphism Lockout audit)"
 msgstr "増分改訂(多相ロックアウトの監査)"
 
-#: manual/qed_formal_spec_changelog.md:332
+#: manual/qed_formal_spec_changelog.md:346
 msgid "Adds the principal scheme of constants `kappa_c : tau_gen` and the instance relation `tau ≼ tau_gen`."
 msgstr "定数の主スキーム `kappa_c : tau_gen` とインスタンス関係 `tau ≼ tau_gen` を追加した。"
 
-#: manual/qed_formal_spec_changelog.md:333
+#: manual/qed_formal_spec_changelog.md:347
 msgid "States that a constant is valid in the core as \"principal scheme + instantiated type\"; literal type equality is no longer required."
 msgstr "定数はコア内で「主スキーム + インスタンス化された型」として有効であることを述べた。リテラルな型の等しさはもはや要求されない。"
 
-#: manual/qed_formal_spec_changelog.md:336
+#: manual/qed_formal_spec_changelog.md:350
 msgid "`== Named Elaboration Judgment` and `== Core Typing over Resolved Terms`"
 msgstr "`== Named Elaboration Judgment` および `== Core Typing over Resolved Terms`"
 
-#: manual/qed_formal_spec_changelog.md:337
+#: manual/qed_formal_spec_changelog.md:351
 msgid "The elaboration and core typing premises of `RConst` both switch to the instance-relation judgment."
 msgstr "`RConst` のエラボレーションとコア型付けの前提は、いずれもインスタンス関係の判定に切り替わった。"
 
-#: manual/qed_formal_spec_changelog.md:338
+#: manual/qed_formal_spec_changelog.md:352
 msgid "Adds the \"Polymorphic Constant Instantiation Admissibility\" lemma and a \"No Monomorphic Lockout\" remark."
 msgstr "「多相定数のインスタンス化の許容性」補題と「単相へのロックアウトなし」の注記を追加した。"
 
-#: manual/qed_formal_spec_changelog.md:341
+#: manual/qed_formal_spec_changelog.md:355
 msgid "Adds a constant-instance consistency side condition: `tau_i ≼ tau_gen(kappa_c)`."
 msgstr "定数インスタンスの整合性という副条件 `tau_i ≼ tau_gen(kappa_c)` を追加した。"
 
-#: manual/qed_formal_spec_changelog.md:342
+#: manual/qed_formal_spec_changelog.md:356
 msgid "Adds constant-instance mismatch to the failure classification."
 msgstr "失敗の分類に定数インスタンスの不一致を追加した。"
 
-#: manual/qed_formal_spec_changelog.md:343
+#: manual/qed_formal_spec_changelog.md:357
 msgid "The Bridge Note now covers the constant-instance guard and expressiveness."
 msgstr "ブリッジ注記が、定数インスタンスのガードと表現力をカバーするようになった。"
 
-#: manual/qed_formal_spec_changelog.md:346
+#: manual/qed_formal_spec_changelog.md:360
 msgid "Appendix A adds the dependency of `INST_TYPE` on the constant instance relation;"
 msgstr "付録 A に、`INST_TYPE` の定数インスタンス関係への依存を追加した。"
 
-#: manual/qed_formal_spec_changelog.md:347
+#: manual/qed_formal_spec_changelog.md:361
 msgid "Appendix B adds a `tau ≼ tau_gen` check item;"
 msgstr "付録 B に `tau ≼ tau_gen` のチェック項目を追加した。"
 
-#: manual/qed_formal_spec_changelog.md:348
+#: manual/qed_formal_spec_changelog.md:362
 msgid "Appendix D adds a polymorphic constant instantiation audit scenario (`id` usable at the `bool/int` instances)."
 msgstr "付録 D に、多相定数のインスタンス化に関する監査シナリオ(`id` を `bool/int` のインスタンスで使用できること)を追加した。"
 
-#: manual/qed_formal_spec_changelog.md:350
+#: manual/qed_formal_spec_changelog.md:364
 msgid "Acceptance checklist (with pass/fail)"
 msgstr "受け入れチェックリスト(合否付き)"
 
-#: manual/qed_formal_spec_changelog.md:352
+#: manual/qed_formal_spec_changelog.md:366
 msgid "[PASS] The `INST_TYPE` section explicitly references `DefOK`, `TypeDefOK` and the Global Admissibility Envelope."
 msgstr "[PASS] `INST_TYPE` の節が `DefOK`、`TypeDefOK`、およびグローバルな許容性エンベロープを明示的に参照している。"
 
-#: manual/qed_formal_spec_changelog.md:353
+#: manual/qed_formal_spec_changelog.md:367
 msgid "[PASS] Global history semantics is unified as `DefHeads(T)` and separated from local `pop` behavior."
 msgstr "[PASS] グローバルな履歴の意味論が `DefHeads(T)` に統一され、ローカルな `pop` の挙動から分離されている。"
 
-#: manual/qed_formal_spec_changelog.md:354
+#: manual/qed_formal_spec_changelog.md:368
 msgid "[PASS] Non-empty type semantics moves from a bare assumption to the `TypeDefOK` gate + preservation theorem narrative."
 msgstr "[PASS] 非空の型の意味論が、単なる仮定から `TypeDefOK` ゲート + 保存定理という記述に移行している。"
 
-#: manual/qed_formal_spec_changelog.md:356
+#: manual/qed_formal_spec_changelog.md:370
 msgid "[PASS] The manuscript appendices include Ghost/Empty/Pop-Redefine regression scenarios."
 msgstr "[PASS] 原稿の付録に Ghost/Empty/Pop-Redefine の回帰シナリオが含まれている。"
 
-#: manual/qed_formal_spec_changelog.md:357
+#: manual/qed_formal_spec_changelog.md:371
 msgid "[PASS] The De Bruijn core carries explicit type annotations, and the `TRANS`/`BETA` rules enforce checks on them."
 msgstr "[PASS] de Bruijn コアが明示的な型注釈を持ち、`TRANS`/`BETA` 規則がそれらに対する検査を強制している。"
 
-#: manual/qed_formal_spec_changelog.md:358
+#: manual/qed_formal_spec_changelog.md:372
 msgid "[PASS] Polymorphic constant use is enabled through the `tau preceq tau_gen` instance relation, avoiding monomorphic lockout."
 msgstr "[PASS] 多相定数の使用が `tau preceq tau_gen` インスタンス関係によって可能になり、単相へのロックアウトを避けている。"
 
-#: manual/qed_formal_spec_changelog.md:360
+#: manual/qed_formal_spec_changelog.md:374
 msgid "[PASS] The compilation check passes:"
 msgstr "[PASS] コンパイル検査が通る。"
 
-#: manual/qed_formal_spec_changelog.md:361
+#: manual/qed_formal_spec_changelog.md:375
 msgid "Command: `typst compile doc/qed_formal_spec.typ doc/qed_formal_spec.pdf`"
 msgstr "コマンド: `typst compile doc/qed_formal_spec.typ doc/qed_formal_spec.pdf`"
 
-#: manual/qed_formal_spec_changelog.md:362
+#: manual/qed_formal_spec_changelog.md:376
 msgid "Result: [QED formal specification](../attachments/qed_formal_spec.typ) is generated successfully."
 msgstr "結果: [QED 形式仕様](../attachments/qed_formal_spec.typ)が正常に生成される。"
 
-#: manual/qed_formal_spec_changelog.md:364
+#: manual/qed_formal_spec_changelog.md:378
 msgid "Open items (status at the time of that revision)"
 msgstr "未解決項目（改訂時点の状況）"
 
-#: manual/qed_formal_spec_changelog.md:366
+#: manual/qed_formal_spec_changelog.md:380
 msgid "None was recorded for the manuscript-editing scope of that revision. The 2026-10-12 audit supersedes that status for proof claims: cross-theory conservativity, semantic model construction, concrete boundary refinement, and the exact typedef/specification obligations remain open as documented above."
 msgstr "その改訂版の原稿編集範囲については何も記録されていませんでした。 2026 年 10 月 12 日の監査は、証拠主張のステータスに優先します。理論横断的な保守性、セマンティック モデルの構築、具体的な境界の洗練、および正確な typedef/仕様の義務は、上記に記載されているように未解決のままです。"
 
-#: manual/qed_formal_spec_changelog.md:368
+#: manual/qed_formal_spec_changelog.md:382
 msgid "Incremental revision (constructive closure)"
 msgstr "増分改訂(構成的閉包)"
 
-#: manual/qed_formal_spec_changelog.md:370
+#: manual/qed_formal_spec_changelog.md:384
 msgid "Upgrades the *Theorem Goal* in the `SpecOK` section to a formal theorem, and adds a constructive proof method for \"single-step spec head elimination\":"
 msgstr "`SpecOK` の節の *Theorem Goal* を正式な定理に格上げし、「単一ステップの仕様ヘッド除去」の構成的な証明方法を追加した。"
 
-#: manual/qed_formal_spec_changelog.md:372
+#: manual/qed_formal_spec_changelog.md:386
 msgid "defines the recursive eliminator `erase_spec` within the manuscript;"
 msgstr "再帰的な除去子 `erase_spec` を原稿内で定義する。"
 
-#: manual/qed_formal_spec_changelog.md:373
+#: manual/qed_formal_spec_changelog.md:387
 msgid "gives a well-founded induction invariant based on derivation tree size."
 msgstr "導出木のサイズに基づく整礎帰納法の不変条件を与える。"
 
-#: manual/qed_formal_spec_changelog.md:374
+#: manual/qed_formal_spec_changelog.md:388
 msgid "Adds the `Constructive Closure: Derivation Objects and Erasure Operators` section:"
 msgstr "`Constructive Closure: Derivation Objects and Erasure Operators` の節を追加した。"
 
-#: manual/qed_formal_spec_changelog.md:375
+#: manual/qed_formal_spec_changelog.md:389
 msgid "introduces finite derivation objects `Derives(D, s)`;"
 msgstr "有限の導出オブジェクト `Derives(D, s)` を導入する。"
 
-#: manual/qed_formal_spec_changelog.md:376
+#: manual/qed_formal_spec_changelog.md:390
 msgid "defines three kinds of eliminators: `erase_def` / `erase_spec` / `erase_typedef`;"
 msgstr "3 種類の除去子 `erase_def` / `erase_spec` / `erase_typedef` を定義する。"
 
-#: manual/qed_formal_spec_changelog.md:377
+#: manual/qed_formal_spec_changelog.md:391
 msgid "gives three corresponding correctness theorems (preservation of old-language sentences)."
 msgstr "対応する 3 つの正しさの定理(旧言語の文の保存)を与える。"
 
-#: manual/qed_formal_spec_changelog.md:378
+#: manual/qed_formal_spec_changelog.md:392
 msgid "Upgrades `Meta-Theorem Target` to a formal global conservativity meta-theorem:"
 msgstr "`Meta-Theorem Target` を、正式なグローバル保存性のメタ定理に格上げした。"
 
-#: manual/qed_formal_spec_changelog.md:379
+#: manual/qed_formal_spec_changelog.md:393
 msgid "writes out explicitly the compositional proof by step-by-step back-erasure over finite extension sequences;"
 msgstr "有限の拡張列に対して、ステップごとに後ろ向きに除去していく合成的な証明を明示的に書き下す。"
 
-#: manual/qed_formal_spec_changelog.md:380
+#: manual/qed_formal_spec_changelog.md:394
 msgid "derives the global `T' ⊢ φ => T ⊢ φ` from the correctness of each per-step gate elimination."
 msgstr "各ステップのゲート除去の正しさから、グローバルな `T' ⊢ φ => T ⊢ φ` を導く。"
 
-#: manual/qed_formal_spec_changelog.md:381
+#: manual/qed_formal_spec_changelog.md:395
 msgid "Updates the document status and the P0 checklist accordingly:"
 msgstr "それに合わせて、文書の状況と P0 チェックリストを更新した。"
 
-#: manual/qed_formal_spec_changelog.md:382
+#: manual/qed_formal_spec_changelog.md:396
 msgid "`Current Status` now reads \"constructive closure is given in the manuscript\";"
 msgstr "`Current Status` は「構成的閉包が原稿に与えられている」と記すようになった。"
 
-#: manual/qed_formal_spec_changelog.md:383
+#: manual/qed_formal_spec_changelog.md:397
 msgid "the checklist adds two items: \"derivation object system\" and \"per-gate elimination + composition theorem\"."
 msgstr "チェックリストに「導出オブジェクト体系」と「ゲートごとの除去 + 合成定理」の 2 項目を追加した。"
 
-#: manual/qed_formal_spec_changelog.md:385
+#: manual/qed_formal_spec_changelog.md:399
 msgid "Incremental revision (two-part split and authority boundary)"
 msgstr "増分改訂(2 部構成への分割と権威の境界)"
 
-#: manual/qed_formal_spec_changelog.md:387
+#: manual/qed_formal_spec_changelog.md:401
 msgid "Adds `Part I: Logic Core (Normative)` and an *Authority Contract* at the front of the main manuscript:"
 msgstr "本原稿の冒頭に `Part I: Logic Core (Normative)` と *Authority Contract* を追加した。"
 
-#: manual/qed_formal_spec_changelog.md:388
+#: manual/qed_formal_spec_changelog.md:402
 msgid "states that Part I is the sole normative source for the logic;"
 msgstr "Part I が論理に関する唯一の規範的な情報源であると述べる。"
 
-#: manual/qed_formal_spec_changelog.md:389
+#: manual/qed_formal_spec_changelog.md:403
 msgid "states that De Bruijn and scope are mechanisms of logical correctness, not optional engineering details."
 msgstr "de Bruijn とスコープは論理的な正しさのための仕組みであり、任意の工学的詳細ではないと述べる。"
 
-#: manual/qed_formal_spec_changelog.md:390
+#: manual/qed_formal_spec_changelog.md:404
 msgid "Renames the entry of the engineering part to `Part II: Engineering Realization (Informative + Conformance)`:"
 msgstr "工学編の入口を `Part II: Engineering Realization (Informative + Conformance)` に改名した。"
 
-#: manual/qed_formal_spec_changelog.md:392
+#: manual/qed_formal_spec_changelog.md:406
 msgid "declares explicitly that Part II is downstream of Part I and must not define the logic in reverse."
 msgstr "Part II は Part I の下流にあり、論理を逆向きに定義してはならないと明示的に宣言する。"
 
-#: manual/qed_formal_spec_changelog.md:393
+#: manual/qed_formal_spec_changelog.md:407
 msgid "Adds the `Conformance Obligations (Part I -> Part II)` subsection:"
 msgstr "`Conformance Obligations (Part I -> Part II)` の小節を追加した。"
 
-#: manual/qed_formal_spec_changelog.md:394
+#: manual/qed_formal_spec_changelog.md:408
 msgid "five implementation conformance obligations: rule fidelity, boundary fidelity, scope stability, gate fidelity and certificate non-authority."
 msgstr "5 つの実装適合義務: 規則への忠実性、境界への忠実性、スコープの安定性、ゲートへの忠実性、および証明書の非権威性。"
 
-#: manual/qed_formal_spec_changelog.md:396
+#: manual/qed_formal_spec_changelog.md:410
 msgid "Rewrites the first sentence of `Documentation Maintenance Notes` to reflect the two-part maintenance approach:"
 msgstr "`Documentation Maintenance Notes` の最初の文を、2 部構成の保守方針を反映するように書き直した。"
 
-#: manual/qed_formal_spec_changelog.md:397
+#: manual/qed_formal_spec_changelog.md:411
 msgid "Part I is maintained as the source of truth for the logic;"
 msgstr "Part I は論理に関する正本として保守される。"
 
-#: manual/qed_formal_spec_changelog.md:398
+#: manual/qed_formal_spec_changelog.md:412
 msgid "Part II is maintained as the conformance-report layer for Part I."
 msgstr "Part II は Part I に対する適合性報告の層として保守される。"
 
-#: manual/qed_formal_spec_changelog.md:400
+#: manual/qed_formal_spec_changelog.md:414
 msgid "Incremental revision (strengthened De Bruijn / scope proofs)"
 msgstr "増分改訂(de Bruijn / スコープの証明の強化)"
 
-#: manual/qed_formal_spec_changelog.md:402
+#: manual/qed_formal_spec_changelog.md:416
 msgid "Adds three bridge theorems to the De Bruijn section:"
 msgstr "de Bruijn の節に 3 つのブリッジ定理を追加した。"
 
-#: manual/qed_formal_spec_changelog.md:406
+#: manual/qed_formal_spec_changelog.md:420
 msgid "Turns the three scoped shadowing propositions from proof sketches into full proofs (derived step by step from the definitions)."
 msgstr "スコープ付きシャドーイングに関する 3 つの命題を、証明の概略から完全な証明に格上げした(定義からステップごとに導出)。"
 
-#: manual/qed_formal_spec_changelog.md:408
+#: manual/qed_formal_spec_changelog.md:422
 msgid "Adds the `Resolution Freeze under Scope Mutation` theorem:"
 msgstr "`Resolution Freeze under Scope Mutation` 定理を追加した。"
 
-#: manual/qed_formal_spec_changelog.md:409
+#: manual/qed_formal_spec_changelog.md:423
 msgid "formally states that the premises of already-resolved terms are invariant under subsequent `push/add/pop` sequences;"
 msgstr "解決済みの項の前提が、後続の `push/add/pop` 列に対して不変であることを形式的に述べる。"
 
-#: manual/qed_formal_spec_changelog.md:411
+#: manual/qed_formal_spec_changelog.md:425
 msgid "states that scope only affects future name resolution and does not write back to existing resolved objects."
 msgstr "スコープは将来の名前解決にのみ影響し、既存の解決済みオブジェクトへは書き戻されないと述べる。"
 
-#: manual/qed_formal_spec_changelog.md:413
+#: manual/qed_formal_spec_changelog.md:427
 msgid "Incremental revision (automatic phase advance: de-engineering Part I + converging Part II)"
 msgstr "増分改訂(自動フェーズ進行: Part I の脱工学化 + Part II の収束)"
 
-#: manual/qed_formal_spec_changelog.md:415
+#: manual/qed_formal_spec_changelog.md:429
 msgid "Removes engineering ties from the wording of Part I (without changing the logical content):"
 msgstr "Part I の文言から工学上の結び付きを取り除いた(論理的内容は変えない)。"
 
-#: manual/qed_formal_spec_changelog.md:416
+#: manual/qed_formal_spec_changelog.md:430
 msgid "the Abstract changes from \"implementation-aware specification\" to \"formal mathematical specification\";"
 msgstr "Abstract を「implementation-aware specification」から「formal mathematical specification」に変更した。"
 
-#: manual/qed_formal_spec_changelog.md:417
+#: manual/qed_formal_spec_changelog.md:431
 msgid "\"In implementation terms\" in `Type Grammar` / `Term Grammar` is rewritten as \"One canonical concrete representation\";"
 msgstr "`Type Grammar` / `Term Grammar` の「In implementation terms」を「One canonical concrete representation」に書き直した。"
 
-#: manual/qed_formal_spec_changelog.md:419
+#: manual/qed_formal_spec_changelog.md:433
 msgid "API/implementation wording in the boundary/scope paragraphs is rewritten as abstract semantic wording (still implementable, but not tied to any particular implementation)."
 msgstr "境界/スコープの段落における API・実装に関する文言を、抽象的な意味論上の文言に書き直した(実装は可能なままだが、特定の実装には結び付かない)。"
 
-#: manual/qed_formal_spec_changelog.md:421
+#: manual/qed_formal_spec_changelog.md:435
 msgid "Upgrades the `MK_COMB` section from `Type Preservation Sketch` to `Type Preservation Theorem`:"
 msgstr "`MK_COMB` の節を `Type Preservation Sketch` から `Type Preservation Theorem` に格上げした。"
 
-#: manual/qed_formal_spec_changelog.md:422
+#: manual/qed_formal_spec_changelog.md:436
 msgid "keeps the original derivation structure and completes it in the full \"Proof.\" closing style."
 msgstr "元の導出構造を保ち、完全な「Proof.」で締める形式に仕上げた。"
 
-#: manual/qed_formal_spec_changelog.md:423
+#: manual/qed_formal_spec_changelog.md:437
 msgid "Converges Part II to conformance semantics:"
 msgstr "Part II を適合性の意味論に収束させた。"
 
-#: manual/qed_formal_spec_changelog.md:424
+#: manual/qed_formal_spec_changelog.md:438
 msgid "the error taxonomy alignment paragraph changes from \"normative for final API\" to \"conformance target for engineering realizations\";"
 msgstr "エラー分類の整合に関する段落を「最終 API に対して規範的」から「工学的実現に対する適合目標」に変更した。"
 
-#: manual/qed_formal_spec_changelog.md:426
+#: manual/qed_formal_spec_changelog.md:440
 msgid "the closing sentence of Appendix B changes to \"logic-closure + conformance/regression gate\"."
 msgstr "付録 B の結びの文を「論理の閉包 + 適合性/回帰ゲート」に変更した。"
 
-#: manual/qed_formal_spec_changelog.md:428
+#: manual/qed_formal_spec_changelog.md:442
 msgid "Incremental revision (automatic phase advance: Part II conformance closure)"
 msgstr "増分改訂(自動フェーズ進行: Part II の適合性の閉包)"
 
-#: manual/qed_formal_spec_changelog.md:430
+#: manual/qed_formal_spec_changelog.md:444
 msgid "Adds an \"informative only\" boundary statement to `Engineering Correspondence`:"
 msgstr "`Engineering Correspondence` に「informative only」の境界宣言を追加した。"
 
-#: manual/qed_formal_spec_changelog.md:431
+#: manual/qed_formal_spec_changelog.md:445
 msgid "the module mapping serves only audit coverage and does not change any definition or theorem of Part I."
 msgstr "モジュールの対応は監査のカバレッジのためだけにあり、Part I の定義や定理は一切変更しない。"
 
-#: manual/qed_formal_spec_changelog.md:432
+#: manual/qed_formal_spec_changelog.md:446
 msgid "Adds the `Conformance Transfer Theorem` section:"
 msgstr "`Conformance Transfer Theorem` の節を追加した。"
 
-#: manual/qed_formal_spec_changelog.md:433
+#: manual/qed_formal_spec_changelog.md:447
 msgid "defines `Faithful Realization` (satisfying the five conformance obligations);"
 msgstr "`Faithful Realization`(5 つの適合義務を満たすもの)を定義する。"
 
-#: manual/qed_formal_spec_changelog.md:434
+#: manual/qed_formal_spec_changelog.md:448
 msgid "gives the transfer theorem from implementation to logic: if the implementation accepts sequent $s$, then $s$ is derivable in Part I;"
 msgstr "実装から論理への転送定理を与える。実装がシーケント $s$ を受理するなら、$s$ は Part I で導出可能である。"
 
-#: manual/qed_formal_spec_changelog.md:436
+#: manual/qed_formal_spec_changelog.md:450
 msgid "the proof reconstructs the acceptance trace: rule mapping, substitution by boundary lemmas, erasure via scope stability, gate correspondence and discarding of certificate events."
 msgstr "証明は受理のトレースを再構成する。規則の対応、境界補題による代入、スコープの安定性による消去、ゲートの対応、および証明書イベントの破棄である。"
 
-#: manual/qed_formal_spec_changelog.md:438
+#: manual/qed_formal_spec_changelog.md:452
 msgid "Removes implementation coupling from the introductory paragraph of Primitive Rules:"
 msgstr "Primitive Rules の導入段落から実装への結合を取り除いた。"
 
-#: manual/qed_formal_spec_changelog.md:439
+#: manual/qed_formal_spec_changelog.md:453
 msgid "changes \"parallel with implementation updates\" to \"Part I side conditions are authoritative\"."
 msgstr "「実装の更新と並行して」を「Part I の副条件が権威を持つ」に変更した。"
 
-#: manual/qed_formal_spec_changelog.md:441
+#: manual/qed_formal_spec_changelog.md:455
 msgid "Incremental revision (automatic phase advance: strengthened constructive closure for Primitive Rules)"
 msgstr "増分改訂(自動フェーズ進行: Primitive Rules に対する構成的閉包の強化)"
 
-#: manual/qed_formal_spec_changelog.md:443
+#: manual/qed_formal_spec_changelog.md:457
 msgid "Adds `Rule-Level Constructive Preservation Capsules` at the end of the `Rule Schema` chapter:"
 msgstr "`Rule Schema` の章の末尾に `Rule-Level Constructive Preservation Capsules` を追加した。"
 
-#: manual/qed_formal_spec_changelog.md:444
+#: manual/qed_formal_spec_changelog.md:458
 msgid "gives a uniform constructive template `Preserve_R : valid(Premises_R) => valid(Conclusion_R)`;"
 msgstr "統一された構成的テンプレート `Preserve_R : valid(Premises_R) => valid(Conclusion_R)` を与える。"
 
-#: manual/qed_formal_spec_changelog.md:445
+#: manual/qed_formal_spec_changelog.md:459
 msgid "gives an encapsulated preservation statement for each of the 10 primitive rules (including the three constraints of `INST_TYPE`: gate, coherence and instance);"
 msgstr "10 個の基本規則それぞれにカプセル化された保存の主張を与える(`INST_TYPE` の 3 つの制約、すなわちゲート、整合性、インスタンスを含む)。"
 
-#: manual/qed_formal_spec_changelog.md:447
+#: manual/qed_formal_spec_changelog.md:461
 msgid "adds the summary theorem `Rule Capsule Closure`, stating that \"per-rule case analysis + capsule invocation\" is enough to close the P1 obligation."
 msgstr "要約定理 `Rule Capsule Closure` を追加し、「規則ごとの場合分け + カプセルの呼び出し」で P1 の義務を閉じるのに十分であると述べる。"
 
-#: manual/qed_formal_spec_changelog.md:450
+#: manual/qed_formal_spec_changelog.md:464
 msgid "Incremental revision (automatic phase advance: closing the two-part audit checklist)"
 msgstr "増分改訂(自動フェーズ進行: 2 部構成の監査チェックリストの完結)"
 
-#: manual/qed_formal_spec_changelog.md:452
+#: manual/qed_formal_spec_changelog.md:466
 msgid "Extends Appendix B (P0 checklist) with Part II consistency items:"
 msgstr "付録 B(P0 チェックリスト)を Part II の一貫性項目で拡張した。"
 
-#: manual/qed_formal_spec_changelog.md:453
+#: manual/qed_formal_spec_changelog.md:467
 msgid "adds items 24-28, covering the Part II downstream declaration, the five conformance obligations, the transfer theorem, the non-authoritative mapping and the conformance positioning of the error taxonomy."
 msgstr "項目 24-28 を追加した。Part II の下流宣言、5 つの適合義務、転送定理、非権威的な対応、およびエラー分類の適合性上の位置付けをカバーする。"
 
-#: manual/qed_formal_spec_changelog.md:455
+#: manual/qed_formal_spec_changelog.md:469
 msgid "Adds Appendix G `Part II Conformance Audit Scenarios`:"
 msgstr "付録 G `Part II Conformance Audit Scenarios` を追加した。"
 
-#: manual/qed_formal_spec_changelog.md:456
+#: manual/qed_formal_spec_changelog.md:470
 msgid "Rule-fidelity replay;"
 msgstr "規則への忠実性のリプレイ"
 
-#: manual/qed_formal_spec_changelog.md:457
+#: manual/qed_formal_spec_changelog.md:471
 msgid "Boundary-fidelity;"
 msgstr "境界への忠実性"
 
-#: manual/qed_formal_spec_changelog.md:458
+#: manual/qed_formal_spec_changelog.md:472
 msgid "Scope-fidelity stability;"
 msgstr "スコープへの忠実性の安定性"
 
-#: manual/qed_formal_spec_changelog.md:459
+#: manual/qed_formal_spec_changelog.md:473
 msgid "Gate-fidelity;"
 msgstr "ゲートへの忠実性"
 
-#: manual/qed_formal_spec_changelog.md:460
+#: manual/qed_formal_spec_changelog.md:474
 msgid "Certificate non-authority."
 msgstr "証明書の非権威性"
 
-#: manual/qed_formal_spec_changelog.md:461
+#: manual/qed_formal_spec_changelog.md:475
 msgid "This completes the two-level audit structure of \"Part I logic closure + Part II conformance closure\"."
 msgstr "これにより、「Part I の論理の閉包 + Part II の適合性の閉包」という二段構えの監査構造が完成する。"
 
-#: manual/qed_formal_spec_changelog.md:463
+#: manual/qed_formal_spec_changelog.md:477
 msgid "Incremental revision (automatic phase advance: semantic assumption package and consistency layer)"
 msgstr "増分改訂(自動フェーズ進行: 意味論的仮定のパッケージと無矛盾性の層)"
 
-#: manual/qed_formal_spec_changelog.md:465
+#: manual/qed_formal_spec_changelog.md:479
 msgid "Adds a model-class wrapper under `Semantic Assumptions`:"
 msgstr "`Semantic Assumptions` の下にモデルクラスのラッパーを追加した。"
 
-#: manual/qed_formal_spec_changelog.md:466
+#: manual/qed_formal_spec_changelog.md:480
 msgid "adds the `Admissible Model Class` definition (typing/denotation + Choice + Infinity anchor + gate-admitted theorems)."
 msgstr "`Admissible Model Class` の定義(型付け/表示 + Choice + Infinity のアンカー + ゲートが受理した定理)を追加する。"
 
-#: manual/qed_formal_spec_changelog.md:468
+#: manual/qed_formal_spec_changelog.md:482
 msgid "adds the `Model-Class Non-Emptiness` assumption, making the \"a non-trivial model exists\" premise explicit."
 msgstr "`Model-Class Non-Emptiness` の仮定を追加し、「非自明なモデルが存在する」という前提を明示する。"
 
-#: manual/qed_formal_spec_changelog.md:469
+#: manual/qed_formal_spec_changelog.md:483
 msgid "Adds consistency transfer results:"
 msgstr "無矛盾性の転送結果を追加した。"
 
-#: manual/qed_formal_spec_changelog.md:470
+#: manual/qed_formal_spec_changelog.md:484
 msgid "`Semantic Non-Triviality Transfer` (a countermodel implies non-derivability);"
 msgstr "`Semantic Non-Triviality Transfer`(反例モデルがあれば導出不可能である)"
 
-#: manual/qed_formal_spec_changelog.md:471
+#: manual/qed_formal_spec_changelog.md:485
 msgid "`Consistency Witness Form` (under the semantics of the same model class, a sentence and its negation are not both derivable)."
 msgstr "`Consistency Witness Form`(同じモデルクラスの意味論の下では、ある文とその否定は同時には導出できない)"
 
-#: manual/qed_formal_spec_changelog.md:474
+#: manual/qed_formal_spec_changelog.md:488
 msgid "Incremental revision (automatic phase advance: claim-to-proof trace matrix)"
 msgstr "増分改訂(自動フェーズ進行: 主張から証明へのトレース表)"
 
-#: manual/qed_formal_spec_changelog.md:476
+#: manual/qed_formal_spec_changelog.md:490
 msgid "Adds Appendix H `Claim-to-Proof Trace Matrix`:"
 msgstr "付録 H `Claim-to-Proof Trace Matrix` を追加した。"
 
-#: manual/qed_formal_spec_changelog.md:477
+#: manual/qed_formal_spec_changelog.md:491
 msgid "gives short-path mappings from ten high-level claims C1..C10 to \"definition anchor/proof anchor\";"
 msgstr "10 個の高水準の主張 C1..C10 から「定義のアンカー/証明のアンカー」への短い経路の対応を与える。"
 
-#: manual/qed_formal_spec_changelog.md:478
+#: manual/qed_formal_spec_changelog.md:492
 msgid "covers rule soundness, conservativity of the three gate kinds, scope/boundary stability, global conservativity, conformance transfer, non-triviality and certificate non-authority."
 msgstr "規則の健全性、3 種類のゲートの保存性、スコープ/境界の安定性、グローバルな保存性、適合性の転送、非自明性、および証明書の非権威性をカバーする。"
 
-#: manual/qed_formal_spec_changelog.md:480
+#: manual/qed_formal_spec_changelog.md:494
 msgid "Adds a review rule at the end of the appendix:"
 msgstr "付録の末尾に査読規則を追加した。"
 
-#: manual/qed_formal_spec_changelog.md:481
+#: manual/qed_formal_spec_changelog.md:495
 msgid "each claim aims to be reachable in three steps, \"claim -> definition -> theorem\", to ease review and cross-checking."
 msgstr "各主張は「主張 -> 定義 -> 定理」の 3 ステップで到達できることを目指し、査読と相互検証を容易にする。"
 
-#: manual/qed_formal_spec_changelog.md:484
+#: manual/qed_formal_spec_changelog.md:498
 msgid "Incremental revision (automatic phase advance: terminology consistency refinement)"
 msgstr "増分改訂(自動フェーズ進行: 用語の一貫性の洗練)"
 
-#: manual/qed_formal_spec_changelog.md:486
+#: manual/qed_formal_spec_changelog.md:500
 msgid "Further removes engineering terms from Part I and unifies them:"
 msgstr "Part I から工学用語をさらに取り除き、統一した。"
 
-#: manual/qed_formal_spec_changelog.md:487
+#: manual/qed_formal_spec_changelog.md:501
 msgid "`external modules` becomes `external contexts`;"
 msgstr "`external modules` は `external contexts` になる。"
 
-#: manual/qed_formal_spec_changelog.md:488
+#: manual/qed_formal_spec_changelog.md:502
 msgid "`implementation-level check` becomes `admission-procedure check`;"
 msgstr "`implementation-level check` は `admission-procedure check` になる。"
 
-#: manual/qed_formal_spec_changelog.md:489
+#: manual/qed_formal_spec_changelog.md:503
 msgid "`module boundaries and test responsibilities` is rewritten from a proof-block perspective;"
 msgstr "`module boundaries and test responsibilities` を証明ブロックの観点から書き直した。"
 
-#: manual/qed_formal_spec_changelog.md:490
+#: manual/qed_formal_spec_changelog.md:504
 msgid "the word `implementation` at the infinity anchor and the canonical theorems is replaced with realization/presentation semantics."
 msgstr "無限性のアンカーと正準定理における `implementation` という語を、実現/提示の意味論に置き換えた。"
 
-#: manual/qed_formal_spec_changelog.md:492
+#: manual/qed_formal_spec_changelog.md:506
 msgid "Unifies the wording of the maintenance notes and audit scenarios accordingly:"
 msgstr "それに合わせて、保守注記と監査シナリオの文言を統一した。"
 
-#: manual/qed_formal_spec_changelog.md:493
+#: manual/qed_formal_spec_changelog.md:507
 msgid "`APIs evolve` becomes `realization interfaces evolve`;"
 msgstr "`APIs evolve` は `realization interfaces evolve` になる。"
 
-#: manual/qed_formal_spec_changelog.md:494
+#: manual/qed_formal_spec_changelog.md:508
 msgid "the schema widening scenario in Appendix F now uses admission-procedure semantics."
 msgstr "付録 F のスキーマ拡張シナリオは、受理手続きの意味論を用いるようになった。"
 
-#: manual/qed_formal_spec_changelog.md:495
+#: manual/qed_formal_spec_changelog.md:509
 msgid "Unifies notation:"
 msgstr "記法を統一した。"
 
-#: manual/qed_formal_spec_changelog.md:496
+#: manual/qed_formal_spec_changelog.md:510
 msgid "the semantic interpretation notation is unified as `\"denote\"(t, rho, M)`, using the same parameter convention as the later boundary denotation lemmas."
 msgstr "意味論的解釈の記法を `\"denote\"(t, rho, M)` に統一し、後の境界における表示補題と同じ引数規約を用いる。"
 
-#: manual/qed_formal_spec_changelog.md:499
+#: manual/qed_formal_spec_changelog.md:513
 msgid "Incremental revision (automatic phase advance: filling in closure anchors)"
 msgstr "増分改訂(自動フェーズ進行: 閉包アンカーの補完)"
 
-#: manual/qed_formal_spec_changelog.md:501
+#: manual/qed_formal_spec_changelog.md:515
 msgid "Adds the missing definition anchors to `Audit Certificates and Replay Interface` in Part II:"
 msgstr "Part II の `Audit Certificates and Replay Interface` に、欠けていた定義アンカーを追加した。"
 
-#: manual/qed_formal_spec_changelog.md:502
+#: manual/qed_formal_spec_changelog.md:516
 msgid "adds the `Admissible(T, t_h)` definition (witnessed by Part I `Derives` objects and gate legality);"
 msgstr "`Admissible(T, t_h)` の定義を追加する(Part I の `Derives` オブジェクトとゲートの適法性によりウィットネスされる)。"
 
-#: manual/qed_formal_spec_changelog.md:503
+#: manual/qed_formal_spec_changelog.md:517
 msgid "adds the `SentenceInLanguage(T_0, t_h)` definition (closed sentence + base language symbol constraint)."
 msgstr "`SentenceInLanguage(T_0, t_h)` の定義を追加する(閉じた文 + 基底言語の記号の制約)。"
 
-#: manual/qed_formal_spec_changelog.md:504
+#: manual/qed_formal_spec_changelog.md:518
 msgid "`ConservativeReplayOK` now uses explicitly defined predicates and no longer relies on implicit semantic premises."
 msgstr "`ConservativeReplayOK` は、明示的に定義された述語を用いるようになり、暗黙の意味論的前提に依存しなくなった。"
 
-#: manual/qed_formal_spec_changelog.md:507
+#: manual/qed_formal_spec_changelog.md:521
 msgid "Incremental revision (notation consistency fix)"
 msgstr "増分改訂(記法の一貫性の修正)"
 
-#: manual/qed_formal_spec_changelog.md:509
+#: manual/qed_formal_spec_changelog.md:523
 msgid "Makes the slash notation in substitutions consistent:"
 msgstr "代入におけるスラッシュ記法を統一した。"
 
-#: manual/qed_formal_spec_changelog.md:510
+#: manual/qed_formal_spec_changelog.md:524
 msgid "unifies `t[s/x]` as `t[s\\/x]`;"
 msgstr "`t[s/x]` を `t[s\\/x]` に統一する。"
 
-#: manual/qed_formal_spec_changelog.md:511
+#: manual/qed_formal_spec_changelog.md:525
 msgid "matches the existing `s[u\\/x]` notation in the text, avoiding ambiguity of the `[A/B]` form in review and rendering."
 msgstr "本文中の既存の `s[u\\/x]` 記法に合わせ、査読や描画における `[A/B]` 形式のあいまいさを避ける。"
 
-#: manual/qed_formal_spec_changelog.md:514
+#: manual/qed_formal_spec_changelog.md:528
 msgid "Incremental revision (tone refinement)"
 msgstr "増分改訂(文体の洗練)"
 
-#: manual/qed_formal_spec_changelog.md:516
+#: manual/qed_formal_spec_changelog.md:530
 msgid "Moves the tone of the whole text toward an academic paper style, without changing the logical content:"
 msgstr "論理的内容を変えずに、全文の文体を学術論文のスタイルに寄せた。"
 
-#: manual/qed_formal_spec_changelog.md:517
+#: manual/qed_formal_spec_changelog.md:531
 msgid "`Authority Contract` becomes `Normative Scope`, and some strongly imperative sentences are rewritten as academic expository sentences;"
 msgstr "`Authority Contract` を `Normative Scope` に改め、強い命令調の文を一部、学術的な説明文に書き直した。"
 
-#: manual/qed_formal_spec_changelog.md:519
+#: manual/qed_formal_spec_changelog.md:533
 msgid "the opening of Part II shifts from \"implementation hooks\" framing to \"concrete realization and conformance record\" framing;"
 msgstr "Part II の冒頭を、「implementation hooks」という枠組みから「concrete realization and conformance record」という枠組みに移した。"
 
-#: manual/qed_formal_spec_changelog.md:521
+#: manual/qed_formal_spec_changelog.md:535
 msgid "`Documentation Maintenance Notes` becomes `Concluding Remarks`, and `Near-term maintenance focus` becomes `Future refinement directions`."
 msgstr "`Documentation Maintenance Notes` を `Concluding Remarks` に、`Near-term maintenance focus` を `Future refinement directions` に改めた。"
 
-#: manual/qed_formal_spec_changelog.md:523
+#: manual/qed_formal_spec_changelog.md:537
 msgid "Unifies the tone of the appendices:"
 msgstr "付録の文体を統一した。"
 
-#: manual/qed_formal_spec_changelog.md:524
+#: manual/qed_formal_spec_changelog.md:538
 msgid "`Audit Scenarios` is uniformly renamed `Validation Scenarios`;"
 msgstr "`Audit Scenarios` を一律に `Validation Scenarios` に改名した。"
 
-#: manual/qed_formal_spec_changelog.md:525
+#: manual/qed_formal_spec_changelog.md:539
 msgid "the ending changes from \"required before claiming\" to \"provide structured evidence for ...\"."
 msgstr "結びを「required before claiming」から「provide structured evidence for ...」に変更した。"
 
-#: manual/qed_formal_spec_changelog.md:526
+#: manual/qed_formal_spec_changelog.md:540
 msgid "Detailed semantic consistency:"
 msgstr "意味論上の細かな一貫性:"
 
-#: manual/qed_formal_spec_changelog.md:527
+#: manual/qed_formal_spec_changelog.md:541
 msgid "the semantic interpretation notation is unified as `\"denote\"(t, rho, M)` (consistent with the later denotation lemmas);"
 msgstr "意味論的解釈の記法を `\"denote\"(t, rho, M)` に統一した(後の表示補題と整合)。"
 
-#: manual/qed_formal_spec_changelog.md:529
+#: manual/qed_formal_spec_changelog.md:543
 msgid "the predicates related to `ConservativeReplayOK` are now defined by name in the text, reducing implicit terminology."
 msgstr "`ConservativeReplayOK` に関連する述語は本文中で名前付きで定義されるようになり、暗黙の用語が減った。"
 

@@ -83,16 +83,16 @@ a separate refinement proof.
 
 #keyblock("warning", [Proof Scope], [
   The sole formal proof line is `formal_verification/QEDFV/HOL`; the root
-  `QEDFV` module imports `HOL/Soundness.lean`. The public result is
+  `QEDFV` module imports `HOL/Soundness.lean`. The core package is
   `typed_hol_core_proof_complete`. It proves the typed core, including
   `ADD_ASSUM` and witness-based choice, plus the stated fixed-signature semantic
-  extension results and the object-language infinity rule, and a history-indexed
-  derivation rule for a type definition (allocating a user type constructor, with
-  soundness at the history's model pair). It does not yet prove a
-  derivability-preserving calculus for growing theories, syntactic erasure, a
-  history-indexed full calculus that chains typedef theorems with core rules, or
-  refinement of the MoonBit implementation. The removed approximation modules are
-  not proof evidence.
+  extension results and the object-language infinity rule. The history-indexed
+  development provides both the extension introduction relation and the full
+  fixed-signature `HistoryDerivation` closure, which chains extension products
+  with the supported core rules and is sound at the history's model pair. It does
+  not yet prove a derivability-preserving calculus for growing theories,
+  syntactic erasure, or refinement of the MoonBit implementation. The removed
+  approximation modules are not proof evidence.
 ])
 
 The normative mathematical core consists of indexed types and terms, typed
@@ -481,10 +481,12 @@ mathematics; it does not prove that this registration procedure is correct.
   `typedef` constructor of `ExtensionDerivation` (section on history-indexed
   derivations), so the three Abs/Rep laws are derivable at the extended history from a
   hypothesis-free witness derivation; histories are interpreted over model pairs.
-  History freshness of `k`, Rep and Abs is a carried side condition that soundness
-  does not use, the signature stays total, and consequences that chain the derived
-  laws with core rules, syntactic erasure of a type definition, and the kernel's
-  string-name lowering are not provided. The carrier proof must not be cited as a
+  History freshness of `k`, Rep and Abs is a carried side condition that the
+  semantic soundness induction does not use, but it is required to form
+  well-formed histories. The signature stays total. Consequences that chain the
+  derived laws with core rules use `HistoryDerivation`; syntactic erasure of a
+  type definition and the kernel's string-name lowering are not provided. The
+  carrier proof must not be cited as a
   proof of the kernel's registration procedure.
 ])
 
@@ -2227,10 +2229,11 @@ argument from semantic validity to derivability.
   History-indexed derivation soundness is proved for definition, witnessed
   specification and witnessed type-definition steps over the fixed type grammar,
   with explicit freshness and old-language side conditions, at the history's model
-  pair. This is not a growing-signature construction: globally compatible
-  allocation, chaining the derived type-definition theorems with core rules, and
-  derivation erasure (for a type definition, a relativisation translation) remain
-  open. The former approximation sketches are not referenced as their proofs.
+  pair. The `HistoryDerivation` closure chains the derived type-definition
+  products with the supported core rules at that fixed signature. Globally
+  compatible growing-signature allocation and derivation erasure (for a type
+  definition, a relativisation translation) remain open. The former approximation
+  sketches are not referenced as their proofs.
 ])
 
 == Kernel Extension Mapping and Open Gates
@@ -2258,7 +2261,8 @@ complete row-by-row mapping is recorded in
   predicate over the declared parameters, fresh constructor and Rep/Abs constants, a
   hypothesis-free witness derivation $tack.r P(w)$ at the preceding history, and the three
   laws as derivation conclusions (selector `TypeDefLaw`), valid at the history's model pair.
-  History freshness of $k$, Rep and Abs is a carried side condition (unused by soundness);
+  History freshness of $k$, Rep and Abs is a carried side condition (unused by the
+  semantic soundness induction, but required to form well-formed histories);
   the carrier-level `TypeDefContract` is the family obtained at the old model. The kernel's
   string-name lowering and the MoonBit gate itself are not verified.
 - `ks_ind_infinity_axiom` maps mathematically to `Derivation.indInfinity`,
@@ -2365,6 +2369,17 @@ locality lemma.
 #lean-def("ExtensionDerivation", ("TypeDefLaw", "TypeDefLaw.ctx", "TypeDefLaw.sequent", "ExtensionDerivation"))
 #lean-proof("ExtensionDerivation", ("TypeDefGate.valid_law", "extension_derivation_sound", "typed_extension_derivation_sound", "typed_extension_derivation_sound_default"))
 
+The `HistoryDerivation` relation embeds these introduction products and closes
+the same fixed-signature history under all supported core rules. In particular,
+its `abs`, `trans`, `mkComb`, `eqMp`, `deduct`, instantiation and witness-choice
+constructors can consume a derived extension theorem. Its soundness is proved at
+the history's model pair, and the unit example composes a type-definition law
+through `abs`.
+
+#lean-def("HistoryDerivation", ("HistoryDerivation",))
+#lean-proof("HistoryDerivation", ("history_derivation_sound", "typed_history_derivation_sound", "history_derivation_old_language_valid", "history_generic_false_not_derivable"))
+#lean-proof("HistoryDerivationExamples", ("unit_absRep_function_valid", "unit_history_composition_nonvacuous"))
+
 *Corollary (Derivation-level conservativity).* A sequent in the old language of every step of
 $"es"$ that is derivable at $"es"$ is valid in the canonical base model.
 
@@ -2406,14 +2421,13 @@ the former and `ExtensionDerivation.specification` for the latter.
 #lean-def("Conservativity", ("Extension", "interpretSequence", "extensionHistoryIds"))
 
 *Limits.* The judgment composes definition, specification and type-definition proofs through
-finite histories over one fixed total `Signature`. Core rules cannot be applied to the
-theorems of a declaration step inside the judgment: a consequence that uses a derived law
-together with core rules would need a history-indexed full calculus. Syntactic
-conservativity and erasure to a growing-signature core derivation are not claimed; for a
-type definition they would need a relativisation translation (the new type has no definable
-replacement in the base grammar), and semantic validity does not imply derivability. The
-kernel's string names, the reservation of builtin constructor names and the MoonBit gate
-are outside this model.
+finite histories over one fixed total `Signature`, and `HistoryDerivation` closes those
+products under the supported core rules. This remains a fixed-signature construction:
+growing-signature syntax, globally compatible allocation, syntactic conservativity and
+erasure to a growing-signature core derivation are not claimed. A type-definition erasure
+would need a relativisation translation (the new type has no definable replacement in the
+base grammar), and semantic validity does not imply derivability. The kernel's string names,
+the reservation of builtin constructor names and the MoonBit gate are outside this model.
 
 == Type Preservation for Application Congruence
 

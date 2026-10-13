@@ -1,5 +1,16 @@
 # Formal specification changelog
 
+- Status: archival reference
+- Audience: specification maintainers and reviewers
+- Authority: the current Typst specification remains normative; this file records revisions only
+- Scope: historical changes to the formal specification and its Lean evidence
+- Last reviewed: 2026-10-14
+
+This is a history file, not a current proof-status entry point. Use the
+[branch contract](../../formal_verification/branch_contract.md) and the
+[Typed HOL proof plan](../../formal_verification/theory-proof-plan.md) for
+current status.
+
 ## 2026-10-13 Type definitions as history-indexed derivations
 
 - `ExtensionDerivation` is indexed by histories of `ModelExtension` steps and has a
@@ -20,8 +31,10 @@
 - Worked example: the one-element subtype of `bool` with its witness derivation, the three
   laws as derivations, an old-language theorem lifted with `weaken`, and non-triviality of
   the extended model.
-- Not claimed: freshness used by soundness, a history-indexed full calculus, syntactic
-  erasure of a type definition (relativisation), string-name lowering, MoonBit refinement.
+- Not claimed: freshness used by the semantic soundness induction, growing-signature
+  allocation, syntactic erasure of a type definition (relativisation), string-name
+  lowering, or MoonBit refinement. The later `HistoryDerivation` relation closes the
+  fixed-signature history under the supported core inference rules.
 
 ## 2026-10-13 Semantics of a type-definition gate
 
@@ -47,9 +60,10 @@
 - Added `Model`, `ModelExtension` (definition, specification and type-definition
   steps over model pairs), `ModelExtension.interpret` and `ModelExtension.valid_iff`
   as a parallel version of `Extension` (the earlier `Extension` with `TypeDefContract`
-  is unchanged). The step is not yet a constructor of `ExtensionDerivation`, and
-  `interpretModels` has no sequence-level equivalence theorem: that needs locality to be
-  carried through definition steps.
+  is unchanged). The step is now a constructor of `ExtensionDerivation`; locality is
+  carried through definition steps, yielding the history-level equivalence theorem.
+  The separate `HistoryDerivation` relation now embeds these products and closes them
+  under the core rules at a fixed total signature.
 ## 2026-10-13 Congruence over constructor interpretations
 
 - Added `Ty.tyCons` and `Term.tyCons` (constructor ids occurring in types and in
@@ -205,7 +219,7 @@ verification and axiom basis are recorded in the mainline entry above.
 
 ## 2026-10-12 evidence-driven audit correction
 
-- Added `doc/manual/qed_formal_audit_matrices.md` with an issue matrix and a proof-obligation matrix covering the manuscript, Lean formalization, and MoonBit realization.
+- Added the former `doc/manual/qed_formal_audit_matrices.md` with an issue matrix and a proof-obligation matrix covering the manuscript, Lean formalization, and MoonBit realization. The static matrix was later retired in favor of the generated obligation view.
 - Added `formal_verification/QEDFV/Conservativity/CrossTheoryObligations.lean`. It records the missing cross-theory simulation explicitly; it does not assert a proof without that premise.
 - Corrected the manuscript's proof-status language for definitional, specification, type-extension, and global conservativity. The previous erasure code keeps one `KernelState`, and its `OldLang` predicate does not inspect the base theory, so it proves same-state tree preservation rather than `T' ⊢ φ -> T ⊢ φ`.
 - Marked the current Lean `TypeDefOK`/typedef product contract, `DefOK` theorem shape, `SpecOK` conservativity predicate, abstract boundary laws, and model-law bundles as approximations or conditional obligations. These declarations compile, but they do not by themselves establish the stronger HOL/STT claims in the article.
