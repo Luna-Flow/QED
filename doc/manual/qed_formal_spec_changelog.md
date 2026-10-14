@@ -11,6 +11,12 @@ This is a history file, not a current proof-status entry point. Use the
 [Typed HOL proof plan](../../formal_verification/theory-proof-plan.md) and the
 [generated obligation matrix](qed_proof_obligations.md) for current status.
 
+## 2026-10-14 Typography and structure
+
+- Document style: one visual system for annotated blocks (a coloured left bar, as in the Lean 4 annotations), numbered definitions, propositions, lemmas, theorems and corollaries, proofs closed with a mark, table of contents, running header and footer, booktabs-style tables, and unnumbered appendices.
+- Display formulas written as an empty `$$` pair (which rendered the formula source as text) are now real display equations; the three history-derivation rules are typeset as inference rules.
+- No mathematical content changed.
+
 ## 2026-10-13 Type definitions as history-indexed derivations
 
 - `ExtensionDerivation` is indexed by histories of `ModelExtension` steps and has a
