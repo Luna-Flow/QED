@@ -434,7 +434,15 @@ pub fn thm_is_admissible(KernelState, Thm) -> Bool
 pub fn thm_bind_const_ids(KernelState, Thm) -> Result[Thm, LogicError]
 ```
 
-Every checked rule runs this check on its premises and on its result, so a theorem proved before a scope change cannot be used after the change made one of its constants mean something else. `thm_bind_const_ids` is the exception: it can move a theorem about an outer constant `c`, written with unstamped occurrences, to a constant `c` declared by an inner scope. This is sound, because only constants without a definition can be shadowed, and the [kernel design](../design/kernel.md) explains why; but the result is about the inner constant. `thm_bind_const_ids` fails with `InvalidInstantiation` when a stamped identity disagrees with the state, and also when the theorem has already acquired declaration lineage and still contains an unstamped occurrence of a constant other than `=` and `@` (rebinding such a theorem could make a descendant theorem mean something else); it fails with `TypeMismatch` when a constant is unknown.
+Every checked rule runs this check on its premises and on its result, so a theorem proved before a scope change cannot be used after the change made one of its constants mean something else. For a theorem that has not yet been admitted, `thm_bind_const_ids` can resolve unstamped occurrences of an outer constant `c` in a state where an inner scope declares another `c`. This is sound, because only constants without a definition can be shadowed, and the [kernel design](../design/kernel.md) explains why; but the result is about the inner constant. Once a theorem has acquired declaration lineage, `thm_bind_const_ids` rejects any remaining unstamped occurrence of a constant other than `=` and `@`, and it never bypasses the lineage-prefix check. It also fails with `InvalidInstantiation` when a stamped identity disagrees with the state, and with `TypeMismatch` when a constant is unknown.
+
+After a theorem is first admitted, its declaration lineage is recorded with the
+theorem. Admission requires that lineage to be a prefix of the receiving
+state's lineage. A theorem can therefore move to a linear descendant, including
+through a pushed and popped temporary scope, while a theorem from a divergent
+forked history is rejected even if the fork reused the same constant identifiers.
+Branches that perform the same lineage events have the same lineage and may
+exchange the resulting theorem.
 
 ## Primitive rules
 

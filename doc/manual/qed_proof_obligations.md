@@ -49,7 +49,7 @@ Total: **11**; complete: **0**; not applicable: **0**; open: **11**.
 - [ ] `HOL-GROW-001` [required; high] A finite declaration table records fresh constant allocation and preserves compatibility with the fixed total signature; old declarations remain available after a fresh allocation. (open)
 - [ ] `HOL-INFINITY-001` [required; high] Infinity admission identifies exactly the canonical object-language infinity sentence. (open)
 - [ ] `KERNEL-BOUNDARY-001` [required; critical] Only checked kernel constructors and extension gates can produce theorem objects; frontend code cannot forge them. (open)
-- [ ] `KERNEL-PROVENANCE-001` [required; critical] A theorem is admissible only in a compatible declaration lineage; sibling histories cannot exchange theorem evidence. (open)
+- [ ] `KERNEL-PROVENANCE-001` [required; critical] A theorem is admissible only in a compatible declaration lineage; divergent sibling histories cannot exchange theorem evidence. (open)
 - [ ] `FRONTEND-LOWERING-001` [required; high] Parsing and elaboration preserve the proposition and resolved constant identity supplied to the kernel, or fail closed. (open)
 - [ ] `REFINEMENT-001` [required; critical] MoonBit types, terms, theorem objects, state transitions, and theorem constructors are connected to the Typed HOL calculus by a checked refinement or proof-producing translation. (open)
 
@@ -65,7 +65,7 @@ Total: **11**; complete: **0**; not applicable: **0**; open: **11**.
 | `HOL-GROW-001` | theory-extension | required | high | A finite declaration table records fresh constant allocation and preserves compatibility with the fixed total signature; old declarations remain available after a fresh allocation. | proved-abstractly | partial | not-implemented | not-applicable | [#17](https://github.com/Luna-Flow/QED/issues/17) |
 | `HOL-INFINITY-001` | axiom-admission | required | high | Infinity admission identifies exactly the canonical object-language infinity sentence. | proved-abstractly | partial | not-implemented | tested-only | [#7](https://github.com/Luna-Flow/QED/issues/7) |
 | `KERNEL-BOUNDARY-001` | trusted-kernel | required | critical | Only checked kernel constructors and extension gates can produce theorem objects; frontend code cannot forge them. | not-applicable | implemented-unverified | not-implemented | tested-only | [#17](https://github.com/Luna-Flow/QED/issues/17) |
-| `KERNEL-PROVENANCE-001` | trusted-kernel | required | critical | A theorem is admissible only in a compatible declaration lineage; sibling histories cannot exchange theorem evidence. | not-applicable | tested-only | not-implemented | tested-only | [#15](https://github.com/Luna-Flow/QED/issues/15), [#22](https://github.com/Luna-Flow/QED/issues/22) |
+| `KERNEL-PROVENANCE-001` | trusted-kernel | required | critical | A theorem is admissible only in a compatible declaration lineage; divergent sibling histories cannot exchange theorem evidence. | not-applicable | tested-only | not-implemented | tested-only | [#15](https://github.com/Luna-Flow/QED/issues/15), [#22](https://github.com/Luna-Flow/QED/issues/22) |
 | `FRONTEND-LOWERING-001` | frontend-boundary | required | high | Parsing and elaboration preserve the proposition and resolved constant identity supplied to the kernel, or fail closed. | not-applicable | tested-only | not-implemented | tested-only | [#3](https://github.com/Luna-Flow/QED/issues/3), [#4](https://github.com/Luna-Flow/QED/issues/4), [#5](https://github.com/Luna-Flow/QED/issues/5), [#6](https://github.com/Luna-Flow/QED/issues/6) |
 | `REFINEMENT-001` | implementation-correspondence | required | critical | MoonBit types, terms, theorem objects, state transitions, and theorem constructors are connected to the Typed HOL calculus by a checked refinement or proof-producing translation. | not-implemented | implemented-unverified | not-implemented | tested-only | [#17](https://github.com/Luna-Flow/QED/issues/17) |
 
@@ -169,7 +169,7 @@ Only checked kernel constructors and extension gates can produce theorem objects
 
 ### `KERNEL-PROVENANCE-001`
 
-A theorem is admissible only in a compatible declaration lineage; sibling histories cannot exchange theorem evidence.
+A theorem is admissible only in a compatible declaration lineage; divergent sibling histories cannot exchange theorem evidence.
 
 - Specification: `doc/attachments/qed_formal_spec.typ::Stability Theorem for Scope Mutation`
 - MoonBit API: `src/kernel/sig.mbt`, `src/kernel/thm.mbt`

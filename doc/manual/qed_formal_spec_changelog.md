@@ -17,6 +17,24 @@ This is a history file, not a current proof-status entry point. Use the
 - Display formulas written as an empty `$$` pair (which rendered the formula source as text) are now real display equations; the three history-derivation rules are typeset as inference rules.
 - No mathematical content changed.
 
+## 2026-10-15 Theorem lineage follow-up (#22)
+
+- Documented declaration-lineage admission in the kernel API and design pages,
+  including the distinction between divergent sibling histories and branches
+  that perform the same lineage events.
+- Added regression coverage for identical sibling histories, a theorem carried
+  through a pushed and popped scope, and `thm_bind_const_ids` rejection across
+  divergent sibling histories. The implementation repair from [#21](https://github.com/Luna-Flow/QED/issues/21)
+  therefore has its requested MoonBit follow-up coverage; the MoonBit-to-Lean
+  refinement remains a separate obligation tracked by [#17](https://github.com/Luna-Flow/QED/issues/17).
+- Measured the lineage cost with the reproducible native-release benchmark in
+  `src/bench`: build medians for 0, 100, 300 and 500 definitions were about
+  0.58, 544, 2674 and 6525 microseconds, while checked `inst` medians were
+  about 1.73, 3.63, 6.90 and 12.32 microseconds (ten samples per case). The
+  current representation is acceptable at this scale; no interning or hash
+  chain is introduced without a workload that justifies it.
+- Completed the `zh_CN` and `ja_JP` translations for the lineage documentation.
+
 ## 2026-10-13 Type definitions as history-indexed derivations
 
 - `ExtensionDerivation` is indexed by histories of `ModelExtension` steps and has a

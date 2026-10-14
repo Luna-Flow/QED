@@ -244,6 +244,57 @@ test "audit theorem lineage rejects sibling states and accepts descendants" {
 }
 
 ///|
+test "audit theorem lineage accepts identical sibling histories" {
+  let bool = bool_ty()
+  let st0 = expect_ok_sig_audit(
+    ks_add_const(empty_kernel_state(), "T_identical", bool),
+  )
+  let t = mk_const("T_identical", bool)
+
+  let st_a = ks_push_scope(st0)
+  let (st_a, _) = expect_ok_sig_audit(
+    ks_define_const_thm(st_a, "c_identical", bool, t),
+  )
+  let th_a = expect_ok_audit(refl_checked(st_a, mk_const("c_identical", bool)))
+
+  let st_b = ks_push_scope(st0)
+  let (st_b, _) = expect_ok_sig_audit(
+    ks_define_const_thm(st_b, "c_identical", bool, t),
+  )
+  assert_true(inst_checked(st_b, [], th_a) is Ok(_))
+}
+
+///|
+test "audit theorem rebinding rejects divergent sibling histories" {
+  let bool = bool_ty()
+  let st0 = expect_ok_sig_audit(
+    ks_add_const(empty_kernel_state(), "T_bind_lineage", bool),
+  )
+  let st_a = expect_ok_sig_audit(
+    ks_add_const(ks_push_scope(st0), "A_bind_lineage", bool),
+  )
+  let stamped = expect_ok_sig_audit(ks_mk_const(st_a, "T_bind_lineage"))
+  let theorem = expect_ok_audit(refl_checked(st_a, stamped))
+
+  let st_b = expect_ok_sig_audit(
+    ks_add_const(ks_push_scope(st0), "B_bind_lineage", bool),
+  )
+  assert_true(thm_bind_const_ids(st_b, theorem) is Err(InvalidInstantiation))
+}
+
+///|
+test "audit theorem lineage survives a popped local scope" {
+  let bool = bool_ty()
+  let st0 = expect_ok_sig_audit(
+    ks_add_const(empty_kernel_state(), "T_popped", bool),
+  )
+  let inner = ks_push_scope(st0)
+  let theorem = expect_ok_audit(refl_checked(inner, mk_const("T_popped", bool)))
+  let popped = expect_ok_sig_audit(ks_pop_scope(inner))
+  assert_true(inst_checked(popped, [], theorem) is Ok(_))
+}
+
+///|
 test "audit registration rejects witnesses from sibling histories" {
   let bool = bool_ty()
   let st0 = expect_ok_sig_audit(

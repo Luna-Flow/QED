@@ -1,0 +1,6 @@
+import {
+  "Luna-Flow/QED/kernel",
+  "moonbitlang/core/bench" @core_bench,
+}
+
+pkgtype(kind: "executable")
