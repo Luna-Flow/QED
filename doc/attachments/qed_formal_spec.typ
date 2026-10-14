@@ -468,15 +468,18 @@ are object-language terms of type `bool`, not abbreviations in Lean's
 metalogic. Quantifiers bind the first type in the context; the remaining
 context is unchanged.
 
-For $p,q : "Tm"_(Sigma)(Gamma,"bool")$ and
-$r : "Tm"_(Sigma)(tau :: Gamma,"bool")$, their semantic clauses are:
+#block(sticky: true)[
+  For $p,q : "Tm"_(Sigma)(Gamma,"bool")$ and
+  $r : "Tm"_(Sigma)(tau :: Gamma,"bool")$, their semantic clauses are:
+]
 
 $
-  E("true") = "True", quad E("false") = "False",
-  quad E(p "and" q) = E(p) and E(q),
-  quad E(p "implies" q) = (E(p) => E(q)),
-  quad E("all"_tau r) = forall x in D_(rho)(tau). E_(eta[x])(r),
-  quad E("ex"_tau r) = exists x in D_(rho)(tau). E_(eta[x])(r).
+  E("true") &= "True", \
+  E("false") &= "False", \
+  E(p "and" q) &= E(p) and E(q), \
+  E(p "implies" q) &= (E(p) => E(q)), \
+  E("all"_tau r) &= forall x in D_(rho)(tau). E_(eta[x])(r), \
+  E("ex"_tau r) &= exists x in D_(rho)(tau). E_(eta[x])(r).
 $
 
 Here $eta[x]$ extends the environment with $x$ at the distinguished binder.
@@ -1349,11 +1352,12 @@ For the logical constructors, write $E_x(p):=E_(I,rho,eta[x])(p)$. Their
 semantic characterizations are:
 
 $
-  E("true") = "True", quad E("false") = "False",
-  quad E(p "and" q) = E(p) and E(q),
-  quad E(p "implies" q) = (E(p) => E(q)),
-  quad E("all"_tau p) = forall x in D_(rho)(tau). E_x(p),
-  quad E("ex"_tau p) = exists x in D_(rho)(tau). E_x(p).
+  E("true") &= "True", \
+  E("false") &= "False", \
+  E(p "and" q) &= E(p) and E(q), \
+  E(p "implies" q) &= (E(p) => E(q)), \
+  E("all"_tau p) &= forall x in D_(rho)(tau). E_x(p), \
+  E("ex"_tau p) &= exists x in D_(rho)(tau). E_x(p).
 $
 
 #lean-proof("Evaluation", ("Term.eval_truth", "Term.eval_falsity", "Term.eval_conj", "Term.eval_imp", "Term.eval_all", "Term.eval_ex"))
@@ -1883,7 +1887,7 @@ The intended implementation must enforce additional admission duties:
 4. Theorem reuse preserves declaration identity and compatible provenance.
 5. Conversion failures and audit certificates confer no theorem authority.
 
-#keyblock("critical", [Issue 15 implementation invariant], [
+#block(breakable: false, keyblock("critical", [Issue 15 implementation invariant], [
   Sibling MoonBit `KernelState` histories can allocate the same `ConstId`, so a
   theorem handle records its originating lineage. Admissibility requires that
   lineage to be a prefix of the receiving history; the reported combination of
@@ -1891,7 +1895,7 @@ The intended implementation must enforce additional admission duties:
   tests cover sibling rejection, linear descendants, and witness registration.
   This implementation invariant is separate from the still-required
   MoonBit-to-Lean refinement.
-])
+]))
 
 = Primitive Inference Rules
 
@@ -2954,7 +2958,7 @@ iff all conditions hold:]
 6. *No orphan*: for each entry $i$ in module $"OwnerMod"(i)$,
    $
      "OwnerMod"(i) = "OwnerClass"("ClassOf"(i))
-     " or "
+     " or " \
      "OwnerMod"(i) = "OwnerTyHead"("TypeHead"("TyOf"(i)))
    $
 7. *Paterson-style decrease on prerequisites*: for each $i in "Entries"(cal(I))$ and
@@ -3381,8 +3385,8 @@ validation. All proof names below are in `QEDFV.HOL`; constructor definitions
 are in `Derivation.lean`.
 
 #table(
-  columns: (0.8fr, 1.6fr, 1.5fr), inset: 5pt,
-  [*Rule*], [*Mathematical dependency*], [*Lean preservation theorem*],
+  columns: (1fr, 1.6fr, 1.3fr), inset: 5pt,
+  table.header([*Rule*], [*Mathematical dependency*], [*Lean preservation theorem*]),
   [REFL], [Reflexivity in the carrier], [`Rules.valid_refl`],
   [ASSUME], [Satisfaction of singleton list], [`Rules.valid_assume`],
   [ADD_ASSUM], [Weakening the assumption list], [`Rules.valid_add_assum`],
@@ -3394,7 +3398,7 @@ are in `Derivation.lean`.
   [DEDUCT], [Exact list deletion and propositional extensionality], [`Rules.valid_deduct`],
   [INST_TYPE], [Carrier transport, selector coherence, evaluation], [`Instantiation.valid_inst_type`],
   [INST], [Simultaneous substitution evaluation], [`Rules.valid_inst_term`],
-  [CHOOSE_WITNESS], [Witness substitution and the selector property], [`Rules.valid_choose_from_witness`],
+  [CHOOSE\_#linebreak()WITNESS], [Witness substitution and the selector property], [`Rules.valid_choose_from_witness`],
   [INFINITY], [Validity of the explicit sentence, witnessed by successor], [`indInfinitySentence_valid`],
   table.hline(stroke: 0.6pt + ink),
 )
@@ -3648,7 +3652,7 @@ derivations.
   show raw: set text(size: 8pt)
   table(
   columns: (0.7fr, 1.5fr, 2.2fr), inset: 5pt,
-  [*Claim*], [*Mathematical result*], [*Lean source and declaration*],
+  table.header([*Claim*], [*Mathematical result*], [*Lean source and declaration*]),
   [C1], [Nonempty carriers], [`Types.lean`: `Ty.carrier_nonempty`],
   [C2], [Renaming and substitution evaluation], [`Evaluation.lean`: `Term.eval_rename`, `Term.eval_substitute`],
   [C3], [Beta evaluation], [`Evaluation.lean`: `Term.eval_beta`],
