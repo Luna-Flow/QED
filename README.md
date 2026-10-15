@@ -9,8 +9,8 @@ QED is a theorem prover for higher-order logic written in MoonBit, built kernel-
 - `cmd`: a file-first command-line tool with structured `error[...]` and `warning[unfinished]` reports.
 
 The [user manual](doc/manual/manual.md) has the exact support matrix.
-The [proof-obligation matrix](doc/manual/qed_proof_obligations.md) records the
-normative obligations and separates Lean, MoonBit, refinement, and test
+The [compliance review](doc/manual/conformance.md) records implementation
+mapping, proof obligations, and separate Lean, MoonBit, refinement, and test
 evidence.
 The [formal branch contract](formal_verification/branch_contract.md) fixes the
 promotion order from HOL theory through declaration growth to MoonBit
@@ -81,12 +81,12 @@ The Typed HOL formalization builds with `lake build` in `formal_verification/`.
 ## Documentation
 
 - Online: <https://lunaflow.cn/en/QED/>
-- Source: [`doc/manual/index.md`](doc/manual/index.md), with the package pages (API, design, tutorial), the [user manual](doc/manual/manual.md), the [syntax guide](doc/manual/syntax.md) and the [specification conformance](doc/manual/conformance.md) guide.
-- Rules for contributors: [code governance](doc/manual/code_governance.md) and [documentation governance](doc/manual/governance.md). Research notes are in `research/` and are not part of the shipped contract.
+- Source: [`doc/manual/index.md`](doc/manual/index.md), with the package pages (API, design, tutorial), the [user manual](doc/manual/manual.md), the [syntax guide](doc/manual/syntax.md), the [formal description](doc/manual/formal.md), and the [compliance review](doc/manual/conformance.md).
+- Contributor obligations and evidence limits are maintained in the [compliance review](doc/manual/conformance.md). Research notes are in `research/` and are not part of the shipped contract.
 
 ## Contributing
 
-Keep `kernel` the only theorem-construction boundary, respect the package layering, and update code, tests and documentation together; [code governance](doc/manual/code_governance.md) and [specification conformance](doc/manual/conformance.md) list the obligations. Commit messages follow Conventional Commits.
+Keep `kernel` the only theorem-construction boundary, respect the package layering, and update code, tests and documentation together; the [compliance review](doc/manual/conformance.md) lists the obligations. Commit messages follow Conventional Commits.
 
 ## License
 

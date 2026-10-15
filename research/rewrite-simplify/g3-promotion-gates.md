@@ -2,7 +2,7 @@
 
 Status: research-only
 Audience: maintainers, designers
-Authority: non-authoritative research gate note; subordinate to `doc/attachments/qed_formal_spec.typ`, current code/tests, and `doc/manual/governance.md`
+Authority: non-authoritative research gate note; subordinate to `doc/attachments/qed_formal_spec.typ`, current code/tests, and `doc/manual/conformance.md`
 Scope: promotion criteria for rewrite/simplify research, not shipped behavior
 Last reviewed: 2026-04-16
 

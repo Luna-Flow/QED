@@ -38,7 +38,7 @@ The status is monotone: adding a failing theorem to a file can only raise it, an
 
 **Problem.** A CLI tends to accumulate logic: special cases, its own parsing of goals, its own idea of success.
 
-**Choice.** The tool only parses arguments, reads the file, calls `prove_theorem_file_results_detailed`, converts the results to strings and computes the exit status. [Code governance](../code_governance.md) makes this a rule: `cmd` is the thinnest layer and consumes only stable prover facades.
+**Choice.** The tool only parses arguments, reads the file, calls `prove_theorem_file_results_detailed`, converts the results to strings and computes the exit status. The [compliance review](../conformance.md) makes this a rule: `cmd` is the thinnest layer and consumes only stable prover facades.
 
 **Why.** Every claim the tool prints comes from the prover, so the prover's tests and the corpus cover it, and the tool cannot become a second proof engine with different semantics.
 

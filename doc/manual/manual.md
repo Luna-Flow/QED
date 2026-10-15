@@ -256,7 +256,7 @@ diagnostics about the current proof state.
 
 ## Source-of-truth hierarchy
 
-QED currently follows the documentation hierarchy defined in [Documentation governance](governance.md). For the implementation
+QED currently follows the documentation hierarchy defined in the [compliance review](conformance.md). For the implementation
 contract, the relevant order is:
 
 1. [QED formal specification](../attachments/qed_formal_spec.typ) is the only normative source, and [`doc/attachments/qed_formal_spec.typ`](../attachments/qed_formal_spec.typ)
