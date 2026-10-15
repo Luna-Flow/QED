@@ -232,7 +232,7 @@
       text(fill: muted, weight: "bold")[Formal development],
       [Lean 4 development in #raw("formal_verification/QEDFV/HOL")],
       text(fill: muted, weight: "bold")[Related documents],
-      [Proof plan and branch contract in #raw("formal_verification/"); revision history in #raw("doc/manual/qed_formal_spec_changelog.md")],
+      [Proof plan and branch contract in #raw("formal_verification/"); current status and revision context in #raw("doc/manual/conformance.md")],
     )
   },
 )

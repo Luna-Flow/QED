@@ -52,7 +52,7 @@ A local always shadows a constant of the same name. This is the usual lexical sc
 
 **Choice.** It is its own package between the kernel and the parser, depending only on the kernel.
 
-**Why.** The resolution contract is part of the specification and is tested on its own; the parser can change its grammar without touching it, and other frontends can reuse it. The layering `kernel → logic/elab → parser` in [code governance](../code_governance.md) records this.
+**Why.** The resolution contract is part of the specification and is tested on its own; the parser can change its grammar without touching it, and other frontends can reuse it. The layering `kernel → logic/elab → parser` in the [compliance review](../conformance.md) records this.
 
 ### Errors as data, typing as an option
 

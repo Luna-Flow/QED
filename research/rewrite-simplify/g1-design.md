@@ -2,7 +2,7 @@
 
 Status: research-only
 Audience: maintainers, designers
-Authority: non-authoritative design note; subordinate to `doc/attachments/qed_formal_spec.typ`, current code/tests, and `doc/manual/governance.md`
+Authority: non-authoritative design note; subordinate to `doc/attachments/qed_formal_spec.typ`, current code/tests, and `doc/manual/conformance.md`
 Scope: minimum safe boundary for an isolated rewrite/simplify prototype
 Last reviewed: 2026-04-16
 

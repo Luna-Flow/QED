@@ -2,7 +2,7 @@
 
 Status: research-only
 Audience: maintainers, designers
-Authority: non-authoritative design notes; subordinate to `doc/attachments/qed_formal_spec.typ`, current code/tests, and `doc/manual/governance.md`
+Authority: non-authoritative design notes; subordinate to `doc/attachments/qed_formal_spec.typ`, current code/tests, and `doc/manual/conformance.md`
 Scope: unshipped design exploration, promotion gates, and go/no-go conclusions
 Last reviewed: 2026-10-14
 

@@ -17,7 +17,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 REGISTRY = ROOT / "doc/manual/qed_obligations.json"
-OUTPUT = ROOT / "doc/manual/qed_proof_obligations.md"
+OUTPUT = ROOT / "doc/manual/conformance.md"
+BEGIN_MARKER = "<!-- BEGIN GENERATED OBLIGATION MATRIX -->"
+END_MARKER = "<!-- END GENERATED OBLIGATION MATRIX -->"
 STATUSES = (
     "proved-and-refined",
     "proved-abstractly",
@@ -241,7 +243,7 @@ def completion(item: dict) -> str:
 
 
 def summary_table(obligations: list[dict], field: str, title: str) -> list[str]:
-    lines = [f"## {title}", "", "| Group | Total | Complete | Not applicable | Open |", "| --- | ---: | ---: | ---: | ---: |"]
+    lines = [f"### {title}", "", "| Group | Total | Complete | Not applicable | Open |", "| --- | ---: | ---: | ---: | ---: |"]
     groups = sorted({item[field] for item in obligations})
     if field == "severity":
         groups = [severity for severity in SEVERITIES if severity in groups]
@@ -259,11 +261,11 @@ def render(data: dict) -> str:
     counts = {dimension: Counter(item["status"][dimension] for item in obligations) for dimension in DIMENSIONS}
     totals = Counter(completion(item) for item in obligations)
     lines = [
-        "# QED Proof-Obligation Matrix", "",
+        "## Proof-obligation matrix", "",
         "Generated from [`qed_obligations.json`](qed_obligations.json). The dimensions are independent: a Lean proof does not certify the MoonBit implementation, and tests do not establish refinement.", "",
         "A checked checklist item requires `proved-and-refined` in the refinement dimension. Open means an applicable obligation lacks checked implementation refinement; it does not mean a soundness defect has been demonstrated. Severity records the impact if the obligation is unsatisfied.", "",
         f"Total: **{len(obligations)}**; complete: **{totals['complete']}**; not applicable: **{totals['not applicable']}**; open: **{totals['open']}**.", "",
-        "## Status Counts", "",
+        "### Status Counts", "",
         "| Dimension | " + " | ".join(status.replace("-", " ") for status in STATUSES) + " |",
         "| --- | " + " | ".join("---:" for _ in STATUSES) + " |",
     ]
@@ -271,18 +273,18 @@ def render(data: dict) -> str:
         lines.append("| " + " | ".join([dimension] + [str(counts[dimension].get(status, 0)) for status in STATUSES]) + " |")
     for field, title in (("category", "Counts by Logical Subsystem"), ("requirement_level", "Counts by Requirement Level"), ("severity", "Counts by Severity if Unsatisfied")):
         lines += [""] + summary_table(obligations, field, title)
-    lines += ["", "## Checklist", ""]
+    lines += ["", "### Checklist", ""]
     for item in obligations:
         state = completion(item)
         mark = "x" if state == "complete" else " "
         lines.append(f"- [{mark}] `{item['id']}` [{item['requirement_level']}; {item['severity']}] {item['normative_statement']} ({state})")
-    lines += ["", "## Obligations", "", "| ID | Category | Requirement | Severity | Normative statement | Lean | MoonBit | Refinement | Tests | Issues |", "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |"]
+    lines += ["", "### Obligations", "", "| ID | Category | Requirement | Severity | Normative statement | Lean | MoonBit | Refinement | Tests | Issues |", "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |"]
     for item in obligations:
         status = item["status"]
         issues = ", ".join(f"[#{issue}](https://github.com/Luna-Flow/QED/issues/{issue})" for issue in item["issues"]) or "-"
         statement = item["normative_statement"].replace("|", "\\|")
         lines.append(f"| `{item['id']}` | {item['category']} | {item['requirement_level']} | {item['severity']} | {statement} | {status['lean']} | {status['moonbit']} | {status['refinement']} | {status['tests']} | {issues} |")
-    lines += ["", "## Evidence", ""]
+    lines += ["", "### Evidence", ""]
     for item in obligations:
         moonbit = ", ".join(f"`{path}`" for path in item["moonbit_api"]) or "-"
         lean = ", ".join(f"`{entry['path']}::{entry['symbol']}`" for entry in item["lean"]) or "-"
@@ -290,8 +292,20 @@ def render(data: dict) -> str:
         verification = "; ".join(item["verification"]) or "-"
         assumptions = "; ".join(item["assumptions"]) or "-"
         exclusions = "; ".join(item["exclusions"]) or "-"
-        lines += [f"### `{item['id']}`", "", item["normative_statement"], "", f"- Specification: `{item['spec']}::{item['spec_anchor']}`", f"- MoonBit API: {moonbit}", f"- Lean: {lean}", f"- Verification: {verification}", f"- Evidence: {evidence}", f"- Assumptions: {assumptions}", f"- Exclusions: {exclusions}", ""]
+        lines += [f"#### `{item['id']}`", "", item["normative_statement"], "", f"- Specification: `{item['spec']}::{item['spec_anchor']}`", f"- MoonBit API: {moonbit}", f"- Lean: {lean}", f"- Verification: {verification}", f"- Evidence: {evidence}", f"- Assumptions: {assumptions}", f"- Exclusions: {exclusions}", ""]
     return "\n".join(lines).rstrip() + "\n"
+
+
+def update_document(generated: str) -> str:
+    """Replace the generated section while preserving the authored review text."""
+    document = OUTPUT.read_text(encoding="utf-8")
+    if document.count(BEGIN_MARKER) != 1 or document.count(END_MARKER) != 1:
+        raise ValueError("compliance review must contain exactly one obligation-matrix marker pair")
+    if document.index(BEGIN_MARKER) >= document.index(END_MARKER):
+        raise ValueError("obligation-matrix markers are out of order")
+    before, remainder = document.split(BEGIN_MARKER, 1)
+    _, after = remainder.split(END_MARKER, 1)
+    return before + BEGIN_MARKER + "\n\n" + generated + "\n" + END_MARKER + after
 
 
 def main(argv: list[str]) -> int:
@@ -302,9 +316,10 @@ def main(argv: list[str]) -> int:
         data = read_registry()
         validate(data)
         rendered = render(data)
+        updated = update_document(rendered)
         if "--write" in argv:
-            OUTPUT.write_text(rendered, encoding="utf-8")
-        elif OUTPUT.read_text(encoding="utf-8") != rendered:
+            OUTPUT.write_text(updated, encoding="utf-8")
+        elif OUTPUT.read_text(encoding="utf-8") != updated:
             print(f"{OUTPUT.relative_to(ROOT)} is stale; run python3 tools/qed_obligations.py --write", file=sys.stderr)
             return 1
     except (OSError, ValueError, json.JSONDecodeError) as error:
