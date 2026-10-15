@@ -63,7 +63,7 @@ msgstr "引数"
 
 #: manual/api/cmd.md:23
 #: manual/api/elab.md:301
-#: manual/api/kernel.md:1050
+#: manual/api/kernel.md:1058
 #: manual/api/parser.md:107
 #: manual/api/tactics.md:325
 msgid "Meaning"
@@ -444,7 +444,7 @@ msgid "`elab_is_prop` tests whether a term is a well-typed proposition. `elab_re
 msgstr "`elab_is_prop` は項が型付けされた命題かどうかを検査する。`elab_require_prop` は項を返すか、`NotBoolTerm` で失敗する(型付けできない場合は `TypeMismatch`)。"
 
 #: manual/api/elab.md:285
-#: manual/api/kernel.md:1029
+#: manual/api/kernel.md:1037
 #: manual/api/parser.md:83
 #: manual/api/tactics.md:307
 msgid "Errors"
@@ -455,7 +455,7 @@ msgid "`ElabError` is the error of resolution and lowering."
 msgstr "`ElabError` は解決とローワリングのエラーである。"
 
 #: manual/api/elab.md:301
-#: manual/api/kernel.md:1050
+#: manual/api/kernel.md:1058
 #: manual/api/tactics.md:325
 msgid "Constructor"
 msgstr "コンストラクタ"
@@ -788,417 +788,421 @@ msgid "`thm_is_admissible(state, th)` holds when `th` is acceptable in `state`: 
 msgstr "`thm_is_admissible(state, th)` は、`th` が `state` で受理可能であるときに成り立つ。すなわち、そこで言及されるすべての定数が、定理に記録された同一性で宣言されており、すべての定数の出現が宣言されたスキーマのインスタンスであり、すべての型が許容され、定義定理がなお自身の定義と一致している。`thm_bind_const_ids` は、`th` の定数を `state` で改めて解決し、見つかった同一性を記録してから許容性を検査する。同一性スタンプをもつ出現はそれを保つ。`mk_const` で作った出現(スタンプ $-1$)は、定理が別の同一性を記録していても、その名前が `state` で意味するものになる。"
 
 #: manual/api/kernel.md:437
-msgid "Every checked rule runs this check on its premises and on its result, so a theorem proved before a scope change cannot be used after the change made one of its constants mean something else. `thm_bind_const_ids` is the exception: it can move a theorem about an outer constant `c`, written with unstamped occurrences, to a constant `c` declared by an inner scope. This is sound, because only constants without a definition can be shadowed, and the [kernel design](../design/kernel.md) explains why; but the result is about the inner constant. `thm_bind_const_ids` fails with `InvalidInstantiation` when a stamped identity disagrees with the state, and also when the theorem has already acquired declaration lineage and still contains an unstamped occurrence of a constant other than `=` and `@` (rebinding such a theorem could make a descendant theorem mean something else); it fails with `TypeMismatch` when a constant is unknown."
-msgstr "チェック付きの各規則は、前提と結果に対してこの検査を実行するため、スコープ変更の前に証明された定理は、その変更によって定数の意味が変わった後では使えません。`thm_bind_const_ids` は例外です。スタンプのない出現で書かれた外側の定数 `c` についての定理を、内側のスコープで宣言された定数 `c` に移すことができます。定義を持たない定数だけが遮蔽されうるため、これは健全です。理由は[カーネル設計](../design/kernel.md)に説明がありますが、結果は内側の定数についての定理です。スタンプ付きの識別子が状態と一致しない場合、`thm_bind_const_ids` は `InvalidInstantiation` で失敗します。定理がすでに宣言系譜を持ち、`=` と `@` 以外の定数のスタンプなしの出現を含む場合も `InvalidInstantiation` で失敗します（そのような定理を再束縛すると、子孫の定理の意味が変わりうるためです）。定数が未知の場合は `TypeMismatch` で失敗します。"
+msgid "Every checked rule runs this check on its premises and on its result, so a theorem proved before a scope change cannot be used after the change made one of its constants mean something else. For a theorem that has not yet been admitted, `thm_bind_const_ids` can resolve unstamped occurrences of an outer constant `c` in a state where an inner scope declares another `c`. This is sound, because only constants without a definition can be shadowed, and the [kernel design](../design/kernel.md) explains why; but the result is about the inner constant. Once a theorem has acquired declaration lineage, `thm_bind_const_ids` rejects any remaining unstamped occurrence of a constant other than `=` and `@`, and it never bypasses the lineage-prefix check. It also fails with `InvalidInstantiation` when a stamped identity disagrees with the state, and with `TypeMismatch` when a constant is unknown."
+msgstr "チェック付きの各規則は前提と結果に対してこの検査を実行するため、スコープ変更の前に証明された定理は、その変更で定数の意味が変わった後には使えない。まだ受理されていない定理では、内側のスコープで別の `c` が宣言された状態でも、`thm_bind_const_ids` は外側の定数 `c` のスタンプなしの出現を解決できる。定義を持たない定数だけが遮蔽されうるためこれは健全であり、理由は[カーネル設計](../design/kernel.md)に説明されているが、結果は内側の定数についての定理である。定理が宣言系譜を得た後は、`thm_bind_const_ids` は `=` と `@` 以外の残りのスタンプなしの出現を拒否し、系譜の接頭辞検査を迂回しない。スタンプ付き識別子が状態と一致しない場合は `InvalidInstantiation`、定数が未知の場合は `TypeMismatch` でも失敗する。"
 
 #: manual/api/kernel.md:439
+msgid "After a theorem is first admitted, its declaration lineage is recorded with the theorem. Admission requires that lineage to be a prefix of the receiving state's lineage. A theorem can therefore move to a linear descendant, including through a pushed and popped temporary scope, while a theorem from a divergent forked history is rejected even if the fork reused the same constant identifiers. Branches that perform the same lineage events have the same lineage and may exchange the resulting theorem."
+msgstr "定理が最初に受理されると、その宣言系譜が定理とともに記録される。受理には、その系譜が受け取り側の状態の系譜の接頭辞であることが必要である。したがって定理は、一時スコープを push して pop する場合も含め、線形な子孫へ移動できる。一方、分岐が同じ定数識別子を再利用していても、分岐した履歴から来た定理は拒否される。同じ系譜イベントを実行するブランチは同じ系譜を持ち、生成された定理を交換できる。"
+
+#: manual/api/kernel.md:447
 msgid "Primitive rules"
 msgstr "基本規則"
 
-#: manual/api/kernel.md:441
+#: manual/api/kernel.md:449
 msgid "Each rule takes the kernel state first, checks that its premise theorems are admissible in that state, applies the rule and checks the result. In the rules below $\\Gamma, \\Delta$ are hypothesis sets, $\\equiv_\\alpha$ is α-equivalence (constant identities ignored), and $\\setminus$ removes every hypothesis α-equivalent to the given term whose constants carry the same identity stamps (see `Thm` above). The [kernel design](../design/kernel.md) explains why each rule is sound."
 msgstr "各規則は最初にカーネル状態を取り、前提の定理がその状態で許容されることを検査し、規則を適用して結果を検査する。以下の規則では、$\\Gamma, \\Delta$ は仮定の集合、$\\equiv_\\alpha$ は(定数の同一性を無視した)α 同値、$\\setminus$ は与えられた項と α 同値で、定数が同じ同一性スタンプをもつすべての仮定を取り除く操作である(上の `Thm` を参照)。各規則がなぜ健全かは、[カーネル設計ノート](../design/kernel.md)で説明されている。"
 
-#: manual/api/kernel.md:445
+#: manual/api/kernel.md:453
 msgid "`refl_checked` is REFL: it proves that a term equals itself."
 msgstr "`refl_checked` は REFL である。項がそれ自身と等しいことを証明する。"
 
-#: manual/api/kernel.md:455
+#: manual/api/kernel.md:463
 msgid "Fails with `TypeMismatch` when `t` is ill-typed or mentions a constant the state does not declare, and with `BoundaryFailure` when `t` cannot be converted to De Bruijn form."
 msgstr "`t` が型付けできない、または状態が宣言していない定数に言及している場合は `TypeMismatch` で失敗し、`t` を de Bruijn 形式に変換できない場合は `BoundaryFailure` で失敗する。"
 
-#: manual/api/kernel.md:459
+#: manual/api/kernel.md:467
 msgid "`assume_checked` is ASSUME: it proves a proposition from itself."
 msgstr "`assume_checked` は ASSUME である。命題をそれ自身から証明する。"
 
-#: manual/api/kernel.md:469
+#: manual/api/kernel.md:477
 msgid "Fails with `NotBoolTerm` when `p` is well-typed but not of type `bool`."
 msgstr "`p` が型付けできるが型 `bool` でない場合は `NotBoolTerm` で失敗する。"
 
-#: manual/api/kernel.md:473
+#: manual/api/kernel.md:481
 msgid "`add_assum_checked(state, q, th)` adds the proposition `q` to the hypotheses of `th` (weakening)."
 msgstr "`add_assum_checked(state, q, th)` は、命題 `q` を `th` の仮定に加える(弱化)。"
 
-#: manual/api/kernel.md:483
+#: manual/api/kernel.md:491
 msgid "Weakening is derivable from the ten classical HOL rules ASSUME, DEDUCT_ANTISYM_RULE and EQ_MP. QED also exposes it as an explicit checked rule; the Typed HOL formal calculus includes and proves this rule sound. The [kernel design](../design/kernel.md) gives the classical derivation. Fails with `NotBoolTerm` when `q` is not a proposition."
 msgstr "弱化は古典的 HOL の 10 規則から ASSUME、DEDUCT_ANTISYM_RULE、EQ_MP を用いて導出できます。QED はこれを明示的な検査付き規則としても提供し、Typed HOL の形式演算はこの規則を含めて妥当性を証明します。[カーネル設計ノート](../design/kernel.md)に古典的な導出を示しています。`q` が命題でない場合は `NotBoolTerm` で失敗します。"
 
-#: manual/api/kernel.md:487
+#: manual/api/kernel.md:495
 msgid "`trans_checked` is TRANS: it chains two equations."
 msgstr "`trans_checked` は TRANS である。2 つの等式を連鎖させる。"
 
-#: manual/api/kernel.md:497
+#: manual/api/kernel.md:505
 msgid "Fails with `NotAnEquality` when a premise is not an equation and with `AlphaMismatch` when the middle terms differ."
 msgstr "前提が等式でない場合は `NotAnEquality` で失敗し、中間の項が異なる場合は `AlphaMismatch` で失敗する。"
 
-#: manual/api/kernel.md:501
+#: manual/api/kernel.md:509
 msgid "`mk_comb_rule_checked` is MK_COMB: equal functions applied to equal arguments give equal results."
 msgstr "`mk_comb_rule_checked` は MK_COMB である。等しい関数を等しい引数に適用すると、等しい結果が得られる。"
 
-#: manual/api/kernel.md:511
+#: manual/api/kernel.md:519
 msgid "Fails with `TypeMismatch` unless $f, g : \\sigma \\to \\tau$ and $x, y : \\sigma$."
 msgstr "$f, g : \\sigma \\to \\tau$ かつ $x, y : \\sigma$ でない限り、`TypeMismatch` で失敗する。"
 
-#: manual/api/kernel.md:515
+#: manual/api/kernel.md:523
 msgid "`abs_rule_checked(state, x, th)` is ABS: it abstracts both sides of an equation over a variable."
 msgstr "`abs_rule_checked(state, x, th)` は ABS である。等式の両辺を変数について抽象する。"
 
-#: manual/api/kernel.md:525
+#: manual/api/kernel.md:533
 msgid "Fails with `VarFreeInHyp` when `x` occurs free in a hypothesis, with `InvalidInstantiation` when `x` is not a variable, and with `NotAnEquality` when the premise is not an equation."
 msgstr "`x` が仮定に自由に現れる場合は `VarFreeInHyp` で、`x` が変数でない場合は `InvalidInstantiation` で、前提が等式でない場合は `NotAnEquality` で失敗する。"
 
-#: manual/api/kernel.md:529
+#: manual/api/kernel.md:537
 msgid "`beta_rule_checked` is BETA: it proves a β-redex equal to its contraction."
 msgstr "`beta_rule_checked` は BETA である。β リデックスがその縮約と等しいことを証明する。"
 
-#: manual/api/kernel.md:539
+#: manual/api/kernel.md:547
 msgid "The substitution is capture-avoiding because it runs on De Bruijn terms. Fails with `NotTrivialBetaRedex` when the term is not an application of an abstraction, and with `TypeMismatch` when the argument type differs from the binder type."
 msgstr "代入は de Bruijn 項の上で実行されるため、捕獲回避的である。項が抽象の適用でない場合は `NotTrivialBetaRedex` で失敗し、引数の型が束縛子の型と異なる場合は `TypeMismatch` で失敗する。"
 
-#: manual/api/kernel.md:543
+#: manual/api/kernel.md:551
 msgid "`eq_mp_checked` is EQ_MP: an equation between propositions transports a proof of the left side to the right side."
 msgstr "`eq_mp_checked` は EQ_MP である。命題間の等式は、左辺の証明を右辺の証明へと運ぶ。"
 
-#: manual/api/kernel.md:553
+#: manual/api/kernel.md:561
 msgid "Fails with `NotBoolTerm` when the sides are not propositions and with `AlphaMismatch` when the second premise does not prove the left side."
 msgstr "両辺が命題でない場合は `NotBoolTerm` で失敗し、2 つ目の前提が左辺を証明していない場合は `AlphaMismatch` で失敗する。"
 
-#: manual/api/kernel.md:557
+#: manual/api/kernel.md:565
 msgid "`deduct_antisym_rule_checked` is DEDUCT_ANTISYM_RULE: two propositions that prove each other are equal."
 msgstr "`deduct_antisym_rule_checked` は DEDUCT_ANTISYM_RULE である。互いを証明する 2 つの命題は等しい。"
 
-#: manual/api/kernel.md:567
+#: manual/api/kernel.md:575
 msgid "Fails with `NotBoolTerm` when a conclusion is not a proposition."
 msgstr "結論が命題でない場合は `NotBoolTerm` で失敗する。"
 
-#: manual/api/kernel.md:571
+#: manual/api/kernel.md:579
 msgid "`inst_type(state, theta, th)` is INST_TYPE: it instantiates type variables throughout a theorem."
 msgstr "`inst_type(state, theta, th)` は INST_TYPE である。定理全体にわたって型変数をインスタンス化する。"
 
-#: manual/api/kernel.md:581
+#: manual/api/kernel.md:589
 msgid "Fails with `InvalidInstantiation` when `theta` names a variable twice or maps to a type the state does not admit, and with `TypeMismatch` when an instantiated constant is no longer an instance of its schema."
 msgstr "`theta` が同じ変数を 2 度挙げている、または状態が許容しない型へ写している場合は `InvalidInstantiation` で失敗し、インスタンス化された定数がスキーマのインスタンスでなくなった場合は `TypeMismatch` で失敗する。"
 
-#: manual/api/kernel.md:585
+#: manual/api/kernel.md:593
 msgid "`inst_checked(state, sigma, th)` is INST: it substitutes terms for free variables throughout a theorem, simultaneously."
 msgstr "`inst_checked(state, sigma, th)` は INST である。定理全体にわたって、自由変数に項を同時に代入する。"
 
-#: manual/api/kernel.md:596
+#: manual/api/kernel.md:604
 msgid "Unlike ABS, INST may touch variables that occur in the hypotheses, because it substitutes in the hypotheses too. Fails with `InvalidInstantiation` when a key is not a variable or occurs twice, and with `TypeMismatch` when a value has another type than its key."
 msgstr "ABS と異なり、INST は仮定にも代入を行うため、仮定に現れる変数に触れてもよい。キーが変数でない、または 2 度現れる場合は `InvalidInstantiation` で失敗し、値がキーと異なる型を持つ場合は `TypeMismatch` で失敗する。"
 
-#: manual/api/kernel.md:650
+#: manual/api/kernel.md:658
 msgid "Kernel state"
 msgstr "カーネル状態"
 
-#: manual/api/kernel.md:654
+#: manual/api/kernel.md:662
 msgid "`KernelState` is the abstract logical state: the scoped constant signature together with the theory history (definitions, type definitions, specifications, the infinity anchor and the audit certificates)."
 msgstr "`KernelState` は抽象的な論理状態であり、スコープ付きの定数シグネチャと、理論の履歴(定義、型定義、特殊化、無限性アンカー、監査証明書)から成る。"
 
-#: manual/api/kernel.md:660
+#: manual/api/kernel.md:668
 msgid "States are immutable values. Every operation that extends a state returns a new one and leaves the old one valid, so an earlier state can be kept as the base of a conservativity check."
 msgstr "状態は不変の値である。状態を拡張するすべての操作は新しい状態を返し、古い状態は有効なまま残るため、以前の状態を保存性検査の基準として保持できる。"
 
-#: manual/api/kernel.md:664
+#: manual/api/kernel.md:672
 msgid "`empty_kernel_state` returns the initial state."
 msgstr "`empty_kernel_state` は初期状態を返す。"
 
-#: manual/api/kernel.md:670
+#: manual/api/kernel.md:678
 msgid "It declares one constant, the choice operator `@` with identity `0` and schema $(\\alpha \\to \\mathit{bool}) \\to \\alpha$, and admits the types `bool`, `ind` and `fun`. The equality constant `=` is built in and needs no declaration; `=` and `@` are reserved names."
 msgstr "これは定数をちょうど 1 つ、すなわち同一性 `0` でスキーマ $(\\alpha \\to \\mathit{bool}) \\to \\alpha$ の選択演算子 `@` を宣言し、型 `bool`、`ind`、`fun` を許容する。等号定数 `=` は組み込みで宣言を必要とせず、`=` と `@` は予約名である。"
 
-#: manual/api/kernel.md:674
+#: manual/api/kernel.md:682
 msgid "`ks_add_const(state, name, ty)` declares a constant with the schema `ty` in the innermost scope and gives it a fresh identity."
 msgstr "`ks_add_const(state, name, ty)` は、スキーマ `ty` の定数を最も内側のスコープで宣言し、新しい同一性を与える。"
 
-#: manual/api/kernel.md:680
+#: manual/api/kernel.md:688
 msgid "Declaring the same name with the same type again in the same scope returns the state unchanged. Fails with `ConstTypeConflict` when the name is declared in the innermost scope with another type, `ReservedSymbol` for `=` and `@`, `DefinitionAlreadyExists` for a defined constant, `TypeRepresentationAlreadyExists` or `TypeAbstractionAlreadyExists` for a name taken by a type definition, and `TypeMismatch` when `ty` mentions a type the state does not admit."
 msgstr "同じスコープで同じ名前を同じ型で再び宣言した場合は、状態は変わらずに返される。次の場合は失敗する。名前が最も内側のスコープで別の型で宣言されていれば `ConstTypeConflict`、`=` と `@` に対しては `ReservedSymbol`、定義された定数に対しては `DefinitionAlreadyExists`、型定義が使っている名前に対しては `TypeRepresentationAlreadyExists` または `TypeAbstractionAlreadyExists`、`ty` が状態の許容しない型に言及していれば `TypeMismatch`。"
 
-#: manual/api/kernel.md:682
+#: manual/api/kernel.md:690
 msgid "`ks_lookup_const`, `ks_const_schema` and `ks_lookup_const_id`"
 msgstr "`ks_lookup_const`、`ks_const_schema`、`ks_lookup_const_id`"
 
-#: manual/api/kernel.md:684
+#: manual/api/kernel.md:692
 msgid "`ks_lookup_const` and `ks_const_schema` both return the declared schema of the constant visible under a name; `ks_lookup_const_id` returns its identity. The innermost declaration wins."
 msgstr "`ks_lookup_const` と `ks_const_schema` はどちらも、名前の下で可視な定数の宣言されたスキーマを返し、`ks_lookup_const_id` はその同一性を返す。最も内側の宣言が優先される。"
 
-#: manual/api/kernel.md:692
+#: manual/api/kernel.md:700
 msgid "`ks_mk_const` and `ks_mk_const_instance`"
 msgstr "`ks_mk_const` と `ks_mk_const_instance`"
 
-#: manual/api/kernel.md:694
+#: manual/api/kernel.md:702
 msgid "`ks_mk_const` builds an occurrence of the visible constant at its schema type, with its identity recorded. `ks_mk_const_instance` builds an occurrence at an instance of the schema."
 msgstr "`ks_mk_const` は、可視な定数の出現をそのスキーマ型で、同一性を記録して構築する。`ks_mk_const_instance` は、スキーマのインスタンスでの出現を構築する。"
 
-#: manual/api/kernel.md:701
+#: manual/api/kernel.md:709
 msgid "Both fail with `UnknownConst` when no constant has the name. `ks_mk_const_instance` fails with `InvalidConstInstance` when the type is not an instance of the schema and with `TypeMismatch` when the type is not admissible."
 msgstr "どちらも、その名前の定数がない場合は `UnknownConst` で失敗する。`ks_mk_const_instance` は、型がスキーマのインスタンスでない場合は `InvalidConstInstance` で、型が許容されない場合は `TypeMismatch` で失敗する。"
 
-#: manual/api/kernel.md:703
+#: manual/api/kernel.md:711
 msgid "`ks_push_scope` and `ks_pop_scope`"
 msgstr "`ks_push_scope` と `ks_pop_scope`"
 
-#: manual/api/kernel.md:705
+#: manual/api/kernel.md:713
 msgid "`ks_push_scope` opens a new innermost scope; `ks_pop_scope` drops it and every constant declared in it."
 msgstr "`ks_push_scope` は新しい最内スコープを開く。`ks_pop_scope` はそれを閉じ、その中で宣言されたすべての定数を捨てる。"
 
-#: manual/api/kernel.md:712
+#: manual/api/kernel.md:720
 msgid "A constant declared in an inner scope shadows an outer one with the same name and gets a new identity. Popping only changes the signature: definitions, type definitions and certificates recorded inside the scope stay in the theory history, so their names stay taken. `ks_pop_scope` fails with `ScopeUnderflow` on the outermost scope."
 msgstr "内側のスコープで宣言された定数は、同じ名前の外側の定数をシャドーイングし、新しい同一性を得る。ポップはシグネチャを変えるだけである。スコープ内で記録された定義、型定義、証明書は理論の履歴に残るため、それらの名前は使用済みのままになる。`ks_pop_scope` は最外スコープでは `ScopeUnderflow` で失敗する。"
 
-#: manual/api/kernel.md:716
+#: manual/api/kernel.md:724
 msgid "`ks_sig` returns the signature part of a state."
 msgstr "`ks_sig` は状態のシグネチャ部分を返す。"
 
-#: manual/api/kernel.md:722
+#: manual/api/kernel.md:730
 msgid "`ks_type_is_admissible` and `ks_type_subst_is_admissible`"
 msgstr "`ks_type_is_admissible` と `ks_type_subst_is_admissible`"
 
-#: manual/api/kernel.md:724
+#: manual/api/kernel.md:732
 msgid "`ks_type_is_admissible` holds when every type constructor in a type is built in or admitted by a type definition, with the right arity. `ks_type_subst_is_admissible` holds when every type in a substitution is admissible."
 msgstr "`ks_type_is_admissible` は、型のすべての型コンストラクタが組み込みであるか、型定義によって正しいアリティで許容されているときに成り立つ。`ks_type_subst_is_admissible` は、代入のすべての型が許容されるときに成り立つ。"
 
-#: manual/api/kernel.md:731
+#: manual/api/kernel.md:739
 msgid "`ks_term_in_language` and `ks_thm_is_sentence_in_language`"
 msgstr "`ks_term_in_language` と `ks_thm_is_sentence_in_language`"
 
-#: manual/api/kernel.md:733
+#: manual/api/kernel.md:741
 msgid "`ks_term_in_language` holds when every type in a term is admissible and every constant occurrence is a declared constant at an instance of its schema, with a matching identity when one is recorded. `ks_thm_is_sentence_in_language` holds when a theorem has no hypotheses and its conclusion is a closed proposition in the language of the state."
 msgstr "`ks_term_in_language` は、項のすべての型が許容され、すべての定数の出現が宣言された定数のスキーマのインスタンスであり、同一性が記録されている場合はそれが一致するときに成り立つ。`ks_thm_is_sentence_in_language` は、定理が仮定を持たず、結論が状態の言語における閉じた命題であるときに成り立つ。"
 
-#: manual/api/kernel.md:762
+#: manual/api/kernel.md:770
 msgid "Signatures"
 msgstr "シグネチャ"
 
-#: manual/api/kernel.md:764
+#: manual/api/kernel.md:772
 msgid "A `GlobalSig` is the scoped constant table on its own, without the theory history. These functions operate on it directly; they never produce a `Thm`."
 msgstr "`GlobalSig` は、理論の履歴を含まない、スコープ付き定数テーブルそのものである。これらの関数はそれを直接操作し、`Thm` は決して生成しない。"
 
-#: manual/api/kernel.md:766
+#: manual/api/kernel.md:774
 msgid "`GlobalSig` and `ConstId`"
 msgstr "`GlobalSig` と `ConstId`"
 
-#: manual/api/kernel.md:768
+#: manual/api/kernel.md:776
 msgid "`GlobalSig` is a stack of scopes, innermost last; each scope lists name, identity and schema. `ConstId` is the integer identity of a declared constant."
 msgstr "`GlobalSig` はスコープのスタックで、最も内側が末尾に来る。各スコープは名前、同一性、スキーマを列挙する。`ConstId` は宣言された定数の整数の同一性である。"
 
-#: manual/api/kernel.md:778
+#: manual/api/kernel.md:786
 msgid "`empty_sig`, `sig_push_scope` and `sig_pop_scope_e`"
 msgstr "`empty_sig`、`sig_push_scope`、`sig_pop_scope_e`"
 
-#: manual/api/kernel.md:780
+#: manual/api/kernel.md:788
 msgid "`empty_sig` is a signature with one empty scope; it does not contain `@`, unlike the signature of `empty_kernel_state`. `sig_push_scope` and `sig_pop_scope_e` open and close scopes; popping the last scope fails with `ScopeUnderflow`."
 msgstr "`empty_sig` は空のスコープを 1 つ持つシグネチャであり、`empty_kernel_state` のシグネチャと異なり `@` を含まない。`sig_push_scope` と `sig_pop_scope_e` はスコープを開閉する。最後のスコープをポップすると `ScopeUnderflow` で失敗する。"
 
-#: manual/api/kernel.md:788
+#: manual/api/kernel.md:796
 msgid "`sig_has_const`, `sig_lookup_const` and `sig_lookup_const_id`"
 msgstr "`sig_has_const`、`sig_lookup_const`、`sig_lookup_const_id`"
 
-#: manual/api/kernel.md:790
+#: manual/api/kernel.md:798
 msgid "These functions look a name up from the innermost scope outwards."
 msgstr "これらの関数は、最も内側のスコープから外側へ向かって名前を検索する。"
 
-#: manual/api/kernel.md:800
+#: manual/api/kernel.md:808
 msgid "`sig_add_const_idempotent_e` declares a constant in the innermost scope, with the next free identity, or returns the signature unchanged when the same declaration is already there."
 msgstr "`sig_add_const_idempotent_e` は、次の空き同一性で最も内側のスコープに定数を宣言する。同じ宣言がすでにある場合は、シグネチャを変えずに返す。"
 
-#: manual/api/kernel.md:806
+#: manual/api/kernel.md:814
 msgid "Fails with `ReservedSymbol` for `=` and `@` and with `ConstTypeConflict` when the innermost scope declares the name with another type."
 msgstr "`=` と `@` に対しては `ReservedSymbol` で、最も内側のスコープがその名前を別の型で宣言している場合は `ConstTypeConflict` で失敗する。"
 
-#: manual/api/kernel.md:808
+#: manual/api/kernel.md:816
 msgid "`sig_mk_const_e` and `sig_mk_const_instance_e`"
 msgstr "`sig_mk_const_e` と `sig_mk_const_instance_e`"
 
-#: manual/api/kernel.md:810
+#: manual/api/kernel.md:818
 msgid "These functions build a constant occurrence from a signature, like `ks_mk_const` and `ks_mk_const_instance`, but without the type admissibility check of a kernel state."
 msgstr "これらの関数は `ks_mk_const` および `ks_mk_const_instance` と同様に、シグネチャから定数の出現を構築するが、カーネル状態の型許容性検査は行わない。"
 
-#: manual/api/kernel.md:819
+#: manual/api/kernel.md:827
 msgid "`sig_define_const_e(sig, name, rhs)` declares `name` at the type of `rhs` and returns the defining equation $\\mathit{name} = \\mathit{rhs}$ as a term."
 msgstr "`sig_define_const_e(sig, name, rhs)` は `name` を `rhs` の型で宣言し、定義等式 $\\mathit{name} = \\mathit{rhs}$ を項として返す。"
 
-#: manual/api/kernel.md:825
+#: manual/api/kernel.md:833
 msgid "The equation is only a term, not a theorem: this function has no logical authority. Use `ks_define_const_thm` to obtain a definition theorem. Fails with `InvalidConstRhs` when `rhs` is ill-typed."
 msgstr "この等式は項にすぎず定理ではない。この関数は論理的な権限を持たない。定義定理を得るには `ks_define_const_thm` を使うこと。`rhs` が型付けできない場合は `InvalidConstRhs` で失敗する。"
 
-#: manual/api/kernel.md:827
+#: manual/api/kernel.md:835
 msgid "Extension gates"
 msgstr "拡張ゲート"
 
-#: manual/api/kernel.md:829
+#: manual/api/kernel.md:837
 msgid "The theory grows only through three gates. Each one checks its side conditions, records the new names in the theory history and appends an audit certificate."
 msgstr "理論は 3 つのゲートを通じてのみ拡張される。各ゲートは副条件を検査し、新しい名前を理論の履歴に記録し、監査証明書を追加する。"
 
-#: manual/api/kernel.md:831
+#: manual/api/kernel.md:839
 msgid "`ks_define_const` and `ks_define_const_thm`"
 msgstr "`ks_define_const` と `ks_define_const_thm`"
 
-#: manual/api/kernel.md:833
+#: manual/api/kernel.md:841
 msgid "`ks_define_const(state, c, ty, rhs)` is the definition gate `DefOK`: it declares the constant `c : ty` and records the definition $c = \\mathit{rhs}$. `ks_define_const_thm` does the same and returns the definition theorem $\\vdash c = \\mathit{rhs}$; `ks_define_const` returns the equation as a term."
 msgstr "`ks_define_const(state, c, ty, rhs)` は定義ゲート `DefOK` である。定数 `c : ty` を宣言し、定義 $c = \\mathit{rhs}$ を記録する。`ks_define_const_thm` は同じことを行い、定義定理 $\\vdash c = \\mathit{rhs}$ を返す。`ks_define_const` は等式を項として返す。"
 
-#: manual/api/kernel.md:840
+#: manual/api/kernel.md:848
 msgid "The side conditions are: `c` is not reserved and not already defined or used by a type definition (`ReservedSymbol`, `DefinitionAlreadyExists`, `TypeRepresentationAlreadyExists`, `TypeAbstractionAlreadyExists`); `rhs` is closed (`DefinitionNotClosed`); `rhs` does not mention `c`, directly or through earlier definitions (`DefinitionIsCyclic`); `ty` is admissible (`InvalidConstRhs`) and equals the type of `rhs` (`TypeMismatch`); every type variable of `rhs` occurs in `ty` (`GhostTypeVariable`); and every constant of `rhs` is declared at an instance of its schema (`InvalidConstRhs`). The [kernel design](../design/kernel.md) shows why each condition is needed for conservativity."
 msgstr "副条件は次のとおり。`c` は予約されておらず、すでに定義されておらず、型定義に使われていない(`ReservedSymbol`、`DefinitionAlreadyExists`、`TypeRepresentationAlreadyExists`、`TypeAbstractionAlreadyExists`)。`rhs` は閉じている(`DefinitionNotClosed`)。`rhs` は `c` に、直接にも先行する定義を通じても言及しない(`DefinitionIsCyclic`)。`ty` は許容され(`InvalidConstRhs`)、`rhs` の型と等しい(`TypeMismatch`)。`rhs` のすべての型変数が `ty` に現れる(`GhostTypeVariable`)。`rhs` のすべての定数が、そのスキーマのインスタンスで宣言されている(`InvalidConstRhs`)。各条件が保存性のためになぜ必要かは、[カーネル設計ノート](../design/kernel.md)に示されている。"
 
-#: manual/api/kernel.md:842
+#: manual/api/kernel.md:850
 msgid "`ks_definition_theorem` and `ks_has_def_head`"
 msgstr "`ks_definition_theorem` と `ks_has_def_head`"
 
-#: manual/api/kernel.md:844
+#: manual/api/kernel.md:852
 msgid "`ks_definition_theorem` returns the recorded definition theorem of a defined constant, or `Err(UnknownConst)`. `ks_has_def_head` tests whether a name has been defined."
 msgstr "`ks_definition_theorem` は、定義された定数について記録された定義定理を返す。なければ `Err(UnknownConst)` を返す。`ks_has_def_head` は、名前が定義済みかどうかを検査する。"
 
-#: manual/api/kernel.md:853
+#: manual/api/kernel.md:861
 msgid "`ks_register_type_definition(state, tycon, params, rep, pred, witness)` is the type definition gate `TypeDefOK`: it admits a new type constructor `tycon` of arity `params.length()` in bijection with the subset of the representation type carved out by `pred`."
 msgstr "`ks_register_type_definition(state, tycon, params, rep, pred, witness)` は型定義ゲート `TypeDefOK` である。表現型のうち `pred` で切り出される部分集合と全単射になる、アリティ `params.length()` の新しい型コンストラクタ `tycon` を許容する。"
 
-#: manual/api/kernel.md:859
+#: manual/api/kernel.md:867
 msgid "`pred` must be a closed abstraction $\\lambda (x{:}\\rho).\\,P$ with $P : \\mathit{bool}$ whose type variables are among `params`, and `witness` must be a hypothesis-free theorem $\\vdash P[w/x]$ for a closed term `w`, which shows the subset is not empty. On success the state declares `rep : tycon(params) -> ρ` and `Abs_<tycon> : ρ -> tycon(params)` and records the contract theorems returned by `ks_typedef_contract`. Failures name the violated condition: `InvalidTypeParams`, `InvalidTypeArity`, `InvalidTypeRepName`, `InvalidTypeAbsName`, `TypeConstructorAlreadyExists`, `TypeRepresentationAlreadyExists`, `TypeAbstractionAlreadyExists`, `InvalidTypePredicate`, `TypeWitnessArityMismatch`, `InvalidTypeWitness`, `TypeWitnessPredicateMismatch`, `InvalidTypeDefinitionProduct`."
 msgstr "`pred` は、型変数が `params` に含まれる $P : \\mathit{bool}$ を持つ閉じた抽象 $\\lambda (x{:}\\rho).\\,P$ でなければならず、`witness` は閉じた項 `w` についての仮定なしの定理 $\\vdash P[w/x]$ でなければならない。これは部分集合が空でないことを示す。成功すると、状態は `rep : tycon(params) -> ρ` と `Abs_<tycon> : ρ -> tycon(params)` を宣言し、`ks_typedef_contract` が返す契約定理を記録する。失敗は、違反した条件を示す。`InvalidTypeParams`、`InvalidTypeArity`、`InvalidTypeRepName`、`InvalidTypeAbsName`、`TypeConstructorAlreadyExists`、`TypeRepresentationAlreadyExists`、`TypeAbstractionAlreadyExists`、`InvalidTypePredicate`、`TypeWitnessArityMismatch`、`InvalidTypeWitness`、`TypeWitnessPredicateMismatch`、`InvalidTypeDefinitionProduct`。"
 
-#: manual/api/kernel.md:861
+#: manual/api/kernel.md:869
 msgid "`ks_typedef_contract` and `ks_has_typedef_contract`"
 msgstr "`ks_typedef_contract` と `ks_has_typedef_contract`"
 
-#: manual/api/kernel.md:863
+#: manual/api/kernel.md:871
 msgid "`ks_typedef_contract(state, tycon)` returns the three contract theorems of a type definition, or `Err(MissingTypeDefinitionContract)`. `ks_has_typedef_contract` tests whether there is one."
 msgstr "`ks_typedef_contract(state, tycon)` は型定義の 3 つの契約定理を返す。なければ `Err(MissingTypeDefinitionContract)` を返す。`ks_has_typedef_contract` はそれがあるかを検査する。"
 
-#: manual/api/kernel.md:870
+#: manual/api/kernel.md:878
 msgid "With $\\mathit{abs} = \\texttt{Abs\\_}\\mathit{tycon}$ the three theorems are, in order:"
 msgstr "$\\mathit{abs} = \\texttt{Abs\\_}\\mathit{tycon}$ とすると、3 つの定理は順に次のとおりである。"
 
-#: manual/api/kernel.md:880
+#: manual/api/kernel.md:888
 msgid "`ks_has_type_witness`, `ks_has_type_rep_head` and `ks_has_type_abs_head`"
 msgstr "`ks_has_type_witness`、`ks_has_type_rep_head`、`ks_has_type_abs_head`"
 
-#: manual/api/kernel.md:882
+#: manual/api/kernel.md:890
 msgid "`ks_has_type_witness(state, tycon, arity)` tests whether a type constructor of that arity is admitted; `ind` is admitted from the start. The other two test whether a name is the representation or abstraction function of a type definition."
 msgstr "`ks_has_type_witness(state, tycon, arity)` は、そのアリティの型コンストラクタが許容されているかを検査する。`ind` は最初から許容されている。他の 2 つは、名前が型定義の表現関数または抽象関数であるかを検査する。"
 
-#: manual/api/kernel.md:892
+#: manual/api/kernel.md:900
 msgid "`ks_specify_const(state, c, ty, pred, witness)` is the specification gate `SpecOK`: given $\\vdash P[w/x]$ it introduces a constant `c : ty` and returns $\\vdash P[c/x]$."
 msgstr "`ks_specify_const(state, c, ty, pred, witness)` は特殊化ゲート `SpecOK` である。$\\vdash P[w/x]$ が与えられたとき、定数 `c : ty` を導入し、$\\vdash P[c/x]$ を返す。"
 
-#: manual/api/kernel.md:898
+#: manual/api/kernel.md:906
 msgid "The gate is derived from the choice operator and `DefOK`: it defines $c = (@\\,\\mathit{pred})$ through `ks_define_const_thm`, so the state records a `DefOK` certificate followed by a `SpecOK` certificate. The returned theorem is built by the gate; it is justified by the choice axiom, which the kernel does not expose as a theorem (see the [kernel design](../design/kernel.md)). The specification states the premise as $\\vdash \\exists x.\\,P\\,x$; the gate asks for a concrete witness instead. `pred` must be a closed abstraction over `ty` with no type variables outside `ty` (`InvalidSpecificationPredicate`, `SpecificationTypeVarLeak`), and `witness` must be a hypothesis-free theorem of the predicate at a closed term (`InvalidSpecificationWitness`). The definition conditions of `ks_define_const` apply to `c`."
 msgstr "このゲートは選択演算子と `DefOK` から導出される。`ks_define_const_thm` を通じて $c = (@\\,\\mathit{pred})$ を定義するため、状態には `DefOK` 証明書に続いて `SpecOK` 証明書が記録される。返される定理はゲート自身が構築する。その根拠は選択公理であり、カーネルは選択公理を定理として提供しない([カーネル設計ノート](../design/kernel.md)を参照)。仕様は前提を $\\vdash \\exists x.\\,P\\,x$ と述べるが、ゲートは代わりに具体的なウィットネスを求める。`pred` は `ty` 上の閉じた抽象で、`ty` の外に型変数を持ってはならず(`InvalidSpecificationPredicate`、`SpecificationTypeVarLeak`)、`witness` は閉じた項での述語についての仮定なしの定理でなければならない(`InvalidSpecificationWitness`)。`ks_define_const` の定義条件が `c` に適用される。"
 
-#: manual/api/kernel.md:900
+#: manual/api/kernel.md:908
 msgid "`ks_register_ind_infinity_axiom`, `ks_ind_infinity_axiom` and `ks_has_ind_infinity_axiom`"
 msgstr "`ks_register_ind_infinity_axiom`、`ks_ind_infinity_axiom`、`ks_has_ind_infinity_axiom`"
 
-#: manual/api/kernel.md:902
+#: manual/api/kernel.md:910
 msgid "`ks_register_ind_infinity_axiom(state, anchor)` records a theorem about `ind` as the infinity anchor of the theory. `ks_ind_infinity_axiom` returns it, or `Err(MissingInfinityAnchor)`; `ks_has_ind_infinity_axiom` tests whether one is recorded."
 msgstr "`ks_register_ind_infinity_axiom(state, anchor)` は、`ind` についての定理を理論の無限性アンカーとして記録する。`ks_ind_infinity_axiom` はそれを返す。なければ `Err(MissingInfinityAnchor)` を返す。`ks_has_ind_infinity_axiom` は記録があるかを検査する。"
 
-#: manual/api/kernel.md:910
+#: manual/api/kernel.md:918
 msgid "The anchor must already be a `Thm`: a hypothesis-free, admissible proposition that mentions `ind`. Registration therefore adds no new theorem; it only marks which theorem plays the role of the infinity assumption. It fails with `InvalidInfinityAnchor` when an anchor is already recorded or the theorem does not qualify."
 msgstr "アンカーはすでに `Thm` でなければならない。すなわち、仮定を持たず、許容され、`ind` に言及する命題である。したがって登録は新しい定理を追加せず、どの定理が無限性の仮定の役割を担うかを示すだけである。アンカーがすでに記録されている、または定理が条件を満たさない場合は `InvalidInfinityAnchor` で失敗する。"
 
-#: manual/api/kernel.md:976
+#: manual/api/kernel.md:984
 msgid "Audit and replay"
 msgstr "監査とリプレイ"
 
-#: manual/api/kernel.md:978
+#: manual/api/kernel.md:986
 msgid "`ExtensionGate` and `ExtensionCert`"
 msgstr "`ExtensionGate` と `ExtensionCert`"
 
-#: manual/api/kernel.md:980
+#: manual/api/kernel.md:988
 msgid "`ExtensionGate` names the gate that admitted an extension. An `ExtensionCert` is the audit record of one admission: the gate, the names it introduced and a digest of the witness or definition theorem."
 msgstr "`ExtensionGate` は拡張を受理したゲートを表す。`ExtensionCert` は 1 回の受理の監査記録であり、ゲート、導入された名前、およびウィットネスまたは定義定理のダイジェストを持つ。"
 
-#: manual/api/kernel.md:992
+#: manual/api/kernel.md:1000
 msgid "`ks_extension_cert_count` and `ks_extension_cert_at`"
 msgstr "`ks_extension_cert_count` と `ks_extension_cert_at`"
 
-#: manual/api/kernel.md:994
+#: manual/api/kernel.md:1002
 msgid "These functions read the certificates of a state in admission order."
 msgstr "これらの関数は、状態の証明書を受理順に読み出す。"
 
-#: manual/api/kernel.md:1001
+#: manual/api/kernel.md:1009
 msgid "Certificates record what happened; they are not proof objects and cannot be turned into theorems."
 msgstr "証明書は何が起きたかを記録するだけであり、証明オブジェクトではなく、定理に変換することもできない。"
 
-#: manual/api/kernel.md:1005
+#: manual/api/kernel.md:1013
 msgid "`ks_conservative_replay_ok(base, extended, th)` is the executable conservativity check: it holds when `th` is admissible in `extended`, is a closed hypothesis-free sentence in the language of `base`, and is admissible in `base`. It checks the side conditions of the conservativity theorem, not a derivation: it does not rebuild a proof of `th` in `base`. When it holds and `extended` was reached from `base` through the gates, the conservativity theorem of the specification says that `th` is also a theorem of `base`."
 msgstr "`ks_conservative_replay_ok(base, extended, th)` は実行可能な保存性検査である。`th` が `extended` で許容され、`base` の言語における閉じた仮定なしの文であり、`base` で許容されるときに成り立つ。検査するのは保存性定理の副条件であって導出ではなく、`base` で `th` の証明を組み立て直すことはしない。これが成り立ち、`extended` が `base` からゲートを通じて得られたものであれば、仕様の保存性定理により `th` は `base` の定理でもある。"
 
-#: manual/api/kernel.md:1011
+#: manual/api/kernel.md:1019
 msgid "Regression tests use it to check that a theorem proved after an extension is stated in the old language, so that the conservativity theorem applies to it."
 msgstr "回帰テストはこれを用いて、拡張の後に証明された定理が旧言語で述べられており、保存性定理が適用できることを確認する。"
 
-#: manual/api/kernel.md:1033
+#: manual/api/kernel.md:1041
 msgid "`LogicError` is raised as a value by term constructors and primitive rules."
 msgstr "`LogicError` は、項コンストラクタと基本規則によって値として送出される。"
 
-#: manual/api/kernel.md:1052
+#: manual/api/kernel.md:1060
 msgid "A term is ill-typed, types that must agree differ, or a constant is unknown to the state."
 msgstr "項の型が不正である、一致すべき型が異なる、または定数が状態に未知である。"
 
-#: manual/api/kernel.md:1053
+#: manual/api/kernel.md:1061
 msgid "A substitution value is a loose bound index. Values built from named terms never are."
 msgstr "代入値が自由でない束縛インデックスである。名前付き項から構築された値がそうなることはない。"
 
-#: manual/api/kernel.md:1054
+#: manual/api/kernel.md:1062
 msgid "A premise or term that must be an equation is not one."
 msgstr "等式であるべき前提または項が等式でない。"
 
-#: manual/api/kernel.md:1055
+#: manual/api/kernel.md:1063
 msgid "A term that must be a proposition has another type."
 msgstr "命題であるべき項が別の型を持つ。"
 
-#: manual/api/kernel.md:1056
+#: manual/api/kernel.md:1064
 msgid "Terms that must be α-equivalent are not."
 msgstr "α 同値であるべき項がそうでない。"
 
-#: manual/api/kernel.md:1057
+#: manual/api/kernel.md:1065
 msgid "A substitution is malformed, an ABS binder is not a variable, or a theorem does not fit the constant identities of the state."
 msgstr "代入の形が不正である、ABS の束縛子が変数でない、または定理が状態の定数同一性に適合しない。"
 
-#: manual/api/kernel.md:1058
+#: manual/api/kernel.md:1066
 msgid "The ABS variable occurs free in a hypothesis."
 msgstr "ABS の変数が仮定中に自由に出現する。"
 
-#: manual/api/kernel.md:1059
+#: manual/api/kernel.md:1067
 msgid "BETA was given a term that is not a β-redex."
 msgstr "BETA に β 冗長式でない項が渡された。"
 
-#: manual/api/kernel.md:1060
+#: manual/api/kernel.md:1068
 msgid "A term could not be converted between named and De Bruijn form."
 msgstr "項を名前付き形式と de Bruijn 形式の間で変換できなかった。"
 
-#: manual/api/kernel.md:1061
+#: manual/api/kernel.md:1069
 msgid "A De Bruijn index computation would overflow."
 msgstr "de Bruijn インデックスの計算がオーバーフローする。"
 
-#: manual/api/kernel.md:1065
+#: manual/api/kernel.md:1073
 msgid "`SigError` is raised as a value by signature operations and extension gates."
 msgstr "`SigError` は、シグネチャ操作と拡張ゲートによって値として送出される。"
 
-#: manual/api/kernel.md:1102
+#: manual/api/kernel.md:1110
 #: manual/conformance.md:181
 #: manual/conformance.md:192
 #: manual/conformance.md:198
 msgid "Group"
 msgstr "グループ"
 
-#: manual/api/kernel.md:1102
+#: manual/api/kernel.md:1110
 msgid "Constructors"
 msgstr "コンストラクタ"
 
-#: manual/api/kernel.md:1104
+#: manual/api/kernel.md:1112
 msgid "Signature"
 msgstr "シグネチャ"
 
-#: manual/api/kernel.md:1108
+#: manual/api/kernel.md:1116
 msgid "Infinity anchor"
 msgstr "無限性アンカー"
 
-#: manual/api/kernel.md:1110
+#: manual/api/kernel.md:1118
 msgid "Both error types are values: match them with `is` or in a `match`, as the examples on this page do."
 msgstr "どちらのエラー型も値である。このページの例のように、`is` または `match` で照合する。"
 
@@ -3175,8 +3179,8 @@ msgid "[ ] `KERNEL-BOUNDARY-001` [required; critical] Only checked kernel constr
 msgstr "[ ] `KERNEL-BOUNDARY-001` [required; critical] 定理オブジェクトを生成できるのは、検査済みのカーネルのコンストラクタと拡張ゲートだけであり、フロントエンドのコードはそれらを偽造できない。（未解決）"
 
 #: manual/conformance.md:213
-msgid "[ ] `KERNEL-PROVENANCE-001` [required; critical] A theorem is admissible only in a compatible declaration lineage; sibling histories cannot exchange theorem evidence. (open)"
-msgstr "[ ] `KERNEL-PROVENANCE-001` [required; critical] 定理が受理されるのは、互換性のある宣言の系統においてのみである。兄弟の履歴どうしで定理の根拠を交換することはできない。（未解決）"
+msgid "[ ] `KERNEL-PROVENANCE-001` [required; critical] A theorem is admissible only in a compatible declaration lineage; divergent sibling histories cannot exchange theorem evidence. (open)"
+msgstr "[ ] `KERNEL-PROVENANCE-001` [required; critical] 定理が受理されるのは、互換性のある宣言系譜においてのみである。分岐した兄弟履歴どうしで定理の根拠を交換することはできない。（未解決）"
 
 #: manual/conformance.md:214
 msgid "[ ] `FRONTEND-LOWERING-001` [required; high] Parsing and elaboration preserve the proposition and resolved constant identity supplied to the kernel, or fail closed. (open)"
@@ -3325,8 +3329,8 @@ msgstr "定理オブジェクトを生成できるのは、検査済みのカー
 
 #: manual/conformance.md:229
 #: manual/conformance.md:333
-msgid "A theorem is admissible only in a compatible declaration lineage; sibling histories cannot exchange theorem evidence."
-msgstr "定理が受理されるのは、互換性のある宣言の系統においてのみである。兄弟の履歴どうしで定理の根拠を交換することはできない。"
+msgid "A theorem is admissible only in a compatible declaration lineage; divergent sibling histories cannot exchange theorem evidence."
+msgstr "定理が受理されるのは、互換性のある宣言系譜においてのみである。分岐した兄弟履歴どうしで定理の根拠を交換することはできない。"
 
 #: manual/conformance.md:230
 #: manual/conformance.md:345
@@ -3737,7 +3741,7 @@ msgstr "未完了の証明は警告であり、`ok` ではない。既定では�
 
 #: manual/design/cmd.md:57
 #: manual/design/elab.md:61
-#: manual/design/kernel.md:234
+#: manual/design/kernel.md:243
 #: manual/design/logic.md:139
 #: manual/design/parser.md:104
 #: manual/design/prover.md:72
@@ -3764,7 +3768,7 @@ msgstr "**位置。** ステップ番号と分岐パスは prover のもので�
 
 #: manual/design/cmd.md:64
 #: manual/design/elab.md:68
-#: manual/design/kernel.md:278
+#: manual/design/kernel.md:287
 #: manual/design/logic.md:148
 #: manual/design/parser.md:112
 #: manual/design/prover.md:80
@@ -3787,7 +3791,7 @@ msgstr "**項を表面構文で整形表示する。** `∧` や `->` を再導�
 
 #: manual/design/cmd.md:70
 #: manual/design/elab.md:74
-#: manual/design/kernel.md:286
+#: manual/design/kernel.md:295
 #: manual/design/logic.md:154
 #: manual/design/parser.md:119
 #: manual/design/prover.md:87
@@ -4147,46 +4151,50 @@ msgid "**Why.** Name lookup changes as scopes are pushed and popped, but a recor
 msgstr "**理由。** 名前の検索はスコープが push・pop されると変わるが、記録された同一性は変わらない。同一性を凍結することで、解決はスコープの変更に対して安定になり（仕様の「Resolution Freeze」定理）、検査によって、古くなった定理は黙って意味が変わる代わりに `InvalidInstantiation` の失敗になる。チュートリアルでは、隠蔽するスコープの内側では拒否され、スコープを pop すると再び受け入れられる定理を示している。"
 
 #: manual/design/kernel.md:185
-msgid "**One exception: `thm_bind_const_ids`.** An occurrence built with `mk_const` has stamp $-1$, and the identity the theorem records for it is taken from the state when the theorem is built. `thm_bind_const_ids(state, th)` does not check that record: it resolves every unstamped occurrence again in `state` and records the new identity. Applied after a scope has shadowed a constant `c`, it turns a theorem about the outer `c` into a theorem about the inner one. This is sound, because only constants without a definition can be shadowed: `ks_add_const` and both definition gates refuse names that are already definition, representation or abstraction heads, so a shadowed constant is uninterpreted, and a theorem about an uninterpreted constant stays valid when another constant of the same type takes its place, just as INST may replace a free variable. It does break the letter of the freeze property, so code that relies on frozen identities should build constants with `ks_mk_const`, whose occurrences carry their identity and cannot be rebound."
-msgstr "**一つの例外: `thm_bind_const_ids`。** `mk_const` で作った出現のスタンプは $-1$ であり、定理がそれについて記録する同一性は、定理を構築したときの状態から取られる。`thm_bind_const_ids(state, th)` はこの記録を検査しない。スタンプのない出現をすべて `state` で改めて解決し、新しい同一性を記録する。あるスコープが定数 `c` を隠蔽した後で適用すると、外側の `c` についての定理を内側の `c` についての定理に変える。これは健全である。定義をもたない定数しか隠蔽できないからである。`ks_add_const` と二つの定義ゲートは、すでに定義・表現・抽象のヘッドである名前を拒否するので、隠蔽される定数は解釈をもたない。そして解釈をもたない定数についての定理は、同じ型の別の定数がその位置に来ても妥当なままである。これは INST が自由変数を置き換えてよいのと同じである。それでも凍結の性質を字義どおりには破るので、凍結された同一性に依存するコードは `ks_mk_const` で定数を作るべきである。その出現は自分の同一性をもち、束縛し直されない。"
+msgid "The provenance check is a second, state-level guard. When a theorem is first admitted, the kernel records the current declaration lineage. A theorem remains admissible only when that lineage is a prefix of the receiving state's lineage. Linear descendants, including a theorem carried through a temporary pushed and popped scope, therefore retain the theorem; an independently forked state with a divergent lineage is rejected even when its independently allocated `ConstId` values happen to collide. Two branches that perform the same lineage events have the same lineage and may exchange the resulting theorem."
+msgstr "系譜検査は、状態レベルで働く第二の防壁である。定理が最初に受理されると、カーネルは現在の宣言系譜を記録する。その系譜が受け取り側の状態の系譜の接頭辞である場合に限り、定理は引き続き受理可能である。したがって、一時スコープを push して pop する場合を含む線形な子孫は定理を保持する。一方、独立に分岐した状態は、独立に割り当てた `ConstId` の値が偶然衝突しても、分岐した系譜を持つため拒否される。同じ系譜イベントを実行する二つのブランチは同じ系譜を持ち、生成された定理を交換できる。"
 
-#: manual/design/kernel.md:187
+#: manual/design/kernel.md:194
+msgid "**One exception: `thm_bind_const_ids`.** An occurrence built with `mk_const` has stamp $-1$, and the identity the theorem records for it is taken from the state when the theorem is built. For a theorem that has not yet been admitted, `thm_bind_const_ids(state, th)` resolves every unstamped occurrence again in `state` and records the new identity. Applied after a scope has shadowed a constant `c`, it can turn such a raw theorem about the outer `c` into a theorem about the inner one. This is sound, because only constants without a definition can be shadowed: `ks_add_const` and both definition gates refuse names that are already definition, representation or abstraction heads, so a shadowed constant is uninterpreted, and a theorem about an uninterpreted constant stays valid when another constant of the same type takes its place, just as INST may replace a free variable. An admitted theorem already carries declaration lineage, so `thm_bind_const_ids` rejects remaining unstamped occurrences and cannot bypass the provenance check. Code that relies on frozen identities should build constants with `ks_mk_const`, whose occurrences carry their identity and cannot be rebound."
+msgstr "**一つの例外: `thm_bind_const_ids`。** `mk_const` で作った出現のスタンプは $-1$ であり、定理がそれについて記録する同一性は、定理を構築したときの状態から取られる。まだ受理されていない定理では、`thm_bind_const_ids(state, th)` が `state` でスタンプなしの出現をすべて改めて解決し、新しい同一性を記録する。あるスコープが定数 `c` を隠蔽した後で適用すると、外側の `c` についての生の定理を内側の `c` についての定理に変えられる。これは、定義を持たない定数だけが隠蔽されうるため健全である。`ks_add_const` と二つの定義ゲートは、すでに定義・表現・抽象のヘッドである名前を拒否するので、隠蔽された定数は解釈を持たない。同じ型の別の定数がその位置に来ても、その定理は妥当なままであり、これは INST が自由変数を置き換えられるのと同じである。受理済みの定理はすでに宣言系譜を持つため、`thm_bind_const_ids` は残りのスタンプなしの出現を拒否し、系譜検査を迂回できない。凍結された同一性に依存するコードは、出現が自分の同一性を持ち再束縛されない `ks_mk_const` で定数を作るべきである。"
+
+#: manual/design/kernel.md:196
 msgid "Extensions go through gates"
 msgstr "拡大はゲートを通る"
 
-#: manual/design/kernel.md:189
+#: manual/design/kernel.md:198
 msgid "The theory grows in three ways, each guarded by a gate that checks side conditions and appends an `ExtensionCert`."
 msgstr "理論は三つの方法で成長し、それぞれ、副条件を検査して `ExtensionCert` を追加するゲートで守られている。"
 
-#: manual/design/kernel.md:191
+#: manual/design/kernel.md:200
 msgid "**`DefOK`, constant definition.** `ks_define_const(c, \\tau, t)` adds a constant $c : \\tau$ and the theorem $\\vdash c = t$. Each side condition rules out a known way to break conservativity:"
 msgstr "**`DefOK`、定数定義。** `ks_define_const(c, \\tau, t)` は定数 $c : \\tau$ と定理 $\\vdash c = t$ を追加する。各副条件は、保存性を壊す既知の方法を排除する。"
 
-#: manual/design/kernel.md:193
+#: manual/design/kernel.md:202
 msgid "Condition"
 msgstr "条件"
 
-#: manual/design/kernel.md:193
+#: manual/design/kernel.md:202
 msgid "Error"
 msgstr "エラー"
 
-#: manual/design/kernel.md:193
+#: manual/design/kernel.md:202
 msgid "Counterexample it prevents"
 msgstr "防ぐ反例"
 
-#: manual/design/kernel.md:195
+#: manual/design/kernel.md:204
 msgid "$t$ is closed"
 msgstr "$t$ は閉じている"
 
-#: manual/design/kernel.md:195
+#: manual/design/kernel.md:204
 msgid "$c = x$ would give $\\vdash c = x$, then INST gives $\\vdash c = y$ and so $\\vdash x = y$ for all $x, y$."
 msgstr "$c = x$ は $\\vdash c = x$ を与え、INST により $\\vdash c = y$ が、したがって任意の $x, y$ について $\\vdash x = y$ が得られてしまう。"
 
-#: manual/design/kernel.md:196
+#: manual/design/kernel.md:205
 msgid "No constant named $c$ occurs in $t$, directly or through earlier definitions"
 msgstr "$c$ という名前の定数が、直接にも以前の定義を経由しても $t$ に現れない"
 
-#: manual/design/kernel.md:196
+#: manual/design/kernel.md:205
 msgid ""
 "$c = \\n"
 "eg c$ would give $\\vdash c = \\n"
@@ -4196,75 +4204,75 @@ msgstr ""
 "eg c$ は $\\vdash c = \\n"
 "eg c$ を与え、矛盾となる。"
 
-#: manual/design/kernel.md:197
+#: manual/design/kernel.md:206
 msgid "$c = (\\forall x{:}\\alpha.\\,\\forall y{:}\\alpha.\\,x = y)$ with $c : \\mathit{bool}$ is true when $\\alpha$ has one element and false at $\\alpha = \\mathit{bool}$; INST_TYPE gives both instances of the definition, with the same left-hand side $c$, so $\\vdash \\top = \\bot$."
 msgstr "$c : \\mathit{bool}$ に対する $c = (\\forall x{:}\\alpha.\\,\\forall y{:}\\alpha.\\,x = y)$ は、$\\alpha$ が一元集合のときは真で $\\alpha = \\mathit{bool}$ では偽である。INST_TYPE は定義のこの二つのインスタンスを与え、左辺はどちらも同じ $c$ なので、$\\vdash \\top = \\bot$ となる。"
 
-#: manual/design/kernel.md:198
+#: manual/design/kernel.md:207
 msgid "$c$ has never been defined"
 msgstr "$c$ がまだ一度も定義されていない"
 
-#: manual/design/kernel.md:198
+#: manual/design/kernel.md:207
 msgid "Two definitions of one name would give $\\vdash c = t_1$ and $\\vdash c = t_2$, so $\\vdash t_1 = t_2$."
 msgstr "一つの名前の二つの定義は $\\vdash c = t_1$ と $\\vdash c = t_2$ を与え、したがって $\\vdash t_1 = t_2$ となる。"
 
-#: manual/design/kernel.md:200
+#: manual/design/kernel.md:209
 msgid "The counterexamples in the second and last rows are stated, as in the specification, for constants identified by name. In the code the new constant always receives a fresh identity, so a name $c$ that occurs in $t$ can only denote an older constant, and a second definition of $c$ in an inner scope would get a new identity too; neither could then produce the contradiction shown. The two checks are kept anyway, by name and over the whole theory history: they make every definition read as non-circular and unique when constants are read by name, which is what the specification's freshness conditions require, and they keep the unfolding argument below simple. They are deliberately stricter than identities need: `ks_define_const` refuses `c := d` in an inner scope when an earlier definition of `d` mentions an outer, undefined constant named `c`."
 msgstr "2 行目と最終行の反例は、仕様と同様に、名前で識別される定数について述べたものである。コードでは新しい定数は常に新しい同一性を受け取るので、$t$ に現れる名前 $c$ はより古い定数しか指せず、内側のスコープでの $c$ の二度目の定義も新しい同一性を得る。どちらも示した矛盾を生み出せない。それでも二つの検査は、名前によって、理論の履歴全体に対して残してある。定数を名前で読んだときにすべての定義が循環せず一意になるようにするためであり、それは仕様の新しさの条件が求めることでもある。また、下の展開の議論を単純に保つ。これらは同一性が必要とするより意図的に厳しい。`d` の以前の定義が外側の未定義の定数 `c` に言及していると、`ks_define_const` は内側のスコープでの `c := d` を拒否する。"
 
-#: manual/design/kernel.md:202
+#: manual/design/kernel.md:211
 msgid "Under these conditions a definition is conservative. Every instance of the new constant is $c{:}\\tau\\theta$ for some type substitution $\\theta$, and replacing it by $t\\theta$ maps each proof in the extended theory to a proof in the old theory: the definition theorem $\\vdash c = t$ and its type instances become instances of REFL, every other rule step maps to the same step, and a theorem that does not mention $c$ is mapped to itself. The ghost-variable condition is what makes the replacement a function of the instance $c{:}\\tau\\theta$ alone. The specification proves this as \"Definition-level conservativity\"."
 msgstr "これらの条件のもとで、定義は保存的である。新しい定数のすべてのインスタンスは、ある型代入 $\\theta$ についての $c{:}\\tau\\theta$ であり、それを $t\\theta$ で置き換えると、拡大された理論のそれぞれの証明は古い理論の証明に写る。定義定理 $\\vdash c = t$ とその型インスタンスは REFL のインスタンスになり、他のすべての規則のステップは同じステップに写り、$c$ に言及しない定理は自分自身に写る。幽霊型変数の条件が、この置き換えをインスタンス $c{:}\\tau\\theta$ だけで決まるものにしている。仕様はこれを「Definition-level conservativity」として証明している。"
 
-#: manual/design/kernel.md:204
+#: manual/design/kernel.md:213
 msgid "**`TypeDefOK`, type definition.** `ks_register_type_definition` admits a type $\\kappa(\\bar\\alpha)$ in bijection with $\\{x : \\rho \\mid P\\,x\\}$, given a hypothesis-free theorem $\\vdash P\\,w$ for a closed term $w$. It declares the representation $\\mathit{rep} : \\kappa(\\bar\\alpha) \\to \\rho$, named by the caller, and the abstraction $\\mathit{abs} : \\rho \\to \\kappa(\\bar\\alpha)$, named `Abs_` followed by $\\kappa$, and returns three contract theorems, with $a : \\kappa(\\bar\\alpha)$ and $r : \\rho$ free variables:"
 msgstr "**`TypeDefOK`、型定義。** `ks_register_type_definition` は、閉じた項 $w$ についての仮定なしの定理 $\\vdash P\\,w$ が与えられたとき、$\\{x : \\rho \\mid P\\,x\\}$ と全単射をなす型 $\\kappa(\\bar\\alpha)$ を認める。呼び出し側が名前を付ける表現 $\\mathit{rep} : \\kappa(\\bar\\alpha) \\to \\rho$ と、`Abs_` に $\\kappa$ を続けた名前の抽象 $\\mathit{abs} : \\rho \\to \\kappa(\\bar\\alpha)$ を宣言し、$a : \\kappa(\\bar\\alpha)$ と $r : \\rho$ を自由変数とする三つの契約定理を返す。"
 
-#: manual/design/kernel.md:214
+#: manual/design/kernel.md:223
 msgid "The first says that $\\mathit{rep}$ is injective, the second that its image lies inside $P$, and the third that every element of $P$ is in the image. HOL Light characterises a type bijection by the first theorem and the equivalence $P\\,r = (\\mathit{rep}(\\mathit{abs}\\,r) = r)$. The third theorem is the left-to-right direction of that equivalence, and the right-to-left direction follows from the second theorem instantiated at $a := \\mathit{abs}\\,r$ and rewritten with the hypothesis $\\mathit{rep}(\\mathit{abs}\\,r) = r$."
 msgstr "一つ目は $\\mathit{rep}$ が単射であること、二つ目はその像が $P$ の内側にあること、三つ目は $P$ のすべての元が像に含まれることを述べる。HOL Light は型の全単射を、一つ目の定理と同値 $P\\,r = (\\mathit{rep}(\\mathit{abs}\\,r) = r)$ で特徴づける。三つ目の定理はこの同値の左から右への向きであり、右から左への向きは、二つ目の定理を $a := \\mathit{abs}\\,r$ で具体化し、仮定 $\\mathit{rep}(\\mathit{abs}\\,r) = r$ で書き換えれば得られる。"
 
-#: manual/design/kernel.md:216
+#: manual/design/kernel.md:225
 msgid "The witness matters because the second contract theorem holds for a free variable $a$. If $P$ were empty, for example $P = \\lambda x.\\,\\bot$, it would read $\\vdash \\bot$: HOL types denote non-empty sets, so no model can interpret a type in bijection with an empty set, and the logic, in which every type is inhabited, proves the contradiction. The gate also requires the predicate's type variables to be among the parameters $\\bar\\alpha$, for the same reason that `DefOK` forbids ghost type variables."
 msgstr "ウィットネスが重要なのは、二つ目の契約定理が自由変数 $a$ について成り立つからである。$P$ が空、たとえば $P = \\lambda x.\\,\\bot$ なら、それは $\\vdash \\bot$ となる。HOL の型は空でない集合を表すので、空集合と全単射をなす型を解釈できるモデルはなく、すべての型に元がある論理ではこの矛盾が証明できてしまう。このゲートは、`DefOK` が幽霊型変数を禁じるのと同じ理由から、述語の型変数がパラメータ $\\bar\\alpha$ に含まれることも要求する。"
 
-#: manual/design/kernel.md:218
+#: manual/design/kernel.md:227
 msgid "**`SpecOK`, constant specification.** `ks_specify_const` introduces a constant $c : \\tau$ with the property $\\vdash P\\,c$, given a hypothesis-free theorem $\\vdash P\\,w$ for a closed term $w$. The specification asks for $\\vdash \\exists x.\\,P\\,x$ instead; a concrete witness is a stronger premise, since it implies the existential. The gate defines $c := @P$ through `DefOK`, which records a `DefOK` certificate, then builds $\\vdash P\\,c$ itself and records a `SpecOK` certificate."
 msgstr "**`SpecOK`、定数仕様。** `ks_specify_const` は、閉じた項 $w$ についての仮定なしの定理 $\\vdash P\\,w$ が与えられたとき、性質 $\\vdash P\\,c$ をもつ定数 $c : \\tau$ を導入する。仕様は代わりに $\\vdash \\exists x.\\,P\\,x$ を求める。具体的なウィットネスは存在式を含意するので、より強い前提である。ゲートは `DefOK` を通じて $c := @P$ を定義し(これで `DefOK` 証明書が記録される)、次に $\\vdash P\\,c$ を自分で構築して `SpecOK` 証明書を記録する。"
 
-#: manual/design/kernel.md:220
+#: manual/design/kernel.md:229
 msgid "The theorem $\\vdash P\\,c$ is not derived by kernel rules. It is an instance of the choice axiom"
 msgstr "定理 $\\vdash P\\,c$ はカーネルの規則で導出されたものではない。それは選択公理"
 
-#: manual/design/kernel.md:226
+#: manual/design/kernel.md:235
 msgid "at $x = w$, rewritten with the definition $c = @P$, and the kernel has no rule or theorem for the choice axiom: the specification takes the axiom schema as part of its trusted baseline. The theorem is valid because $@$ denotes a choice function in every model: $\\vdash P\\,w$ makes $[\\![P]\\!]$ non-empty, so $[\\![@P]\\!] \\in [\\![P]\\!]$, and $c$ denotes $[\\![@P]\\!]$. For the same reason the extension is conservative over the old theory *together with the choice axiom*: in a derivation, each use of $\\vdash P\\,c$ can be replaced by the choice instance at $w$ and the definition, and then $c$ unfolded as for `DefOK`. The conservativity of `DefOK` alone does not cover this step, because $\\vdash P\\,c$ does not follow from $c = @P$ without the axiom. The specification proves the combined statement as \"Conservativity of Specification Extension\"."
 msgstr "の $x = w$ でのインスタンスを、定義 $c = @P$ で書き換えたものである。カーネルには選択公理のための規則も定理もない。仕様はこの公理図式を信頼基盤の一部としている。この定理が妥当なのは、どのモデルでも $@$ が選択関数を表すからである。$\\vdash P\\,w$ により $[\\![P]\\!]$ は空でなく、したがって $[\\![@P]\\!] \\in [\\![P]\\!]$ であり、$c$ は $[\\![@P]\\!]$ を表す。同じ理由で、この拡張は*選択公理を含めた*古い理論に対して保存的である。導出の中で $\\vdash P\\,c$ を使う箇所はそれぞれ、$w$ での選択公理のインスタンスと定義で置き換えることができ、その後 `DefOK` と同様に $c$ を展開すればよい。`DefOK` の保存性だけではこのステップをカバーできない。この公理なしでは、$c = @P$ から $\\vdash P\\,c$ は導けないからである。仕様はこの合わせた主張を「Conservativity of Specification Extension」として証明している。"
 
-#: manual/design/kernel.md:228
+#: manual/design/kernel.md:237
 msgid "**Infinity anchor.** HOL needs an infinite type for arithmetic, and the specification assumes that `ind` is one. `ks_register_ind_infinity_axiom` stores a theorem as the anchor of that assumption, but it accepts any hypothesis-free admissible theorem whose statement mentions `ind`, even $\\vdash x = x$ for $x : \\mathit{ind}$, and it does not check that the theorem says `ind` is infinite. Since the kernel has no axiom of infinity, no theorem it can produce says so. The anchor therefore adds no theorem and no risk to consistency; it only marks, for audit, the model-class restriction of the specification. Arithmetic over `ind` is not available."
 msgstr "**無限性のアンカー。** HOL は算術のために無限型を必要とし、仕様は `ind` がそれであると仮定する。`ks_register_ind_infinity_axiom` はこの仮定のアンカーとして定理を保存するが、`ind` に言及する仮定なしの許容される定理なら何でも受け付け、$x : \\mathit{ind}$ についての $\\vdash x = x$ でさえ受け付ける。その定理が `ind` は無限だと述べているかどうかは検査しない。カーネルには無限公理がないので、カーネルが生成できる定理でそう述べるものはない。したがってアンカーは定理を増やさず、無矛盾性を危険にさらすこともない。仕様のモデルクラスの制限を監査のために示すだけである。`ind` 上の算術は使えない。"
 
-#: manual/design/kernel.md:230
+#: manual/design/kernel.md:239
 msgid "Results, not exceptions"
 msgstr "例外ではなく結果"
 
-#: manual/design/kernel.md:232
+#: manual/design/kernel.md:241
 msgid "Every kernel function returns `Result` or `Option`; none aborts on bad input. A rule that cannot apply says why, with a constructor of `LogicError` or `SigError`, and the caller decides what to do. This is what makes the frontend fail closed: the `tactics` and `prover` packages turn these values into structured diagnostics, and no path turns a failed rule into a theorem."
 msgstr "カーネルのすべての関数は `Result` または `Option` を返し、不正な入力で中断するものはない。適用できない規則は、`LogicError` または `SigError` のコンストラクタでその理由を述べ、呼び出し側が対処を決める。これがフロントエンドをフェイルクローズにするものである。`tactics` と `prover` パッケージはこれらの値を構造化された診断に変換し、失敗した規則を定理に変える経路は存在しない。"
 
-#: manual/design/kernel.md:236
+#: manual/design/kernel.md:245
 msgid "Why soundness reduces to the kernel"
 msgstr "健全性がカーネルに帰着する理由"
 
-#: manual/design/kernel.md:238
+#: manual/design/kernel.md:247
 msgid "Call a theorem value *sound* when its sequent is valid in every model of the current theory. The argument has three steps."
 msgstr "定理の値が*健全*であるとは、そのシーケントが現在の理論のあらゆるモデルで妥当であることをいう。議論は三つのステップからなる。"
 
-#: manual/design/kernel.md:240
+#: manual/design/kernel.md:249
 msgid "**1. Every rule preserves validity.** For each primitive rule, valid premises give a valid conclusion. Two cases show the pattern."
 msgstr "**1. すべての規則は妥当性を保存する。** 各基本規則について、妥当な前提から妥当な結論が得られる。二つの場合でその型を示す。"
 
-#: manual/design/kernel.md:242
+#: manual/design/kernel.md:251
 msgid ""
 "ABS. Let $M$ be a model and $v$ a valuation that satisfies $\\Gamma$. Since $x \\n"
 "otin \\mathrm{FV}(\\Gamma)$, every valuation $v[x \\mapsto a]$ also satisfies $\\Gamma$, so by validity of the premise $[\\![s]\\!]_{v[x \\mapsto a]} = [\\![t]\\!]_{v[x \\mapsto a]}$ for every $a$. Hence"
@@ -4272,119 +4280,119 @@ msgstr ""
 "ABS。$M$ をモデルとし、$v$ を $\\Gamma$ を満たす付値とする。$x \\n"
 "otin \\mathrm{FV}(\\Gamma)$ なので、すべての付値 $v[x \\mapsto a]$ も $\\Gamma$ を満たす。したがって前提の妥当性により、すべての $a$ について $[\\![s]\\!]_{v[x \\mapsto a]} = [\\![t]\\!]_{v[x \\mapsto a]}$ である。よって"
 
-#: manual/design/kernel.md:248
+#: manual/design/kernel.md:257
 msgid "by function extensionality in the standard model. Without the side condition the step \"every $v[x \\mapsto a]$ satisfies $\\Gamma$\" fails: from $\\{x = 0\\} \\vdash x = 0$ one could derive $\\{x = 0\\} \\vdash (\\lambda x.\\,x) = (\\lambda x.\\,0)$, which is false whenever $x = 0$ holds and the type of $x$ has a second element."
 msgstr "が標準モデルでの関数の外延性により成り立つ。副条件がなければ、「すべての $v[x \\mapsto a]$ が $\\Gamma$ を満たす」というステップは失敗する。$\\{x = 0\\} \\vdash x = 0$ から $\\{x = 0\\} \\vdash (\\lambda x.\\,x) = (\\lambda x.\\,0)$ が導けてしまうが、これは $x = 0$ が成り立ち、$x$ の型に二つ目の元があるときはいつでも偽である。"
 
-#: manual/design/kernel.md:250
+#: manual/design/kernel.md:259
 msgid "DEDUCT_ANTISYM_RULE. Let $v$ satisfy $(\\Gamma \\setminus \\{q\\}) \\cup (\\Delta \\setminus \\{p\\})$. If $[\\![p]\\!]_v = \\top$, then $v$ satisfies $\\Delta$ (the only hypothesis that may have been removed from $\\Delta$ is $p$), so $[\\![q]\\!]_v = \\top$. Symmetrically $[\\![q]\\!]_v = \\top$ implies $[\\![p]\\!]_v = \\top$. Two booleans that imply each other are equal, so $[\\![p = q]\\!]_v = \\top$."
 msgstr "DEDUCT_ANTISYM_RULE。$v$ が $(\\Gamma \\setminus \\{q\\}) \\cup (\\Delta \\setminus \\{p\\})$ を満たすとする。$[\\![p]\\!]_v = \\top$ ならば、$v$ は $\\Delta$ を満たし（$\\Delta$ から取り除かれた可能性のある仮定は $p$ だけである）、したがって $[\\![q]\\!]_v = \\top$ である。対称に、$[\\![q]\\!]_v = \\top$ ならば $[\\![p]\\!]_v = \\top$ である。互いに含意する二つの真偽値は等しいので、$[\\![p = q]\\!]_v = \\top$ である。"
 
-#: manual/design/kernel.md:252
+#: manual/design/kernel.md:261
 msgid "The remaining rules follow the same way: REFL and TRANS from reflexivity and transitivity of identity, MK_COMB from congruence of application, BETA from the substitution lemma $[\\![t[u/x]]\\!]_v = [\\![t]\\!]_{v[x \\mapsto [\\![u]\\!]_v]}$, EQ_MP from the meaning of $=$ on booleans, ASSUME trivially, INST from the substitution lemma for free variables (a valid sequent holds under every valuation, in particular under $v[x \\mapsto [\\![u]\\!]_v]$), and INST_TYPE because a valid sequent holds under every interpretation of its type variables by non-empty sets, and every type the state admits denotes one. The specification proves each case (\"Rule-level preservation\")."
 msgstr "残りの規則も同様に従う。REFL と TRANS は同一性の反射律と推移律から、MK_COMB は適用の合同性から、BETA は代入補題 $[\\![t[u/x]]\\!]_v = [\\![t]\\!]_{v[x \\mapsto [\\![u]\\!]_v]}$ から、EQ_MP は真偽値上の $=$ の意味から、ASSUME は自明に、INST は自由変数についての代入補題から従う(妥当なシーケントはあらゆる付値のもとで、特に $v[x \\mapsto [\\![u]\\!]_v]$ のもとで成り立つ)。INST_TYPE は、妥当なシーケントが型変数の空でない集合によるあらゆる解釈のもとで成り立ち、状態が認めるすべての型が空でない集合を表すからである。仕様は各場合を証明している（「Rule-level preservation」）。"
 
-#: manual/design/kernel.md:254
+#: manual/design/kernel.md:263
 msgid "**2. Every extension preserves consistency.** Every model of the old theory in which $@$ is a choice function extends to such a model of the new one: interpret a defined constant by its right-hand side, a new type by the non-empty subset its witness exhibits, with $\\mathit{rep}$ the inclusion and $\\mathit{abs}$ any retraction onto it, and a specified constant by the chosen element $[\\![@P]\\!]$. The theorems the gates return are valid in the extended model, as argued above, so no false sentence in the old language becomes provable."
 msgstr "**2. すべての拡張は無矛盾性を保つ。** $@$ が選択関数である古い理論のすべてのモデルは、新しい理論の同様のモデルに拡張できる。定義された定数はその右辺で、新しい型はウィットネスが示す空でない部分集合で解釈し、$\\mathit{rep}$ は包含写像、$\\mathit{abs}$ はそこへの任意のレトラクションとする。仕様で導入された定数は選ばれた元 $[\\![@P]\\!]$ で解釈する。上で論じたとおり、ゲートが返す定理は拡張されたモデルで妥当なので、旧言語の偽の文が証明可能になることはない。"
 
-#: manual/design/kernel.md:256
+#: manual/design/kernel.md:265
 msgid "**3. Interface safety.** Because `Thm` is abstract, every `Thm` that exists at run time is the root of a finite derivation tree whose nodes are rule applications and gate outputs. `add_assum_checked` is a derived rule, as shown above; the readers `ks_definition_theorem`, `ks_typedef_contract` and `ks_ind_infinity_axiom` return gate outputs stored in the state; and `thm_bind_const_ids` changes only constant identities, in the way shown to be sound above. Induction on the depth of the tree, using steps 1 and 2, shows that every `Thm` is sound."
 msgstr "**3. インターフェースの安全性。** `Thm` は抽象型なので、実行時に存在するすべての `Thm` は、規則の適用とゲートの出力を節点とする有限の導出木の根である。`add_assum_checked` は上で示したとおり導出規則である。読み出し関数 `ks_definition_theorem`、`ks_typedef_contract`、`ks_ind_infinity_axiom` は状態に保存されたゲートの出力を返す。`thm_bind_const_ids` は定数の同一性だけを変え、そのやり方は上で健全だと示した。ステップ 1 と 2 を用いてこの木の深さに関する帰納法を行えば、すべての `Thm` が健全であることが示される。"
 
-#: manual/design/kernel.md:258
+#: manual/design/kernel.md:267
 msgid "Step 3 is a property of the code, not of the logic, and it is why nothing outside `src/kernel` needs to be trusted: the `logic`, `tactics` and `prover` packages can only call the functions in the [kernel API](../api/kernel.md), so whatever they compute, any `Thm` they return has a derivation. The specification states the six obligations and their dependencies; the conformance pack in `formal_verification/` checks the paper side in Lean."
 msgstr "ステップ 3 は論理ではなくコードの性質であり、`src/kernel` の外側の何も信頼する必要がないのはそのためである。`logic`、`tactics`、`prover` パッケージは[カーネル API](../api/kernel.md)の関数しか呼べないので、何を計算しようとも、それらが返す `Thm` には導出がある。仕様は六つの義務とその依存関係を述べており、`formal_verification/` の適合性パックは、その紙の上の側面を Lean で検査する。"
 
-#: manual/design/kernel.md:260
+#: manual/design/kernel.md:269
 msgid "Invariants maintained by the code"
 msgstr "コードが保つ不変条件"
 
-#: manual/design/kernel.md:262
+#: manual/design/kernel.md:271
 msgid "A `Thm` stores its hypotheses as a list without duplicates under `db_term_eq` (α-equivalence with equal constant stamps) and its conclusion as a De Bruijn term; every rule result passes `ensure_thm_admissible` in the state it was built in."
 msgstr "`Thm` は仮定を `db_term_eq`(定数のスタンプが等しい α 同値)のもとで重複のないリストとして、結論を de Bruijn 項として保持する。すべての規則の結果は、それが構築された状態において `ensure_thm_admissible` を通過する。"
 
-#: manual/design/kernel.md:263
+#: manual/design/kernel.md:272
 msgid "`KernelState` is persistent. A gate returns a new state; the base state stays valid, so `ks_conservative_replay_ok(base, extended, th)` can re-check `th` against both."
 msgstr "`KernelState` は永続的である。ゲートは新しい状態を返し、元の状態は有効なまま残る。そのため `ks_conservative_replay_ok(base, extended, th)` は `th` を両方の状態に対して再検査できる。"
 
-#: manual/design/kernel.md:264
+#: manual/design/kernel.md:273
 msgid "Constant identities are allocated from a counter in the theory state and never reused, even after a scope is popped. (The `sig_*` functions on a bare `GlobalSig` number new constants after the largest identity still visible, so they can reuse one after a pop; they never touch theorems.)"
 msgstr "定数の同一性は理論状態のカウンタから割り当てられ、スコープがポップされた後も再利用されない。(素の `GlobalSig` に対する `sig_*` 関数は、まだ見えている最大の同一性の次の番号を新しい定数に付けるので、ポップの後に同一性を再利用することがある。これらは定理には触れない。)"
 
-#: manual/design/kernel.md:265
+#: manual/design/kernel.md:274
 msgid "Definition heads, type-definition heads and the infinity anchor are recorded in the theory history, which `ks_pop_scope` does not touch: a name, once defined, cannot be defined again."
 msgstr "定義ヘッド、型定義ヘッド、無限性アンカーは理論履歴に記録され、`ks_pop_scope` はこれに触れない。一度定義された名前は再定義できない。"
 
-#: manual/design/kernel.md:267
+#: manual/design/kernel.md:276
 msgid "Complexity"
 msgstr "計算量"
 
-#: manual/design/kernel.md:269
+#: manual/design/kernel.md:278
 msgid "Write $n$ for the size of the terms involved, $d$ for their binder depth, $h$ for the number of hypotheses, $k$ for the number of constant occurrences in a theorem and $D$ for the number of declarations in the signature. The costs are polynomial in these sizes:"
 msgstr "関係する項の大きさを $n$、その束縛の深さを $d$、仮定の数を $h$、定理中の定数の出現数を $k$、シグネチャ中の宣言の数を $D$ と書く。コストはこれらの大きさの多項式である。"
 
-#: manual/design/kernel.md:271
+#: manual/design/kernel.md:280
 msgid "Lowering a named input with `to_db_term` searches the binder environment at each variable and copies it at each abstraction, $O(n \\cdot d)$. Reading a term back with `from_db_term`, as `thm_concl` and `thm_hyps` do, also searches the names already in use, $O(n \\cdot (d + f))$ with $f$ the number of free names."
 msgstr "名前付きの入力を `to_db_term` でローワリングすると、各変数で束縛環境を探し、各抽象でそれを複製するので、$O(n \\cdot d)$ になる。`thm_concl` と `thm_hyps` のように `from_db_term` で項を読み戻すときは、使用中の名前も探すので、自由な名前の数を $f$ として $O(n \\cdot (d + f))$ になる。"
 
-#: manual/design/kernel.md:272
+#: manual/design/kernel.md:281
 msgid "The rule cores walk their terms once. BETA and INST shift the inserted term at every occurrence they replace, so their cost is the size of the result, at most $O(n \\cdot m)$ for an inserted term of size $m$."
 msgstr "規則の中核は項を一度だけ走査する。BETA と INST は置き換える出現ごとに挿入する項をシフトするので、コストは結果の大きさであり、大きさ $m$ の挿入項に対して高々 $O(n \\cdot m)$ である。"
 
-#: manual/design/kernel.md:273
+#: manual/design/kernel.md:282
 msgid "Hypothesis union and removal compare hypotheses pairwise, $O(h_1 h_2 n)$."
 msgstr "仮定の和と除去は仮定を二つずつ比較するので、$O(h_1 h_2 n)$ である。"
 
-#: manual/design/kernel.md:274
+#: manual/design/kernel.md:283
 msgid "`ensure_thm_admissible` runs on every premise and on every result. It collects constant names with linear membership tests, $O(k^2)$, and looks each occurrence up in the scoped signature and matches it against the schema, $O(k \\cdot D)$ plus the size of the types."
 msgstr "`ensure_thm_admissible` はすべての前提とすべての結果に対して走る。定数名を線形の所属判定で集めるので $O(k^2)$、各出現をスコープ付きシグネチャで引いてスキーマと照合するので $O(k \\cdot D)$ に型の大きさを加えたものになる。"
 
-#: manual/design/kernel.md:276
+#: manual/design/kernel.md:285
 msgid "Proof sizes in the shipped subset are small; the kernel favours checks that are easy to audit over asymptotic speed."
 msgstr "同梱サブセットの証明は小さい。カーネルは漸近的な速さより、監査しやすい検査を優先する。"
 
-#: manual/design/kernel.md:280
+#: manual/design/kernel.md:289
 msgid "**Named terms with renaming, as in HOL Light.** Every rule would need a correct renaming function, which is a classic source of kernel bugs. The De Bruijn core avoids renaming entirely."
 msgstr "**HOL Light のような名前付き項とリネーム。** すべての規則に正しいリネーム関数が必要になるが、これはカーネルのバグの典型的な原因である。de Bruijn コアはリネームを完全に避ける。"
 
-#: manual/design/kernel.md:281
+#: manual/design/kernel.md:290
 msgid "**Connectives as kernel primitives.** Adding $\\wedge$, $\\to$ or $\\forall$ as primitive constants with their own rules would enlarge the kernel and its soundness proof. They are definitions over $=$ instead."
 msgstr "**結合子をカーネルのプリミティブにする。** $\\wedge$、$\\to$、$\\forall$ を固有の規則を持つ基本定数として加えると、カーネルとその健全性証明が大きくなる。代わりにこれらは $=$ 上の定義とする。"
 
-#: manual/design/kernel.md:282
+#: manual/design/kernel.md:291
 msgid "**Exceptions for rule failure.** HOL Light raises `Failure`. Results make every failure visible in the type and keep the frontend from accidentally catching and ignoring one."
 msgstr "**規則の失敗に例外を使う。** HOL Light は `Failure` を送出する。Result は失敗をすべて型に現し、フロントエンドが誤って失敗を捕捉して無視することを防ぐ。"
 
-#: manual/design/kernel.md:283
+#: manual/design/kernel.md:292
 msgid "**Unchecked rules with a separate validation pass.** Checking admissibility only at the end would let an inadmissible intermediate theorem feed later steps. Every rule checks its inputs and output instead."
 msgstr "**検証パスを別に持つ未検査の規則。** 許容性を最後にだけ検査すると、許容されない中間定理が後続のステップに入り込みうる。代わりにすべての規則が入力と出力を検査する。"
 
-#: manual/design/kernel.md:284
+#: manual/design/kernel.md:293
 msgid "**Arbitrary axioms.** There is no function that turns a term into a theorem. The only non-derived theorems are definitions, type-definition contracts and the property of a specified constant, all produced by gates with side conditions that keep the extension conservative."
 msgstr "**任意の公理。** 項を定理に変える関数は存在しない。導出によらない定理は、定義、型定義契約、仕様で導入された定数の性質だけであり、いずれも拡張を保存的に保つ副条件をもつゲートが生成する。"
 
-#: manual/design/kernel.md:288
+#: manual/design/kernel.md:297
 msgid "The kernel does not parse text, elaborate names or run tactics; those are the [elab](elab.md), [parser](parser.md) and [tactics](tactics.md) packages, and none of them is trusted."
 msgstr "カーネルはテキストの解析、名前のエラボレーション、タクティクの実行を行わない。これらは [elab](elab.md)、[parser](parser.md)、[tactics](tactics.md) パッケージの役割であり、いずれも信頼されない。"
 
-#: manual/design/kernel.md:289
+#: manual/design/kernel.md:298
 msgid "It implements no connective other than equality and choice, and no quantifier syntax; the [logic](logic.md) package defines the rest."
 msgstr "等号と選択以外の結合子も、量化子の構文も実装しない。残りは [logic](logic.md) パッケージが定義する。"
 
-#: manual/design/kernel.md:290
+#: manual/design/kernel.md:299
 msgid "It does not store proved theorems by name. Theorem names are a frontend concern."
 msgstr "証明済みの定理を名前で保存しない。定理名はフロントエンドの関心事である。"
 
-#: manual/design/kernel.md:291
+#: manual/design/kernel.md:300
 msgid "It has no metavariables and no incomplete theorems: a `hole` in a proof script never reaches the kernel."
 msgstr "メタ変数も未完了の定理も持たない。証明スクリプト中の `hole` がカーネルに到達することはない。"
 
-#: manual/design/kernel.md:292
+#: manual/design/kernel.md:301
 msgid "It does not prove its own soundness. The argument above and in the specification is a paper proof; `formal_verification/` aligns the specification with Lean, not the MoonBit source."
 msgstr "自身の健全性を証明しない。上記および仕様中の議論は紙の上の証明であり、`formal_verification/` が Lean と整合させるのは仕様であって MoonBit のソースではない。"
 
-#: manual/design/kernel.md:293
+#: manual/design/kernel.md:302
 msgid "It does not provide the choice axiom as a theorem. `@` is declared and used by `SpecOK`, but no public function returns $P\\,x \\to P(@P)$."
 msgstr "選択公理を定理として提供しない。`@` は宣言され `SpecOK` で使われるが、$P\\,x \\to P(@P)$ を返す公開関数は存在しない。"
 
