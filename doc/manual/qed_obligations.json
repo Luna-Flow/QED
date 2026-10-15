@@ -445,7 +445,7 @@
         "Not yet implemented"
       ],
       "evidence": [
-        "doc/manual/current_workspace_audit.md",
+        "research/qed-verification/2026-10-14-initial-audit.md",
         "formal_verification/theory-proof-plan.md"
       ],
       "status": {

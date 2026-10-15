@@ -2,7 +2,7 @@
 
 Status: research-only
 Audience: maintainers, designers
-Authority: non-authoritative research conclusion; subordinate to `doc/attachments/qed_formal_spec.typ`, current code/tests, and `doc/manual/governance.md`
+Authority: non-authoritative research conclusion; subordinate to `doc/attachments/qed_formal_spec.typ`, current code/tests, and `doc/manual/conformance.md`
 Scope: go/no-go conclusion for rewrite/simplify promotion on the audited baseline
 Last reviewed: 2026-04-16
 

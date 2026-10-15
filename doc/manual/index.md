@@ -28,7 +28,8 @@ moon run src/cmd examples/truth_file.qed
 
 The formal specification is the only normative source for the kernel.
 
-[QED formal specification](../attachments/qed_formal_spec.typ)
+[Formal description](formal.md) includes the embedded PDF preview of the QED
+formal specification.
 
 ## Pages
 
@@ -51,13 +52,11 @@ Repository guides:
 | --- | --- |
 | [User manual](manual.md) | The user guide and implementation contract, with the support matrix and the stable examples |
 | [Syntax guide](syntax.md) | The theorem-script syntax |
-| [Specification conformance](conformance.md) | How code and tests align with the specification, and what contributors must do |
-| [Documentation governance](governance.md) and [code governance](code_governance.md) | Repository rules for documents, package layering and alias entry points |
-| [Formal specification changelog](qed_formal_spec_changelog.md) | Revisions of the specification |
-| [Current workspace audit (2026-10-14)](current_workspace_audit.md) | A short pointer to the current risks and evidence boundary |
+| [Compliance review](conformance.md) | Implementation mapping, proof obligations, evidence boundary, and contributor checks |
+| [Formal description](formal.md) | Normative specification entry point and PDF preview |
 | [Initial verification audit (2026-10-14)](../../research/qed-verification/2026-10-14-initial-audit.md) | Research-only baseline, reproducible evidence and next promotion |
 
-Blackbox test files (`*_test.mbt`) and the alias files `alias.mbt` and `alias_test.mbt` belong to their packages; [code governance](code_governance.md) defines their rules. The theorem files in `examples/` and `prelude/` are inputs for the command-line tool, not packages.
+Blackbox test files (`*_test.mbt`) and the alias files `alias.mbt` and `alias_test.mbt` belong to their packages; the [compliance review](conformance.md) defines their maintenance obligations. The theorem files in `examples/` and `prelude/` are inputs for the command-line tool, not packages.
 
 ## Exported items
 
@@ -81,7 +80,7 @@ Blackbox test files (`*_test.mbt`) and the alias files `alias.mbt` and `alias_te
 - New to proof assistants: read "For readers new to HOL" and the quick start in the [user manual](manual.md), then run the examples with the [cmd tutorial](tutorial/cmd.md). The [syntax guide](syntax.md) answers "how do I write this step".
 - Using QED from MoonBit: start with the [prover tutorial](tutorial/prover.md) to run scripts and read results. Go down to the [tactics tutorial](tutorial/tactics.md) to drive proofs step by step, and to the [logic](tutorial/logic.md) and [kernel](tutorial/kernel.md) tutorials to build theorems forwards. Keep the API pages at hand; each lists the failure cases of every function.
 - Checking why it is sound: read the [kernel design](design/kernel.md), which derives the rules and explains why soundness reduces to the kernel, then the [logic](design/logic.md) and [tactics](design/tactics.md) designs, which show that the upper layers add no authority. The formal specification above is normative.
-- Contributing: read [code governance](code_governance.md) and [documentation governance](governance.md) first, then [specification conformance](conformance.md) for the code/test mapping and the rules for examples. The [workspace audit](current_workspace_audit.md) points to open risks; the [initial verification audit](../../research/qed-verification/2026-10-14-initial-audit.md) records the dated evidence; the [specification changelog](qed_formal_spec_changelog.md) records revisions of the specification.
+- Contributing: read the [compliance review](conformance.md) for the code/test mapping, proof obligations, package boundaries, and evidence limits. The [initial verification audit](../../research/qed-verification/2026-10-14-initial-audit.md) records dated research evidence.
 
 ## Validation
 

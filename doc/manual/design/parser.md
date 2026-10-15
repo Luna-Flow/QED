@@ -87,7 +87,7 @@ Names go through `elab` (locals before constants, identities frozen), connective
 
 **Choice.** The parser returns its own `ParsedGoal`; the prover converts it with `@tactics.mk_goal`.
 
-**Why.** It keeps the layer order `kernel → logic/elab → parser → tactics → prover` acyclic, as [code governance](../code_governance.md) requires, and it means the parser cannot construct proof objects even by mistake.
+**Why.** It keeps the layer order `kernel → logic/elab → parser → tactics → prover` acyclic, as the [compliance review](../conformance.md) requires, and it means the parser cannot construct proof objects even by mistake.
 
 ### Connectives are built, not looked up
 
