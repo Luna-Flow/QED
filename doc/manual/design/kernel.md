@@ -182,7 +182,16 @@ The hypothesis set of line 4 is $\Gamma \cup \{q\}$: the part $\{q\} \setminus \
 
 **Why.** Name lookup changes as scopes are pushed and popped, but a recorded identity does not. Freezing identities makes resolution stable under scope mutation (the specification's "Resolution Freeze" theorem), and the check turns a stale theorem into an `InvalidInstantiation` failure instead of a silent change of meaning. The tutorial shows a theorem that is rejected inside a shadowing scope and accepted again after the scope is popped.
 
-**One exception: `thm_bind_const_ids`.** An occurrence built with `mk_const` has stamp $-1$, and the identity the theorem records for it is taken from the state when the theorem is built. `thm_bind_const_ids(state, th)` does not check that record: it resolves every unstamped occurrence again in `state` and records the new identity. Applied after a scope has shadowed a constant `c`, it turns a theorem about the outer `c` into a theorem about the inner one. This is sound, because only constants without a definition can be shadowed: `ks_add_const` and both definition gates refuse names that are already definition, representation or abstraction heads, so a shadowed constant is uninterpreted, and a theorem about an uninterpreted constant stays valid when another constant of the same type takes its place, just as INST may replace a free variable. It does break the letter of the freeze property, so code that relies on frozen identities should build constants with `ks_mk_const`, whose occurrences carry their identity and cannot be rebound.
+The provenance check is a second, state-level guard. When a theorem is first
+admitted, the kernel records the current declaration lineage. A theorem remains
+admissible only when that lineage is a prefix of the receiving state's lineage.
+Linear descendants, including a theorem carried through a temporary pushed and
+popped scope, therefore retain the theorem; an independently forked state with
+a divergent lineage is rejected even when its independently allocated `ConstId`
+values happen to collide. Two branches that perform the same lineage events have
+the same lineage and may exchange the resulting theorem.
+
+**One exception: `thm_bind_const_ids`.** An occurrence built with `mk_const` has stamp $-1$, and the identity the theorem records for it is taken from the state when the theorem is built. For a theorem that has not yet been admitted, `thm_bind_const_ids(state, th)` resolves every unstamped occurrence again in `state` and records the new identity. Applied after a scope has shadowed a constant `c`, it can turn such a raw theorem about the outer `c` into a theorem about the inner one. This is sound, because only constants without a definition can be shadowed: `ks_add_const` and both definition gates refuse names that are already definition, representation or abstraction heads, so a shadowed constant is uninterpreted, and a theorem about an uninterpreted constant stays valid when another constant of the same type takes its place, just as INST may replace a free variable. An admitted theorem already carries declaration lineage, so `thm_bind_const_ids` rejects remaining unstamped occurrences and cannot bypass the provenance check. Code that relies on frozen identities should build constants with `ks_mk_const`, whose occurrences carry their identity and cannot be rebound.
 
 ### Extensions go through gates
 

@@ -356,7 +356,7 @@
     {
       "id": "KERNEL-PROVENANCE-001",
       "category": "trusted-kernel",
-      "normative_statement": "A theorem is admissible only in a compatible declaration lineage; sibling histories cannot exchange theorem evidence.",
+      "normative_statement": "A theorem is admissible only in a compatible declaration lineage; divergent sibling histories cannot exchange theorem evidence.",
       "requirement_level": "required",
       "severity": "critical",
       "spec": "doc/attachments/qed_formal_spec.typ",

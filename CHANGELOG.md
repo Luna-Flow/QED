@@ -62,7 +62,8 @@ All notable changes to QED are recorded here. The format follows [Keep a Changel
   compositional `HistoryDerivation` calculus. Refs #17.
 
 - Upgrade the QED dependency on `moonbitlang/x` to `0.5.5` and verify it with
-  MoonBit `0.10.15`.
+  MoonBit `0.10.15`. This registry-index repair is unrelated to the #15 theorem
+  lineage fix; the old `0.4.41` entry no longer resolves from the current index.
 - Dependency audit: `moon tree --package` finds no other registry dependency;
   `moonbitlang/core/env` is a toolchain package and the Luna Flow packages are
   local QED packages. No `luna-utils`, `luna-generic`, `arithmetic`, or
