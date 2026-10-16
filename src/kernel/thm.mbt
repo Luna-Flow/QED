@@ -20,7 +20,7 @@ struct Thm {
   concl : DbTerm
   def_origin : String?
   const_ids : Array[(String, ConstId)]
-  origin_lineage : Array[String]
+  origin_lineage : LineageNode?
 }
 
 ///|
@@ -34,7 +34,7 @@ fn mk_thm_with_origin(
     concl: snapshot_db_term(concl),
     def_origin,
     const_ids: [],
-    origin_lineage: [],
+    origin_lineage: None,
   }
 }
 
@@ -60,13 +60,13 @@ fn thm_with_const_ids(th : Thm, const_ids : Array[(String, ConstId)]) -> Thm {
 }
 
 ///|
-fn thm_with_origin_lineage(th : Thm, origin_lineage : Array[String]) -> Thm {
+fn thm_with_origin_lineage(th : Thm, origin_lineage : LineageNode) -> Thm {
   Thm::{
     hyps: th.hyps,
     concl: th.concl,
     def_origin: th.def_origin,
     const_ids: th.const_ids,
-    origin_lineage: origin_lineage.copy(),
+    origin_lineage: Some(origin_lineage),
   }
 }
 
@@ -652,10 +652,9 @@ fn thm_stamp_const_ids(
   match resolve_thm_const_ids(state, th) {
     Ok(ids) => {
       let stamped = thm_with_const_ids(th, ids)
-      if stamped.origin_lineage.length() == 0 {
-        Ok(thm_with_origin_lineage(stamped, state.theory.lineage))
-      } else {
-        Ok(stamped)
+      match stamped.origin_lineage {
+        None => Ok(thm_with_origin_lineage(stamped, state.theory.lineage))
+        Some(_) => Ok(stamped)
       }
     }
     Err(e) => Err(e)
@@ -663,23 +662,11 @@ fn thm_stamp_const_ids(
 }
 
 ///|
-fn lineage_is_prefix(origin : Array[String], current : Array[String]) -> Bool {
-  if origin.length() == 0 || origin.length() > current.length() {
-    return false
-  }
-  let mut i = 0
-  while i < origin.length() {
-    if origin[i] != current[i] {
-      return false
-    }
-    i = i + 1
-  }
-  true
-}
-
-///|
 fn theorem_origin_is_admissible(state : KernelState, th : Thm) -> Bool {
-  lineage_is_prefix(th.origin_lineage, state.theory.lineage)
+  match th.origin_lineage {
+    None => false
+    Some(origin) => lineage_is_prefix(origin, state.theory.lineage)
+  }
 }
 
 ///|
@@ -687,7 +674,7 @@ pub fn thm_bind_const_ids(
   state : KernelState,
   th : Thm,
 ) -> Result[Thm, LogicError] {
-  if th.origin_lineage.length() > 0 && theorem_has_unbound_const_ids(th) {
+  if th.origin_lineage is Some(_) && theorem_has_unbound_const_ids(th) {
     return Err(InvalidInstantiation)
   }
   match thm_stamp_const_ids(state, th) {

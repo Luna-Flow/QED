@@ -191,6 +191,14 @@ a divergent lineage is rejected even when its independently allocated `ConstId`
 values happen to collide. Two branches that perform the same lineage events have
 the same lineage and may exchange the resulting theorem.
 
+A lineage is a persistent chain of events. Every event node is interned by its
+parent and the event text, so two branches that perform the same events from the
+same parent share the node and lineage equality is node identity. Each node keeps
+a skew-binary jump pointer, so asking whether a theorem's lineage is an ancestor
+of the state's lineage costs $O(\log n)$ in the length $n$ of the history.
+Appending an event and recording the lineage in a theorem are $O(1)$. The intern
+table is private to the kernel and holds one small node per distinct event.
+
 **One exception: `thm_bind_const_ids`.** An occurrence built with `mk_const` has stamp $-1$, and the identity the theorem records for it is taken from the state when the theorem is built. For a theorem that has not yet been admitted, `thm_bind_const_ids(state, th)` resolves every unstamped occurrence again in `state` and records the new identity. Applied after a scope has shadowed a constant `c`, it can turn such a raw theorem about the outer `c` into a theorem about the inner one. This is sound, because only constants without a definition can be shadowed: `ks_add_const` and both definition gates refuse names that are already definition, representation or abstraction heads, so a shadowed constant is uninterpreted, and a theorem about an uninterpreted constant stays valid when another constant of the same type takes its place, just as INST may replace a free variable. An admitted theorem already carries declaration lineage, so `thm_bind_const_ids` rejects remaining unstamped occurrences and cannot bypass the provenance check. Code that relies on frozen identities should build constants with `ks_mk_const`, whose occurrences carry their identity and cannot be rebound.
 
 ### Extensions go through gates

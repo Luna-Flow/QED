@@ -43,6 +43,7 @@ All notable changes to QED are recorded here. The format follows [Keep a Changel
 
 ### Changed
 
+- Kernel: the declaration lineage is now a persistent, hash-consed chain with skew-binary jump pointers instead of an array that was copied on every event and every theorem and compared element by element. Appending an event and recording the lineage in a theorem are O(1); the prefix check that admits a theorem is O(log n). Lineage equality is unchanged (the same events from the same parent). Part of [#22](https://github.com/Luna-Flow/QED/issues/22); the remaining linear terms in the benchmark come from signature lookup and the definition tables, not from the lineage.
 - Lean (`formal_verification`): `DefinitionGate.typeVarsClosed` and
   `SpecificationGate.typeVarsClosed` are now stated for `Term.annotVars` (the kernel's
   `term_tyvars` counts binder domains) instead of `Term.typeVars`, so that definition and
