@@ -77,7 +77,7 @@ priv struct TheoryState {
   extension_certs : Array[ExtensionCert]
   ind_infinity_axiom : Thm?
   next_const_id : ConstId
-  lineage : Array[String]
+  lineage : LineageNode
 }
 
 ///|
@@ -123,8 +123,7 @@ fn extension_gate_name(gate : ExtensionGate) -> String {
 
 ///|
 fn advance_lineage(state : KernelState, event : String) -> KernelState {
-  let lineage = state.theory.lineage.copy()
-  lineage.push(event)
+  let lineage = lineage_append(state.theory.lineage, event)
   KernelState::{
     sig: state.sig,
     theory: TheoryState::{
@@ -457,7 +456,7 @@ pub fn empty_kernel_state() -> KernelState {
       extension_certs: [],
       ind_infinity_axiom: None,
       next_const_id: 1,
-      lineage: [lineage_event("root", [])],
+      lineage: lineage_root(),
     },
   }
 }

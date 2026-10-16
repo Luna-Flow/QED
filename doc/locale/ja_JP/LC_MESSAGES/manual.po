@@ -3741,7 +3741,7 @@ msgstr "未完了の証明は警告であり、`ok` ではない。既定では�
 
 #: manual/design/cmd.md:57
 #: manual/design/elab.md:61
-#: manual/design/kernel.md:243
+#: manual/design/kernel.md:251
 #: manual/design/logic.md:139
 #: manual/design/parser.md:104
 #: manual/design/prover.md:72
@@ -3768,7 +3768,7 @@ msgstr "**位置。** ステップ番号と分岐パスは prover のもので�
 
 #: manual/design/cmd.md:64
 #: manual/design/elab.md:68
-#: manual/design/kernel.md:287
+#: manual/design/kernel.md:295
 #: manual/design/logic.md:148
 #: manual/design/parser.md:112
 #: manual/design/prover.md:80
@@ -3791,7 +3791,7 @@ msgstr "**項を表面構文で整形表示する。** `∧` や `->` を再導�
 
 #: manual/design/cmd.md:70
 #: manual/design/elab.md:74
-#: manual/design/kernel.md:295
+#: manual/design/kernel.md:303
 #: manual/design/logic.md:154
 #: manual/design/parser.md:119
 #: manual/design/prover.md:87
@@ -4155,46 +4155,50 @@ msgid "The provenance check is a second, state-level guard. When a theorem is fi
 msgstr "系譜検査は、状態レベルで働く第二の防壁である。定理が最初に受理されると、カーネルは現在の宣言系譜を記録する。その系譜が受け取り側の状態の系譜の接頭辞である場合に限り、定理は引き続き受理可能である。したがって、一時スコープを push して pop する場合を含む線形な子孫は定理を保持する。一方、独立に分岐した状態は、独立に割り当てた `ConstId` の値が偶然衝突しても、分岐した系譜を持つため拒否される。同じ系譜イベントを実行する二つのブランチは同じ系譜を持ち、生成された定理を交換できる。"
 
 #: manual/design/kernel.md:194
+msgid "A lineage is a persistent chain of events. Every event node is interned by its parent and the event text, so two branches that perform the same events from the same parent share the node and lineage equality is node identity. Each node keeps a skew-binary jump pointer, so asking whether a theorem's lineage is an ancestor of the state's lineage costs $O(\\log n)$ in the length $n$ of the history. Appending an event and recording the lineage in a theorem are $O(1)$. The intern table is private to the kernel and holds one small node per distinct event."
+msgstr "系統は永続的なイベント連鎖である。各イベントノードは親ノードとイベント文字列でインターンされるため、同じ親から同じイベントを実行する二つの分岐は同じノードを共有し、系統の等しさはノードの同一性になる。各ノードはスキューバイナリのジャンプポインタも保持するので、定理の系統が状態の系統の祖先かどうかの判定は、履歴の長さ $n$ に対して $O(log n)$ で済む。イベントの追加と、定理への系統の記録は $O(1)$ である。インターンテーブルはカーネル内部に閉じており、異なるイベントごとに小さなノードを一つ持つだけである。"
+
+#: manual/design/kernel.md:202
 msgid "**One exception: `thm_bind_const_ids`.** An occurrence built with `mk_const` has stamp $-1$, and the identity the theorem records for it is taken from the state when the theorem is built. For a theorem that has not yet been admitted, `thm_bind_const_ids(state, th)` resolves every unstamped occurrence again in `state` and records the new identity. Applied after a scope has shadowed a constant `c`, it can turn such a raw theorem about the outer `c` into a theorem about the inner one. This is sound, because only constants without a definition can be shadowed: `ks_add_const` and both definition gates refuse names that are already definition, representation or abstraction heads, so a shadowed constant is uninterpreted, and a theorem about an uninterpreted constant stays valid when another constant of the same type takes its place, just as INST may replace a free variable. An admitted theorem already carries declaration lineage, so `thm_bind_const_ids` rejects remaining unstamped occurrences and cannot bypass the provenance check. Code that relies on frozen identities should build constants with `ks_mk_const`, whose occurrences carry their identity and cannot be rebound."
 msgstr "**一つの例外: `thm_bind_const_ids`。** `mk_const` で作った出現のスタンプは $-1$ であり、定理がそれについて記録する同一性は、定理を構築したときの状態から取られる。まだ受理されていない定理では、`thm_bind_const_ids(state, th)` が `state` でスタンプなしの出現をすべて改めて解決し、新しい同一性を記録する。あるスコープが定数 `c` を隠蔽した後で適用すると、外側の `c` についての生の定理を内側の `c` についての定理に変えられる。これは、定義を持たない定数だけが隠蔽されうるため健全である。`ks_add_const` と二つの定義ゲートは、すでに定義・表現・抽象のヘッドである名前を拒否するので、隠蔽された定数は解釈を持たない。同じ型の別の定数がその位置に来ても、その定理は妥当なままであり、これは INST が自由変数を置き換えられるのと同じである。受理済みの定理はすでに宣言系譜を持つため、`thm_bind_const_ids` は残りのスタンプなしの出現を拒否し、系譜検査を迂回できない。凍結された同一性に依存するコードは、出現が自分の同一性を持ち再束縛されない `ks_mk_const` で定数を作るべきである。"
 
-#: manual/design/kernel.md:196
+#: manual/design/kernel.md:204
 msgid "Extensions go through gates"
 msgstr "拡大はゲートを通る"
 
-#: manual/design/kernel.md:198
+#: manual/design/kernel.md:206
 msgid "The theory grows in three ways, each guarded by a gate that checks side conditions and appends an `ExtensionCert`."
 msgstr "理論は三つの方法で成長し、それぞれ、副条件を検査して `ExtensionCert` を追加するゲートで守られている。"
 
-#: manual/design/kernel.md:200
+#: manual/design/kernel.md:208
 msgid "**`DefOK`, constant definition.** `ks_define_const(c, \\tau, t)` adds a constant $c : \\tau$ and the theorem $\\vdash c = t$. Each side condition rules out a known way to break conservativity:"
 msgstr "**`DefOK`、定数定義。** `ks_define_const(c, \\tau, t)` は定数 $c : \\tau$ と定理 $\\vdash c = t$ を追加する。各副条件は、保存性を壊す既知の方法を排除する。"
 
-#: manual/design/kernel.md:202
+#: manual/design/kernel.md:210
 msgid "Condition"
 msgstr "条件"
 
-#: manual/design/kernel.md:202
+#: manual/design/kernel.md:210
 msgid "Error"
 msgstr "エラー"
 
-#: manual/design/kernel.md:202
+#: manual/design/kernel.md:210
 msgid "Counterexample it prevents"
 msgstr "防ぐ反例"
 
-#: manual/design/kernel.md:204
+#: manual/design/kernel.md:212
 msgid "$t$ is closed"
 msgstr "$t$ は閉じている"
 
-#: manual/design/kernel.md:204
+#: manual/design/kernel.md:212
 msgid "$c = x$ would give $\\vdash c = x$, then INST gives $\\vdash c = y$ and so $\\vdash x = y$ for all $x, y$."
 msgstr "$c = x$ は $\\vdash c = x$ を与え、INST により $\\vdash c = y$ が、したがって任意の $x, y$ について $\\vdash x = y$ が得られてしまう。"
 
-#: manual/design/kernel.md:205
+#: manual/design/kernel.md:213
 msgid "No constant named $c$ occurs in $t$, directly or through earlier definitions"
 msgstr "$c$ という名前の定数が、直接にも以前の定義を経由しても $t$ に現れない"
 
-#: manual/design/kernel.md:205
+#: manual/design/kernel.md:213
 msgid ""
 "$c = \\n"
 "eg c$ would give $\\vdash c = \\n"
@@ -4204,75 +4208,75 @@ msgstr ""
 "eg c$ は $\\vdash c = \\n"
 "eg c$ を与え、矛盾となる。"
 
-#: manual/design/kernel.md:206
+#: manual/design/kernel.md:214
 msgid "$c = (\\forall x{:}\\alpha.\\,\\forall y{:}\\alpha.\\,x = y)$ with $c : \\mathit{bool}$ is true when $\\alpha$ has one element and false at $\\alpha = \\mathit{bool}$; INST_TYPE gives both instances of the definition, with the same left-hand side $c$, so $\\vdash \\top = \\bot$."
 msgstr "$c : \\mathit{bool}$ に対する $c = (\\forall x{:}\\alpha.\\,\\forall y{:}\\alpha.\\,x = y)$ は、$\\alpha$ が一元集合のときは真で $\\alpha = \\mathit{bool}$ では偽である。INST_TYPE は定義のこの二つのインスタンスを与え、左辺はどちらも同じ $c$ なので、$\\vdash \\top = \\bot$ となる。"
 
-#: manual/design/kernel.md:207
+#: manual/design/kernel.md:215
 msgid "$c$ has never been defined"
 msgstr "$c$ がまだ一度も定義されていない"
 
-#: manual/design/kernel.md:207
+#: manual/design/kernel.md:215
 msgid "Two definitions of one name would give $\\vdash c = t_1$ and $\\vdash c = t_2$, so $\\vdash t_1 = t_2$."
 msgstr "一つの名前の二つの定義は $\\vdash c = t_1$ と $\\vdash c = t_2$ を与え、したがって $\\vdash t_1 = t_2$ となる。"
 
-#: manual/design/kernel.md:209
+#: manual/design/kernel.md:217
 msgid "The counterexamples in the second and last rows are stated, as in the specification, for constants identified by name. In the code the new constant always receives a fresh identity, so a name $c$ that occurs in $t$ can only denote an older constant, and a second definition of $c$ in an inner scope would get a new identity too; neither could then produce the contradiction shown. The two checks are kept anyway, by name and over the whole theory history: they make every definition read as non-circular and unique when constants are read by name, which is what the specification's freshness conditions require, and they keep the unfolding argument below simple. They are deliberately stricter than identities need: `ks_define_const` refuses `c := d` in an inner scope when an earlier definition of `d` mentions an outer, undefined constant named `c`."
 msgstr "2 行目と最終行の反例は、仕様と同様に、名前で識別される定数について述べたものである。コードでは新しい定数は常に新しい同一性を受け取るので、$t$ に現れる名前 $c$ はより古い定数しか指せず、内側のスコープでの $c$ の二度目の定義も新しい同一性を得る。どちらも示した矛盾を生み出せない。それでも二つの検査は、名前によって、理論の履歴全体に対して残してある。定数を名前で読んだときにすべての定義が循環せず一意になるようにするためであり、それは仕様の新しさの条件が求めることでもある。また、下の展開の議論を単純に保つ。これらは同一性が必要とするより意図的に厳しい。`d` の以前の定義が外側の未定義の定数 `c` に言及していると、`ks_define_const` は内側のスコープでの `c := d` を拒否する。"
 
-#: manual/design/kernel.md:211
+#: manual/design/kernel.md:219
 msgid "Under these conditions a definition is conservative. Every instance of the new constant is $c{:}\\tau\\theta$ for some type substitution $\\theta$, and replacing it by $t\\theta$ maps each proof in the extended theory to a proof in the old theory: the definition theorem $\\vdash c = t$ and its type instances become instances of REFL, every other rule step maps to the same step, and a theorem that does not mention $c$ is mapped to itself. The ghost-variable condition is what makes the replacement a function of the instance $c{:}\\tau\\theta$ alone. The specification proves this as \"Definition-level conservativity\"."
 msgstr "これらの条件のもとで、定義は保存的である。新しい定数のすべてのインスタンスは、ある型代入 $\\theta$ についての $c{:}\\tau\\theta$ であり、それを $t\\theta$ で置き換えると、拡大された理論のそれぞれの証明は古い理論の証明に写る。定義定理 $\\vdash c = t$ とその型インスタンスは REFL のインスタンスになり、他のすべての規則のステップは同じステップに写り、$c$ に言及しない定理は自分自身に写る。幽霊型変数の条件が、この置き換えをインスタンス $c{:}\\tau\\theta$ だけで決まるものにしている。仕様はこれを「Definition-level conservativity」として証明している。"
 
-#: manual/design/kernel.md:213
+#: manual/design/kernel.md:221
 msgid "**`TypeDefOK`, type definition.** `ks_register_type_definition` admits a type $\\kappa(\\bar\\alpha)$ in bijection with $\\{x : \\rho \\mid P\\,x\\}$, given a hypothesis-free theorem $\\vdash P\\,w$ for a closed term $w$. It declares the representation $\\mathit{rep} : \\kappa(\\bar\\alpha) \\to \\rho$, named by the caller, and the abstraction $\\mathit{abs} : \\rho \\to \\kappa(\\bar\\alpha)$, named `Abs_` followed by $\\kappa$, and returns three contract theorems, with $a : \\kappa(\\bar\\alpha)$ and $r : \\rho$ free variables:"
 msgstr "**`TypeDefOK`、型定義。** `ks_register_type_definition` は、閉じた項 $w$ についての仮定なしの定理 $\\vdash P\\,w$ が与えられたとき、$\\{x : \\rho \\mid P\\,x\\}$ と全単射をなす型 $\\kappa(\\bar\\alpha)$ を認める。呼び出し側が名前を付ける表現 $\\mathit{rep} : \\kappa(\\bar\\alpha) \\to \\rho$ と、`Abs_` に $\\kappa$ を続けた名前の抽象 $\\mathit{abs} : \\rho \\to \\kappa(\\bar\\alpha)$ を宣言し、$a : \\kappa(\\bar\\alpha)$ と $r : \\rho$ を自由変数とする三つの契約定理を返す。"
 
-#: manual/design/kernel.md:223
+#: manual/design/kernel.md:231
 msgid "The first says that $\\mathit{rep}$ is injective, the second that its image lies inside $P$, and the third that every element of $P$ is in the image. HOL Light characterises a type bijection by the first theorem and the equivalence $P\\,r = (\\mathit{rep}(\\mathit{abs}\\,r) = r)$. The third theorem is the left-to-right direction of that equivalence, and the right-to-left direction follows from the second theorem instantiated at $a := \\mathit{abs}\\,r$ and rewritten with the hypothesis $\\mathit{rep}(\\mathit{abs}\\,r) = r$."
 msgstr "一つ目は $\\mathit{rep}$ が単射であること、二つ目はその像が $P$ の内側にあること、三つ目は $P$ のすべての元が像に含まれることを述べる。HOL Light は型の全単射を、一つ目の定理と同値 $P\\,r = (\\mathit{rep}(\\mathit{abs}\\,r) = r)$ で特徴づける。三つ目の定理はこの同値の左から右への向きであり、右から左への向きは、二つ目の定理を $a := \\mathit{abs}\\,r$ で具体化し、仮定 $\\mathit{rep}(\\mathit{abs}\\,r) = r$ で書き換えれば得られる。"
 
-#: manual/design/kernel.md:225
+#: manual/design/kernel.md:233
 msgid "The witness matters because the second contract theorem holds for a free variable $a$. If $P$ were empty, for example $P = \\lambda x.\\,\\bot$, it would read $\\vdash \\bot$: HOL types denote non-empty sets, so no model can interpret a type in bijection with an empty set, and the logic, in which every type is inhabited, proves the contradiction. The gate also requires the predicate's type variables to be among the parameters $\\bar\\alpha$, for the same reason that `DefOK` forbids ghost type variables."
 msgstr "ウィットネスが重要なのは、二つ目の契約定理が自由変数 $a$ について成り立つからである。$P$ が空、たとえば $P = \\lambda x.\\,\\bot$ なら、それは $\\vdash \\bot$ となる。HOL の型は空でない集合を表すので、空集合と全単射をなす型を解釈できるモデルはなく、すべての型に元がある論理ではこの矛盾が証明できてしまう。このゲートは、`DefOK` が幽霊型変数を禁じるのと同じ理由から、述語の型変数がパラメータ $\\bar\\alpha$ に含まれることも要求する。"
 
-#: manual/design/kernel.md:227
+#: manual/design/kernel.md:235
 msgid "**`SpecOK`, constant specification.** `ks_specify_const` introduces a constant $c : \\tau$ with the property $\\vdash P\\,c$, given a hypothesis-free theorem $\\vdash P\\,w$ for a closed term $w$. The specification asks for $\\vdash \\exists x.\\,P\\,x$ instead; a concrete witness is a stronger premise, since it implies the existential. The gate defines $c := @P$ through `DefOK`, which records a `DefOK` certificate, then builds $\\vdash P\\,c$ itself and records a `SpecOK` certificate."
 msgstr "**`SpecOK`、定数仕様。** `ks_specify_const` は、閉じた項 $w$ についての仮定なしの定理 $\\vdash P\\,w$ が与えられたとき、性質 $\\vdash P\\,c$ をもつ定数 $c : \\tau$ を導入する。仕様は代わりに $\\vdash \\exists x.\\,P\\,x$ を求める。具体的なウィットネスは存在式を含意するので、より強い前提である。ゲートは `DefOK` を通じて $c := @P$ を定義し(これで `DefOK` 証明書が記録される)、次に $\\vdash P\\,c$ を自分で構築して `SpecOK` 証明書を記録する。"
 
-#: manual/design/kernel.md:229
+#: manual/design/kernel.md:237
 msgid "The theorem $\\vdash P\\,c$ is not derived by kernel rules. It is an instance of the choice axiom"
 msgstr "定理 $\\vdash P\\,c$ はカーネルの規則で導出されたものではない。それは選択公理"
 
-#: manual/design/kernel.md:235
+#: manual/design/kernel.md:243
 msgid "at $x = w$, rewritten with the definition $c = @P$, and the kernel has no rule or theorem for the choice axiom: the specification takes the axiom schema as part of its trusted baseline. The theorem is valid because $@$ denotes a choice function in every model: $\\vdash P\\,w$ makes $[\\![P]\\!]$ non-empty, so $[\\![@P]\\!] \\in [\\![P]\\!]$, and $c$ denotes $[\\![@P]\\!]$. For the same reason the extension is conservative over the old theory *together with the choice axiom*: in a derivation, each use of $\\vdash P\\,c$ can be replaced by the choice instance at $w$ and the definition, and then $c$ unfolded as for `DefOK`. The conservativity of `DefOK` alone does not cover this step, because $\\vdash P\\,c$ does not follow from $c = @P$ without the axiom. The specification proves the combined statement as \"Conservativity of Specification Extension\"."
 msgstr "の $x = w$ でのインスタンスを、定義 $c = @P$ で書き換えたものである。カーネルには選択公理のための規則も定理もない。仕様はこの公理図式を信頼基盤の一部としている。この定理が妥当なのは、どのモデルでも $@$ が選択関数を表すからである。$\\vdash P\\,w$ により $[\\![P]\\!]$ は空でなく、したがって $[\\![@P]\\!] \\in [\\![P]\\!]$ であり、$c$ は $[\\![@P]\\!]$ を表す。同じ理由で、この拡張は*選択公理を含めた*古い理論に対して保存的である。導出の中で $\\vdash P\\,c$ を使う箇所はそれぞれ、$w$ での選択公理のインスタンスと定義で置き換えることができ、その後 `DefOK` と同様に $c$ を展開すればよい。`DefOK` の保存性だけではこのステップをカバーできない。この公理なしでは、$c = @P$ から $\\vdash P\\,c$ は導けないからである。仕様はこの合わせた主張を「Conservativity of Specification Extension」として証明している。"
 
-#: manual/design/kernel.md:237
+#: manual/design/kernel.md:245
 msgid "**Infinity anchor.** HOL needs an infinite type for arithmetic, and the specification assumes that `ind` is one. `ks_register_ind_infinity_axiom` stores a theorem as the anchor of that assumption, but it accepts any hypothesis-free admissible theorem whose statement mentions `ind`, even $\\vdash x = x$ for $x : \\mathit{ind}$, and it does not check that the theorem says `ind` is infinite. Since the kernel has no axiom of infinity, no theorem it can produce says so. The anchor therefore adds no theorem and no risk to consistency; it only marks, for audit, the model-class restriction of the specification. Arithmetic over `ind` is not available."
 msgstr "**無限性のアンカー。** HOL は算術のために無限型を必要とし、仕様は `ind` がそれであると仮定する。`ks_register_ind_infinity_axiom` はこの仮定のアンカーとして定理を保存するが、`ind` に言及する仮定なしの許容される定理なら何でも受け付け、$x : \\mathit{ind}$ についての $\\vdash x = x$ でさえ受け付ける。その定理が `ind` は無限だと述べているかどうかは検査しない。カーネルには無限公理がないので、カーネルが生成できる定理でそう述べるものはない。したがってアンカーは定理を増やさず、無矛盾性を危険にさらすこともない。仕様のモデルクラスの制限を監査のために示すだけである。`ind` 上の算術は使えない。"
 
-#: manual/design/kernel.md:239
+#: manual/design/kernel.md:247
 msgid "Results, not exceptions"
 msgstr "例外ではなく結果"
 
-#: manual/design/kernel.md:241
+#: manual/design/kernel.md:249
 msgid "Every kernel function returns `Result` or `Option`; none aborts on bad input. A rule that cannot apply says why, with a constructor of `LogicError` or `SigError`, and the caller decides what to do. This is what makes the frontend fail closed: the `tactics` and `prover` packages turn these values into structured diagnostics, and no path turns a failed rule into a theorem."
 msgstr "カーネルのすべての関数は `Result` または `Option` を返し、不正な入力で中断するものはない。適用できない規則は、`LogicError` または `SigError` のコンストラクタでその理由を述べ、呼び出し側が対処を決める。これがフロントエンドをフェイルクローズにするものである。`tactics` と `prover` パッケージはこれらの値を構造化された診断に変換し、失敗した規則を定理に変える経路は存在しない。"
 
-#: manual/design/kernel.md:245
+#: manual/design/kernel.md:253
 msgid "Why soundness reduces to the kernel"
 msgstr "健全性がカーネルに帰着する理由"
 
-#: manual/design/kernel.md:247
+#: manual/design/kernel.md:255
 msgid "Call a theorem value *sound* when its sequent is valid in every model of the current theory. The argument has three steps."
 msgstr "定理の値が*健全*であるとは、そのシーケントが現在の理論のあらゆるモデルで妥当であることをいう。議論は三つのステップからなる。"
 
-#: manual/design/kernel.md:249
+#: manual/design/kernel.md:257
 msgid "**1. Every rule preserves validity.** For each primitive rule, valid premises give a valid conclusion. Two cases show the pattern."
 msgstr "**1. すべての規則は妥当性を保存する。** 各基本規則について、妥当な前提から妥当な結論が得られる。二つの場合でその型を示す。"
 
-#: manual/design/kernel.md:251
+#: manual/design/kernel.md:259
 msgid ""
 "ABS. Let $M$ be a model and $v$ a valuation that satisfies $\\Gamma$. Since $x \\n"
 "otin \\mathrm{FV}(\\Gamma)$, every valuation $v[x \\mapsto a]$ also satisfies $\\Gamma$, so by validity of the premise $[\\![s]\\!]_{v[x \\mapsto a]} = [\\![t]\\!]_{v[x \\mapsto a]}$ for every $a$. Hence"
@@ -4280,119 +4284,119 @@ msgstr ""
 "ABS。$M$ をモデルとし、$v$ を $\\Gamma$ を満たす付値とする。$x \\n"
 "otin \\mathrm{FV}(\\Gamma)$ なので、すべての付値 $v[x \\mapsto a]$ も $\\Gamma$ を満たす。したがって前提の妥当性により、すべての $a$ について $[\\![s]\\!]_{v[x \\mapsto a]} = [\\![t]\\!]_{v[x \\mapsto a]}$ である。よって"
 
-#: manual/design/kernel.md:257
+#: manual/design/kernel.md:265
 msgid "by function extensionality in the standard model. Without the side condition the step \"every $v[x \\mapsto a]$ satisfies $\\Gamma$\" fails: from $\\{x = 0\\} \\vdash x = 0$ one could derive $\\{x = 0\\} \\vdash (\\lambda x.\\,x) = (\\lambda x.\\,0)$, which is false whenever $x = 0$ holds and the type of $x$ has a second element."
 msgstr "が標準モデルでの関数の外延性により成り立つ。副条件がなければ、「すべての $v[x \\mapsto a]$ が $\\Gamma$ を満たす」というステップは失敗する。$\\{x = 0\\} \\vdash x = 0$ から $\\{x = 0\\} \\vdash (\\lambda x.\\,x) = (\\lambda x.\\,0)$ が導けてしまうが、これは $x = 0$ が成り立ち、$x$ の型に二つ目の元があるときはいつでも偽である。"
 
-#: manual/design/kernel.md:259
+#: manual/design/kernel.md:267
 msgid "DEDUCT_ANTISYM_RULE. Let $v$ satisfy $(\\Gamma \\setminus \\{q\\}) \\cup (\\Delta \\setminus \\{p\\})$. If $[\\![p]\\!]_v = \\top$, then $v$ satisfies $\\Delta$ (the only hypothesis that may have been removed from $\\Delta$ is $p$), so $[\\![q]\\!]_v = \\top$. Symmetrically $[\\![q]\\!]_v = \\top$ implies $[\\![p]\\!]_v = \\top$. Two booleans that imply each other are equal, so $[\\![p = q]\\!]_v = \\top$."
 msgstr "DEDUCT_ANTISYM_RULE。$v$ が $(\\Gamma \\setminus \\{q\\}) \\cup (\\Delta \\setminus \\{p\\})$ を満たすとする。$[\\![p]\\!]_v = \\top$ ならば、$v$ は $\\Delta$ を満たし（$\\Delta$ から取り除かれた可能性のある仮定は $p$ だけである）、したがって $[\\![q]\\!]_v = \\top$ である。対称に、$[\\![q]\\!]_v = \\top$ ならば $[\\![p]\\!]_v = \\top$ である。互いに含意する二つの真偽値は等しいので、$[\\![p = q]\\!]_v = \\top$ である。"
 
-#: manual/design/kernel.md:261
+#: manual/design/kernel.md:269
 msgid "The remaining rules follow the same way: REFL and TRANS from reflexivity and transitivity of identity, MK_COMB from congruence of application, BETA from the substitution lemma $[\\![t[u/x]]\\!]_v = [\\![t]\\!]_{v[x \\mapsto [\\![u]\\!]_v]}$, EQ_MP from the meaning of $=$ on booleans, ASSUME trivially, INST from the substitution lemma for free variables (a valid sequent holds under every valuation, in particular under $v[x \\mapsto [\\![u]\\!]_v]$), and INST_TYPE because a valid sequent holds under every interpretation of its type variables by non-empty sets, and every type the state admits denotes one. The specification proves each case (\"Rule-level preservation\")."
 msgstr "残りの規則も同様に従う。REFL と TRANS は同一性の反射律と推移律から、MK_COMB は適用の合同性から、BETA は代入補題 $[\\![t[u/x]]\\!]_v = [\\![t]\\!]_{v[x \\mapsto [\\![u]\\!]_v]}$ から、EQ_MP は真偽値上の $=$ の意味から、ASSUME は自明に、INST は自由変数についての代入補題から従う(妥当なシーケントはあらゆる付値のもとで、特に $v[x \\mapsto [\\![u]\\!]_v]$ のもとで成り立つ)。INST_TYPE は、妥当なシーケントが型変数の空でない集合によるあらゆる解釈のもとで成り立ち、状態が認めるすべての型が空でない集合を表すからである。仕様は各場合を証明している（「Rule-level preservation」）。"
 
-#: manual/design/kernel.md:263
+#: manual/design/kernel.md:271
 msgid "**2. Every extension preserves consistency.** Every model of the old theory in which $@$ is a choice function extends to such a model of the new one: interpret a defined constant by its right-hand side, a new type by the non-empty subset its witness exhibits, with $\\mathit{rep}$ the inclusion and $\\mathit{abs}$ any retraction onto it, and a specified constant by the chosen element $[\\![@P]\\!]$. The theorems the gates return are valid in the extended model, as argued above, so no false sentence in the old language becomes provable."
 msgstr "**2. すべての拡張は無矛盾性を保つ。** $@$ が選択関数である古い理論のすべてのモデルは、新しい理論の同様のモデルに拡張できる。定義された定数はその右辺で、新しい型はウィットネスが示す空でない部分集合で解釈し、$\\mathit{rep}$ は包含写像、$\\mathit{abs}$ はそこへの任意のレトラクションとする。仕様で導入された定数は選ばれた元 $[\\![@P]\\!]$ で解釈する。上で論じたとおり、ゲートが返す定理は拡張されたモデルで妥当なので、旧言語の偽の文が証明可能になることはない。"
 
-#: manual/design/kernel.md:265
+#: manual/design/kernel.md:273
 msgid "**3. Interface safety.** Because `Thm` is abstract, every `Thm` that exists at run time is the root of a finite derivation tree whose nodes are rule applications and gate outputs. `add_assum_checked` is a derived rule, as shown above; the readers `ks_definition_theorem`, `ks_typedef_contract` and `ks_ind_infinity_axiom` return gate outputs stored in the state; and `thm_bind_const_ids` changes only constant identities, in the way shown to be sound above. Induction on the depth of the tree, using steps 1 and 2, shows that every `Thm` is sound."
 msgstr "**3. インターフェースの安全性。** `Thm` は抽象型なので、実行時に存在するすべての `Thm` は、規則の適用とゲートの出力を節点とする有限の導出木の根である。`add_assum_checked` は上で示したとおり導出規則である。読み出し関数 `ks_definition_theorem`、`ks_typedef_contract`、`ks_ind_infinity_axiom` は状態に保存されたゲートの出力を返す。`thm_bind_const_ids` は定数の同一性だけを変え、そのやり方は上で健全だと示した。ステップ 1 と 2 を用いてこの木の深さに関する帰納法を行えば、すべての `Thm` が健全であることが示される。"
 
-#: manual/design/kernel.md:267
+#: manual/design/kernel.md:275
 msgid "Step 3 is a property of the code, not of the logic, and it is why nothing outside `src/kernel` needs to be trusted: the `logic`, `tactics` and `prover` packages can only call the functions in the [kernel API](../api/kernel.md), so whatever they compute, any `Thm` they return has a derivation. The specification states the six obligations and their dependencies; the conformance pack in `formal_verification/` checks the paper side in Lean."
 msgstr "ステップ 3 は論理ではなくコードの性質であり、`src/kernel` の外側の何も信頼する必要がないのはそのためである。`logic`、`tactics`、`prover` パッケージは[カーネル API](../api/kernel.md)の関数しか呼べないので、何を計算しようとも、それらが返す `Thm` には導出がある。仕様は六つの義務とその依存関係を述べており、`formal_verification/` の適合性パックは、その紙の上の側面を Lean で検査する。"
 
-#: manual/design/kernel.md:269
+#: manual/design/kernel.md:277
 msgid "Invariants maintained by the code"
 msgstr "コードが保つ不変条件"
 
-#: manual/design/kernel.md:271
+#: manual/design/kernel.md:279
 msgid "A `Thm` stores its hypotheses as a list without duplicates under `db_term_eq` (α-equivalence with equal constant stamps) and its conclusion as a De Bruijn term; every rule result passes `ensure_thm_admissible` in the state it was built in."
 msgstr "`Thm` は仮定を `db_term_eq`(定数のスタンプが等しい α 同値)のもとで重複のないリストとして、結論を de Bruijn 項として保持する。すべての規則の結果は、それが構築された状態において `ensure_thm_admissible` を通過する。"
 
-#: manual/design/kernel.md:272
+#: manual/design/kernel.md:280
 msgid "`KernelState` is persistent. A gate returns a new state; the base state stays valid, so `ks_conservative_replay_ok(base, extended, th)` can re-check `th` against both."
 msgstr "`KernelState` は永続的である。ゲートは新しい状態を返し、元の状態は有効なまま残る。そのため `ks_conservative_replay_ok(base, extended, th)` は `th` を両方の状態に対して再検査できる。"
 
-#: manual/design/kernel.md:273
+#: manual/design/kernel.md:281
 msgid "Constant identities are allocated from a counter in the theory state and never reused, even after a scope is popped. (The `sig_*` functions on a bare `GlobalSig` number new constants after the largest identity still visible, so they can reuse one after a pop; they never touch theorems.)"
 msgstr "定数の同一性は理論状態のカウンタから割り当てられ、スコープがポップされた後も再利用されない。(素の `GlobalSig` に対する `sig_*` 関数は、まだ見えている最大の同一性の次の番号を新しい定数に付けるので、ポップの後に同一性を再利用することがある。これらは定理には触れない。)"
 
-#: manual/design/kernel.md:274
+#: manual/design/kernel.md:282
 msgid "Definition heads, type-definition heads and the infinity anchor are recorded in the theory history, which `ks_pop_scope` does not touch: a name, once defined, cannot be defined again."
 msgstr "定義ヘッド、型定義ヘッド、無限性アンカーは理論履歴に記録され、`ks_pop_scope` はこれに触れない。一度定義された名前は再定義できない。"
 
-#: manual/design/kernel.md:276
+#: manual/design/kernel.md:284
 msgid "Complexity"
 msgstr "計算量"
 
-#: manual/design/kernel.md:278
+#: manual/design/kernel.md:286
 msgid "Write $n$ for the size of the terms involved, $d$ for their binder depth, $h$ for the number of hypotheses, $k$ for the number of constant occurrences in a theorem and $D$ for the number of declarations in the signature. The costs are polynomial in these sizes:"
 msgstr "関係する項の大きさを $n$、その束縛の深さを $d$、仮定の数を $h$、定理中の定数の出現数を $k$、シグネチャ中の宣言の数を $D$ と書く。コストはこれらの大きさの多項式である。"
 
-#: manual/design/kernel.md:280
+#: manual/design/kernel.md:288
 msgid "Lowering a named input with `to_db_term` searches the binder environment at each variable and copies it at each abstraction, $O(n \\cdot d)$. Reading a term back with `from_db_term`, as `thm_concl` and `thm_hyps` do, also searches the names already in use, $O(n \\cdot (d + f))$ with $f$ the number of free names."
 msgstr "名前付きの入力を `to_db_term` でローワリングすると、各変数で束縛環境を探し、各抽象でそれを複製するので、$O(n \\cdot d)$ になる。`thm_concl` と `thm_hyps` のように `from_db_term` で項を読み戻すときは、使用中の名前も探すので、自由な名前の数を $f$ として $O(n \\cdot (d + f))$ になる。"
 
-#: manual/design/kernel.md:281
+#: manual/design/kernel.md:289
 msgid "The rule cores walk their terms once. BETA and INST shift the inserted term at every occurrence they replace, so their cost is the size of the result, at most $O(n \\cdot m)$ for an inserted term of size $m$."
 msgstr "規則の中核は項を一度だけ走査する。BETA と INST は置き換える出現ごとに挿入する項をシフトするので、コストは結果の大きさであり、大きさ $m$ の挿入項に対して高々 $O(n \\cdot m)$ である。"
 
-#: manual/design/kernel.md:282
+#: manual/design/kernel.md:290
 msgid "Hypothesis union and removal compare hypotheses pairwise, $O(h_1 h_2 n)$."
 msgstr "仮定の和と除去は仮定を二つずつ比較するので、$O(h_1 h_2 n)$ である。"
 
-#: manual/design/kernel.md:283
+#: manual/design/kernel.md:291
 msgid "`ensure_thm_admissible` runs on every premise and on every result. It collects constant names with linear membership tests, $O(k^2)$, and looks each occurrence up in the scoped signature and matches it against the schema, $O(k \\cdot D)$ plus the size of the types."
 msgstr "`ensure_thm_admissible` はすべての前提とすべての結果に対して走る。定数名を線形の所属判定で集めるので $O(k^2)$、各出現をスコープ付きシグネチャで引いてスキーマと照合するので $O(k \\cdot D)$ に型の大きさを加えたものになる。"
 
-#: manual/design/kernel.md:285
+#: manual/design/kernel.md:293
 msgid "Proof sizes in the shipped subset are small; the kernel favours checks that are easy to audit over asymptotic speed."
 msgstr "同梱サブセットの証明は小さい。カーネルは漸近的な速さより、監査しやすい検査を優先する。"
 
-#: manual/design/kernel.md:289
+#: manual/design/kernel.md:297
 msgid "**Named terms with renaming, as in HOL Light.** Every rule would need a correct renaming function, which is a classic source of kernel bugs. The De Bruijn core avoids renaming entirely."
 msgstr "**HOL Light のような名前付き項とリネーム。** すべての規則に正しいリネーム関数が必要になるが、これはカーネルのバグの典型的な原因である。de Bruijn コアはリネームを完全に避ける。"
 
-#: manual/design/kernel.md:290
+#: manual/design/kernel.md:298
 msgid "**Connectives as kernel primitives.** Adding $\\wedge$, $\\to$ or $\\forall$ as primitive constants with their own rules would enlarge the kernel and its soundness proof. They are definitions over $=$ instead."
 msgstr "**結合子をカーネルのプリミティブにする。** $\\wedge$、$\\to$、$\\forall$ を固有の規則を持つ基本定数として加えると、カーネルとその健全性証明が大きくなる。代わりにこれらは $=$ 上の定義とする。"
 
-#: manual/design/kernel.md:291
+#: manual/design/kernel.md:299
 msgid "**Exceptions for rule failure.** HOL Light raises `Failure`. Results make every failure visible in the type and keep the frontend from accidentally catching and ignoring one."
 msgstr "**規則の失敗に例外を使う。** HOL Light は `Failure` を送出する。Result は失敗をすべて型に現し、フロントエンドが誤って失敗を捕捉して無視することを防ぐ。"
 
-#: manual/design/kernel.md:292
+#: manual/design/kernel.md:300
 msgid "**Unchecked rules with a separate validation pass.** Checking admissibility only at the end would let an inadmissible intermediate theorem feed later steps. Every rule checks its inputs and output instead."
 msgstr "**検証パスを別に持つ未検査の規則。** 許容性を最後にだけ検査すると、許容されない中間定理が後続のステップに入り込みうる。代わりにすべての規則が入力と出力を検査する。"
 
-#: manual/design/kernel.md:293
+#: manual/design/kernel.md:301
 msgid "**Arbitrary axioms.** There is no function that turns a term into a theorem. The only non-derived theorems are definitions, type-definition contracts and the property of a specified constant, all produced by gates with side conditions that keep the extension conservative."
 msgstr "**任意の公理。** 項を定理に変える関数は存在しない。導出によらない定理は、定義、型定義契約、仕様で導入された定数の性質だけであり、いずれも拡張を保存的に保つ副条件をもつゲートが生成する。"
 
-#: manual/design/kernel.md:297
+#: manual/design/kernel.md:305
 msgid "The kernel does not parse text, elaborate names or run tactics; those are the [elab](elab.md), [parser](parser.md) and [tactics](tactics.md) packages, and none of them is trusted."
 msgstr "カーネルはテキストの解析、名前のエラボレーション、タクティクの実行を行わない。これらは [elab](elab.md)、[parser](parser.md)、[tactics](tactics.md) パッケージの役割であり、いずれも信頼されない。"
 
-#: manual/design/kernel.md:298
+#: manual/design/kernel.md:306
 msgid "It implements no connective other than equality and choice, and no quantifier syntax; the [logic](logic.md) package defines the rest."
 msgstr "等号と選択以外の結合子も、量化子の構文も実装しない。残りは [logic](logic.md) パッケージが定義する。"
 
-#: manual/design/kernel.md:299
+#: manual/design/kernel.md:307
 msgid "It does not store proved theorems by name. Theorem names are a frontend concern."
 msgstr "証明済みの定理を名前で保存しない。定理名はフロントエンドの関心事である。"
 
-#: manual/design/kernel.md:300
+#: manual/design/kernel.md:308
 msgid "It has no metavariables and no incomplete theorems: a `hole` in a proof script never reaches the kernel."
 msgstr "メタ変数も未完了の定理も持たない。証明スクリプト中の `hole` がカーネルに到達することはない。"
 
-#: manual/design/kernel.md:301
+#: manual/design/kernel.md:309
 msgid "It does not prove its own soundness. The argument above and in the specification is a paper proof; `formal_verification/` aligns the specification with Lean, not the MoonBit source."
 msgstr "自身の健全性を証明しない。上記および仕様中の議論は紙の上の証明であり、`formal_verification/` が Lean と整合させるのは仕様であって MoonBit のソースではない。"
 
-#: manual/design/kernel.md:302
+#: manual/design/kernel.md:310
 msgid "It does not provide the choice axiom as a theorem. `@` is declared and used by `SpecOK`, but no public function returns $P\\,x \\to P(@P)$."
 msgstr "選択公理を定理として提供しない。`@` は宣言され `SpecOK` で使われるが、$P\\,x \\to P(@P)$ を返す公開関数は存在しない。"
 
