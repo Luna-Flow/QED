@@ -172,7 +172,7 @@ Total: **11**; complete: **0**; not applicable: **0**; open: **11**.
 | Dimension | proved and refined | proved abstractly | tested only | implemented unverified | partial | not implemented | known deviation | not applicable |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | lean | 0 | 7 | 0 | 0 | 0 | 1 | 0 | 3 |
-| moonbit | 0 | 0 | 3 | 6 | 2 | 0 | 0 | 0 |
+| moonbit | 0 | 0 | 4 | 6 | 1 | 0 | 0 | 0 |
 | refinement | 0 | 0 | 0 | 0 | 0 | 11 | 0 | 0 |
 | tests | 0 | 0 | 10 | 0 | 0 | 0 | 0 | 1 |
 
@@ -208,7 +208,7 @@ Total: **11**; complete: **0**; not applicable: **0**; open: **11**.
 - [ ] `HOL-EXT-001` [required; critical] Definition, specification, and type-definition extensions have their stated local semantic laws and preserve validity of old-language sequents. (open)
 - [ ] `HOL-EXT-002` [required; high] History-indexed derivations require extension witnesses at the preceding history and preserve old-language validity across supported histories. (open)
 - [ ] `HOL-GROW-001` [required; high] A finite declaration table records fresh constant allocation and preserves compatibility with the fixed total signature; old declarations remain available after a fresh allocation. (open)
-- [ ] `HOL-INFINITY-001` [required; high] Infinity admission identifies exactly the canonical object-language infinity sentence. (open)
+- [ ] `HOL-INFINITY-001` [required; high] The executable infinity registration is an audit marker; the canonical object-language infinity sentence is established by the Lean rule, not by the MoonBit gate. (open)
 - [ ] `KERNEL-BOUNDARY-001` [required; critical] Only checked kernel constructors and extension gates can produce theorem objects; frontend code cannot forge them. (open)
 - [ ] `KERNEL-PROVENANCE-001` [required; critical] A theorem is admissible only in a compatible declaration lineage; divergent sibling histories cannot exchange theorem evidence. (open)
 - [ ] `FRONTEND-LOWERING-001` [required; high] Parsing and elaboration preserve the proposition and resolved constant identity supplied to the kernel, or fail closed. (open)
@@ -224,7 +224,7 @@ Total: **11**; complete: **0**; not applicable: **0**; open: **11**.
 | `HOL-EXT-001` | theory-extension | required | critical | Definition, specification, and type-definition extensions have their stated local semantic laws and preserve validity of old-language sequents. | proved-abstractly | implemented-unverified | not-implemented | tested-only | [#7](https://github.com/Luna-Flow/QED/issues/7), [#8](https://github.com/Luna-Flow/QED/issues/8), [#9](https://github.com/Luna-Flow/QED/issues/9), [#17](https://github.com/Luna-Flow/QED/issues/17) |
 | `HOL-EXT-002` | theory-extension | required | high | History-indexed derivations require extension witnesses at the preceding history and preserve old-language validity across supported histories. | proved-abstractly | tested-only | not-implemented | tested-only | [#15](https://github.com/Luna-Flow/QED/issues/15), [#22](https://github.com/Luna-Flow/QED/issues/22) |
 | `HOL-GROW-001` | theory-extension | required | high | A finite declaration table records fresh constant allocation and preserves compatibility with the fixed total signature; old declarations remain available after a fresh allocation. | proved-abstractly | partial | not-implemented | not-applicable | [#17](https://github.com/Luna-Flow/QED/issues/17) |
-| `HOL-INFINITY-001` | axiom-admission | required | high | Infinity admission identifies exactly the canonical object-language infinity sentence. | proved-abstractly | partial | not-implemented | tested-only | [#7](https://github.com/Luna-Flow/QED/issues/7) |
+| `HOL-INFINITY-001` | axiom-admission | required | high | The executable infinity registration is an audit marker; the canonical object-language infinity sentence is established by the Lean rule, not by the MoonBit gate. | proved-abstractly | tested-only | not-implemented | tested-only | [#7](https://github.com/Luna-Flow/QED/issues/7) |
 | `KERNEL-BOUNDARY-001` | trusted-kernel | required | critical | Only checked kernel constructors and extension gates can produce theorem objects; frontend code cannot forge them. | not-applicable | implemented-unverified | not-implemented | tested-only | [#17](https://github.com/Luna-Flow/QED/issues/17) |
 | `KERNEL-PROVENANCE-001` | trusted-kernel | required | critical | A theorem is admissible only in a compatible declaration lineage; divergent sibling histories cannot exchange theorem evidence. | not-applicable | tested-only | not-implemented | tested-only | [#15](https://github.com/Luna-Flow/QED/issues/15), [#22](https://github.com/Luna-Flow/QED/issues/22) |
 | `FRONTEND-LOWERING-001` | frontend-boundary | required | high | Parsing and elaboration preserve the proposition and resolved constant identity supplied to the kernel, or fail closed. | not-applicable | tested-only | not-implemented | tested-only | [#3](https://github.com/Luna-Flow/QED/issues/3), [#4](https://github.com/Luna-Flow/QED/issues/4), [#5](https://github.com/Luna-Flow/QED/issues/5), [#6](https://github.com/Luna-Flow/QED/issues/6) |
@@ -306,15 +306,15 @@ A finite declaration table records fresh constant allocation and preserves compa
 
 #### `HOL-INFINITY-001`
 
-Infinity admission identifies exactly the canonical object-language infinity sentence.
+The executable infinity registration is an audit marker; the canonical object-language infinity sentence is established by the Lean rule, not by the MoonBit gate.
 
 - Specification: `doc/attachments/qed_formal_spec.typ::indInfinitySentence`
 - MoonBit API: `src/kernel/sig.mbt`
 - Lean: `formal_verification/QEDFV/HOL/Infinity.lean::indInfinitySentence_valid`
-- Verification: Lean validity theorem; MoonBit known-deviation marker regressions
+- Verification: Lean validity theorem; MoonBit marker regressions
 - Evidence: `formal_verification/QEDFV/HOL/Infinity.lean`, `src/kernel/kernel_sig_test.mbt`
 - Assumptions: -
-- Exclusions: The MoonBit gate is not connected to the Lean sentence by a refinement proof.
+- Exclusions: The MoonBit marker does not check that the registered theorem states that ind is infinite, and is not connected to the Lean sentence by a refinement proof.
 
 #### `KERNEL-BOUNDARY-001`
 

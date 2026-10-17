@@ -903,7 +903,7 @@ pub fn ks_has_type_abs_head(KernelState, String) -> Bool
 pub fn ks_specify_const(KernelState, String, HolType, Term, Thm) -> Result[(KernelState, Thm), SigError]
 ```
 
-The gate is derived from the choice operator and `DefOK`: it defines $c = (@\,\mathit{pred})$ through `ks_define_const_thm`, so the state records a `DefOK` certificate followed by a `SpecOK` certificate. The returned theorem is built by the gate; it is justified by the choice axiom, which the kernel does not expose as a theorem (see the [kernel design](../design/kernel.md)). The specification states the premise as $\vdash \exists x.\,P\,x$; the gate asks for a concrete witness instead. `pred` must be a closed abstraction over `ty` with no type variables outside `ty` (`InvalidSpecificationPredicate`, `SpecificationTypeVarLeak`), and `witness` must be a hypothesis-free theorem of the predicate at a closed term (`InvalidSpecificationWitness`). The definition conditions of `ks_define_const` apply to `c`.
+The gate is derived from the choice operator and `DefOK`: it defines $c = (@\,\mathit{pred})$ through `ks_define_const_thm`, so the state records a `DefOK` certificate followed by a `SpecOK` certificate. The returned theorem is built by the gate; it is justified by the choice axiom, which the kernel does not expose as a theorem (see the [kernel design](../design/kernel.md)). The specification states the witness obligation in the same instance form, $\vdash P[w]$ for a closed witness term $w$ (the kernel has no $\exists$); a witness with free variables is refused. `pred` must be a closed abstraction over `ty` with no type variables outside `ty` (`InvalidSpecificationPredicate`, `SpecificationTypeVarLeak`), and `witness` must be a hypothesis-free theorem of the predicate at a closed term (`InvalidSpecificationWitness`). The definition conditions of `ks_define_const` apply to `c`.
 
 ### `ks_register_ind_infinity_axiom`, `ks_ind_infinity_axiom` and `ks_has_ind_infinity_axiom`
 
@@ -915,7 +915,7 @@ pub fn ks_ind_infinity_axiom(KernelState) -> Result[Thm, SigError]
 pub fn ks_has_ind_infinity_axiom(KernelState) -> Bool
 ```
 
-The anchor must already be a `Thm`: a hypothesis-free, admissible proposition that mentions `ind`. Registration therefore adds no new theorem; it only marks which theorem plays the role of the infinity assumption. It fails with `InvalidInfinityAnchor` when an anchor is already recorded or the theorem does not qualify.
+The anchor must already be a `Thm`: a hypothesis-free, admissible proposition that mentions `ind`. Registration therefore adds no new theorem; it only marks which theorem plays the role of the infinity assumption. It is an audit marker: nothing checks that the theorem says that `ind` is infinite (for example `x = x` with `x : ind` qualifies), because the kernel has no infinity axiom and a strict check would make the gate unusable. The statement that `ind` is infinite is established by the object-language rule in the Lean development, which the executable marker is not connected to. It fails with `InvalidInfinityAnchor` when an anchor is already recorded or the theorem does not qualify.
 
 ```moonbit
 test "definitions" {

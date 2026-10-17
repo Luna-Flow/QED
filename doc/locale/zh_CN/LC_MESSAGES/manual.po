@@ -1088,8 +1088,8 @@ msgid "`ks_specify_const(state, c, ty, pred, witness)` is the specification gate
 msgstr "`ks_specify_const(state, c, ty, pred, witness)` 是规约闸门 `SpecOK`：给定 $\\vdash P[w/x]$，它引入常量 `c : ty` 并返回 $\\vdash P[c/x]$。"
 
 #: manual/api/kernel.md:906
-msgid "The gate is derived from the choice operator and `DefOK`: it defines $c = (@\\,\\mathit{pred})$ through `ks_define_const_thm`, so the state records a `DefOK` certificate followed by a `SpecOK` certificate. The returned theorem is built by the gate; it is justified by the choice axiom, which the kernel does not expose as a theorem (see the [kernel design](../design/kernel.md)). The specification states the premise as $\\vdash \\exists x.\\,P\\,x$; the gate asks for a concrete witness instead. `pred` must be a closed abstraction over `ty` with no type variables outside `ty` (`InvalidSpecificationPredicate`, `SpecificationTypeVarLeak`), and `witness` must be a hypothesis-free theorem of the predicate at a closed term (`InvalidSpecificationWitness`). The definition conditions of `ks_define_const` apply to `c`."
-msgstr "该闸门由选择算子和 `DefOK` 导出：它通过 `ks_define_const_thm` 定义 $c = (@\\,\\mathit{pred})$，因此状态依次记录一份 `DefOK` 证书和一份 `SpecOK` 证书。返回的定理由闸门自己构造，其依据是选择公理，而内核并不把选择公理作为定理提供（见[内核设计说明](../design/kernel.md)）。规范把前提写作 $\\vdash \\exists x.\\,P\\,x$；闸门则要求一个具体的见证。`pred` 必须是 `ty` 上的闭抽象，且不含 `ty` 之外的类型变量（`InvalidSpecificationPredicate`、`SpecificationTypeVarLeak`），`witness` 必须是该谓词在某个闭项处的无假设定理（`InvalidSpecificationWitness`）。`ks_define_const` 的定义条件同样适用于 `c`。"
+msgid "The gate is derived from the choice operator and `DefOK`: it defines $c = (@\\,\\mathit{pred})$ through `ks_define_const_thm`, so the state records a `DefOK` certificate followed by a `SpecOK` certificate. The returned theorem is built by the gate; it is justified by the choice axiom, which the kernel does not expose as a theorem (see the [kernel design](../design/kernel.md)). The specification states the witness obligation in the same instance form, $\\vdash P[w]$ for a closed witness term $w$ (the kernel has no $\\exists$); a witness with free variables is refused. `pred` must be a closed abstraction over `ty` with no type variables outside `ty` (`InvalidSpecificationPredicate`, `SpecificationTypeVarLeak`), and `witness` must be a hypothesis-free theorem of the predicate at a closed term (`InvalidSpecificationWitness`). The definition conditions of `ks_define_const` apply to `c`."
+msgstr "该闸门由选择算子和 `DefOK` 导出：它通过 `ks_define_const_thm` 定义 $c = (@\\,\\mathit{pred})$，因此状态依次记录一份 `DefOK` 证书和一份 `SpecOK` 证书。返回的定理由闸门自己构造，其依据是选择公理，而内核并不把选择公理作为定理提供（见[内核设计说明](../design/kernel.md)）。规范以同样的实例形式写出见证义务：对某个闭见证项 $w$ 有 $\\vdash P[w]$（内核没有 $\\exists$）；带有自由变量的见证会被拒绝。`pred` 必须是 `ty` 上的闭抽象，且不含 `ty` 之外的类型变量（`InvalidSpecificationPredicate`、`SpecificationTypeVarLeak`），`witness` 必须是该谓词在某个闭项处的无假设定理（`InvalidSpecificationWitness`）。`ks_define_const` 的定义条件同样适用于 `c`。"
 
 #: manual/api/kernel.md:908
 msgid "`ks_register_ind_infinity_axiom`, `ks_ind_infinity_axiom` and `ks_has_ind_infinity_axiom`"
@@ -1100,8 +1100,8 @@ msgid "`ks_register_ind_infinity_axiom(state, anchor)` records a theorem about `
 msgstr "`ks_register_ind_infinity_axiom(state, anchor)` 把一条关于 `ind` 的定理记录为该理论的无穷锚点。`ks_ind_infinity_axiom` 返回它，否则返回 `Err(MissingInfinityAnchor)`；`ks_has_ind_infinity_axiom` 测试是否已记录。"
 
 #: manual/api/kernel.md:918
-msgid "The anchor must already be a `Thm`: a hypothesis-free, admissible proposition that mentions `ind`. Registration therefore adds no new theorem; it only marks which theorem plays the role of the infinity assumption. It fails with `InvalidInfinityAnchor` when an anchor is already recorded or the theorem does not qualify."
-msgstr "锚点必须已经是一个 `Thm`：无假设、可容许且提到 `ind` 的命题。因此注册不会增加新定理；它只是标明哪条定理扮演无穷假设的角色。当锚点已被记录，或该定理不合格时，以 `InvalidInfinityAnchor` 失败。"
+msgid "The anchor must already be a `Thm`: a hypothesis-free, admissible proposition that mentions `ind`. Registration therefore adds no new theorem; it only marks which theorem plays the role of the infinity assumption. It is an audit marker: nothing checks that the theorem says that `ind` is infinite (for example `x = x` with `x : ind` qualifies), because the kernel has no infinity axiom and a strict check would make the gate unusable. The statement that `ind` is infinite is established by the object-language rule in the Lean development, which the executable marker is not connected to. It fails with `InvalidInfinityAnchor` when an anchor is already recorded or the theorem does not qualify."
+msgstr "锚点必须已经是一个 `Thm`：无假设、可容许且提到 `ind` 的命题。因此注册不会增加新定理；它只是标明哪条定理扮演无穷假设的角色。它是一个审计标记：没有任何检查确认该定理说的是 `ind` 无穷（例如 `x : ind` 的 `x = x` 也合格），因为内核没有无穷公理，严格检查会让这个闸门无法使用。`ind` 无穷这一陈述由 Lean 开发中的对象语言规则确立，而可执行的标记与它没有连接。当锚点已被记录，或该定理不合格时，以 `InvalidInfinityAnchor` 失败。"
 
 #: manual/api/kernel.md:984
 msgid "Audit and replay"
@@ -3005,7 +3005,6 @@ msgstr "已实现未验证"
 
 #: manual/conformance.md:172
 #: manual/conformance.md:226
-#: manual/conformance.md:227
 msgid "partial"
 msgstr "部分"
 
@@ -3171,8 +3170,8 @@ msgid "[ ] `HOL-GROW-001` [required; high] A finite declaration table records fr
 msgstr "[ ] `HOL-GROW-001` [required; high] 有限声明表记录新常量的分配，并保持与固定总签名的相容性；新分配之后，旧声明仍然可用。（未解决）"
 
 #: manual/conformance.md:211
-msgid "[ ] `HOL-INFINITY-001` [required; high] Infinity admission identifies exactly the canonical object-language infinity sentence. (open)"
-msgstr "[ ] `HOL-INFINITY-001` [required; high] 无穷公理的准入恰好识别规范的对象语言无穷语句。（未解决）"
+msgid "[ ] `HOL-INFINITY-001` [required; high] The executable infinity registration is an audit marker; the canonical object-language infinity sentence is established by the Lean rule, not by the MoonBit gate. (open)"
+msgstr "[ ] `HOL-INFINITY-001` [required; high] 可执行的无穷注册是一个审计标记；规范的对象语言无穷句子由 Lean 规则确立，而不是由 MoonBit 闸门确立。（open）"
 
 #: manual/conformance.md:212
 msgid "[ ] `KERNEL-BOUNDARY-001` [required; critical] Only checked kernel constructors and extension gates can produce theorem objects; frontend code cannot forge them. (open)"
@@ -3319,8 +3318,8 @@ msgstr "not-applicable"
 
 #: manual/conformance.md:227
 #: manual/conformance.md:309
-msgid "Infinity admission identifies exactly the canonical object-language infinity sentence."
-msgstr "无穷公理的准入恰好识别规范的对象语言无穷语句。"
+msgid "The executable infinity registration is an audit marker; the canonical object-language infinity sentence is established by the Lean rule, not by the MoonBit gate."
+msgstr "可执行的无穷注册是一个审计标记；规范的对象语言无穷句子由 Lean 规则确立，而不是由 MoonBit 闸门确立。"
 
 #: manual/conformance.md:228
 #: manual/conformance.md:321
@@ -3516,16 +3515,16 @@ msgid "Lean: `formal_verification/QEDFV/HOL/Infinity.lean::indInfinitySentence_v
 msgstr "Lean: `formal_verification/QEDFV/HOL/Infinity.lean::indInfinitySentence_valid`"
 
 #: manual/conformance.md:314
-msgid "Verification: Lean validity theorem; MoonBit known-deviation marker regressions"
-msgstr "验证：Lean 有效性定理；MoonBit 已知偏差标记回归测试"
+msgid "Verification: Lean validity theorem; MoonBit marker regressions"
+msgstr "验证：Lean 有效性定理；MoonBit 标记回归测试"
 
 #: manual/conformance.md:315
 msgid "Evidence: `formal_verification/QEDFV/HOL/Infinity.lean`, `src/kernel/kernel_sig_test.mbt`"
 msgstr "证据：`formal_verification/QEDFV/HOL/Infinity.lean`, `src/kernel/kernel_sig_test.mbt`"
 
 #: manual/conformance.md:317
-msgid "Exclusions: The MoonBit gate is not connected to the Lean sentence by a refinement proof."
-msgstr "排除项：MoonBit 闸门并未通过精化证明与 Lean 语句相连接。"
+msgid "Exclusions: The MoonBit marker does not check that the registered theorem states that ind is infinite, and is not connected to the Lean sentence by a refinement proof."
+msgstr "排除项：MoonBit 标记不检查所登记的定理是否陈述 ind 无穷，也没有通过精化证明与 Lean 语句相连接。"
 
 #: manual/conformance.md:323
 msgid "Specification: `doc/attachments/qed_formal_spec.typ::The LCF Boundary`"
@@ -8722,6 +8721,12 @@ msgstr "[tactics 设计](../design/tactics.md)解释了论证 (justification)，
 #: manual/tutorial/tactics.md:179
 msgid "The [prover tutorial](prover.md) runs the same proofs from scripts."
 msgstr "[prover 教程](prover.md)从脚本运行相同的证明。"
+
+#~ msgid "[ ] `HOL-INFINITY-001` [required; high] Infinity admission identifies exactly the canonical object-language infinity sentence. (open)"
+#~ msgstr "[ ] `HOL-INFINITY-001` [required; high] 无穷公理的准入恰好识别规范的对象语言无穷语句。（未解决）"
+
+#~ msgid "Infinity admission identifies exactly the canonical object-language infinity sentence."
+#~ msgstr "无穷公理的准入恰好识别规范的对象语言无穷语句。"
 
 #~ msgid "A goal, unlike a term, may start with `forall (x : A), body` or `∀ (x : A), body`, also in parentheses. This form is accepted only here, as goal sugar."
 #~ msgstr "与项不同，目标可以以 `forall (x : A), body` 或 `∀ (x : A), body` 开头，也可置于括号中。这种形式只在此处作为目标语法糖被接受。"
