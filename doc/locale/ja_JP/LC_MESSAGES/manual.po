@@ -1351,8 +1351,8 @@ msgid "`logic_prop_unfold_head(state, th_def, th)` replaces the head constant of
 msgstr "`logic_prop_unfold_head(state, th_def, th)` は、`th` の結論の先頭の定数をその定義で置き換える。$\\vdash c = \\lambda \\bar x.\\,b$ と $\\Gamma \\vdash c\\,\\bar a$ から $\\Gamma \\vdash (\\lambda \\bar x.\\,b)\\,\\bar a$ を導出し、先頭の β 冗長式は `logic_beta_normalize_eq` によって簡約される。"
 
 #: manual/api/logic.md:220
-msgid "The head must be the defined constant, applied to at most two arguments; otherwise the function fails with `AlphaMismatch` or `TypeMismatch`. Only a redex at the very head is contracted. With one argument, $(\\lambda x.\\,b)\\,a$ is such a redex and the result is $b[a/x]$; with two arguments the head is $((\\lambda x\\,y.\\,b)\\,a_1)\\,a_2$, whose function part is not an abstraction, so the conclusion stays unreduced. Apply `logic_normalize_prop_beta` to reach the basis form."
-msgstr "先頭は定義された定数であり、引数は高々 2 個でなければならない。そうでなければ関数は `AlphaMismatch` または `TypeMismatch` で失敗する。簡約されるのは先頭にある冗長式のみである。引数が 1 個なら $(\\lambda x.\\,b)\\,a$ がそのような冗長式であり、結果は $b[a/x]$ となる。引数が 2 個なら先頭は $((\\lambda x\\,y.\\,b)\\,a_1)\\,a_2$ であり、その関数部は抽象ではないため、結論は簡約されないままとなる。基底形に到達するには `logic_normalize_prop_beta` を適用する。"
+msgid "The head must be the defined constant, applied to at most two arguments; otherwise the function fails with `AlphaMismatch` or `TypeMismatch`. Redexes along the application spine are contracted. With one argument, $(\\lambda x.\\,b)\\,a$ is a head redex and the result is $b[a/x]$; with two arguments the head is $((\\lambda x\\,y.\\,b)\\,a_1)\\,a_2$, whose function part $(\\lambda x\\,y.\\,b)\\,a_1$ is contracted first to $\\lambda y.\\,b[a_1/x]$ and then the head redex, so the conclusion is the basis form $b[a_1/x][a_2/y]$."
+msgstr "先頭は定義された定数であり、引数は高々 2 個でなければならない。そうでなければ関数は `AlphaMismatch` または `TypeMismatch` で失敗する。適用のスパインに沿った冗長式が簡約される。引数が 1 個なら $(\\lambda x.\\,b)\\,a$ が先頭の冗長式であり、結果は $b[a/x]$ となる。引数が 2 個なら先頭は $((\\lambda x\\,y.\\,b)\\,a_1)\\,a_2$ であり、その関数部 $(\\lambda x\\,y.\\,b)\\,a_1$ がまず $\\lambda y.\\,b[a_1/x]$ に簡約され、続いて先頭の冗長式が簡約されるため、結論は基底形 $b[a_1/x][a_2/y]$ となる。"
 
 #: manual/api/logic.md:222
 msgid "`logic_prop_unfold_imp`, `logic_prop_unfold_not`, `logic_prop_unfold_and` and `logic_prop_unfold_or`"
@@ -1361,10 +1361,10 @@ msgstr "`logic_prop_unfold_imp`、`logic_prop_unfold_not`、`logic_prop_unfold_a
 #: manual/api/logic.md:224
 msgid ""
 "These functions are `logic_prop_unfold_head` with the definition of one connective constant. `logic_prop_unfold_not` turns $\\Gamma \\vdash \\mathit{not}\\,p$ into $\\Gamma \\vdash \\n"
-"eg p$ in basis form; the two-argument forms return the unreduced application described above."
+"eg p$ in basis form, and the two-argument forms return the basis form of the connective as well."
 msgstr ""
-"これらの関数は、1 つの結合子定数の定義を用いた `logic_prop_unfold_head` である。`logic_prop_unfold_not` は $\\Gamma \\vdash \\mathit{not}\\,p$ を基底形の $\\Gamma \\vdash \\n"
-"eg p$ に変える。引数が 2 個の形は、上述の未簡約の適用を返す。"
+"これらの関数は、一つの結合子定数の定義を与えた `logic_prop_unfold_head` である。`logic_prop_unfold_not` は $\\Gamma \\vdash \\mathit{not}\\,p$ を基底形の $\\Gamma \\vdash \\n"
+"eg p$ にし、2 引数の形も結合子の基底形を返す。"
 
 #: manual/api/logic.md:253
 msgid "Kernel rule wrappers"
@@ -1471,8 +1471,8 @@ msgid "`logic_beta_normalize_eq` and `logic_normalize_prop_beta`"
 msgstr "`logic_beta_normalize_eq` と `logic_normalize_prop_beta`"
 
 #: manual/api/logic.md:367
-msgid "`logic_beta_normalize_eq` contracts head β-redexes of the right-hand side of an equation for as long as the right-hand side is one: from $\\Gamma \\vdash s = t$ it proves $\\Gamma \\vdash s = t'$. `logic_normalize_prop_beta` reduces the conclusion of a theorem more thoroughly: it repeatedly contracts the leftmost-outermost redex found along application spines (not under abstractions), up to 512 steps, and from $\\Gamma \\vdash c$ proves $\\Gamma \\vdash c'$."
-msgstr "`logic_beta_normalize_eq` は、等式の右辺が β 冗長式である限り、その先頭の β 冗長式を簡約する。$\\Gamma \\vdash s = t$ から $\\Gamma \\vdash s = t'$ を証明する。`logic_normalize_prop_beta` は定理の結論をより徹底的に簡約する。(抽象の内側ではなく)適用のスパイン上にある最左最外の冗長式を、最大 512 ステップまで繰り返し簡約し、$\\Gamma \\vdash c$ から $\\Gamma \\vdash c'$ を証明する。"
+msgid "`logic_beta_normalize_eq` contracts the β-redexes along the application spine of the right-hand side of an equation (the head redex, or a redex in the function part of an application) for as long as there is one: from $\\Gamma \\vdash s = t$ it proves $\\Gamma \\vdash s = t'$. `logic_normalize_prop_beta` reduces the conclusion of a theorem more thoroughly: it repeatedly contracts the leftmost-outermost redex found along application spines (not under abstractions), up to 512 steps, and from $\\Gamma \\vdash c$ proves $\\Gamma \\vdash c'$."
+msgstr "`logic_beta_normalize_eq` は、等式の右辺の適用スパインに沿った β 冗長式（先頭の冗長式、または適用の関数部にある冗長式）を、なくなるまで簡約する。$\\Gamma \\vdash s = t$ から $\\Gamma \\vdash s = t'$ を証明する。`logic_normalize_prop_beta` は定理の結論をより徹底的に簡約する。(抽象の内側ではなく)適用のスパイン上にある最左最外の冗長式を、最大 512 ステップまで繰り返し簡約し、$\\Gamma \\vdash c$ から $\\Gamma \\vdash c'$ を証明する。"
 
 #: manual/api/logic.md:374
 msgid "Both chain kernel steps (BETA and TRANS, plus REFL and MK_COMB to reach redexes inside applications), so the result is a kernel theorem, not a rewritten term. After 512 steps `logic_normalize_prop_beta` returns what it has reached, which may still contain redexes."
