@@ -45,7 +45,7 @@ intentional and must remain visible in later refinements.
 | `ks_define_const` and `ks_define_const_thm` | `DefinitionGate`, `ExtensionDerivation.definition` | Fixed signature and local semantic law; name audit is separate |
 | `ks_specify_const` | `SpecificationExtension`, `ExtensionDerivation.specification` | Fixed signature and witness semantics; executable certificate correspondence is open |
 | `ks_register_type_definition` | `TypeDefGate`, `ModelExtension.typeDefinition`, `HistoryDerivation.typedef` | Fixed-signature model-pair semantics; allocation and erasure are open |
-| `ks_ind_infinity_axiom` | `Derivation.indInfinity`, `indInfinitySentence` | Exact Lean sentence proved; MoonBit gate correspondence is open |
+| `ks_ind_infinity_axiom` | `Derivation.indInfinity`, `indInfinitySentence` | Exact Lean sentence proved; the MoonBit registration is an audit marker, not connected to it |
 
 The frontend currently represents logical connectives through defined constants,
 while the Lean term grammar has primitive connective constructors. A future
