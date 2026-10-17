@@ -1088,8 +1088,8 @@ msgid "`ks_specify_const(state, c, ty, pred, witness)` is the specification gate
 msgstr "`ks_specify_const(state, c, ty, pred, witness)` は特殊化ゲート `SpecOK` である。$\\vdash P[w/x]$ が与えられたとき、定数 `c : ty` を導入し、$\\vdash P[c/x]$ を返す。"
 
 #: manual/api/kernel.md:906
-msgid "The gate is derived from the choice operator and `DefOK`: it defines $c = (@\\,\\mathit{pred})$ through `ks_define_const_thm`, so the state records a `DefOK` certificate followed by a `SpecOK` certificate. The returned theorem is built by the gate; it is justified by the choice axiom, which the kernel does not expose as a theorem (see the [kernel design](../design/kernel.md)). The specification states the premise as $\\vdash \\exists x.\\,P\\,x$; the gate asks for a concrete witness instead. `pred` must be a closed abstraction over `ty` with no type variables outside `ty` (`InvalidSpecificationPredicate`, `SpecificationTypeVarLeak`), and `witness` must be a hypothesis-free theorem of the predicate at a closed term (`InvalidSpecificationWitness`). The definition conditions of `ks_define_const` apply to `c`."
-msgstr "このゲートは選択演算子と `DefOK` から導出される。`ks_define_const_thm` を通じて $c = (@\\,\\mathit{pred})$ を定義するため、状態には `DefOK` 証明書に続いて `SpecOK` 証明書が記録される。返される定理はゲート自身が構築する。その根拠は選択公理であり、カーネルは選択公理を定理として提供しない([カーネル設計ノート](../design/kernel.md)を参照)。仕様は前提を $\\vdash \\exists x.\\,P\\,x$ と述べるが、ゲートは代わりに具体的なウィットネスを求める。`pred` は `ty` 上の閉じた抽象で、`ty` の外に型変数を持ってはならず(`InvalidSpecificationPredicate`、`SpecificationTypeVarLeak`)、`witness` は閉じた項での述語についての仮定なしの定理でなければならない(`InvalidSpecificationWitness`)。`ks_define_const` の定義条件が `c` に適用される。"
+msgid "The gate is derived from the choice operator and `DefOK`: it defines $c = (@\\,\\mathit{pred})$ through `ks_define_const_thm`, so the state records a `DefOK` certificate followed by a `SpecOK` certificate. The returned theorem is built by the gate; it is justified by the choice axiom, which the kernel does not expose as a theorem (see the [kernel design](../design/kernel.md)). The specification states the witness obligation in the same instance form, $\\vdash P[w]$ for a closed witness term $w$ (the kernel has no $\\exists$); a witness with free variables is refused. `pred` must be a closed abstraction over `ty` with no type variables outside `ty` (`InvalidSpecificationPredicate`, `SpecificationTypeVarLeak`), and `witness` must be a hypothesis-free theorem of the predicate at a closed term (`InvalidSpecificationWitness`). The definition conditions of `ks_define_const` apply to `c`."
+msgstr "このゲートは選択演算子と `DefOK` から導かれる。`ks_define_const_thm` で $c = (@\\,\\mathit{pred})$ を定義するので、状態には `DefOK` 証明書に続いて `SpecOK` 証明書が記録される。返される定理はゲート自身が構築し、その根拠は選択公理であるが、カーネルは選択公理を定理として公開しない（[カーネル設計](../design/kernel.md)を参照）。仕様は証拠の義務を同じインスタンス形式で述べる。閉じた証拠項 $w$ に対する $\\vdash P[w]$ である（カーネルに $\\exists$ はない）。自由変数を含む証拠は拒否される。`pred` は `ty` 上の閉じた抽象で、`ty` の外の型変数を含んではならず（`InvalidSpecificationPredicate`、`SpecificationTypeVarLeak`）、`witness` はその述語を閉じた項で満たす仮定なしの定理でなければならない（`InvalidSpecificationWitness`）。`c` には `ks_define_const` の定義条件が適用される。"
 
 #: manual/api/kernel.md:908
 msgid "`ks_register_ind_infinity_axiom`, `ks_ind_infinity_axiom` and `ks_has_ind_infinity_axiom`"
@@ -1100,8 +1100,8 @@ msgid "`ks_register_ind_infinity_axiom(state, anchor)` records a theorem about `
 msgstr "`ks_register_ind_infinity_axiom(state, anchor)` は、`ind` についての定理を理論の無限性アンカーとして記録する。`ks_ind_infinity_axiom` はそれを返す。なければ `Err(MissingInfinityAnchor)` を返す。`ks_has_ind_infinity_axiom` は記録があるかを検査する。"
 
 #: manual/api/kernel.md:918
-msgid "The anchor must already be a `Thm`: a hypothesis-free, admissible proposition that mentions `ind`. Registration therefore adds no new theorem; it only marks which theorem plays the role of the infinity assumption. It fails with `InvalidInfinityAnchor` when an anchor is already recorded or the theorem does not qualify."
-msgstr "アンカーはすでに `Thm` でなければならない。すなわち、仮定を持たず、許容され、`ind` に言及する命題である。したがって登録は新しい定理を追加せず、どの定理が無限性の仮定の役割を担うかを示すだけである。アンカーがすでに記録されている、または定理が条件を満たさない場合は `InvalidInfinityAnchor` で失敗する。"
+msgid "The anchor must already be a `Thm`: a hypothesis-free, admissible proposition that mentions `ind`. Registration therefore adds no new theorem; it only marks which theorem plays the role of the infinity assumption. It is an audit marker: nothing checks that the theorem says that `ind` is infinite (for example `x = x` with `x : ind` qualifies), because the kernel has no infinity axiom and a strict check would make the gate unusable. The statement that `ind` is infinite is established by the object-language rule in the Lean development, which the executable marker is not connected to. It fails with `InvalidInfinityAnchor` when an anchor is already recorded or the theorem does not qualify."
+msgstr "アンカーはすでに `Thm` でなければならない。仮定がなく、許容可能で、`ind` に言及する命題である。したがって登録は新しい定理を追加せず、どの定理が無限性の仮定の役割を担うかを示すだけである。これは監査用のマーカーであり、その定理が `ind` の無限性を述べているかどうかは何も検査されない（たとえば `x : ind` の `x = x` も適格である）。カーネルには無限公理がなく、厳密な検査ではこのゲートが使えなくなるためである。`ind` が無限であるという主張は Lean 開発の対象言語の規則で確立され、実行可能なマーカーはそれと接続されていない。アンカーがすでに記録されている場合、または定理が適格でない場合は `InvalidInfinityAnchor` で失敗する。"
 
 #: manual/api/kernel.md:984
 msgid "Audit and replay"
@@ -3005,7 +3005,6 @@ msgstr "実装済み・未検証"
 
 #: manual/conformance.md:172
 #: manual/conformance.md:226
-#: manual/conformance.md:227
 msgid "partial"
 msgstr "部分的"
 
@@ -3171,8 +3170,8 @@ msgid "[ ] `HOL-GROW-001` [required; high] A finite declaration table records fr
 msgstr "[ ] `HOL-GROW-001` [required; high] 有限の宣言表は新しい定数の割り当てを記録し、固定された全体シグネチャとの互換性を保つ。新たな割り当ての後も、古い宣言は引き続き利用できる。（未解決）"
 
 #: manual/conformance.md:211
-msgid "[ ] `HOL-INFINITY-001` [required; high] Infinity admission identifies exactly the canonical object-language infinity sentence. (open)"
-msgstr "[ ] `HOL-INFINITY-001` [required; high] 無限公理の受理は、正規の対象言語の無限性の文をちょうど識別する。（未解決）"
+msgid "[ ] `HOL-INFINITY-001` [required; high] The executable infinity registration is an audit marker; the canonical object-language infinity sentence is established by the Lean rule, not by the MoonBit gate. (open)"
+msgstr "[ ] `HOL-INFINITY-001` [required; high] 実行可能な無限性の登録は監査用のマーカーである。正準な対象言語の無限性の文は Lean の規則で確立され、MoonBit のゲートでは確立されない。(open)"
 
 #: manual/conformance.md:212
 msgid "[ ] `KERNEL-BOUNDARY-001` [required; critical] Only checked kernel constructors and extension gates can produce theorem objects; frontend code cannot forge them. (open)"
@@ -3319,8 +3318,8 @@ msgstr "not-applicable"
 
 #: manual/conformance.md:227
 #: manual/conformance.md:309
-msgid "Infinity admission identifies exactly the canonical object-language infinity sentence."
-msgstr "無限公理の受理は、正規の対象言語の無限性の文をちょうど識別する。"
+msgid "The executable infinity registration is an audit marker; the canonical object-language infinity sentence is established by the Lean rule, not by the MoonBit gate."
+msgstr "実行可能な無限性の登録は監査用のマーカーである。正準な対象言語の無限性の文は Lean の規則で確立され、MoonBit のゲートでは確立されない。"
 
 #: manual/conformance.md:228
 #: manual/conformance.md:321
@@ -3516,16 +3515,16 @@ msgid "Lean: `formal_verification/QEDFV/HOL/Infinity.lean::indInfinitySentence_v
 msgstr "Lean: `formal_verification/QEDFV/HOL/Infinity.lean::indInfinitySentence_valid`"
 
 #: manual/conformance.md:314
-msgid "Verification: Lean validity theorem; MoonBit known-deviation marker regressions"
-msgstr "検証：Lean の妥当性定理、MoonBit の既知の逸脱マーカーの回帰テスト"
+msgid "Verification: Lean validity theorem; MoonBit marker regressions"
+msgstr "検証：Lean の妥当性定理、MoonBit マーカーの回帰テスト"
 
 #: manual/conformance.md:315
 msgid "Evidence: `formal_verification/QEDFV/HOL/Infinity.lean`, `src/kernel/kernel_sig_test.mbt`"
 msgstr "根拠：`formal_verification/QEDFV/HOL/Infinity.lean`, `src/kernel/kernel_sig_test.mbt`"
 
 #: manual/conformance.md:317
-msgid "Exclusions: The MoonBit gate is not connected to the Lean sentence by a refinement proof."
-msgstr "除外：MoonBit のゲートは、リファインメントの証明によって Lean の文に結び付けられていない。"
+msgid "Exclusions: The MoonBit marker does not check that the registered theorem states that ind is infinite, and is not connected to the Lean sentence by a refinement proof."
+msgstr "除外：MoonBit のマーカーは、登録された定理が ind の無限性を述べているかを検査せず、リファインメント証明で Lean の文と接続されてもいない。"
 
 #: manual/conformance.md:323
 msgid "Specification: `doc/attachments/qed_formal_spec.typ::The LCF Boundary`"
@@ -8728,6 +8727,12 @@ msgstr "[prover チュートリアル](prover.md)は、同じ証明をスクリ�
 
 #~ msgid "The counterexamples in the second and last rows are stated, as in the specification, for constants identified by name. In the code the new constant always receives a fresh identity, so a name $c$ that occurs in $t$ can only denote an older constant, and a second definition of $c$ in an inner scope would get a new identity too; neither could then produce the contradiction shown. The two checks are kept anyway, by name and over the whole theory history: they make every definition read as non-circular and unique when constants are read by name, which is what the specification's freshness conditions require, and they keep the unfolding argument below simple. They are deliberately stricter than identities need: `ks_define_const` refuses `c := d` in an inner scope when an earlier definition of `d` mentions an outer, undefined constant named `c`."
 #~ msgstr "2 行目と最終行の反例は、仕様と同様に、名前で識別される定数について述べたものである。コードでは新しい定数は常に新しい同一性を受け取るので、$t$ に現れる名前 $c$ はより古い定数しか指せず、内側のスコープでの $c$ の二度目の定義も新しい同一性を得る。どちらも示した矛盾を生み出せない。それでも二つの検査は、名前によって、理論の履歴全体に対して残してある。定数を名前で読んだときにすべての定義が循環せず一意になるようにするためであり、それは仕様の新しさの条件が求めることでもある。また、下の展開の議論を単純に保つ。これらは同一性が必要とするより意図的に厳しい。`d` の以前の定義が外側の未定義の定数 `c` に言及していると、`ks_define_const` は内側のスコープでの `c := d` を拒否する。"
+
+#~ msgid "[ ] `HOL-INFINITY-001` [required; high] Infinity admission identifies exactly the canonical object-language infinity sentence. (open)"
+#~ msgstr "[ ] `HOL-INFINITY-001` [required; high] 無限公理の受理は、正規の対象言語の無限性の文をちょうど識別する。（未解決）"
+
+#~ msgid "Infinity admission identifies exactly the canonical object-language infinity sentence."
+#~ msgstr "無限公理の受理は、正規の対象言語の無限性の文をちょうど識別する。"
 
 #~ msgid "A goal, unlike a term, may start with `forall (x : A), body` or `∀ (x : A), body`, also in parentheses. This form is accepted only here, as goal sugar."
 #~ msgstr "項と異なり、ゴールは `forall (x : A), body` または `∀ (x : A), body` で始まってもよく、括弧で囲んでもよい。この形はここでのみ、ゴールの糖衣構文として受理される。"

@@ -1052,9 +1052,9 @@ conjunction, implication, and the two quantifiers. A refinement proof must map
 each kernel definition to its corresponding object-language constructor and
 prove the defining equation is preserved by lowering, evaluation, and
 substitution. Derived connectives such as negation and disjunction must be
-related compositionally to the primitive definitions. The infinity registration
-must lower to the exact `indInfinitySentence` below; matching only its type or
-the occurrence of `ind` is insufficient.
+related compositionally to the primitive definitions. The executable infinity
+registration is an audit marker, not a gate on the sentence: see the infinity
+rule below.
 
 QED currently uses a two-layer boundary:
 
@@ -2320,10 +2320,13 @@ admissibility predicate.]
 #lean-def("Derivation", ("Derivation.indInfinity",))
 #lean-proof("Derivation", ("derivation_sound",))
 
-The MoonBit `IND_INFINITY_AXIOM` registration gate must produce this exact
-sentence. The Lean proof certifies the mathematical rule because its conclusion
-is valid in every interpretation of the fixed type grammar; it does not certify
-the executable gate's term construction or theorem provenance (issue #7).
+The MoonBit `IND_INFINITY_AXIOM` registration (`ks_register_ind_infinity_axiom`)
+is an audit marker. It records a hypothesis-free, admissible theorem that mentions
+`ind`; it does not check that the theorem states that `ind` is infinite, because
+the kernel has no infinity axiom and cannot derive the sentence, so a strict gate
+would be unusable. The mathematical statement is established by the Lean rule
+above, whose conclusion is valid in every interpretation of the fixed type
+grammar; the executable marker is not connected to it (issue #7).
 
 #contract([Implementation refinement contract for connectives and infinity])[The Typed HOL
 term grammar treats truth, falsity, conjunction, implication, universal
@@ -2333,8 +2336,10 @@ kernel frontend currently builds these connectives as defined constants, and
 must therefore provide a translation from each kernel definition to the
 corresponding Typed HOL constructor, prove its defining equation is preserved by
 lowering, evaluation, substitution, and type instantiation, and show that the
-infinity registration lowers to the exact `indInfinitySentence` above. Merely
-matching the type of the theorem or finding an occurrence of `ind` is not enough.
+registration lowers to the exact `indInfinitySentence` above, which first
+requires a registration that checks that sentence instead of the marker described
+above. Merely matching the type of the theorem or finding an occurrence of `ind`
+is not enough.
 The all-model validity proof depends on the fixed semantic clause
 `Ty.ind.denote ρ = Nat`; it does not apply to an arbitrary carrier selected for
 `ind`.]

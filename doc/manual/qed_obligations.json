@@ -277,7 +277,7 @@
     {
       "id": "HOL-INFINITY-001",
       "category": "axiom-admission",
-      "normative_statement": "Infinity admission identifies exactly the canonical object-language infinity sentence.",
+      "normative_statement": "The executable infinity registration is an audit marker; the canonical object-language infinity sentence is established by the Lean rule, not by the MoonBit gate.",
       "requirement_level": "required",
       "severity": "high",
       "spec": "doc/attachments/qed_formal_spec.typ",
@@ -293,7 +293,7 @@
       ],
       "verification": [
         "Lean validity theorem",
-        "MoonBit known-deviation marker regressions"
+        "MoonBit marker regressions"
       ],
       "evidence": [
         "formal_verification/QEDFV/HOL/Infinity.lean",
@@ -301,7 +301,7 @@
       ],
       "status": {
         "lean": "proved-abstractly",
-        "moonbit": "partial",
+        "moonbit": "tested-only",
         "refinement": "not-implemented",
         "tests": "tested-only"
       },
@@ -310,7 +310,7 @@
       ],
       "assumptions": [],
       "exclusions": [
-        "The MoonBit gate is not connected to the Lean sentence by a refinement proof."
+        "The MoonBit marker does not check that the registered theorem states that ind is infinite, and is not connected to the Lean sentence by a refinement proof."
       ]
     },
     {

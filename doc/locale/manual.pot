@@ -1088,7 +1088,7 @@ msgid "`ks_specify_const(state, c, ty, pred, witness)` is the specification gate
 msgstr ""
 
 #: manual/api/kernel.md:906
-msgid "The gate is derived from the choice operator and `DefOK`: it defines $c = (@\\,\\mathit{pred})$ through `ks_define_const_thm`, so the state records a `DefOK` certificate followed by a `SpecOK` certificate. The returned theorem is built by the gate; it is justified by the choice axiom, which the kernel does not expose as a theorem (see the [kernel design](../design/kernel.md)). The specification states the premise as $\\vdash \\exists x.\\,P\\,x$; the gate asks for a concrete witness instead. `pred` must be a closed abstraction over `ty` with no type variables outside `ty` (`InvalidSpecificationPredicate`, `SpecificationTypeVarLeak`), and `witness` must be a hypothesis-free theorem of the predicate at a closed term (`InvalidSpecificationWitness`). The definition conditions of `ks_define_const` apply to `c`."
+msgid "The gate is derived from the choice operator and `DefOK`: it defines $c = (@\\,\\mathit{pred})$ through `ks_define_const_thm`, so the state records a `DefOK` certificate followed by a `SpecOK` certificate. The returned theorem is built by the gate; it is justified by the choice axiom, which the kernel does not expose as a theorem (see the [kernel design](../design/kernel.md)). The specification states the witness obligation in the same instance form, $\\vdash P[w]$ for a closed witness term $w$ (the kernel has no $\\exists$); a witness with free variables is refused. `pred` must be a closed abstraction over `ty` with no type variables outside `ty` (`InvalidSpecificationPredicate`, `SpecificationTypeVarLeak`), and `witness` must be a hypothesis-free theorem of the predicate at a closed term (`InvalidSpecificationWitness`). The definition conditions of `ks_define_const` apply to `c`."
 msgstr ""
 
 #: manual/api/kernel.md:908
@@ -1100,7 +1100,7 @@ msgid "`ks_register_ind_infinity_axiom(state, anchor)` records a theorem about `
 msgstr ""
 
 #: manual/api/kernel.md:918
-msgid "The anchor must already be a `Thm`: a hypothesis-free, admissible proposition that mentions `ind`. Registration therefore adds no new theorem; it only marks which theorem plays the role of the infinity assumption. It fails with `InvalidInfinityAnchor` when an anchor is already recorded or the theorem does not qualify."
+msgid "The anchor must already be a `Thm`: a hypothesis-free, admissible proposition that mentions `ind`. Registration therefore adds no new theorem; it only marks which theorem plays the role of the infinity assumption. It is an audit marker: nothing checks that the theorem says that `ind` is infinite (for example `x = x` with `x : ind` qualifies), because the kernel has no infinity axiom and a strict check would make the gate unusable. The statement that `ind` is infinite is established by the object-language rule in the Lean development, which the executable marker is not connected to. It fails with `InvalidInfinityAnchor` when an anchor is already recorded or the theorem does not qualify."
 msgstr ""
 
 #: manual/api/kernel.md:984
@@ -2995,7 +2995,6 @@ msgstr ""
 
 #: manual/conformance.md:172
 #: manual/conformance.md:226
-#: manual/conformance.md:227
 msgid "partial"
 msgstr ""
 
@@ -3161,7 +3160,7 @@ msgid "[ ] `HOL-GROW-001` [required; high] A finite declaration table records fr
 msgstr ""
 
 #: manual/conformance.md:211
-msgid "[ ] `HOL-INFINITY-001` [required; high] Infinity admission identifies exactly the canonical object-language infinity sentence. (open)"
+msgid "[ ] `HOL-INFINITY-001` [required; high] The executable infinity registration is an audit marker; the canonical object-language infinity sentence is established by the Lean rule, not by the MoonBit gate. (open)"
 msgstr ""
 
 #: manual/conformance.md:212
@@ -3309,7 +3308,7 @@ msgstr ""
 
 #: manual/conformance.md:227
 #: manual/conformance.md:309
-msgid "Infinity admission identifies exactly the canonical object-language infinity sentence."
+msgid "The executable infinity registration is an audit marker; the canonical object-language infinity sentence is established by the Lean rule, not by the MoonBit gate."
 msgstr ""
 
 #: manual/conformance.md:228
@@ -3506,7 +3505,7 @@ msgid "Lean: `formal_verification/QEDFV/HOL/Infinity.lean::indInfinitySentence_v
 msgstr ""
 
 #: manual/conformance.md:314
-msgid "Verification: Lean validity theorem; MoonBit known-deviation marker regressions"
+msgid "Verification: Lean validity theorem; MoonBit marker regressions"
 msgstr ""
 
 #: manual/conformance.md:315
@@ -3514,7 +3513,7 @@ msgid "Evidence: `formal_verification/QEDFV/HOL/Infinity.lean`, `src/kernel/kern
 msgstr ""
 
 #: manual/conformance.md:317
-msgid "Exclusions: The MoonBit gate is not connected to the Lean sentence by a refinement proof."
+msgid "Exclusions: The MoonBit marker does not check that the registered theorem states that ind is infinite, and is not connected to the Lean sentence by a refinement proof."
 msgstr ""
 
 #: manual/conformance.md:323
