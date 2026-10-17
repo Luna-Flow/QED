@@ -800,8 +800,8 @@ msgid "Primitive rules"
 msgstr "原始规则"
 
 #: manual/api/kernel.md:449
-msgid "Each rule takes the kernel state first, checks that its premise theorems are admissible in that state, applies the rule and checks the result. In the rules below $\\Gamma, \\Delta$ are hypothesis sets, $\\equiv_\\alpha$ is α-equivalence (constant identities ignored), and $\\setminus$ removes every hypothesis α-equivalent to the given term whose constants carry the same identity stamps (see `Thm` above). The [kernel design](../design/kernel.md) explains why each rule is sound."
-msgstr "每条规则首先接受内核状态，检查其前提定理在该状态中可容许，应用规则，再检查结果。下列规则中，$\\Gamma, \\Delta$ 是假设集，$\\equiv_\\alpha$ 是 α 等价（忽略常量标识），$\\setminus$ 移除所有与给定项 α 等价、且常量标识戳相同的假设（见上文 `Thm`）。[内核设计说明](../design/kernel.md)解释了每条规则为何可靠。"
+msgid "Each rule takes the kernel state first, checks that its premise theorems are admissible in that state, applies the rule and checks the result. In the rules below $\\Gamma, \\Delta$ are hypothesis sets, $\\equiv_\\alpha$ is α-equivalence (constant identities ignored), and $\\setminus$ removes every hypothesis α-equivalent to the given term (constant stamps are ignored, see `Thm` above). The [kernel design](../design/kernel.md) explains why each rule is sound."
+msgstr "每条规则首先接受内核状态，检查其前提定理在该状态中可容许，应用规则，再检查结果。下列规则中，$\\Gamma, \\Delta$ 是假设集，$\\equiv_\\alpha$ 是 α 等价（忽略常量标识），$\\setminus$ 移除所有与给定项 α 等价的假设（常量标识戳被忽略，见上文 `Thm`）。[内核设计说明](../design/kernel.md)解释了每条规则为何可靠。"
 
 #: manual/api/kernel.md:453
 msgid "`refl_checked` is REFL: it proves that a term equals itself."
@@ -4051,8 +4051,8 @@ msgid "Sequents and theorems"
 msgstr "相继式与定理"
 
 #: manual/design/kernel.md:100
-msgid "A theorem is a sequent $\\Gamma \\vdash p$: a finite set $\\Gamma$ of propositions (terms of type `bool`) and a proposition $p$. The kernel stores $\\Gamma$ and $p$ as De Bruijn terms and deduplicates hypotheses with `db_term_eq`, so $\\Gamma$ is a set of α-equivalence classes: inserting a hypothesis that is α-equivalent to one already present does nothing (`db_hyps_union`). Because `db_term_eq` also compares constant stamps, two hypotheses that differ only in the stamp of a constant stay two entries, and DEDUCT_ANTISYM_RULE removes only the entry whose stamps match. This can leave an extra hypothesis (the rule is weaker than intended), never a missing one, so it does not affect soundness; build all terms of one proof with `ks_mk_const` to avoid it."
-msgstr "定理是相继式 $\\Gamma \\vdash p$：由命题（类型为 `bool` 的项）组成的有限集合 $\\Gamma$，以及一个命题 $p$。内核把 $\\Gamma$ 和 $p$ 存储为 De Bruijn 项，并用 `db_term_eq` 对假设去重，因此 $\\Gamma$ 是 α 等价类的集合：插入一个与已有假设 α 等价的假设不会产生任何效果（`db_hyps_union`）。由于 `db_term_eq` 也比较常量标识戳，两个只在某个常量的标识戳上不同的假设会保留为两项，DEDUCT_ANTISYM_RULE 也只移除标识戳相同的那一项。这可能留下多余的假设（规则比预期弱），但绝不会少掉假设，因此不影响可靠性；同一个证明中的所有项都用 `ks_mk_const` 构造即可避免。"
+msgid "A theorem is a sequent $\\Gamma \\vdash p$: a finite set $\\Gamma$ of propositions (terms of type `bool`) and a proposition $p$. The kernel stores $\\Gamma$ and $p$ as De Bruijn terms and deduplicates hypotheses with `db_term_logical_eq`, so $\\Gamma$ is a set of α-equivalence classes: inserting a hypothesis that is α-equivalent to one already present does nothing (`db_hyps_union`), and DEDUCT_ANTISYM_RULE removes every entry α-equivalent to the given term (`db_hyps_remove`). The comparison ignores constant identity stamps: every checked rule has already shown its premises admissible in one state, where a constant name denotes one identity, so an unstamped occurrence (stamp $-1$, from `mk_const`) and a stamped one (from `ks_mk_const`) of the same constant are the same proposition and are not kept twice."
+msgstr "定理是相继式 $\\Gamma \\vdash p$：由命题（类型为 `bool` 的项）组成的有限集合 $\\Gamma$，以及一个命题 $p$。内核把 $\\Gamma$ 和 $p$ 存储为 De Bruijn 项，并用 `db_term_logical_eq` 对假设去重，因此 $\\Gamma$ 是 α 等价类的集合：插入一个与已有假设 α 等价的假设不会产生任何效果（`db_hyps_union`），DEDUCT_ANTISYM_RULE 也会移除所有与给定项 α 等价的条目（`db_hyps_remove`）。这种比较忽略常量标识戳：每条带检查的规则都已先证明其前提在同一个状态中可容许，而在该状态里一个常量名只对应一个标识，所以同一个常量的未盖戳出现（戳为 $-1$，来自 `mk_const`）和已盖戳出现（来自 `ks_mk_const`）是同一个命题，不会被保留两次。"
 
 #: manual/design/kernel.md:102
 msgid "The intended meaning is the standard semantics of HOL: types denote non-empty sets, $\\mathit{bool}$ denotes $\\{\\top, \\bot\\}$, $\\sigma \\to \\tau$ denotes the full set of functions, $=$ denotes identity and $@$ denotes a choice function. A sequent is *valid* when every model and every valuation of the free variables that make all of $\\Gamma$ true also make $p$ true."
@@ -4313,8 +4313,8 @@ msgid "Invariants maintained by the code"
 msgstr "代码所维持的不变量"
 
 #: manual/design/kernel.md:279
-msgid "A `Thm` stores its hypotheses as a list without duplicates under `db_term_eq` (α-equivalence with equal constant stamps) and its conclusion as a De Bruijn term; every rule result passes `ensure_thm_admissible` in the state it was built in."
-msgstr "`Thm` 将其假设存储为在 `db_term_eq`（α 等价且常量标识戳相同）意义下无重复的列表，将结论存储为 De Bruijn 项；每个规则的结果都要在构造它的状态中通过 `ensure_thm_admissible`。"
+msgid "A `Thm` stores its hypotheses as a list without duplicates under `db_term_logical_eq` (α-equivalence, constant stamps ignored) and its conclusion as a De Bruijn term; every rule result passes `ensure_thm_admissible` in the state it was built in."
+msgstr "`Thm` 将其假设存储为在 `db_term_logical_eq`（α 等价，忽略常量标识戳）意义下无重复的列表，将结论存储为 De Bruijn 项；每个规则的结果都要在构造它的状态中通过 `ensure_thm_admissible`。"
 
 #: manual/design/kernel.md:280
 msgid "`KernelState` is persistent. A gate returns a new state; the base state stays valid, so `ks_conservative_replay_ok(base, extended, th)` can re-check `th` against both."

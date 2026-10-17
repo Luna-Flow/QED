@@ -446,7 +446,7 @@ exchange the resulting theorem.
 
 ## Primitive rules
 
-Each rule takes the kernel state first, checks that its premise theorems are admissible in that state, applies the rule and checks the result. In the rules below $\Gamma, \Delta$ are hypothesis sets, $\equiv_\alpha$ is α-equivalence (constant identities ignored), and $\setminus$ removes every hypothesis α-equivalent to the given term whose constants carry the same identity stamps (see `Thm` above). The [kernel design](../design/kernel.md) explains why each rule is sound.
+Each rule takes the kernel state first, checks that its premise theorems are admissible in that state, applies the rule and checks the result. In the rules below $\Gamma, \Delta$ are hypothesis sets, $\equiv_\alpha$ is α-equivalence (constant identities ignored), and $\setminus$ removes every hypothesis α-equivalent to the given term (constant stamps are ignored, see `Thm` above). The [kernel design](../design/kernel.md) explains why each rule is sound.
 
 ### `refl_checked`
 

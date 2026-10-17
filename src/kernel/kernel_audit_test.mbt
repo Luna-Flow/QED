@@ -330,3 +330,22 @@ test "audit registration rejects witnesses from sibling histories" {
     is Err(InvalidSpecificationWitness),
   )
 }
+
+///|
+test "audit hypotheses are compared as propositions, not by constant stamps" {
+  let bool = bool_ty()
+  let st = expect_ok_sig_audit(
+    ks_add_const(empty_kernel_state(), "c_hyp_stamp", bool),
+  )
+  let c_unstamped = mk_const("c_hyp_stamp", bool) // stamp -1
+  let c_stamped = expect_ok_sig_audit(ks_mk_const(st, "c_hyp_stamp")) // resolved
+  assert_true(term_logical_eq(c_unstamped, c_stamped))
+  let th = expect_ok_audit(assume_checked(st, c_unstamped))
+  // adding the same proposition again does not add a second hypothesis
+  let th2 = expect_ok_audit(add_assum_checked(st, c_stamped, th))
+  assert_eq(thm_hyp_count(th2), 1)
+  // deduct_antisym removes a hypothesis however its constants are stamped
+  let other = expect_ok_audit(assume_checked(st, c_stamped))
+  let d = expect_ok_audit(deduct_antisym_rule_checked(st, th, other))
+  assert_eq(thm_hyp_count(d), 0)
+}

@@ -800,7 +800,7 @@ msgid "Primitive rules"
 msgstr ""
 
 #: manual/api/kernel.md:449
-msgid "Each rule takes the kernel state first, checks that its premise theorems are admissible in that state, applies the rule and checks the result. In the rules below $\\Gamma, \\Delta$ are hypothesis sets, $\\equiv_\\alpha$ is α-equivalence (constant identities ignored), and $\\setminus$ removes every hypothesis α-equivalent to the given term whose constants carry the same identity stamps (see `Thm` above). The [kernel design](../design/kernel.md) explains why each rule is sound."
+msgid "Each rule takes the kernel state first, checks that its premise theorems are admissible in that state, applies the rule and checks the result. In the rules below $\\Gamma, \\Delta$ are hypothesis sets, $\\equiv_\\alpha$ is α-equivalence (constant identities ignored), and $\\setminus$ removes every hypothesis α-equivalent to the given term (constant stamps are ignored, see `Thm` above). The [kernel design](../design/kernel.md) explains why each rule is sound."
 msgstr ""
 
 #: manual/api/kernel.md:453
@@ -4038,7 +4038,7 @@ msgid "Sequents and theorems"
 msgstr ""
 
 #: manual/design/kernel.md:100
-msgid "A theorem is a sequent $\\Gamma \\vdash p$: a finite set $\\Gamma$ of propositions (terms of type `bool`) and a proposition $p$. The kernel stores $\\Gamma$ and $p$ as De Bruijn terms and deduplicates hypotheses with `db_term_eq`, so $\\Gamma$ is a set of α-equivalence classes: inserting a hypothesis that is α-equivalent to one already present does nothing (`db_hyps_union`). Because `db_term_eq` also compares constant stamps, two hypotheses that differ only in the stamp of a constant stay two entries, and DEDUCT_ANTISYM_RULE removes only the entry whose stamps match. This can leave an extra hypothesis (the rule is weaker than intended), never a missing one, so it does not affect soundness; build all terms of one proof with `ks_mk_const` to avoid it."
+msgid "A theorem is a sequent $\\Gamma \\vdash p$: a finite set $\\Gamma$ of propositions (terms of type `bool`) and a proposition $p$. The kernel stores $\\Gamma$ and $p$ as De Bruijn terms and deduplicates hypotheses with `db_term_logical_eq`, so $\\Gamma$ is a set of α-equivalence classes: inserting a hypothesis that is α-equivalent to one already present does nothing (`db_hyps_union`), and DEDUCT_ANTISYM_RULE removes every entry α-equivalent to the given term (`db_hyps_remove`). The comparison ignores constant identity stamps: every checked rule has already shown its premises admissible in one state, where a constant name denotes one identity, so an unstamped occurrence (stamp $-1$, from `mk_const`) and a stamped one (from `ks_mk_const`) of the same constant are the same proposition and are not kept twice."
 msgstr ""
 
 #: manual/design/kernel.md:102
@@ -4295,7 +4295,7 @@ msgid "Invariants maintained by the code"
 msgstr ""
 
 #: manual/design/kernel.md:279
-msgid "A `Thm` stores its hypotheses as a list without duplicates under `db_term_eq` (α-equivalence with equal constant stamps) and its conclusion as a De Bruijn term; every rule result passes `ensure_thm_admissible` in the state it was built in."
+msgid "A `Thm` stores its hypotheses as a list without duplicates under `db_term_logical_eq` (α-equivalence, constant stamps ignored) and its conclusion as a De Bruijn term; every rule result passes `ensure_thm_admissible` in the state it was built in."
 msgstr ""
 
 #: manual/design/kernel.md:280
