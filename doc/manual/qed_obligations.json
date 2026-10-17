@@ -230,6 +230,50 @@
       ]
     },
     {
+      "id": "HOL-ERASE-001",
+      "category": "theory-extension",
+      "normative_statement": "A derivation at a history that begins with a definition yields a derivation at the preceding history in which every occurrence of the defined constant is replaced by its instantiated definition; sequents not mentioning the constant are derivable unchanged.",
+      "requirement_level": "required",
+      "severity": "high",
+      "spec": "doc/attachments/qed_formal_spec.typ",
+      "spec_anchor": "History-Indexed Extension Derivations",
+      "moonbit_api": [
+        "src/kernel/sig.mbt"
+      ],
+      "lean": [
+        {
+          "path": "formal_verification/QEDFV/HOL/Unfold.lean",
+          "symbol": "HistoryDerivation.erase_definition"
+        },
+        {
+          "path": "formal_verification/QEDFV/HOL/Unfold.lean",
+          "symbol": "HistoryDerivation.definition_conservative"
+        }
+      ],
+      "verification": [
+        "Lean induction on history derivations",
+        "Lean annotation-erasure laws for type instantiation"
+      ],
+      "evidence": [
+        "formal_verification/QEDFV/HOL/Unfold.lean",
+        "formal_verification/QEDFV/HOL/TermLaws.lean"
+      ],
+      "status": {
+        "lean": "partial",
+        "moonbit": "not-implemented",
+        "refinement": "not-implemented",
+        "tests": "not-implemented"
+      },
+      "issues": [
+        17
+      ],
+      "assumptions": [],
+      "exclusions": [
+        "Specification and type-definition erasure are not proved.",
+        "Lean does not certify the MoonBit kernel."
+      ]
+    },
+    {
       "id": "HOL-GROW-001",
       "category": "theory-extension",
       "normative_statement": "A finite declaration table records fresh constant allocation and preserves compatibility with the fixed total signature; old declarations remain available after a fresh allocation.",

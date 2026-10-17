@@ -679,6 +679,7 @@ mathematics; it does not prove that this registration procedure is correct.]
   semantic soundness induction does not use, but it is required to form
   well-formed histories. The signature stays total. Consequences that chain the
   derived laws with core rules use `HistoryDerivation`; syntactic erasure of a
+  definition is proved (`HistoryDerivation.erase_definition`), that of a specification, a
   type definition and the kernel's string-name lowering are not provided. The
   carrier proof must not be cited as a
   proof of the kernel's registration procedure.
@@ -2585,6 +2586,26 @@ through `abs`.
 $"es"$ that is derivable at $"es"$ is valid in the canonical base model.]
 
 #lean-proof("ExtensionDerivation", ("extension_derivation_old_language_valid",))
+
+`HistoryDerivation` also has a structural rule that replaces the hypotheses of a derived
+sequent by any list containing them, because hypotheses are a set; the kernel compares them
+logically.
+
+#theorem([Definition erasure])[Let $D$ be a definition gate with identifier $c$ and
+right-hand side $r$, and let $U_D$ replace every occurrence $c_sigma$ of $c$ by the
+instantiated definition $r[sigma]$. If $s$ is derivable at the history $D :: "es"$, then
+$U_D s$ is derivable at $"es"$. Consequently a sequent that does not mention $c$ and is
+derivable at $D :: "es"$ is derivable, unchanged, at $"es"$.]
+
+The proof is by induction on the derivation. Replacement commutes with renaming,
+substitution and type instantiation; the last needs the functor laws of type instantiation
+on closed terms, which are proved through an annotation-preserving erasure to untyped terms.
+The defining equation becomes reflexivity of $r$ because $c$ does not occur in $r$. Erasure
+of specifications (replacing $c$ by $epsilon(lambda x. P)$) and of type definitions is not
+proved here.
+
+#lean-proof("Unfold", ("HistoryDerivation.erase_definition", "HistoryDerivation.definition_conservative"))
+#lean-proof("TermLaws", ("Term.instType_var", "Term.instType_instType"))
 
 The freshness premises of the three introduction clauses serve a separate well-formedness
 condition: they require each declared constant identifier, and for a type definition the

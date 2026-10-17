@@ -37,6 +37,11 @@ inductive HistoryDerivation (S : Signature) :
   | addAssum {es Γ} {A : Sequent S Γ} (p : Term S Γ .bool)
       (d : HistoryDerivation S es A) :
       HistoryDerivation S es { hyps := p :: A.hyps, concl := A.concl }
+  /-- Hypotheses are a set: any list containing the hypotheses of a derived sequent may
+  replace them. The kernel compares hypotheses logically, so this is a structural rule. -/
+  | weakenHyps {es Γ} {A : Sequent S Γ} (L : List (Term S Γ .bool))
+      (hL : ∀ h, h ∈ A.hyps → h ∈ L) (d : HistoryDerivation S es A) :
+      HistoryDerivation S es { hyps := L, concl := A.concl }
   | trans {es Γ} {a : Ty} {A B : Sequent S Γ} {x y z : Term S Γ a}
       (hA : A.concl = x.equal y) (hB : B.concl = y.equal z)
       (dA : HistoryDerivation S es A) (dB : HistoryDerivation S es B) :
@@ -92,6 +97,9 @@ theorem history_derivation_sound (M : Model S) (hM : M.IsLocal)
       exact G.valid_law (interpretModels _ M)
         (fun c _ ↦ interpretModels_isLocal _ hM c) (G.witnessAt_of_valid _ w ih) l
   | addAssum p d ih => exact valid_add_assum (interpretModels _ M).I _ p ih
+  | weakenHyps L hL d ih =>
+      intro ρ hρ η hh
+      exact ih ρ hρ η fun h hmem ↦ hh h (hL h hmem)
   | trans hA hB dA dB ihA ihB =>
       exact valid_trans (interpretModels _ M).I _ _ _ _ _ hA hB ihA ihB
   | mkComb hA hB dA dB ihA ihB =>
