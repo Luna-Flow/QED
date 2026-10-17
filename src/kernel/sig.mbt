@@ -1,20 +1,55 @@
 ///|
-/// Scoped constant signature used for name lookup.
-pub enum GlobalSig {
-  Sig(Array[Array[(String, ConstId, HolType)]])
+/// A constant declared in a scope.
+priv struct SigEntry {
+  name : String
+  id : ConstId
+  ty : HolType
 }
 
 ///|
-fn snapshot_sig(sig : GlobalSig) -> GlobalSig {
-  let Sig(scopes) = sig
-  Sig(
-    scopes.map(fn(scope) {
-      scope.map(fn(entry) {
-        let (name, id, ty) = entry
-        (name, id, snapshot_hol_type(ty))
-      })
-    }),
-  )
+/// One scope: its entries, newest first, and the next fresh identifier of the
+/// signature before the scope was pushed (restored when it is popped).
+priv struct SigScope {
+  entries : @list.List[SigEntry]
+  outer_next : ConstId
+}
+
+///|
+/// A binding of a name in the scope at depth `depth`.
+priv struct SigBinding {
+  depth : Int32
+  entry : SigEntry
+}
+
+///|
+/// Scoped constant signature used for name lookup.
+///
+/// The signature is a persistent value: scopes are a shared list (innermost
+/// first) and every name maps to the stack of its bindings, innermost first, in
+/// a persistent hash map. Looking a name up, declaring a constant, pushing and
+/// popping a scope therefore cost O(log n) in the number of declarations (a pop
+/// is proportional to the size of the popped scope), and the older signature
+/// stays valid and unchanged. Use `sig_scopes` to observe the scopes.
+struct GlobalSig {
+  scopes : @list.List[SigScope]
+  depth : Int32
+  bindings : @hashmap.HashMap[String, @list.List[SigBinding]]
+  next_id : ConstId
+}
+
+///|
+/// The scopes of `sig`, outermost first, each as its entries in declaration
+/// order. The arrays are fresh copies.
+pub fn sig_scopes(sig : GlobalSig) -> Array[Array[(String, ConstId, HolType)]] {
+  sig.scopes
+  .rev()
+  .to_array()
+  .map(fn(scope) {
+    scope.entries
+    .rev()
+    .to_array()
+    .map(fn(e) { (e.name, e.id, snapshot_hol_type(e.ty)) })
+  })
 }
 
 ///|
@@ -67,13 +102,13 @@ pub type ExtensionCert = (ExtensionGate, Array[String], String)
 
 ///|
 priv struct TheoryState {
-  def_heads : Array[String]
-  def_theorems : Array[(String, Thm)]
+  def_heads : @hashmap.HashMap[String, Unit]
+  def_theorems : @hashmap.HashMap[String, Thm]
   witnessed_tycons : Array[(String, Int32)]
   type_rep_heads : Array[String]
   type_abs_heads : Array[String]
   typedef_contracts : Array[(String, Thm, Thm, Thm)]
-  extension_certs : Array[ExtensionCert]
+  extension_certs : @hashmap.HashMap[Int32, ExtensionCert]
   ind_infinity_axiom : Thm?
   next_const_id : ConstId
   lineage : LineageNode
@@ -142,7 +177,9 @@ fn advance_lineage(state : KernelState, event : String) -> KernelState {
 
 ///|
 fn initial_sig() -> GlobalSig {
-  Sig([[("@", 0, choice_schema_ty())]])
+  // `@` is a reserved symbol, so it is declared directly, not through the
+  // checked addition functions.
+  sig_declare(empty_sig(), "@", choice_schema_ty(), 0)
 }
 
 ///|
@@ -152,8 +189,10 @@ fn append_extension_cert(
   heads : Array[String],
   witness_digest : String,
 ) -> KernelState {
-  let certs = state.theory.extension_certs.copy()
-  certs.push((gate, heads.copy(), witness_digest))
+  let certs = state.theory.extension_certs.add(
+    state.theory.extension_certs.length(),
+    (gate, heads.copy(), witness_digest),
+  )
   let next = KernelState::{
     sig: state.sig,
     theory: TheoryState::{
@@ -182,65 +221,82 @@ fn append_extension_cert(
 
 ///|
 pub fn empty_sig() -> GlobalSig {
-  Sig([[]])
+  {
+    scopes: @list.List([SigScope::{ entries: @list.List([]), outer_next: 0, }]),
+    depth: 1,
+    bindings: @hashmap.HashMap([]),
+    next_id: 0,
+  }
 }
 
 ///|
 pub fn sig_push_scope(sig : GlobalSig) -> GlobalSig {
-  match snapshot_sig(sig) {
-    Sig(scopes) => {
-      let out = scopes.copy()
-      out.push([])
-      Sig(out)
-    }
+  {
+    scopes: sig.scopes.prepend(SigScope::{
+      entries: @list.List([]),
+      outer_next: sig.next_id,
+    }),
+    depth: sig.depth + 1,
+    bindings: sig.bindings,
+    next_id: sig.next_id,
   }
 }
 
 ///|
 fn sig_pop_scope(sig : GlobalSig) -> GlobalSig? {
-  match sig {
-    Sig(scopes) =>
-      if scopes.length() <= 1 {
-        None
-      } else {
-        let out = scopes.copy()
-        let _ = out.pop()
-        Some(Sig(out))
+  if sig.depth <= 1 {
+    return None
+  }
+  match sig.scopes.head() {
+    None => None
+    Some(top) => {
+      // Remove the innermost binding of every name declared in the popped scope.
+      let mut bindings = sig.bindings
+      for entry in top.entries {
+        match bindings.get(entry.name) {
+          Some(stack) => {
+            let rest = stack.unsafe_tail()
+            bindings = if rest.is_empty() {
+              bindings.remove(entry.name)
+            } else {
+              bindings.add(entry.name, rest)
+            }
+          }
+          None => ()
+        }
       }
+      Some({
+        scopes: sig.scopes.unsafe_tail(),
+        depth: sig.depth - 1,
+        bindings,
+        next_id: top.outer_next,
+      })
+    }
   }
 }
 
 ///|
 pub fn sig_pop_scope_e(sig : GlobalSig) -> Result[GlobalSig, SigError] {
   match sig_pop_scope(sig) {
-    Some(sig2) => Ok(snapshot_sig(sig2))
+    Some(sig2) => Ok(sig2)
     None => Err(ScopeUnderflow)
   }
 }
 
 ///|
-fn lookup_in_scope(
-  scope : Array[(String, ConstId, HolType)],
-  name : String,
-) -> (ConstId, HolType)? {
-  for entry in scope {
-    let (n, id, ty) = entry
-    if n == name {
-      return Some((id, ty))
-    }
-  }
-  None
-}
-
-///|
 fn current_scope_lookup(sig : GlobalSig, name : String) -> (ConstId, HolType)? {
-  match sig {
-    Sig(scopes) =>
-      if scopes.length() == 0 {
-        None
-      } else {
-        lookup_in_scope(scopes[scopes.length() - 1], name)
+  match sig.bindings.get(name) {
+    Some(stack) =>
+      match stack.head() {
+        Some(b) =>
+          if b.depth == sig.depth {
+            Some((b.entry.id, b.entry.ty))
+          } else {
+            None
+          }
+        None => None
       }
+    None => None
   }
 }
 
@@ -270,36 +326,53 @@ fn sig_lookup_const_with_id(
   sig : GlobalSig,
   name : String,
 ) -> (ConstId, HolType)? {
-  match sig {
-    Sig(scopes) => {
-      let mut i = scopes.length()
-      while i > 0 {
-        i = i - 1
-        match lookup_in_scope(scopes[i], name) {
-          Some((id, ty)) => return Some((id, ty))
-          None => ()
-        }
+  match sig.bindings.get(name) {
+    Some(stack) =>
+      match stack.head() {
+        Some(b) => Some((b.entry.id, b.entry.ty))
+        None => None
       }
-      None
-    }
+    None => None
   }
 }
 
 ///|
-fn sig_next_const_id(sig : GlobalSig) -> ConstId {
-  let mut next = 0
-  match sig {
-    Sig(scopes) =>
-      for scope in scopes {
-        for entry in scope {
-          let (_, id, _) = entry
-          if id >= next {
-            next = id + 1
-          }
-        }
-      }
+/// Declare `name : ty` with identifier `id` in the innermost scope. The caller has
+/// checked that the name is not reserved and not declared in that scope.
+fn sig_declare(
+  sig : GlobalSig,
+  name : String,
+  ty : HolType,
+  id : ConstId,
+) -> GlobalSig {
+  let entry = SigEntry::{ name, id, ty: snapshot_hol_type(ty), }
+  let top = match sig.scopes.head() {
+    Some(t) => t
+    None => panic()
   }
-  next
+  let scopes = sig.scopes
+    .unsafe_tail()
+    .prepend(SigScope::{
+      entries: top.entries.prepend(entry),
+      outer_next: top.outer_next,
+    })
+  let stack = match sig.bindings.get(name) {
+    Some(st) => st
+    None => @list.List([])
+  }
+  {
+    scopes,
+    depth: sig.depth,
+    bindings: sig.bindings.add(
+      name,
+      stack.prepend(SigBinding::{ depth: sig.depth, entry, }),
+    ),
+    next_id: if id >= sig.next_id {
+      id + 1
+    } else {
+      sig.next_id
+    },
+  }
 }
 
 ///|
@@ -309,20 +382,7 @@ fn sig_add_const(sig : GlobalSig, name : String, ty : HolType) -> GlobalSig? {
   }
   match current_scope_lookup(sig, name) {
     Some(_) => None
-    None =>
-      match sig {
-        Sig(scopes) =>
-          if scopes.length() == 0 {
-            None
-          } else {
-            let id = sig_next_const_id(sig)
-            let out = scopes.copy()
-            let top = out[out.length() - 1].copy()
-            top.push((name, id, snapshot_hol_type(ty)))
-            out[out.length() - 1] = top
-            Some(Sig(out))
-          }
-      }
+    None => Some(sig_declare(sig, name, ty, sig.next_id))
   }
 }
 
@@ -338,19 +398,7 @@ fn sig_add_const_with_id(
   }
   match current_scope_lookup(sig, name) {
     Some(_) => Err(DuplicateConstName)
-    None =>
-      match sig {
-        Sig(scopes) =>
-          if scopes.length() == 0 {
-            Err(ScopeUnderflow)
-          } else {
-            let out = scopes.copy()
-            let top = out[out.length() - 1].copy()
-            top.push((name, id, snapshot_hol_type(ty)))
-            out[out.length() - 1] = top
-            Ok(Sig(out))
-          }
-      }
+    None => Ok(sig_declare(sig, name, ty, id))
   }
 }
 
@@ -366,13 +414,13 @@ pub fn sig_add_const_idempotent_e(
   match current_scope_lookup(sig, name) {
     Some((_, existing)) =>
       if ty_eq(existing, ty) {
-        Ok(snapshot_sig(sig))
+        Ok(sig)
       } else {
         Err(ConstTypeConflict)
       }
     None =>
       match sig_add_const(sig, name, ty) {
-        Some(sig2) => Ok(snapshot_sig(sig2))
+        Some(sig2) => Ok(sig2)
         None => Err(DuplicateConstName)
       }
   }
@@ -443,13 +491,13 @@ pub fn empty_kernel_state() -> KernelState {
   KernelState::{
     sig: initial_sig(),
     theory: TheoryState::{
-      def_heads: [],
-      def_theorems: [],
+      def_heads: @hashmap.new(),
+      def_theorems: @hashmap.new(),
       witnessed_tycons: [("ind", 0)],
       type_rep_heads: [],
       type_abs_heads: [],
       typedef_contracts: [],
-      extension_certs: [],
+      extension_certs: @hashmap.new(),
       ind_infinity_axiom: None,
       next_const_id: 1,
       lineage: lineage_root(),
@@ -459,7 +507,7 @@ pub fn empty_kernel_state() -> KernelState {
 
 ///|
 pub fn ks_sig(state : KernelState) -> GlobalSig {
-  snapshot_sig(state.sig)
+  state.sig
 }
 
 ///|
@@ -570,21 +618,7 @@ pub fn ks_add_const(
 
 ///|
 pub fn ks_has_def_head(state : KernelState, name : String) -> Bool {
-  state.theory.def_heads.contains(name)
-}
-
-///|
-fn lookup_definition_theorem(
-  defs : Array[(String, Thm)],
-  name : String,
-) -> Thm? {
-  for item in defs {
-    let (n, th) = item
-    if n == name {
-      return Some(th)
-    }
-  }
-  None
+  state.theory.def_heads.get(name) is Some(_)
 }
 
 ///|
@@ -592,7 +626,7 @@ pub fn ks_definition_theorem(
   state : KernelState,
   name : String,
 ) -> Result[Thm, SigError] {
-  match lookup_definition_theorem(state.theory.def_theorems, name) {
+  match state.theory.def_theorems.get(name) {
     Some(th) => Ok(th)
     None => Err(UnknownConst)
   }
@@ -657,11 +691,9 @@ pub fn ks_extension_cert_count(state : KernelState) -> Int32 {
 
 ///|
 pub fn ks_extension_cert_at(state : KernelState, idx : Int32) -> ExtensionCert? {
-  if idx < 0 || idx >= state.theory.extension_certs.length() {
-    None
-  } else {
-    let (gate, heads, digest) = state.theory.extension_certs[idx]
-    Some((gate, heads.copy(), digest))
+  match state.theory.extension_certs.get(idx) {
+    Some((gate, heads, digest)) => Some((gate, heads.copy(), digest))
+    None => None
   }
 }
 
@@ -1344,9 +1376,8 @@ pub fn ks_define_const(
             Some(c) =>
               match mk_eq(c, rhs) {
                 Ok(def_eq) => {
-                  let def_heads = state.theory.def_heads.copy()
-                  def_heads.push(name)
-                  let def_theorems = state.theory.def_theorems.copy()
+                  let def_heads = state.theory.def_heads.add(name, ())
+                  let mut def_theorems = state.theory.def_theorems
                   let state2 = KernelState::{
                     sig: sig2,
                     theory: TheoryState::{
@@ -1375,7 +1406,7 @@ pub fn ks_define_const(
                       match
                         thm_bind_const_ids(state2, mk_def_thm(name, eq_db)) {
                         Ok(def_th) => {
-                          def_theorems.push((name, def_th))
+                          def_theorems = def_theorems.add(name, def_th)
                           thm_to_string(def_th)
                         }
                         Err(_) => return Err(InvalidConstRhs)

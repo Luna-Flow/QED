@@ -971,3 +971,78 @@ test "kernel state exposes schema-checked instance constructor" {
     is Err(InvalidConstInstance),
   )
 }
+
+///|
+test "sig versions are persistent: later additions do not affect earlier values" {
+  let bool = bool_ty()
+  let base = expect_ok_sig(sig_add_const_idempotent_e(empty_sig(), "p", bool))
+  let extended = expect_ok_sig(sig_add_const_idempotent_e(base, "q", bool))
+  assert_true(sig_lookup_const(base, "q") is None)
+  assert_true(sig_lookup_const(extended, "q") is Some(_))
+  assert_true(
+    sig_lookup_const_id(extended, "p") == sig_lookup_const_id(base, "p"),
+  )
+  let inner = sig_push_scope(extended)
+  let shadowed = expect_ok_sig(
+    sig_add_const_idempotent_e(inner, "p", mk_tyvar("A")),
+  )
+  assert_true(sig_lookup_const(extended, "p") is Some(TyApp("bool", [])))
+  assert_true(sig_lookup_const(shadowed, "p") is Some(TyVal("A")))
+}
+
+///|
+test "sig pop restores every shadowed name and the id counter" {
+  let bool = bool_ty()
+  let mut sig = expect_ok_sig(
+    sig_add_const_idempotent_e(empty_sig(), "x", bool),
+  )
+  sig = expect_ok_sig(sig_add_const_idempotent_e(sig, "y", bool))
+  let outer_ids = (sig_lookup_const_id(sig, "x"), sig_lookup_const_id(sig, "y"))
+  let before = expect_ok_sig(
+    sig_add_const_idempotent_e(sig_push_scope(sig), "z", bool),
+  )
+  let inner = sig_push_scope(sig)
+  let inner = expect_ok_sig(
+    sig_add_const_idempotent_e(inner, "x", mk_tyvar("A")),
+  )
+  let inner = expect_ok_sig(
+    sig_add_const_idempotent_e(inner, "y", mk_tyvar("B")),
+  )
+  let inner = expect_ok_sig(sig_add_const_idempotent_e(inner, "z", bool))
+  let popped = expect_ok_sig(sig_pop_scope_e(inner))
+  assert_true(sig_lookup_const(popped, "x") is Some(TyApp("bool", [])))
+  assert_true(sig_lookup_const(popped, "y") is Some(TyApp("bool", [])))
+  assert_true(sig_lookup_const(popped, "z") is None)
+  assert_true(
+    (sig_lookup_const_id(popped, "x"), sig_lookup_const_id(popped, "y")) ==
+    outer_ids,
+  )
+  // The id counter is restored, so the next declaration reuses the id the
+  // popped scope had taken.
+  let again = expect_ok_sig(
+    sig_add_const_idempotent_e(sig_push_scope(popped), "z", bool),
+  )
+  assert_true(
+    sig_lookup_const_id(again, "z") == sig_lookup_const_id(before, "z"),
+  )
+}
+
+///|
+test "kernel states stay independent across thousands of definitions" {
+  let bool = bool_ty()
+  let seed = expect_ok_sig(sig_add_const_idempotent_e(empty_sig(), "t", bool))
+  let mut sig = seed
+  let mut mid = seed
+  for i in 0..<3000 {
+    sig = expect_ok_sig(
+      sig_add_const_idempotent_e(sig, "c" + i.to_string(), bool),
+    )
+    if i == 1499 {
+      mid = sig
+    }
+  }
+  assert_true(sig_lookup_const(sig, "c2999") is Some(_))
+  assert_true(sig_lookup_const(mid, "c1499") is Some(_))
+  assert_true(sig_lookup_const(mid, "c1500") is None)
+  assert_true(sig_lookup_const(seed, "c0") is None)
+}

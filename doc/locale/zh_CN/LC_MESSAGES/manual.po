@@ -984,8 +984,8 @@ msgid "`GlobalSig` and `ConstId`"
 msgstr "`GlobalSig` 和 `ConstId`"
 
 #: manual/api/kernel.md:776
-msgid "`GlobalSig` is a stack of scopes, innermost last; each scope lists name, identity and schema. `ConstId` is the integer identity of a declared constant."
-msgstr "`GlobalSig` 是作用域的栈，最内层在最后；每个作用域列出名称、标识和模式。`ConstId` 是已声明常量的整数标识。"
+msgid "`GlobalSig` is an opaque persistent value: a stack of scopes (innermost last) whose entries carry name, identity and schema. Lookup, addition, pushing and popping take time logarithmic in the number of declarations, and every earlier signature value stays valid and unchanged. `sig_scopes` returns a copy of the scopes for inspection, outermost first. `ConstId` is the integer identity of a declared constant."
+msgstr "`GlobalSig` 是不透明的持久值：一个作用域栈（最内层在最后），其条目携带名字、标识和模式。查找、添加、压入和弹出的耗时与声明数呈对数关系，且此前的每个签名值都保持有效、不被改变。`sig_scopes` 返回作用域的副本以供检查，最外层在前。`ConstId` 是已声明常量的整数标识。"
 
 #: manual/api/kernel.md:786
 msgid "`empty_sig`, `sig_push_scope` and `sig_pop_scope_e`"
@@ -8721,6 +8721,9 @@ msgstr "[tactics 设计](../design/tactics.md)解释了论证 (justification)，
 #: manual/tutorial/tactics.md:179
 msgid "The [prover tutorial](prover.md) runs the same proofs from scripts."
 msgstr "[prover 教程](prover.md)从脚本运行相同的证明。"
+
+#~ msgid "`GlobalSig` is a stack of scopes, innermost last; each scope lists name, identity and schema. `ConstId` is the integer identity of a declared constant."
+#~ msgstr "`GlobalSig` 是作用域的栈，最内层在最后；每个作用域列出名称、标识和模式。`ConstId` 是已声明常量的整数标识。"
 
 #~ msgid "No constant named $c$ occurs in $t$, directly or through earlier definitions"
 #~ msgstr "$t$ 中不出现名为 $c$ 的常量，无论是直接出现还是经由先前的定义"

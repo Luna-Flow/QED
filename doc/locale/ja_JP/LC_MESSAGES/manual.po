@@ -984,8 +984,8 @@ msgid "`GlobalSig` and `ConstId`"
 msgstr "`GlobalSig` と `ConstId`"
 
 #: manual/api/kernel.md:776
-msgid "`GlobalSig` is a stack of scopes, innermost last; each scope lists name, identity and schema. `ConstId` is the integer identity of a declared constant."
-msgstr "`GlobalSig` はスコープのスタックで、最も内側が末尾に来る。各スコープは名前、同一性、スキーマを列挙する。`ConstId` は宣言された定数の整数の同一性である。"
+msgid "`GlobalSig` is an opaque persistent value: a stack of scopes (innermost last) whose entries carry name, identity and schema. Lookup, addition, pushing and popping take time logarithmic in the number of declarations, and every earlier signature value stays valid and unchanged. `sig_scopes` returns a copy of the scopes for inspection, outermost first. `ConstId` is the integer identity of a declared constant."
+msgstr "`GlobalSig` は不透明な永続値で、スコープのスタック（最も内側が末尾）であり、各エントリは名前、識別子、スキーマを持ちます。参照・追加・プッシュ・ポップは宣言数に対して対数時間で行われ、以前のシグネチャ値はすべて有効なまま変更されません。`sig_scopes` は検査用にスコープのコピーを最も外側から順に返します。`ConstId` は宣言された定数の整数識別子です。"
 
 #: manual/api/kernel.md:786
 msgid "`empty_sig`, `sig_push_scope` and `sig_pop_scope_e`"
@@ -8721,6 +8721,9 @@ msgstr "[tactics 設計](../design/tactics.md)は、正当化と、不正なス�
 #: manual/tutorial/tactics.md:179
 msgid "The [prover tutorial](prover.md) runs the same proofs from scripts."
 msgstr "[prover チュートリアル](prover.md)は、同じ証明をスクリプトから実行する。"
+
+#~ msgid "`GlobalSig` is a stack of scopes, innermost last; each scope lists name, identity and schema. `ConstId` is the integer identity of a declared constant."
+#~ msgstr "`GlobalSig` はスコープのスタックで、最も内側が末尾に来る。各スコープは名前、同一性、スキーマを列挙する。`ConstId` は宣言された定数の整数の同一性である。"
 
 #~ msgid "No constant named $c$ occurs in $t$, directly or through earlier definitions"
 #~ msgstr "$c$ という名前の定数が、直接にも以前の定義を経由しても $t$ に現れない"

@@ -984,7 +984,7 @@ msgid "`GlobalSig` and `ConstId`"
 msgstr ""
 
 #: manual/api/kernel.md:776
-msgid "`GlobalSig` is a stack of scopes, innermost last; each scope lists name, identity and schema. `ConstId` is the integer identity of a declared constant."
+msgid "`GlobalSig` is an opaque persistent value: a stack of scopes (innermost last) whose entries carry name, identity and schema. Lookup, addition, pushing and popping take time logarithmic in the number of declarations, and every earlier signature value stays valid and unchanged. `sig_scopes` returns a copy of the scopes for inspection, outermost first. `ConstId` is the integer identity of a declared constant."
 msgstr ""
 
 #: manual/api/kernel.md:786

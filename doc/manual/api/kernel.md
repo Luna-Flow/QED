@@ -773,12 +773,12 @@ A `GlobalSig` is the scoped constant table on its own, without the theory histor
 
 ### `GlobalSig` and `ConstId`
 
-`GlobalSig` is a stack of scopes, innermost last; each scope lists name, identity and schema. `ConstId` is the integer identity of a declared constant.
+`GlobalSig` is an opaque persistent value: a stack of scopes (innermost last) whose entries carry name, identity and schema. Lookup, addition, pushing and popping take time logarithmic in the number of declarations, and every earlier signature value stays valid and unchanged. `sig_scopes` returns a copy of the scopes for inspection, outermost first. `ConstId` is the integer identity of a declared constant.
 
 ```mbti
-pub enum GlobalSig {
-  Sig(Array[Array[(String, Int, HolType)]])
-}
+type GlobalSig
+
+pub fn sig_scopes(GlobalSig) -> Array[Array[(String, Int, HolType)]]
 
 pub type ConstId = Int
 ```

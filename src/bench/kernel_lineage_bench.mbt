@@ -6,7 +6,7 @@
 ///
 ///   moon run src/bench --target native --release
 ///
-/// The first group measures building a state after 0, 100, 300 and 500
+/// The first group measures building a state after 0, 100, 300, 500, 2000 and 5000
 /// definitions. The second group measures one checked INST call against a
 /// theorem admitted at each corresponding lineage length. `Bench::keep` is
 /// called inside every timed callback so the optimizer cannot discard the
@@ -86,7 +86,7 @@ fn main {
   println(
     "kernel_lineage_bench toolchain=moon-0.1.20261012 moonc-0.10.15 target=native release=true",
   )
-  let sizes = [0, 100, 300, 500]
+  let sizes = [0, 100, 300, 500, 2000, 5000]
   let states = sizes.map(fn(size) { (size, build_state(size)) })
 
   let build_bench = @core_bench.Bench()
