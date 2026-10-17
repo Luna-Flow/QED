@@ -50,14 +50,14 @@ Header binders `(x : A)` become locals of the goal. The steps run in order; a st
 
 ### `prove_theorem_script` and `prove_theorem_script_with_diagnostics`
 
-These functions run one script and return the theorem and the state, or the failure or unfinished report as an error.
+`prove_theorem_script` runs one script and returns the theorem and the state, or the failure or unfinished report as an error. `prove_theorem_script_with_diagnostics` is a deprecated alias of it.
 
 ```mbti
 pub fn prove_theorem_script(@kernel.KernelState, String, ProverOptions) -> Result[(@kernel.KernelState, @kernel.Thm), ProverScriptError]
 pub fn prove_theorem_script_with_diagnostics(@kernel.KernelState, String, ProverOptions) -> Result[(@kernel.KernelState, @kernel.Thm), ProverScriptError]
 ```
 
-The two functions currently behave identically; both carry the full diagnostics in `ProverScriptError`. The returned state is the state the proof ran in, with the prelude installed when requested; proved theorems are not added to it.
+The two functions behave identically; both carry the full diagnostics in `ProverScriptError`, so new code should call `prove_theorem_script`, and `prove_theorem_script_with_diagnostics` is marked `#deprecated` and will be removed in a later release. The returned state is the state the proof ran in, with the prelude installed when requested; proved theorems are not added to it.
 
 ### `prove_theorem_file_results_detailed`
 

@@ -1164,16 +1164,16 @@ pub fn prove_theorem_file_results_detailed(
 }
 
 ///|
+/// Deprecated alias of `prove_theorem_script`: both return the full
+/// `ProverScriptError`, so the `_with_diagnostics` name promised something the
+/// other function did not lack.
+#deprecated("use prove_theorem_script; both return the full diagnostics")
 pub fn prove_theorem_script_with_diagnostics(
   state : KernelState,
   src : String,
   opts : ProverOptions,
 ) -> Result[(KernelState, Thm), ProverScriptError] {
-  match prove_theorem_script_detailed(state, src, opts) {
-    Proved(ok) => Ok((ok.state, ok.thm))
-    Failed(err) => Err(Failure(err))
-    Unfinished(unfinished) => Err(Unfinished(unfinished))
-  }
+  prove_theorem_script(state, src, opts)
 }
 
 ///|

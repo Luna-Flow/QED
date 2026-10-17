@@ -2062,12 +2062,12 @@ msgid "`prove_theorem_script` and `prove_theorem_script_with_diagnostics`"
 msgstr "`prove_theorem_script` 与 `prove_theorem_script_with_diagnostics`"
 
 #: manual/api/prover.md:53
-msgid "These functions run one script and return the theorem and the state, or the failure or unfinished report as an error."
-msgstr "这些函数运行一个脚本，返回定理和状态，或将失败或未完成报告作为错误返回。"
+msgid "`prove_theorem_script` runs one script and returns the theorem and the state, or the failure or unfinished report as an error. `prove_theorem_script_with_diagnostics` is a deprecated alias of it."
+msgstr "`prove_theorem_script` 运行一个脚本，返回定理和状态，或将失败或未完成报告作为错误返回。`prove_theorem_script_with_diagnostics` 是它的已弃用别名。"
 
 #: manual/api/prover.md:60
-msgid "The two functions currently behave identically; both carry the full diagnostics in `ProverScriptError`. The returned state is the state the proof ran in, with the prelude installed when requested; proved theorems are not added to it."
-msgstr "这两个函数目前行为相同；两者都在 `ProverScriptError` 中携带完整诊断。返回的状态就是证明运行时所在的状态，在被要求时已安装前奏；证明出的定理不会加入其中。"
+msgid "The two functions behave identically; both carry the full diagnostics in `ProverScriptError`, so new code should call `prove_theorem_script`, and `prove_theorem_script_with_diagnostics` is marked `#deprecated` and will be removed in a later release. The returned state is the state the proof ran in, with the prelude installed when requested; proved theorems are not added to it."
+msgstr "这两个函数行为相同；两者都在 `ProverScriptError` 中携带完整诊断，因此新代码应调用 `prove_theorem_script`，而 `prove_theorem_script_with_diagnostics` 已标记为 `#deprecated`，将在后续版本中移除。返回的状态就是证明运行时所在的状态，在被要求时已安装前奏；证明出的定理不会加入其中。"
 
 #: manual/api/prover.md:64
 msgid "`prove_theorem_file_results_detailed(state, src, opts)` runs every theorem of a file whose theorems are separated by `qed` lines, and returns one result per theorem."

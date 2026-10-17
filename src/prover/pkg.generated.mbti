@@ -46,6 +46,7 @@ pub fn prove_theorem_script(@kernel.KernelState, String, ProverOptions) -> Resul
 
 pub fn prove_theorem_script_detailed(@kernel.KernelState, String, ProverOptions) -> ProverRunResult
 
+#deprecated
 pub fn prove_theorem_script_with_diagnostics(@kernel.KernelState, String, ProverOptions) -> Result[(@kernel.KernelState, @kernel.Thm), ProverScriptError]
 
 pub fn prover_local_hyp(String, @kernel.Term) -> ProverLocalHyp
