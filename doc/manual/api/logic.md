@@ -217,11 +217,11 @@ pub fn logic_prop_def_rhs(@kernel.Thm) -> Result[@kernel.Term, @kernel.LogicErro
 pub fn logic_prop_unfold_head(@kernel.KernelState, @kernel.Thm, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
 ```
 
-The head must be the defined constant, applied to at most two arguments; otherwise the function fails with `AlphaMismatch` or `TypeMismatch`. Only a redex at the very head is contracted. With one argument, $(\lambda x.\,b)\,a$ is such a redex and the result is $b[a/x]$; with two arguments the head is $((\lambda x\,y.\,b)\,a_1)\,a_2$, whose function part is not an abstraction, so the conclusion stays unreduced. Apply `logic_normalize_prop_beta` to reach the basis form.
+The head must be the defined constant, applied to at most two arguments; otherwise the function fails with `AlphaMismatch` or `TypeMismatch`. Redexes along the application spine are contracted. With one argument, $(\lambda x.\,b)\,a$ is a head redex and the result is $b[a/x]$; with two arguments the head is $((\lambda x\,y.\,b)\,a_1)\,a_2$, whose function part $(\lambda x\,y.\,b)\,a_1$ is contracted first to $\lambda y.\,b[a_1/x]$ and then the head redex, so the conclusion is the basis form $b[a_1/x][a_2/y]$.
 
 ### `logic_prop_unfold_imp`, `logic_prop_unfold_not`, `logic_prop_unfold_and` and `logic_prop_unfold_or`
 
-These functions are `logic_prop_unfold_head` with the definition of one connective constant. `logic_prop_unfold_not` turns $\Gamma \vdash \mathit{not}\,p$ into $\Gamma \vdash \neg p$ in basis form; the two-argument forms return the unreduced application described above.
+These functions are `logic_prop_unfold_head` with the definition of one connective constant. `logic_prop_unfold_not` turns $\Gamma \vdash \mathit{not}\,p$ into $\Gamma \vdash \neg p$ in basis form, and the two-argument forms return the basis form of the connective as well.
 
 ```mbti
 pub fn logic_prop_unfold_imp(@kernel.KernelState, PropPrelude, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
@@ -242,9 +242,9 @@ test "unfold" {
   let and_pq = @kernel.mk_comb(@kernel.mk_comb(and_c, p), q)
   let th = @logic.logic_assume(st, and_pq).unwrap()
   let unfolded = @logic.logic_prop_unfold_and(st, pre, th).unwrap()
-  // the definition is substituted, but (λp q. ...) p q is not yet reduced
+  // the definition is substituted and reduced to the basis form
   let basis = @logic.prop_mk_and(st, pre, p, q).unwrap()
-  inspect(@kernel.term_alpha_eq(@kernel.thm_concl(unfolded).unwrap(), basis), content="false")
+  inspect(@kernel.term_alpha_eq(@kernel.thm_concl(unfolded).unwrap(), basis), content="true")
   let reduced = @logic.logic_normalize_prop_beta(st, unfolded).unwrap()
   inspect(@kernel.term_alpha_eq(@kernel.thm_concl(reduced).unwrap(), basis), content="true")
 }
@@ -364,7 +364,7 @@ pub fn logic_apply_fun_eq2(@kernel.KernelState, @kernel.Thm, @kernel.Term, @kern
 
 ### `logic_beta_normalize_eq` and `logic_normalize_prop_beta`
 
-`logic_beta_normalize_eq` contracts head β-redexes of the right-hand side of an equation for as long as the right-hand side is one: from $\Gamma \vdash s = t$ it proves $\Gamma \vdash s = t'$. `logic_normalize_prop_beta` reduces the conclusion of a theorem more thoroughly: it repeatedly contracts the leftmost-outermost redex found along application spines (not under abstractions), up to 512 steps, and from $\Gamma \vdash c$ proves $\Gamma \vdash c'$.
+`logic_beta_normalize_eq` contracts the β-redexes along the application spine of the right-hand side of an equation (the head redex, or a redex in the function part of an application) for as long as there is one: from $\Gamma \vdash s = t$ it proves $\Gamma \vdash s = t'$. `logic_normalize_prop_beta` reduces the conclusion of a theorem more thoroughly: it repeatedly contracts the leftmost-outermost redex found along application spines (not under abstractions), up to 512 steps, and from $\Gamma \vdash c$ proves $\Gamma \vdash c'$.
 
 ```mbti
 pub fn logic_beta_normalize_eq(@kernel.KernelState, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]

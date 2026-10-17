@@ -229,6 +229,35 @@ pub fn logic_normalize_prop_beta(
 }
 
 ///|
+/// One β-step along the function spine of `term`: contracts the redex at the head
+/// (`(λx. t) a`), or, when the head is an application, the first redex inside its
+/// function part, so that `((λp q. b) a) c` reduces to `(λq. b[a/p]) c`. Returns
+/// `Some(⊢ term = term')`, or `None` when the spine has no redex.
+fn beta_spine_step(
+  state : KernelState,
+  term : Term,
+) -> Result[Thm?, LogicError] {
+  match logic_beta_rule(state, term) {
+    Ok(th_beta) => Ok(Some(th_beta))
+    Err(NotTrivialBetaRedex) =>
+      match dest_comb(term) {
+        Some((f, x)) =>
+          match beta_spine_step(state, f) {
+            Ok(Some(th_f)) =>
+              match logic_apply_fun_eq(state, th_f, x) {
+                Ok(th) => Ok(Some(th))
+                Err(e) => Err(e)
+              }
+            Ok(None) => Ok(None)
+            Err(e) => Err(e)
+          }
+        None => Ok(None)
+      }
+    Err(e) => Err(e)
+  }
+}
+
+///|
 fn beta_normalize_eq_go(
   state : KernelState,
   th_eq : Thm,
@@ -241,15 +270,15 @@ fn beta_normalize_eq_go(
       }
     Err(e) => return Err(e)
   }
-  match logic_beta_rule(state, rhs) {
-    Ok(th_beta) => {
+  match beta_spine_step(state, rhs) {
+    Ok(Some(th_beta)) => {
       let th2 = match logic_trans(state, th_eq, th_beta) {
         Ok(v) => v
         Err(e) => return Err(e)
       }
       beta_normalize_eq_go(state, th2)
     }
-    Err(NotTrivialBetaRedex) => Ok(th_eq)
+    Ok(None) => Ok(th_eq)
     Err(e) => Err(e)
   }
 }

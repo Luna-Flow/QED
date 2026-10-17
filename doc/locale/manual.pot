@@ -1349,7 +1349,7 @@ msgid "`logic_prop_unfold_head(state, th_def, th)` replaces the head constant of
 msgstr ""
 
 #: manual/api/logic.md:220
-msgid "The head must be the defined constant, applied to at most two arguments; otherwise the function fails with `AlphaMismatch` or `TypeMismatch`. Only a redex at the very head is contracted. With one argument, $(\\lambda x.\\,b)\\,a$ is such a redex and the result is $b[a/x]$; with two arguments the head is $((\\lambda x\\,y.\\,b)\\,a_1)\\,a_2$, whose function part is not an abstraction, so the conclusion stays unreduced. Apply `logic_normalize_prop_beta` to reach the basis form."
+msgid "The head must be the defined constant, applied to at most two arguments; otherwise the function fails with `AlphaMismatch` or `TypeMismatch`. Redexes along the application spine are contracted. With one argument, $(\\lambda x.\\,b)\\,a$ is a head redex and the result is $b[a/x]$; with two arguments the head is $((\\lambda x\\,y.\\,b)\\,a_1)\\,a_2$, whose function part $(\\lambda x\\,y.\\,b)\\,a_1$ is contracted first to $\\lambda y.\\,b[a_1/x]$ and then the head redex, so the conclusion is the basis form $b[a_1/x][a_2/y]$."
 msgstr ""
 
 #: manual/api/logic.md:222
@@ -1359,7 +1359,7 @@ msgstr ""
 #: manual/api/logic.md:224
 msgid ""
 "These functions are `logic_prop_unfold_head` with the definition of one connective constant. `logic_prop_unfold_not` turns $\\Gamma \\vdash \\mathit{not}\\,p$ into $\\Gamma \\vdash \\n"
-"eg p$ in basis form; the two-argument forms return the unreduced application described above."
+"eg p$ in basis form, and the two-argument forms return the basis form of the connective as well."
 msgstr ""
 
 #: manual/api/logic.md:253
@@ -1467,7 +1467,7 @@ msgid "`logic_beta_normalize_eq` and `logic_normalize_prop_beta`"
 msgstr ""
 
 #: manual/api/logic.md:367
-msgid "`logic_beta_normalize_eq` contracts head β-redexes of the right-hand side of an equation for as long as the right-hand side is one: from $\\Gamma \\vdash s = t$ it proves $\\Gamma \\vdash s = t'$. `logic_normalize_prop_beta` reduces the conclusion of a theorem more thoroughly: it repeatedly contracts the leftmost-outermost redex found along application spines (not under abstractions), up to 512 steps, and from $\\Gamma \\vdash c$ proves $\\Gamma \\vdash c'$."
+msgid "`logic_beta_normalize_eq` contracts the β-redexes along the application spine of the right-hand side of an equation (the head redex, or a redex in the function part of an application) for as long as there is one: from $\\Gamma \\vdash s = t$ it proves $\\Gamma \\vdash s = t'$. `logic_normalize_prop_beta` reduces the conclusion of a theorem more thoroughly: it repeatedly contracts the leftmost-outermost redex found along application spines (not under abstractions), up to 512 steps, and from $\\Gamma \\vdash c$ proves $\\Gamma \\vdash c'$."
 msgstr ""
 
 #: manual/api/logic.md:374

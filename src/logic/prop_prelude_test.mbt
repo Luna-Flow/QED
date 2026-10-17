@@ -120,3 +120,41 @@ test "prop foundation exposes stable definition theorem shape for implication" {
     Err(_) => panic()
   }
 }
+
+///|
+test "unfolding and, imp and or returns the beta-reduced basis form" {
+  let st = install_prop_prelude(empty_kernel_state()).unwrap()
+  let pre = default_prop_prelude()
+  let bool = bool_ty()
+  let p = mk_var("p", bool)
+  let q = mk_var("q", bool)
+  let app2 = fn(name : String) {
+    mk_comb(mk_comb(ks_mk_const(st, name).unwrap(), p), q)
+  }
+  let and_th = logic_assume(st, app2("and")).unwrap()
+  let imp_th = logic_assume(st, app2("imp")).unwrap()
+  let or_th = logic_assume(st, app2("or")).unwrap()
+  let unfolded_and = logic_prop_unfold_and(st, pre, and_th).unwrap()
+  let unfolded_imp = logic_prop_unfold_imp(st, pre, imp_th).unwrap()
+  let unfolded_or = logic_prop_unfold_or(st, pre, or_th).unwrap()
+  assert_true(
+    term_alpha_eq(
+      thm_concl(unfolded_and).unwrap(),
+      prop_mk_and(st, pre, p, q).unwrap(),
+    ),
+  )
+  assert_true(
+    term_alpha_eq(
+      thm_concl(unfolded_imp).unwrap(),
+      prop_mk_imp(st, pre, p, q).unwrap(),
+    ),
+  )
+  assert_true(
+    term_alpha_eq(
+      thm_concl(unfolded_or).unwrap(),
+      prop_mk_or(st, pre, p, q).unwrap(),
+    ),
+  )
+  // the hypotheses are unchanged
+  assert_eq(thm_hyps(unfolded_and).unwrap().length(), 1)
+}

@@ -1351,8 +1351,8 @@ msgid "`logic_prop_unfold_head(state, th_def, th)` replaces the head constant of
 msgstr "`logic_prop_unfold_head(state, th_def, th)` 把 `th` 结论的头部常量替换为其定义：由 $\\vdash c = \\lambda \\bar x.\\,b$ 与 $\\Gamma \\vdash c\\,\\bar a$ 推出 $\\Gamma \\vdash (\\lambda \\bar x.\\,b)\\,\\bar a$，头部的 β-redex 由 `logic_beta_normalize_eq` 收缩。"
 
 #: manual/api/logic.md:220
-msgid "The head must be the defined constant, applied to at most two arguments; otherwise the function fails with `AlphaMismatch` or `TypeMismatch`. Only a redex at the very head is contracted. With one argument, $(\\lambda x.\\,b)\\,a$ is such a redex and the result is $b[a/x]$; with two arguments the head is $((\\lambda x\\,y.\\,b)\\,a_1)\\,a_2$, whose function part is not an abstraction, so the conclusion stays unreduced. Apply `logic_normalize_prop_beta` to reach the basis form."
-msgstr "头部必须是被定义的常量，且至多应用于两个参数；否则函数失败并报 `AlphaMismatch` 或 `TypeMismatch`。只收缩恰在头部的 redex。给定一个参数时，$(\\lambda x.\\,b)\\,a$ 就是这样的 redex，结果为 $b[a/x]$；给定两个参数时，头部是 $((\\lambda x\\,y.\\,b)\\,a_1)\\,a_2$，其函数部分不是抽象，因此结论保持未归约。应用 `logic_normalize_prop_beta` 可到达基础形式。"
+msgid "The head must be the defined constant, applied to at most two arguments; otherwise the function fails with `AlphaMismatch` or `TypeMismatch`. Redexes along the application spine are contracted. With one argument, $(\\lambda x.\\,b)\\,a$ is a head redex and the result is $b[a/x]$; with two arguments the head is $((\\lambda x\\,y.\\,b)\\,a_1)\\,a_2$, whose function part $(\\lambda x\\,y.\\,b)\\,a_1$ is contracted first to $\\lambda y.\\,b[a_1/x]$ and then the head redex, so the conclusion is the basis form $b[a_1/x][a_2/y]$."
+msgstr "头部必须是被定义的常量，且至多应用于两个参数；否则函数失败并报 `AlphaMismatch` 或 `TypeMismatch`。沿应用脊的 redex 都会被收缩。给定一个参数时，$(\\lambda x.\\,b)\\,a$ 是头部 redex，结果为 $b[a/x]$；给定两个参数时，头部是 $((\\lambda x\\,y.\\,b)\\,a_1)\\,a_2$，其函数部分 $(\\lambda x\\,y.\\,b)\\,a_1$ 先被收缩为 $\\lambda y.\\,b[a_1/x]$，再收缩头部 redex，因此结论就是基础形式 $b[a_1/x][a_2/y]$。"
 
 #: manual/api/logic.md:222
 msgid "`logic_prop_unfold_imp`, `logic_prop_unfold_not`, `logic_prop_unfold_and` and `logic_prop_unfold_or`"
@@ -1361,10 +1361,10 @@ msgstr "`logic_prop_unfold_imp`、`logic_prop_unfold_not`、`logic_prop_unfold_a
 #: manual/api/logic.md:224
 msgid ""
 "These functions are `logic_prop_unfold_head` with the definition of one connective constant. `logic_prop_unfold_not` turns $\\Gamma \\vdash \\mathit{not}\\,p$ into $\\Gamma \\vdash \\n"
-"eg p$ in basis form; the two-argument forms return the unreduced application described above."
+"eg p$ in basis form, and the two-argument forms return the basis form of the connective as well."
 msgstr ""
-"这些函数是带某个联结词常量定义的 `logic_prop_unfold_head`。`logic_prop_unfold_not` 把 $\\Gamma \\vdash \\mathit{not}\\,p$ 变为基础形式的 $\\Gamma \\vdash \\n"
-"eg p$；两个参数的形式返回上述未归约的应用。"
+"这些函数就是带上某个联结词常量的定义的 `logic_prop_unfold_head`。`logic_prop_unfold_not` 把 $\\Gamma \\vdash \\mathit{not}\\,p$ 变成基础形式的 $\\Gamma \\vdash \\n"
+"eg p$，两个参数的形式同样返回该联结词的基础形式。"
 
 #: manual/api/logic.md:253
 msgid "Kernel rule wrappers"
@@ -1471,8 +1471,8 @@ msgid "`logic_beta_normalize_eq` and `logic_normalize_prop_beta`"
 msgstr "`logic_beta_normalize_eq` 与 `logic_normalize_prop_beta`"
 
 #: manual/api/logic.md:367
-msgid "`logic_beta_normalize_eq` contracts head β-redexes of the right-hand side of an equation for as long as the right-hand side is one: from $\\Gamma \\vdash s = t$ it proves $\\Gamma \\vdash s = t'$. `logic_normalize_prop_beta` reduces the conclusion of a theorem more thoroughly: it repeatedly contracts the leftmost-outermost redex found along application spines (not under abstractions), up to 512 steps, and from $\\Gamma \\vdash c$ proves $\\Gamma \\vdash c'$."
-msgstr "只要等式右端是 β-redex，`logic_beta_normalize_eq` 就收缩其头部 redex：由 $\\Gamma \\vdash s = t$ 证明 $\\Gamma \\vdash s = t'$。`logic_normalize_prop_beta` 对定理结论的归约更彻底：它沿应用脊反复收缩最左最外的 redex（不进入抽象之下），至多 512 步，由 $\\Gamma \\vdash c$ 证明 $\\Gamma \\vdash c'$。"
+msgid "`logic_beta_normalize_eq` contracts the β-redexes along the application spine of the right-hand side of an equation (the head redex, or a redex in the function part of an application) for as long as there is one: from $\\Gamma \\vdash s = t$ it proves $\\Gamma \\vdash s = t'$. `logic_normalize_prop_beta` reduces the conclusion of a theorem more thoroughly: it repeatedly contracts the leftmost-outermost redex found along application spines (not under abstractions), up to 512 steps, and from $\\Gamma \\vdash c$ proves $\\Gamma \\vdash c'$."
+msgstr "`logic_beta_normalize_eq` 沿等式右端的应用脊收缩 β-redex（头部 redex，或应用的函数部分里的 redex），直到没有为止：由 $\\Gamma \\vdash s = t$ 证明 $\\Gamma \\vdash s = t'$。`logic_normalize_prop_beta` 对定理结论的归约更彻底：它沿应用脊反复收缩最左最外的 redex（不进入抽象之下），至多 512 步，由 $\\Gamma \\vdash c$ 证明 $\\Gamma \\vdash c'$。"
 
 #: manual/api/logic.md:374
 msgid "Both chain kernel steps (BETA and TRANS, plus REFL and MK_COMB to reach redexes inside applications), so the result is a kernel theorem, not a rewritten term. After 512 steps `logic_normalize_prop_beta` returns what it has reached, which may still contain redexes."
