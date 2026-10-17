@@ -6,7 +6,7 @@ Authority: non-authoritative design note; subordinate to `doc/attachments/qed_fo
 Scope: minimum safe boundary for an isolated rewrite/simplify prototype
 Last reviewed: 2026-04-16
 
-This note implements `G1` from [PLAN.md](/Users/kcn/Desktop/repos/MoonVibe/QED/PLAN.md):
+This note implements `G1` from PLAN.md (planning note, not part of this repository):
 define rewrite/simplify as consumers of the existing replay boundary only.
 
 ## 1. Stage Card
@@ -28,8 +28,8 @@ Normative anchors:
   - certificate non-authority
 - [doc/manual/manual.md](../../doc/manual/manual.md)
 - [doc/manual/conformance.md](../../doc/manual/conformance.md)
-- [research/README.md](/Users/kcn/Desktop/repos/MoonVibe/QED/research/README.md)
-- [PLAN.md](/Users/kcn/Desktop/repos/MoonVibe/QED/PLAN.md)
+- [research/README.md](../README.md)
+- PLAN.md (planning note, not part of this repository)
 
 Write boundary:
 
@@ -76,11 +76,11 @@ Current shipped proof scripting supports only:
 
 Current replay-critical code anchors:
 
-- [src/logic/prop_replay.mbt](/Users/kcn/Desktop/repos/MoonVibe/QED/src/logic/prop_replay.mbt)
-- [src/logic/prop_tools.mbt](/Users/kcn/Desktop/repos/MoonVibe/QED/src/logic/prop_tools.mbt)
-- [src/logic/prop_refs.mbt](/Users/kcn/Desktop/repos/MoonVibe/QED/src/logic/prop_refs.mbt)
-- [src/logic/prop_bool_theorems.mbt](/Users/kcn/Desktop/repos/MoonVibe/QED/src/logic/prop_bool_theorems.mbt)
-- [src/tactics/proof_state.mbt](/Users/kcn/Desktop/repos/MoonVibe/QED/src/tactics/proof_state.mbt)
+- [src/logic/prop_replay.mbt](../../src/logic/prop_replay.mbt)
+- [src/logic/prop_tools.mbt](../../src/logic/prop_tools.mbt)
+- [src/logic/prop_refs.mbt](../../src/logic/prop_refs.mbt)
+- [src/logic/prop_bool_theorems.mbt](../../src/logic/prop_bool_theorems.mbt)
+- [src/tactics/proof_state.mbt](../../src/tactics/proof_state.mbt)
 
 Current theorem-reference classes already present in code:
 
