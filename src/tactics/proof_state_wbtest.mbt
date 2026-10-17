@@ -112,8 +112,10 @@ test "wb quantified intro exact replay works on lowered forall goal" {
     Some(current) => {
       let locals = ps_current_local_hyps(ps2)
       assert_eq(locals.length(), 2)
-      assert_true(term_to_string(local_hyp_term(locals[0])).contains("_b0"))
-      assert_true(term_to_string(local_hyp_term(locals[1])).contains("_b0"))
+      // the subgoal is stated about a binder that is fresh for the goal: the
+      // original `_b0` is in use, so the replay binder is `_b1`
+      assert_true(term_to_string(local_hyp_term(locals[0])).contains("_b1"))
+      assert_true(term_to_string(local_hyp_term(locals[1])).contains("_b1"))
       assert_true(
         term_alpha_eq(local_hyp_term(locals[0]), goal_hyps(current)[0]),
       )

@@ -1132,6 +1132,20 @@ fn fresh_quantified_replay_binder(
 }
 
 ///|
+/// `term` with the free variable `from` replaced by `to`.
+fn rename_free_var(term : Term, from : Term, to : Term) -> Term? {
+  match
+    (@kernel.to_db_term(term), @kernel.to_db_term(from), @kernel.to_db_term(to)) {
+    (Some(t), Some(f), Some(r)) =>
+      match @kernel.db_subst_free_parallel(t, [(f, r)]) {
+        Some(out) => @kernel.from_db_term(out)
+        None => None
+      }
+    _ => None
+  }
+}
+
+///|
 fn quantified_intro_truth_term(
   state : KernelState,
   prelude : PropPrelude,
@@ -1184,13 +1198,25 @@ fn intro_quantified_goal(
               Ok(v) => v
               Err(e) => return Err(e)
             }
+            // The binder read from the abstraction is only fresh for the
+            // conclusion; the subgoal is stated about the replay binder, which
+            // does not occur in the hypotheses or locals of the goal.
+            let new_body = match rename_free_var(body, binder, replay_binder) {
+              Some(v) => v
+              None =>
+                return Err(
+                  ProofSynthesisUnavailable(
+                    "quantified intro could not rename its binder",
+                  ),
+                )
+            }
             Ok(
               pending_goal_after_intro(
                 g,
                 name,
-                binder,
-                body,
-                Some(AbsBackwardTerm(binder, replay_binder)),
+                replay_binder,
+                new_body,
+                Some(AbsBackwardTerm(replay_binder, replay_binder)),
                 false,
                 false,
               ),
