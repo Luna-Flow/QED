@@ -158,3 +158,23 @@ test "unfolding and, imp and or returns the beta-reduced basis form" {
   // the hypotheses are unchanged
   assert_eq(thm_hyps(unfolded_and).unwrap().length(), 1)
 }
+
+///|
+test "prop_mk_and does not capture a free variable named like its binder" {
+  let st = install_prop_prelude(empty_kernel_state()).unwrap()
+  let pre = default_prop_prelude()
+  let bool = bool_ty()
+  let f = mk_var("_p_and", fun_ty(bool, fun_ty(bool, bool)))
+  let q = mk_var("q", bool)
+  let p = mk_comb(mk_comb(f, q), q)
+  let pq = prop_mk_and(st, pre, p, q).unwrap()
+  // `_p_and` and `q` stay free in the conjunction
+  assert_eq(free_vars(pq).length(), 2)
+  let th_p = assume_checked(st, p).unwrap()
+  let th_q = assume_checked(st, q).unwrap()
+  assert_true(logic_prop_and_intro_thm(st, pre, th_p, th_q) is Ok(_))
+  // the derived connectives use the same construction
+  assert_eq(free_vars(prop_mk_imp(st, pre, p, q).unwrap()).length(), 2)
+  assert_eq(free_vars(prop_mk_not(st, pre, p).unwrap()).length(), 2)
+  assert_eq(free_vars(prop_mk_or(st, pre, p, q).unwrap()).length(), 2)
+}
