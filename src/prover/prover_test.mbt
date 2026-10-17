@@ -568,9 +568,9 @@ test "prove_theorem_script_detailed records goal location for lowering failures"
 }
 
 ///|
-test "prove_theorem_script_with_diagnostics returns structured qedside failures" {
+test "prove_theorem_script returns structured qedside failures" {
   let err = expect_diag_failed(
-    prove_theorem_script_with_diagnostics(
+    prove_theorem_script(
       empty_kernel_state(),
       "theorem bad : ⊢ T -> T := by intro h",
       default_prover_options(),
@@ -600,10 +600,10 @@ test "prove_theorem_script_with_diagnostics returns structured qedside failures"
 }
 
 ///|
-test "prove_theorem_script_with_diagnostics returns unfinished proof payloads" {
+test "prove_theorem_script returns unfinished proof payloads" {
   let case = unfinished_corpus_cases()[0]
   let unfinished = expect_diag_unfinished(
-    prove_theorem_script_with_diagnostics(
+    prove_theorem_script(
       empty_kernel_state(),
       case.script,
       default_prover_options(),
