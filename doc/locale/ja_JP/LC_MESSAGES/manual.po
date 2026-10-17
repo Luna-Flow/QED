@@ -3170,8 +3170,8 @@ msgid "[ ] `HOL-EXT-002` [required; high] History-indexed derivations require ex
 msgstr "[ ] `HOL-EXT-002` [required; high] 履歴で添字付けされた導出は、直前の履歴における拡張の証拠を必要とし、サポート対象の各履歴にわたって旧言語の妥当性を保存する。（未解決）"
 
 #: manual/conformance.md:210
-msgid "[ ] `HOL-ERASE-001` [required; high] A derivation at a history that begins with a definition yields a derivation at the preceding history in which every occurrence of the defined constant is replaced by its instantiated definition; sequents not mentioning the constant are derivable unchanged. (open)"
-msgstr "[ ] `HOL-ERASE-001` [必須；高] 定義で始まる履歴上の導出から、直前の履歴上の導出が得られ、そこでは定義された定数の出現がすべて具体化された定義に置き換えられる。その定数に言及しない連続式はそのまま導出可能である。（未完了）"
+msgid "[ ] `HOL-ERASE-001` [required; high] A derivation at a history that begins with a definition or a specification yields a derivation at the preceding history in which every occurrence of the declared constant is replaced by its instantiated definition, respectively by the choice term of its instantiated predicate; sequents not mentioning the constant are derivable unchanged. (open)"
+msgstr "[ ] `HOL-ERASE-001` [必須；高] 定義または仕様で始まる履歴上の導出から、直前の履歴上の導出が得られ、そこでは宣言された定数の出現がすべて、それぞれ具体化された定義、または具体化された述語の選択項に置き換えられる。その定数に言及しない連続式はそのまま導出可能である。（未完了）"
 
 #: manual/conformance.md:211
 msgid "[ ] `HOL-GROW-001` [required; high] A finite declaration table records fresh constant allocation and preserves compatibility with the fixed total signature; old declarations remain available after a fresh allocation. (open)"
@@ -3315,8 +3315,8 @@ msgstr "履歴で添字付けされた導出は、直前の履歴における拡
 
 #: manual/conformance.md:227
 #: manual/conformance.md:299
-msgid "A derivation at a history that begins with a definition yields a derivation at the preceding history in which every occurrence of the defined constant is replaced by its instantiated definition; sequents not mentioning the constant are derivable unchanged."
-msgstr "定義で始まる履歴上の導出から、直前の履歴上の導出が得られ、そこでは定義された定数の出現がすべて具体化された定義に置き換えられる。その定数に言及しない連続式はそのまま導出可能である。"
+msgid "A derivation at a history that begins with a definition or a specification yields a derivation at the preceding history in which every occurrence of the declared constant is replaced by its instantiated definition, respectively by the choice term of its instantiated predicate; sequents not mentioning the constant are derivable unchanged."
+msgstr "定義または仕様で始まる履歴上の導出から、直前の履歴上の導出が得られ、そこでは宣言された定数の出現がすべて、それぞれ具体化された定義、または具体化された述語の選択項に置き換えられる。その定数に言及しない連続式はそのまま導出可能である。"
 
 #: manual/conformance.md:228
 #: manual/conformance.md:311
@@ -3500,20 +3500,20 @@ msgid "Exclusions: Lean does not certify the MoonBit lineage representation."
 msgstr "除外：Lean は MoonBit の系統の表現を保証しない。"
 
 #: manual/conformance.md:303
-msgid "Lean: `formal_verification/QEDFV/HOL/Unfold.lean::HistoryDerivation.erase_definition`, `formal_verification/QEDFV/HOL/Unfold.lean::HistoryDerivation.definition_conservative`"
-msgstr "Lean: `formal_verification/QEDFV/HOL/Unfold.lean::HistoryDerivation.erase_definition`, `formal_verification/QEDFV/HOL/Unfold.lean::HistoryDerivation.definition_conservative`"
+msgid "Lean: `formal_verification/QEDFV/HOL/Unfold.lean::HistoryDerivation.erase_definition`, `formal_verification/QEDFV/HOL/Unfold.lean::HistoryDerivation.definition_conservative`, `formal_verification/QEDFV/HOL/SpecErasure.lean::HistoryDerivation.erase_specification`, `formal_verification/QEDFV/HOL/SpecErasure.lean::HistoryDerivation.specification_conservative`"
+msgstr "Lean: `formal_verification/QEDFV/HOL/Unfold.lean::HistoryDerivation.erase_definition`, `formal_verification/QEDFV/HOL/Unfold.lean::HistoryDerivation.definition_conservative`, `formal_verification/QEDFV/HOL/SpecErasure.lean::HistoryDerivation.erase_specification`, `formal_verification/QEDFV/HOL/SpecErasure.lean::HistoryDerivation.specification_conservative`"
 
 #: manual/conformance.md:304
 msgid "Verification: Lean induction on history derivations; Lean annotation-erasure laws for type instantiation"
 msgstr "検証：履歴導出に関する Lean の帰納法、型具体化に対する Lean の注釈消去則"
 
 #: manual/conformance.md:305
-msgid "Evidence: `formal_verification/QEDFV/HOL/Unfold.lean`, `formal_verification/QEDFV/HOL/TermLaws.lean`"
-msgstr "Evidence: `formal_verification/QEDFV/HOL/Unfold.lean`, `formal_verification/QEDFV/HOL/TermLaws.lean`"
+msgid "Evidence: `formal_verification/QEDFV/HOL/Unfold.lean`, `formal_verification/QEDFV/HOL/TermLaws.lean`, `formal_verification/QEDFV/HOL/SpecErasure.lean`"
+msgstr "Evidence: `formal_verification/QEDFV/HOL/Unfold.lean`, `formal_verification/QEDFV/HOL/TermLaws.lean`, `formal_verification/QEDFV/HOL/SpecErasure.lean`"
 
 #: manual/conformance.md:307
-msgid "Exclusions: Specification and type-definition erasure are not proved.; Lean does not certify the MoonBit kernel."
-msgstr "除外：仕様と型定義の消去は未証明。Lean は MoonBit カーネルを認証しない。"
+msgid "Exclusions: Type-definition erasure is not proved.; Lean does not certify the MoonBit kernel."
+msgstr "除外：型定義の消去は未証明。Lean は MoonBit カーネルを認証しない。"
 
 #: manual/conformance.md:313
 msgid "Specification: `doc/attachments/qed_formal_spec.typ::Signature Integration Boundary`"

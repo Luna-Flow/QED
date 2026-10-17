@@ -232,7 +232,7 @@
     {
       "id": "HOL-ERASE-001",
       "category": "theory-extension",
-      "normative_statement": "A derivation at a history that begins with a definition yields a derivation at the preceding history in which every occurrence of the defined constant is replaced by its instantiated definition; sequents not mentioning the constant are derivable unchanged.",
+      "normative_statement": "A derivation at a history that begins with a definition or a specification yields a derivation at the preceding history in which every occurrence of the declared constant is replaced by its instantiated definition, respectively by the choice term of its instantiated predicate; sequents not mentioning the constant are derivable unchanged.",
       "requirement_level": "required",
       "severity": "high",
       "spec": "doc/attachments/qed_formal_spec.typ",
@@ -248,6 +248,14 @@
         {
           "path": "formal_verification/QEDFV/HOL/Unfold.lean",
           "symbol": "HistoryDerivation.definition_conservative"
+        },
+        {
+          "path": "formal_verification/QEDFV/HOL/SpecErasure.lean",
+          "symbol": "HistoryDerivation.erase_specification"
+        },
+        {
+          "path": "formal_verification/QEDFV/HOL/SpecErasure.lean",
+          "symbol": "HistoryDerivation.specification_conservative"
         }
       ],
       "verification": [
@@ -256,7 +264,8 @@
       ],
       "evidence": [
         "formal_verification/QEDFV/HOL/Unfold.lean",
-        "formal_verification/QEDFV/HOL/TermLaws.lean"
+        "formal_verification/QEDFV/HOL/TermLaws.lean",
+        "formal_verification/QEDFV/HOL/SpecErasure.lean"
       ],
       "status": {
         "lean": "partial",
@@ -269,7 +278,7 @@
       ],
       "assumptions": [],
       "exclusions": [
-        "Specification and type-definition erasure are not proved.",
+        "Type-definition erasure is not proved.",
         "Lean does not certify the MoonBit kernel."
       ]
     },
