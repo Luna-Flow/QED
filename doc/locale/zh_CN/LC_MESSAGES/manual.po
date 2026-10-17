@@ -1922,8 +1922,8 @@ msgid "`parse_goal_raw` parses a goal without resolving names. The hypotheses ar
 msgstr "`parse_goal_raw` 解析目标，但不解析名字。假设以逗号分隔；`⊢`（或 `|-`）是必需的。"
 
 #: manual/api/parser.md:265
-msgid "A goal, unlike a term, may start with `forall (x : A), body` or `∀ (x : A), body`, also in parentheses. This form is accepted only here, as goal sugar."
-msgstr "与项不同，目标可以以 `forall (x : A), body` 或 `∀ (x : A), body` 开头，也可置于括号中。这种形式只在此处作为目标语法糖被接受。"
+msgid "A goal, unlike a term, may start with `forall (x : A), body` or `∀ (x : A), body`, also in parentheses. This form is accepted only here, as goal sugar. The quantifier is accepted at the start of the goal and as the body of another quantifier; a `forall` after an infix operator, after `¬` or as an argument of an application is refused by the raw parser, with the offset of that `forall`."
+msgstr "目标与项不同，可以以 `forall (x : A), body` 或 `∀ (x : A), body` 开头，也可以放在括号中。这种形式只在这里作为目标语法糖被接受。量词可以出现在目标开头以及另一个量词的主体位置；位于中缀运算符之后、`¬` 之后或作为应用的参数的 `forall`，会被原始解析器以该 `forall` 的偏移量拒绝。"
 
 #: manual/api/parser.md:267
 msgid "`ParsedGoal`, `parsed_goal_hyps` and `parsed_goal_concl`"
@@ -8722,6 +8722,9 @@ msgstr "[tactics 设计](../design/tactics.md)解释了论证 (justification)，
 #: manual/tutorial/tactics.md:179
 msgid "The [prover tutorial](prover.md) runs the same proofs from scripts."
 msgstr "[prover 教程](prover.md)从脚本运行相同的证明。"
+
+#~ msgid "A goal, unlike a term, may start with `forall (x : A), body` or `∀ (x : A), body`, also in parentheses. This form is accepted only here, as goal sugar."
+#~ msgstr "与项不同，目标可以以 `forall (x : A), body` 或 `∀ (x : A), body` 开头，也可置于括号中。这种形式只在此处作为目标语法糖被接受。"
 
 #~ msgid "Code governance"
 #~ msgstr "代码治理"

@@ -1922,8 +1922,8 @@ msgid "`parse_goal_raw` parses a goal without resolving names. The hypotheses ar
 msgstr "`parse_goal_raw` は名前を解決せずにゴールをパースする。仮定はコンマで区切られ、`⊢`(または `|-`)が必須である。"
 
 #: manual/api/parser.md:265
-msgid "A goal, unlike a term, may start with `forall (x : A), body` or `∀ (x : A), body`, also in parentheses. This form is accepted only here, as goal sugar."
-msgstr "項と異なり、ゴールは `forall (x : A), body` または `∀ (x : A), body` で始まってもよく、括弧で囲んでもよい。この形はここでのみ、ゴールの糖衣構文として受理される。"
+msgid "A goal, unlike a term, may start with `forall (x : A), body` or `∀ (x : A), body`, also in parentheses. This form is accepted only here, as goal sugar. The quantifier is accepted at the start of the goal and as the body of another quantifier; a `forall` after an infix operator, after `¬` or as an argument of an application is refused by the raw parser, with the offset of that `forall`."
+msgstr "目標は項と異なり、`forall (x : A), body` または `∀ (x : A), body` で始めることができ、括弧に入れることもできる。この形式は目標の糖衣構文としてここでのみ受理される。量化子は目標の先頭と、別の量化子の本体の位置で受理される。中置演算子の後、`¬` の後、または関数適用の引数に現れる `forall` は、生の構文解析器がその `forall` のオフセットで拒否する。"
 
 #: manual/api/parser.md:267
 msgid "`ParsedGoal`, `parsed_goal_hyps` and `parsed_goal_concl`"
@@ -8722,6 +8722,9 @@ msgstr "[tactics 設計](../design/tactics.md)は、正当化と、不正なス�
 #: manual/tutorial/tactics.md:179
 msgid "The [prover tutorial](prover.md) runs the same proofs from scripts."
 msgstr "[prover チュートリアル](prover.md)は、同じ証明をスクリプトから実行する。"
+
+#~ msgid "A goal, unlike a term, may start with `forall (x : A), body` or `∀ (x : A), body`, also in parentheses. This form is accepted only here, as goal sugar."
+#~ msgstr "項と異なり、ゴールは `forall (x : A), body` または `∀ (x : A), body` で始まってもよく、括弧で囲んでもよい。この形はここでのみ、ゴールの糖衣構文として受理される。"
 
 #~ msgid "Code governance"
 #~ msgstr "コードのガバナンス"

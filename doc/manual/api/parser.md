@@ -262,7 +262,7 @@ pub struct SynGoal {
 pub fn parse_goal_raw(String) -> Result[SynGoal, ParseError]
 ```
 
-A goal, unlike a term, may start with `forall (x : A), body` or `∀ (x : A), body`, also in parentheses. This form is accepted only here, as goal sugar.
+A goal, unlike a term, may start with `forall (x : A), body` or `∀ (x : A), body`, also in parentheses. This form is accepted only here, as goal sugar. The quantifier is accepted at the start of the goal and as the body of another quantifier; a `forall` after an infix operator, after `¬` or as an argument of an application is refused by the raw parser, with the offset of that `forall`.
 
 ### `ParsedGoal`, `parsed_goal_hyps` and `parsed_goal_concl`
 

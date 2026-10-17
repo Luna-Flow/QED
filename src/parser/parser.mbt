@@ -1118,7 +1118,7 @@ fn parse_app(
       let mut out = head
       let mut j = j0
       while is_atom_start(token_at(tokens, j).kind) {
-        match parse_atom(tokens, j, allow_forall) {
+        match parse_atom(tokens, j, false) {
           Ok((arg, j2)) => {
             out = App(out, arg)
             j = j2
@@ -1252,11 +1252,11 @@ fn parse_prefix_with_forall(
         mk_parse_error(
           UnexpectedToken,
           tok.offset,
-          "raw `forall` is only supported in goal syntax",
+          "raw `forall` is only supported at the start of a goal or as the body of another `forall`",
         ),
       )
     TkNot =>
-      match parse_prefix_with_forall(tokens, idx + 1, allow_forall) {
+      match parse_prefix_with_forall(tokens, idx + 1, false) {
         Ok((inner, j)) => Ok((Prefix("¬", inner), j))
         Err(e) => Err(e)
       }
@@ -1278,7 +1278,7 @@ fn parse_infix_with_forall(
         let tok = token_at(tokens, j)
         match tok.kind {
           TkAnd =>
-            match parse_prefix_with_forall(tokens, j + 1, allow_forall) {
+            match parse_prefix_with_forall(tokens, j + 1, false) {
               Ok((rhs, j2)) => {
                 chain.push(("∧", rhs, tok.offset))
                 j = j2
@@ -1286,7 +1286,7 @@ fn parse_infix_with_forall(
               Err(e) => return Err(e)
             }
           TkOr =>
-            match parse_prefix_with_forall(tokens, j + 1, allow_forall) {
+            match parse_prefix_with_forall(tokens, j + 1, false) {
               Ok((rhs, j2)) => {
                 chain.push(("∨", rhs, tok.offset))
                 j = j2
@@ -1294,7 +1294,7 @@ fn parse_infix_with_forall(
               Err(e) => return Err(e)
             }
           TkArrow =>
-            match parse_prefix_with_forall(tokens, j + 1, allow_forall) {
+            match parse_prefix_with_forall(tokens, j + 1, false) {
               Ok((rhs, j2)) => {
                 chain.push(("->", rhs, tok.offset))
                 j = j2
@@ -1302,7 +1302,7 @@ fn parse_infix_with_forall(
               Err(e) => return Err(e)
             }
           TkEq =>
-            match parse_prefix_with_forall(tokens, j + 1, allow_forall) {
+            match parse_prefix_with_forall(tokens, j + 1, false) {
               Ok((rhs, j2)) => {
                 chain.push(("=", rhs, tok.offset))
                 j = j2
