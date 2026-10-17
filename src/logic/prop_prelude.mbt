@@ -121,10 +121,21 @@ fn prop_false_term() -> Term {
 }
 
 ///|
+/// A binder name that is not free in any of `terms`, starting from `base`.
+fn fresh_binder_name(base : String, terms : Array[Term]) -> String {
+  let mut name = base
+  while terms.any(fn(t) { free_vars(t).any(fn(v) { v.0 == name }) }) {
+    name = name + "'"
+  }
+  name
+}
+
+///|
 fn prop_and_term(lhs : Term, rhs : Term) -> Term {
   let bool = bool_ty()
   let bool_binary = fun_ty(bool, fun_ty(bool, bool))
-  let f = mk_var("_p_and", bool_binary)
+  // The binder must not capture a free variable of the arguments.
+  let f = mk_var(fresh_binder_name("_p_and", [lhs, rhs]), bool_binary)
   let lhs_fun = mk_abs(f, mk_comb(mk_comb(f, lhs), rhs))
   let t = prop_truth_term()
   let rhs_fun = mk_abs(f, mk_comb(mk_comb(f, t), t))

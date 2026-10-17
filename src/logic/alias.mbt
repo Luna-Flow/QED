@@ -30,6 +30,7 @@ using @kernel {
   dest_comb,
   dest_abs,
   dest_eq,
+  free_vars,
   term_alpha_eq,
   term_logical_eq,
   thm_concl,

@@ -35,6 +35,7 @@ using @kernel {
   thm_hyp_count,
   type_of,
   assume_checked,
+  free_vars,
   add_assum_checked,
   refl_checked,
   trans_checked,
