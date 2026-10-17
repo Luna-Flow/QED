@@ -1046,3 +1046,29 @@ test "kernel states stay independent across thousands of definitions" {
   assert_true(sig_lookup_const(mid, "c1500") is None)
   assert_true(sig_lookup_const(seed, "c0") is None)
 }
+
+///|
+test "extension certificates keep their order and count across many definitions" {
+  let bool = bool_ty()
+  let mut st = match ks_add_const(empty_kernel_state(), "t", bool) {
+    Ok(s) => s
+    Err(_) => panic()
+  }
+  for i in 0..<400 {
+    st = match
+      ks_define_const(st, "d" + i.to_string(), bool, mk_const("t", bool)) {
+      Ok((s, _)) => s
+      Err(_) => panic()
+    }
+  }
+  assert_eq(ks_extension_cert_count(st), 400)
+  match ks_extension_cert_at(st, 0) {
+    Some((_, heads, _)) => assert_eq(heads, ["d0"])
+    None => panic()
+  }
+  match ks_extension_cert_at(st, 399) {
+    Some((_, heads, _)) => assert_eq(heads, ["d399"])
+    None => panic()
+  }
+  assert_true(ks_extension_cert_at(st, 400) is None)
+}

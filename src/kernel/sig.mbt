@@ -109,6 +109,7 @@ priv struct TheoryState {
   type_abs_heads : Array[String]
   typedef_contracts : Array[(String, Thm, Thm, Thm)]
   extension_certs : @hashmap.HashMap[Int32, ExtensionCert]
+  extension_cert_count : Int32
   ind_infinity_axiom : Thm?
   next_const_id : ConstId
   lineage : LineageNode
@@ -168,6 +169,7 @@ fn advance_lineage(state : KernelState, event : String) -> KernelState {
       type_abs_heads: state.theory.type_abs_heads,
       typedef_contracts: state.theory.typedef_contracts,
       extension_certs: state.theory.extension_certs,
+      extension_cert_count: state.theory.extension_cert_count,
       ind_infinity_axiom: state.theory.ind_infinity_axiom,
       next_const_id: state.theory.next_const_id,
       lineage,
@@ -190,7 +192,7 @@ fn append_extension_cert(
   witness_digest : String,
 ) -> KernelState {
   let certs = state.theory.extension_certs.add(
-    state.theory.extension_certs.length(),
+    state.theory.extension_cert_count,
     (gate, heads.copy(), witness_digest),
   )
   let next = KernelState::{
@@ -203,6 +205,7 @@ fn append_extension_cert(
       type_abs_heads: state.theory.type_abs_heads,
       typedef_contracts: state.theory.typedef_contracts,
       extension_certs: certs,
+      extension_cert_count: state.theory.extension_cert_count + 1,
       ind_infinity_axiom: state.theory.ind_infinity_axiom,
       next_const_id: state.theory.next_const_id,
       lineage: state.theory.lineage,
@@ -498,6 +501,7 @@ pub fn empty_kernel_state() -> KernelState {
       type_abs_heads: [],
       typedef_contracts: [],
       extension_certs: @hashmap.new(),
+      extension_cert_count: 0,
       ind_infinity_axiom: None,
       next_const_id: 1,
       lineage: lineage_root(),
@@ -599,6 +603,7 @@ pub fn ks_add_const(
               type_abs_heads: state.theory.type_abs_heads,
               typedef_contracts: state.theory.typedef_contracts,
               extension_certs: state.theory.extension_certs,
+              extension_cert_count: state.theory.extension_cert_count,
               ind_infinity_axiom: state.theory.ind_infinity_axiom,
               next_const_id: state.theory.next_const_id + 1,
               lineage: state.theory.lineage,
@@ -686,7 +691,7 @@ pub fn ks_typedef_contract(
 
 ///|
 pub fn ks_extension_cert_count(state : KernelState) -> Int32 {
-  state.theory.extension_certs.length()
+  state.theory.extension_cert_count
 }
 
 ///|
@@ -919,6 +924,7 @@ pub fn ks_register_ind_infinity_axiom(
                 type_abs_heads: state.theory.type_abs_heads,
                 typedef_contracts: state.theory.typedef_contracts,
                 extension_certs: state.theory.extension_certs,
+                extension_cert_count: state.theory.extension_cert_count,
                 ind_infinity_axiom: Some(anchor),
                 next_const_id: state.theory.next_const_id,
                 lineage: state.theory.lineage,
@@ -1250,6 +1256,7 @@ pub fn ks_register_type_definition(
       type_abs_heads: abses,
       typedef_contracts: typedef_lineage.theory.typedef_contracts,
       extension_certs: typedef_lineage.theory.extension_certs,
+      extension_cert_count: typedef_lineage.theory.extension_cert_count,
       ind_infinity_axiom: typedef_lineage.theory.ind_infinity_axiom,
       next_const_id: typedef_lineage.theory.next_const_id + 2,
       lineage: typedef_lineage.theory.lineage,
@@ -1304,6 +1311,7 @@ pub fn ks_register_type_definition(
       type_abs_heads: state1.theory.type_abs_heads,
       typedef_contracts: contracts,
       extension_certs: state1.theory.extension_certs,
+      extension_cert_count: state1.theory.extension_cert_count,
       ind_infinity_axiom: state1.theory.ind_infinity_axiom,
       next_const_id: state1.theory.next_const_id,
       lineage: state1.theory.lineage,
@@ -1388,6 +1396,7 @@ pub fn ks_define_const(
                       type_abs_heads: state.theory.type_abs_heads,
                       typedef_contracts: state.theory.typedef_contracts,
                       extension_certs: state.theory.extension_certs,
+                      extension_cert_count: state.theory.extension_cert_count,
                       ind_infinity_axiom: state.theory.ind_infinity_axiom,
                       next_const_id: state.theory.next_const_id + 1,
                       lineage: state.theory.lineage,
@@ -1423,6 +1432,7 @@ pub fn ks_define_const(
                       type_abs_heads: state2.theory.type_abs_heads,
                       typedef_contracts: state2.theory.typedef_contracts,
                       extension_certs: state2.theory.extension_certs,
+                      extension_cert_count: state2.theory.extension_cert_count,
                       ind_infinity_axiom: state2.theory.ind_infinity_axiom,
                       next_const_id: state2.theory.next_const_id,
                       lineage: state2.theory.lineage,
