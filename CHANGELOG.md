@@ -38,6 +38,7 @@ All notable changes to QED are recorded here. The format follows [Keep a Changel
 
 ### Fixed
 
+- Logic: `prop_mk_and` (and through it `prop_mk_imp`, `prop_mk_not` and `prop_mk_or`) built the conjunction with a binder named `_p_and` that was not renamed when an argument had a free variable of that name, so the variable was captured. The binder now gets a name that is not free in the arguments. Closes [#4](https://github.com/Luna-Flow/QED/issues/4).
 - Parser: a `forall` after an infix operator, after `¬` or as an argument of an application in goal syntax is now refused by the raw parser at the offset of that `forall`; it used to be accepted and then refused during lowering with an error at offset 0. Closes [#6](https://github.com/Luna-Flow/QED/issues/6).
 - Kernel boundary: theorem creation and lifting, the signature and extension-certificate accessors, and constants read from the signature now snapshot caller-owned type arrays, so mutating an array after admission cannot change admitted theorem data or kernel state. Terms and types built by the caller are not copied by `mk_*` and `dest_*`, so building and walking a term stays linear; the regression file `kernel_immutability_test.mbt` covers both, including a deep-term test.
 - `thm_bind_const_ids` rejects rebinding of a theorem that has acquired declaration lineage and still contains an unstamped occurrence of a constant other than `=` and `@` (error `InvalidInstantiation`); this closes the descendant-shadowing admission path and is covered by a deterministic kernel regression.
