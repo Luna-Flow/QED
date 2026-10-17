@@ -1912,7 +1912,7 @@ msgid "`parse_goal_raw` parses a goal without resolving names. The hypotheses ar
 msgstr ""
 
 #: manual/api/parser.md:265
-msgid "A goal, unlike a term, may start with `forall (x : A), body` or `∀ (x : A), body`, also in parentheses. This form is accepted only here, as goal sugar."
+msgid "A goal, unlike a term, may start with `forall (x : A), body` or `∀ (x : A), body`, also in parentheses. This form is accepted only here, as goal sugar. The quantifier is accepted at the start of the goal and as the body of another quantifier; a `forall` after an infix operator, after `¬` or as an argument of an application is refused by the raw parser, with the offset of that `forall`."
 msgstr ""
 
 #: manual/api/parser.md:267

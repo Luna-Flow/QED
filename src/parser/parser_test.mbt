@@ -1121,3 +1121,33 @@ test "parse theorem script raw rejects malformed bodies" {
     parse_theorem_script_raw("theorem t : ⊢ P := by hole h1 h2") is Err(_),
   )
 }
+
+///|
+test "parse_goal_raw reports a nested forall at its own offset" {
+  // `forall` after an infix operator, inside an application argument and after a
+  // negation is refused by the raw parser at the position of `forall`, not
+  // later at offset 0 during lowering.
+  let cases = [
+    ("⊢ p -> forall (x : bool), x", 7),
+    ("⊢ p ∧ forall (x : bool), x", 6),
+    ("⊢ p = (forall (x : bool), x)", 7),
+    ("⊢ f (forall (x : bool), x)", 5),
+    ("⊢ ¬ forall (x : bool), x", 4),
+  ]
+  for case in cases {
+    let (src, offset) = case
+    match parse_goal_raw(src) {
+      Err(e) => assert_eq(e.offset, offset)
+      Ok(_) => fail("expected a parse error for " + src)
+    }
+  }
+}
+
+///|
+test "parse_goal_raw still accepts forall at the start and as a forall body" {
+  assert_true(parse_goal_raw("⊢ forall (x : bool), x") is Ok(_))
+  assert_true(parse_goal_raw("⊢ (forall (x : bool), x)") is Ok(_))
+  assert_true(
+    parse_goal_raw("⊢ forall (x : bool), forall (y : bool), x -> y") is Ok(_),
+  )
+}
