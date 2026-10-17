@@ -94,12 +94,12 @@ test "kernel signature snapshots cannot mutate state or descendants" {
     @kernel.bool_ty(),
   ).unwrap()
   let child = @kernel.ks_push_scope(st)
-  let @kernel.GlobalSig::Sig(scopes) = @kernel.ks_sig(st)
+  let scopes = @kernel.sig_scopes(@kernel.ks_sig(st))
   scopes[0].push(("Y", 12345, @kernel.bool_ty()))
   assert_true(@kernel.ks_lookup_const(st, "Y") is None)
   assert_true(@kernel.ks_lookup_const(child, "Y") is None)
   assert_true(@kernel.ks_lookup_const(st, "X") is Some(_))
-  let @kernel.GlobalSig::Sig(choice_scopes) = @kernel.ks_sig(st)
+  let choice_scopes = @kernel.sig_scopes(@kernel.ks_sig(st))
   let (_, _, choice_ty) = choice_scopes[0][0]
   mutate_immutability_type(choice_ty)
   let a = @kernel.mk_tyvar("A")
@@ -207,7 +207,7 @@ test "public signature updates return detached scopes and types" {
   let added = @kernel.sig_add_const_idempotent_e(original, "g", ty).unwrap()
   let idempotent = @kernel.sig_add_const_idempotent_e(original, "f", ty).unwrap()
   for copy in [pushed, added, idempotent] {
-    let @kernel.GlobalSig::Sig(scopes) = copy
+    let scopes = @kernel.sig_scopes(copy)
     let (_, _, exposed_ty) = scopes[0][0]
     mutate_immutability_type(exposed_ty)
     scopes[0].push(("escaped", 42, @kernel.bool_ty()))
@@ -222,7 +222,7 @@ test "public signature updates return detached scopes and types" {
 
   let nested = @kernel.sig_push_scope(original)
   let popped = @kernel.sig_pop_scope_e(nested).unwrap()
-  let @kernel.GlobalSig::Sig(scopes) = popped
+  let scopes = @kernel.sig_scopes(popped)
   scopes[0].push(("escaped", 42, @kernel.bool_ty()))
   assert_false(@kernel.sig_has_const(nested, "escaped"))
 }

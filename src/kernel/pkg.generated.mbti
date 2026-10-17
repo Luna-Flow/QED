@@ -176,6 +176,8 @@ pub fn sig_pop_scope_e(GlobalSig) -> Result[GlobalSig, SigError]
 
 pub fn sig_push_scope(GlobalSig) -> GlobalSig
 
+pub fn sig_scopes(GlobalSig) -> Array[Array[(String, Int, HolType)]]
+
 pub fn term_alpha_eq(Term, Term) -> Bool
 
 pub fn term_apply_ty_subst(Array[(String, HolType)], Term) -> Term?
@@ -286,9 +288,7 @@ pub enum ExtensionGate {
   SpecOK
 }
 
-pub enum GlobalSig {
-  Sig(Array[Array[(String, Int, HolType)]])
-}
+type GlobalSig
 
 pub enum HolType {
   TyVal(String)
