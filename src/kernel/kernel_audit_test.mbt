@@ -59,7 +59,7 @@ test "audit c6 defhead cannot be shadowed as local constant" {
 }
 
 ///|
-test "audit c7 deferred def-head cycle is rejected" {
+test "audit c7 shadowing a constant used by a definition is not a cycle" {
   let bool = bool_ty()
   let st0 = empty_kernel_state()
   let st1 = ks_push_scope(st0)
@@ -68,10 +68,16 @@ test "audit c7 deferred def-head cycle is rejected" {
     ks_define_const(st2, "a", bool, mk_const("b", bool)),
   )
   let st4 = ks_push_scope(st3)
-  assert_true(
-    ks_define_const(st4, "b", bool, mk_const("a", bool))
-    is Err(DefinitionIsCyclic),
+  // the new b has a fresh identity; the definition of a still mentions the old one
+  let (st5, _) = expect_ok_sig_audit(
+    ks_define_const(st4, "b", bool, mk_const("a", bool)),
   )
+  assert_true(ks_lookup_const_id(st5, "b") != ks_lookup_const_id(st3, "b"))
+  assert_true(ks_definition_theorem(st5, "a") is Ok(_))
+  // a theorem about the old b cannot be rebound to the new one
+  let old_b = expect_ok_sig_audit(ks_mk_const(st3, "b"))
+  let th = expect_ok_audit(refl_checked(st3, old_b))
+  assert_true(thm_is_admissible(st5, th) is false)
 }
 
 ///|

@@ -229,17 +229,27 @@ test "ks_define_const enforces closedness and acyclic side conditions" {
 }
 
 ///|
-test "ks_define_const rejects transitive cycles across deferred heads" {
+test "ks_define_const compares constants by identity, not by name" {
+  // b (outer) is undefined, a := b; in an inner scope a new b := a. The new b
+  // is another constant with a fresh identity, so nothing depends on itself.
   let bool = bool_ty()
   let st0 = empty_kernel_state()
   let st1 = ks_push_scope(st0)
   let st2 = expect_ok_sig(ks_add_const(st1, "b", bool))
+  let outer_b = ks_lookup_const_id(st2, "b").unwrap()
   let b_term = mk_const("b", bool)
   let (st3, _) = expect_ok_sig(ks_define_const(st2, "a", bool, b_term))
   let st4 = ks_push_scope(st3)
   let a_term = mk_const("a", bool)
+  let (st5, _) = expect_ok_sig(ks_define_const(st4, "b", bool, a_term))
+  let inner_b = ks_lookup_const_id(st5, "b").unwrap()
+  assert_true(inner_b != outer_b)
+  // the definition of a still mentions the outer b
+  assert_true(ks_definition_theorem(st5, "a") is Ok(_))
+  // a definition may not mention a name that does not denote a constant yet
   assert_true(
-    ks_define_const(st4, "b", bool, a_term) is Err(DefinitionIsCyclic),
+    ks_define_const(st5, "self_ref", bool, mk_const("self_ref", bool))
+    is Err(DefinitionIsCyclic),
   )
 }
 

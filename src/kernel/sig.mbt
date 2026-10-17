@@ -68,7 +68,6 @@ pub type ExtensionCert = (ExtensionGate, Array[String], String)
 ///|
 priv struct TheoryState {
   def_heads : Array[String]
-  def_const_deps : Array[(String, Array[String])]
   def_theorems : Array[(String, Thm)]
   witnessed_tycons : Array[(String, Int32)]
   type_rep_heads : Array[String]
@@ -128,7 +127,6 @@ fn advance_lineage(state : KernelState, event : String) -> KernelState {
     sig: state.sig,
     theory: TheoryState::{
       def_heads: state.theory.def_heads,
-      def_const_deps: state.theory.def_const_deps,
       def_theorems: state.theory.def_theorems,
       witnessed_tycons: state.theory.witnessed_tycons,
       type_rep_heads: state.theory.type_rep_heads,
@@ -160,7 +158,6 @@ fn append_extension_cert(
     sig: state.sig,
     theory: TheoryState::{
       def_heads: state.theory.def_heads,
-      def_const_deps: state.theory.def_const_deps,
       def_theorems: state.theory.def_theorems,
       witnessed_tycons: state.theory.witnessed_tycons,
       type_rep_heads: state.theory.type_rep_heads,
@@ -447,7 +444,6 @@ pub fn empty_kernel_state() -> KernelState {
     sig: initial_sig(),
     theory: TheoryState::{
       def_heads: [],
-      def_const_deps: [],
       def_theorems: [],
       witnessed_tycons: [("ind", 0)],
       type_rep_heads: [],
@@ -549,7 +545,6 @@ pub fn ks_add_const(
             sig: sig2,
             theory: TheoryState::{
               def_heads: state.theory.def_heads,
-              def_const_deps: state.theory.def_const_deps,
               def_theorems: state.theory.def_theorems,
               witnessed_tycons: state.theory.witnessed_tycons,
               type_rep_heads: state.theory.type_rep_heads,
@@ -886,7 +881,6 @@ pub fn ks_register_ind_infinity_axiom(
               sig: state.sig,
               theory: TheoryState::{
                 def_heads: state.theory.def_heads,
-                def_const_deps: state.theory.def_const_deps,
                 def_theorems: state.theory.def_theorems,
                 witnessed_tycons: state.theory.witnessed_tycons,
                 type_rep_heads: state.theory.type_rep_heads,
@@ -985,86 +979,21 @@ fn term_const_instances_ok(state : KernelState, term : Term) -> Bool {
 }
 
 ///|
-fn push_unique_name(out : Array[String], name : String) -> Unit {
-  if !out.contains(name) {
-    out.push(name)
-  }
-}
-
-///|
-fn collect_term_const_names(term : Term, out : Array[String]) -> Unit {
-  match term {
-    Var(_, _) => ()
-    Const(name, _, _) => if name != "=" { push_unique_name(out, name) }
-    Comb(f, x) => {
-      collect_term_const_names(f, out)
-      collect_term_const_names(x, out)
-    }
-    Abs(_, body) => collect_term_const_names(body, out)
-  }
-}
-
-///|
-fn term_const_names(term : Term) -> Array[String] {
-  let out : Array[String] = []
-  collect_term_const_names(term, out)
-  out
-}
-
-///|
-fn lookup_def_deps(
-  deps : Array[(String, Array[String])],
+/// Whether `term` has an occurrence of a constant named `name` that does not denote
+/// a constant declared in `state`.
+fn term_mentions_undeclared_const(
+  state : KernelState,
+  term : Term,
   name : String,
-) -> Array[String]? {
-  for entry in deps {
-    let (head, rhs) = entry
-    if head == name {
-      return Some(rhs)
-    }
-  }
-  None
-}
-
-///|
-fn def_dep_path_exists(
-  deps : Array[(String, Array[String])],
-  start : String,
-  target : String,
-  visited : Array[String],
 ) -> Bool {
-  if start == target {
-    return true
+  match term {
+    Var(_, _) => false
+    Const(n, _, _) => n == name && ks_lookup_const_id(state, n) is None
+    Comb(f, x) =>
+      term_mentions_undeclared_const(state, f, name) ||
+      term_mentions_undeclared_const(state, x, name)
+    Abs(_, body) => term_mentions_undeclared_const(state, body, name)
   }
-  if visited.contains(start) {
-    return false
-  }
-  visited.push(start)
-  match lookup_def_deps(deps, start) {
-    Some(nexts) => {
-      for next in nexts {
-        if def_dep_path_exists(deps, next, target, visited) {
-          return true
-        }
-      }
-      false
-    }
-    None => false
-  }
-}
-
-///|
-fn def_cycle_would_form(
-  deps : Array[(String, Array[String])],
-  new_head : String,
-  new_rhs_consts : Array[String],
-) -> Bool {
-  for name in new_rhs_consts {
-    let visited : Array[String] = []
-    if def_dep_path_exists(deps, name, new_head, visited) {
-      return true
-    }
-  }
-  false
 }
 
 ///|
@@ -1283,7 +1212,6 @@ pub fn ks_register_type_definition(
     sig: sig2,
     theory: TheoryState::{
       def_heads: typedef_lineage.theory.def_heads,
-      def_const_deps: typedef_lineage.theory.def_const_deps,
       def_theorems: typedef_lineage.theory.def_theorems,
       witnessed_tycons: witnessed,
       type_rep_heads: reps,
@@ -1338,7 +1266,6 @@ pub fn ks_register_type_definition(
     sig: state1.sig,
     theory: TheoryState::{
       def_heads: state1.theory.def_heads,
-      def_const_deps: state1.theory.def_const_deps,
       def_theorems: state1.theory.def_theorems,
       witnessed_tycons: state1.theory.witnessed_tycons,
       type_rep_heads: state1.theory.type_rep_heads,
@@ -1382,7 +1309,13 @@ pub fn ks_define_const(
   if !term_is_closed(rhs) {
     return Err(DefinitionNotClosed)
   }
-  if term_has_const_named(rhs, name) {
+  // A constant is identified by its ConstId, and the one being defined gets a
+  // fresh id, so a definition can only depend on itself through an occurrence of
+  // `name` that does not denote an existing constant: after the definition that
+  // name would denote the new constant. An occurrence that resolves to a
+  // constant already declared (for example one of an outer scope that the new
+  // constant will shadow) is a different constant and is allowed.
+  if term_mentions_undeclared_const(state, rhs, name) {
     return Err(DefinitionIsCyclic)
   }
   if !ks_type_is_admissible(state, decl_ty) {
@@ -1399,10 +1332,6 @@ pub fn ks_define_const(
       if !term_const_instances_ok(state, rhs) {
         return Err(InvalidConstRhs)
       }
-      let rhs_consts = term_const_names(rhs)
-      if def_cycle_would_form(state.theory.def_const_deps, name, rhs_consts) {
-        return Err(DefinitionIsCyclic)
-      }
       match
         sig_add_const_with_id(
           state.sig,
@@ -1417,14 +1346,11 @@ pub fn ks_define_const(
                 Ok(def_eq) => {
                   let def_heads = state.theory.def_heads.copy()
                   def_heads.push(name)
-                  let def_const_deps = state.theory.def_const_deps.copy()
-                  def_const_deps.push((name, rhs_consts))
                   let def_theorems = state.theory.def_theorems.copy()
                   let state2 = KernelState::{
                     sig: sig2,
                     theory: TheoryState::{
                       def_heads,
-                      def_const_deps,
                       def_theorems,
                       witnessed_tycons: state.theory.witnessed_tycons,
                       type_rep_heads: state.theory.type_rep_heads,
@@ -1460,7 +1386,6 @@ pub fn ks_define_const(
                     sig: state2.sig,
                     theory: TheoryState::{
                       def_heads: state2.theory.def_heads,
-                      def_const_deps: state2.theory.def_const_deps,
                       def_theorems,
                       witnessed_tycons: state2.theory.witnessed_tycons,
                       type_rep_heads: state2.theory.type_rep_heads,

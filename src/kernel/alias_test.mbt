@@ -64,6 +64,7 @@ using @kernel {
   ks_lookup_const,
   ks_lookup_const_id,
   ks_mk_const,
+  ks_definition_theorem,
   ks_mk_const_instance,
   ks_pop_scope,
   ks_push_scope,

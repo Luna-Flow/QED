@@ -2448,8 +2448,10 @@ complete row-by-row mapping is recorded in
   the `definition` constructor of `ExtensionDerivation`. It admits the defining
   equation at a fresh constant ID in the history, and
   `extension_derivation_sound` proves it under the history interpretation. The
-  signature remains fixed; the name-based dependency check is an implementation
-  boundary (issue #9).
+  signature remains fixed. The kernel compares constants by identity: the new
+  constant has a fresh identity, and an occurrence of its name that does not denote
+  a declared constant is refused as a self-reference (`DefinitionIsCyclic`), which
+  matches the gate's freshness condition (issue #9).
 - `ks_specify_const` maps to `SpecificationGate` and the witness-based
   `specification` constructor of `ExtensionDerivation`. It requires the witness
   body to be derived at the preceding history, then admits the fresh named
