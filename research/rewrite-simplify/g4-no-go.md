@@ -9,7 +9,7 @@ Last reviewed: 2026-04-16
 Current conclusion: `No-Go` for promotion on the 2026-04-05 baseline. The line
 remains research only and stays off the default shipped product path.
 
-This note implements `G4` from [PLAN.md](/Users/kcn/Desktop/repos/MoonVibe/QED/PLAN.md):
+This note implements `G4` from PLAN.md (planning note, not part of this repository):
 publish the final go/no-go conclusion for the current rewrite/simplify
 research line.
 
@@ -30,9 +30,9 @@ Normative anchors:
   - boundary-fidelity
   - gate-fidelity
   - certificate non-authority
-- [PLAN.md](/Users/kcn/Desktop/repos/MoonVibe/QED/PLAN.md)
-- [research/rewrite-simplify/g1-design.md](/Users/kcn/Desktop/repos/MoonVibe/QED/research/rewrite-simplify/g1-design.md)
-- [research/rewrite-simplify/g3-promotion-gates.md](/Users/kcn/Desktop/repos/MoonVibe/QED/research/rewrite-simplify/g3-promotion-gates.md)
+- PLAN.md (planning note, not part of this repository)
+- [research/rewrite-simplify/g1-design.md](g1-design.md)
+- [research/rewrite-simplify/g3-promotion-gates.md](g3-promotion-gates.md)
 
 Write boundary:
 
@@ -74,8 +74,8 @@ Inputs required by `G3` and verified here:
 1. the `G1` minimum design note;
 2. the `G3` promotion-gates note;
 3. the current `G2` isolated prototype and its package tests:
-   - [src/research_rewrite/research_rewrite.mbt](/Users/kcn/Desktop/repos/MoonVibe/QED/src/research_rewrite/research_rewrite.mbt)
-   - [src/research_rewrite/research_rewrite_test.mbt](/Users/kcn/Desktop/repos/MoonVibe/QED/src/research_rewrite/research_rewrite_test.mbt)
+   - [src/research_rewrite/research_rewrite.mbt](../../src/research_rewrite/research_rewrite.mbt)
+   - [src/research_rewrite/research_rewrite_test.mbt](../../src/research_rewrite/research_rewrite_test.mbt)
 4. the current full verification gates:
    - `moon test` -> passed (`270/270`)
    - `formal_verification/lake build` -> passed

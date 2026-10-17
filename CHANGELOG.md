@@ -84,6 +84,7 @@ All notable changes to QED are recorded here. The format follows [Keep a Changel
 
 ### Documentation
 
+- Documentation: the three notes under `research/rewrite-simplify/` linked to absolute paths on a developer machine; the links are now repository-relative, and references to the planning note `PLAN.md`, which is not part of the repository, are plain text. Closes [#1](https://github.com/Luna-Flow/QED/issues/1).
 - Specification layout: the Typst specification now follows a standards-document style (shared annotated-block system, numbered definitions and theorems, proofs with end marks, table of contents, running header, booktabs tables); display formulas that rendered as source text are real equations. No mathematical content changed.
 - Documentation: merge the overlapping audit and status material into a dated research report (`research/qed-verification/2026-10-14-initial-audit.md`), a short workspace snapshot, the formal branch contract and the Typed HOL proof plan; delete the separate audit-matrices page (the generated obligation matrix replaces it); rewrite the implementation-conformance and governance pages with explicit claims, exclusions, reproduction commands and failure boundaries.
 - Rewrite the manual overview and add API, design and tutorial pages for every package (`kernel`, `logic`, `elab`, `parser`, `tactics`, `prover`, `cmd`, `research_rewrite`), with examples that compile against the current code.

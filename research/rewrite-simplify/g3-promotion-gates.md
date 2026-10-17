@@ -6,7 +6,7 @@ Authority: non-authoritative research gate note; subordinate to `doc/attachments
 Scope: promotion criteria for rewrite/simplify research, not shipped behavior
 Last reviewed: 2026-04-16
 
-This note implements `G3` from [PLAN.md](/Users/kcn/Desktop/repos/MoonVibe/QED/PLAN.md):
+This note implements `G3` from PLAN.md (planning note, not part of this repository):
 define the promotion gates for turning the current rewrite/simplify research
 line into a real tactic candidate.
 
@@ -20,14 +20,14 @@ Primary anchors:
   - boundary-fidelity
   - gate-fidelity
   - certificate non-authority
-- [PLAN.md](/Users/kcn/Desktop/repos/MoonVibe/QED/PLAN.md)
-- [research/rewrite-simplify/g1-design.md](/Users/kcn/Desktop/repos/MoonVibe/QED/research/rewrite-simplify/g1-design.md)
+- PLAN.md (planning note, not part of this repository)
+- [research/rewrite-simplify/g1-design.md](g1-design.md)
 
 Current implementation anchors used for this assessment:
 
-- [src/research_rewrite/research_rewrite.mbt](/Users/kcn/Desktop/repos/MoonVibe/QED/src/research_rewrite/research_rewrite.mbt)
-- [src/logic/prop_catalog.mbt](/Users/kcn/Desktop/repos/MoonVibe/QED/src/logic/prop_catalog.mbt)
-- [src/logic/prop_refs.mbt](/Users/kcn/Desktop/repos/MoonVibe/QED/src/logic/prop_refs.mbt)
+- [src/research_rewrite/research_rewrite.mbt](../../src/research_rewrite/research_rewrite.mbt)
+- [src/logic/prop_catalog.mbt](../../src/logic/prop_catalog.mbt)
+- [src/logic/prop_refs.mbt](../../src/logic/prop_refs.mbt)
 
 Current stage boundary:
 
@@ -203,7 +203,7 @@ precisely.
 Assessment target:
 
 - the isolated research package in
-  [src/research_rewrite/research_rewrite.mbt](/Users/kcn/Desktop/repos/MoonVibe/QED/src/research_rewrite/research_rewrite.mbt)
+  [src/research_rewrite/research_rewrite.mbt](../../src/research_rewrite/research_rewrite.mbt)
   and its current tests.
 
 Status matrix:
