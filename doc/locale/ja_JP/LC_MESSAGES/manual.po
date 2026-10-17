@@ -2062,12 +2062,12 @@ msgid "`prove_theorem_script` and `prove_theorem_script_with_diagnostics`"
 msgstr "`prove_theorem_script` と `prove_theorem_script_with_diagnostics`"
 
 #: manual/api/prover.md:53
-msgid "These functions run one script and return the theorem and the state, or the failure or unfinished report as an error."
-msgstr "これらの関数は 1 つのスクリプトを実行し、定理と状態を返す。失敗または未完了の報告はエラーとして返す。"
+msgid "`prove_theorem_script` runs one script and returns the theorem and the state, or the failure or unfinished report as an error. `prove_theorem_script_with_diagnostics` is a deprecated alias of it."
+msgstr "`prove_theorem_script` は一つのスクリプトを実行し、定理と状態を返すか、失敗または未完了の報告をエラーとして返す。`prove_theorem_script_with_diagnostics` はその非推奨のエイリアスである。"
 
 #: manual/api/prover.md:60
-msgid "The two functions currently behave identically; both carry the full diagnostics in `ProverScriptError`. The returned state is the state the proof ran in, with the prelude installed when requested; proved theorems are not added to it."
-msgstr "2 つの関数は現在のところ同一に振る舞い、どちらも完全な診断情報を `ProverScriptError` に持たせる。返される状態は証明が実行された状態であり、要求があればプレリュードがインストールされている。証明された定理はそこに追加されない。"
+msgid "The two functions behave identically; both carry the full diagnostics in `ProverScriptError`, so new code should call `prove_theorem_script`, and `prove_theorem_script_with_diagnostics` is marked `#deprecated` and will be removed in a later release. The returned state is the state the proof ran in, with the prelude installed when requested; proved theorems are not added to it."
+msgstr "二つの関数の動作は同じである。どちらも `ProverScriptError` に完全な診断を含むため、新しいコードでは `prove_theorem_script` を呼ぶこと。`prove_theorem_script_with_diagnostics` は `#deprecated` とされており、今後のリリースで削除される。返される状態は証明が実行された状態であり、要求された場合は前奏が導入されている。証明された定理はそこには追加されない。"
 
 #: manual/api/prover.md:64
 msgid "`prove_theorem_file_results_detailed(state, src, opts)` runs every theorem of a file whose theorems are separated by `qed` lines, and returns one result per theorem."

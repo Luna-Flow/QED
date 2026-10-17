@@ -83,7 +83,6 @@ using @prover {
   prove_theorem_file_detailed,
   prove_theorem_file_results_detailed,
   prove_theorem_script_detailed,
-  prove_theorem_script_with_diagnostics,
   prover_local_hyp,
   prover_unfinished,
 }
