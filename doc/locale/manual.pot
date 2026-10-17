@@ -1044,7 +1044,7 @@ msgid "`ks_define_const(state, c, ty, rhs)` is the definition gate `DefOK`: it d
 msgstr ""
 
 #: manual/api/kernel.md:848
-msgid "The side conditions are: `c` is not reserved and not already defined or used by a type definition (`ReservedSymbol`, `DefinitionAlreadyExists`, `TypeRepresentationAlreadyExists`, `TypeAbstractionAlreadyExists`); `rhs` is closed (`DefinitionNotClosed`); `rhs` does not mention `c`, directly or through earlier definitions (`DefinitionIsCyclic`); `ty` is admissible (`InvalidConstRhs`) and equals the type of `rhs` (`TypeMismatch`); every type variable of `rhs` occurs in `ty` (`GhostTypeVariable`); and every constant of `rhs` is declared at an instance of its schema (`InvalidConstRhs`). The [kernel design](../design/kernel.md) shows why each condition is needed for conservativity."
+msgid "The side conditions are: `c` is not reserved and not already defined or used by a type definition (`ReservedSymbol`, `DefinitionAlreadyExists`, `TypeRepresentationAlreadyExists`, `TypeAbstractionAlreadyExists`); `rhs` is closed (`DefinitionNotClosed`); no occurrence in `rhs` denotes `c` itself, that is, `rhs` has no occurrence of the name `c` that fails to denote a declared constant (`DefinitionIsCyclic`); constants are compared by identity, so an occurrence of an outer constant named `c` that the new `c` shadows is allowed; `ty` is admissible (`InvalidConstRhs`) and equals the type of `rhs` (`TypeMismatch`); every type variable of `rhs` occurs in `ty` (`GhostTypeVariable`); and every constant of `rhs` is declared at an instance of its schema (`InvalidConstRhs`). The [kernel design](../design/kernel.md) shows why each condition is needed for conservativity."
 msgstr ""
 
 #: manual/api/kernel.md:850
@@ -4182,7 +4182,7 @@ msgid "$c = x$ would give $\\vdash c = x$, then INST gives $\\vdash c = y$ and s
 msgstr ""
 
 #: manual/design/kernel.md:213
-msgid "No constant named $c$ occurs in $t$, directly or through earlier definitions"
+msgid "No occurrence in $t$ denotes $c$ itself: a name $c$ that does not denote a declared constant would denote the new constant"
 msgstr ""
 
 #: manual/design/kernel.md:213
@@ -4205,7 +4205,7 @@ msgid "Two definitions of one name would give $\\vdash c = t_1$ and $\\vdash c =
 msgstr ""
 
 #: manual/design/kernel.md:217
-msgid "The counterexamples in the second and last rows are stated, as in the specification, for constants identified by name. In the code the new constant always receives a fresh identity, so a name $c$ that occurs in $t$ can only denote an older constant, and a second definition of $c$ in an inner scope would get a new identity too; neither could then produce the contradiction shown. The two checks are kept anyway, by name and over the whole theory history: they make every definition read as non-circular and unique when constants are read by name, which is what the specification's freshness conditions require, and they keep the unfolding argument below simple. They are deliberately stricter than identities need: `ks_define_const` refuses `c := d` in an inner scope when an earlier definition of `d` mentions an outer, undefined constant named `c`."
+msgid "The counterexamples in the second and last rows are stated, as in the specification, for constants identified by name. The code identifies constants by `ConstId`: the new constant always receives a fresh identity, so an occurrence in $t$ of a name $c$ that already denotes a declared constant is an older constant (for example one of an outer scope that the new constant will shadow), and a definition cannot depend on itself through identities, whatever the earlier definitions mention. The only way $t$ can mention the constant being defined is an occurrence of the name $c$ that does not denote a declared constant yet, because after the definition that name would denote the new constant; `ks_define_const` refuses that with `DefinitionIsCyclic`. This is the freshness condition of the Lean `DefinitionGate` (the defined identifier does not occur in the right-hand side). In particular `ks_define_const` accepts `c := d` in an inner scope when an earlier definition of `d` mentions an outer, undefined constant named `c`. A second definition of one name is still refused (`DefinitionAlreadyExists`, which is by name over the whole theory history), and a theorem is never rebound from one constant to another of the same name (see `thm_bind_const_ids`)."
 msgstr ""
 
 #: manual/design/kernel.md:219

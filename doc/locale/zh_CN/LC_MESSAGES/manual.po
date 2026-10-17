@@ -1044,8 +1044,8 @@ msgid "`ks_define_const(state, c, ty, rhs)` is the definition gate `DefOK`: it d
 msgstr "`ks_define_const(state, c, ty, rhs)` 是定义闸门 `DefOK`：它声明常量 `c : ty` 并记录定义 $c = \\mathit{rhs}$。`ks_define_const_thm` 做同样的事并返回定义定理 $\\vdash c = \\mathit{rhs}$；`ks_define_const` 则以项的形式返回该等式。"
 
 #: manual/api/kernel.md:848
-msgid "The side conditions are: `c` is not reserved and not already defined or used by a type definition (`ReservedSymbol`, `DefinitionAlreadyExists`, `TypeRepresentationAlreadyExists`, `TypeAbstractionAlreadyExists`); `rhs` is closed (`DefinitionNotClosed`); `rhs` does not mention `c`, directly or through earlier definitions (`DefinitionIsCyclic`); `ty` is admissible (`InvalidConstRhs`) and equals the type of `rhs` (`TypeMismatch`); every type variable of `rhs` occurs in `ty` (`GhostTypeVariable`); and every constant of `rhs` is declared at an instance of its schema (`InvalidConstRhs`). The [kernel design](../design/kernel.md) shows why each condition is needed for conservativity."
-msgstr "附带条件为：`c` 不是保留名称，也未被定义或类型定义占用（`ReservedSymbol`、`DefinitionAlreadyExists`、`TypeRepresentationAlreadyExists`、`TypeAbstractionAlreadyExists`）；`rhs` 是闭项（`DefinitionNotClosed`）；`rhs` 不直接或通过更早的定义间接提到 `c`（`DefinitionIsCyclic`）；`ty` 可容许（`InvalidConstRhs`）且等于 `rhs` 的类型（`TypeMismatch`）；`rhs` 的每个类型变量都出现在 `ty` 中（`GhostTypeVariable`）；`rhs` 的每个常量都以其模式的某个实例声明（`InvalidConstRhs`）。[内核设计说明](../design/kernel.md)说明了为何每个条件对保守性都是必需的。"
+msgid "The side conditions are: `c` is not reserved and not already defined or used by a type definition (`ReservedSymbol`, `DefinitionAlreadyExists`, `TypeRepresentationAlreadyExists`, `TypeAbstractionAlreadyExists`); `rhs` is closed (`DefinitionNotClosed`); no occurrence in `rhs` denotes `c` itself, that is, `rhs` has no occurrence of the name `c` that fails to denote a declared constant (`DefinitionIsCyclic`); constants are compared by identity, so an occurrence of an outer constant named `c` that the new `c` shadows is allowed; `ty` is admissible (`InvalidConstRhs`) and equals the type of `rhs` (`TypeMismatch`); every type variable of `rhs` occurs in `ty` (`GhostTypeVariable`); and every constant of `rhs` is declared at an instance of its schema (`InvalidConstRhs`). The [kernel design](../design/kernel.md) shows why each condition is needed for conservativity."
+msgstr "附带条件为：`c` 不是保留名称，也未被定义或类型定义占用（`ReservedSymbol`、`DefinitionAlreadyExists`、`TypeRepresentationAlreadyExists`、`TypeAbstractionAlreadyExists`）；`rhs` 是闭项（`DefinitionNotClosed`）；`rhs` 中没有任何出现指向 `c` 本身，也就是说，`rhs` 里没有一个不指向已声明常量的名称 `c` 的出现（`DefinitionIsCyclic`）；常量按标识比较，所以新的 `c` 所遮蔽的外层同名常量的出现是允许的；`ty` 可容许（`InvalidConstRhs`）且等于 `rhs` 的类型（`TypeMismatch`）；`rhs` 的每个类型变量都出现在 `ty` 中（`GhostTypeVariable`）；`rhs` 的每个常量都以其模式的某个实例被声明（`InvalidConstRhs`）。[内核设计说明](../design/kernel.md)说明了为什么保守性需要每一个条件。"
 
 #: manual/api/kernel.md:850
 msgid "`ks_definition_theorem` and `ks_has_def_head`"
@@ -4195,8 +4195,8 @@ msgid "$c = x$ would give $\\vdash c = x$, then INST gives $\\vdash c = y$ and s
 msgstr "$c = x$ 会给出 $\\vdash c = x$，然后 INST 给出 $\\vdash c = y$，于是对所有 $x, y$ 都有 $\\vdash x = y$。"
 
 #: manual/design/kernel.md:213
-msgid "No constant named $c$ occurs in $t$, directly or through earlier definitions"
-msgstr "$t$ 中不出现名为 $c$ 的常量，无论是直接出现还是经由先前的定义"
+msgid "No occurrence in $t$ denotes $c$ itself: a name $c$ that does not denote a declared constant would denote the new constant"
+msgstr "$t$ 中没有任何出现指向 $c$ 本身：一个不指向已声明常量的名称 $c$ 会指向新的常量"
 
 #: manual/design/kernel.md:213
 msgid ""
@@ -4221,8 +4221,8 @@ msgid "Two definitions of one name would give $\\vdash c = t_1$ and $\\vdash c =
 msgstr "同一个名称的两个定义会给出 $\\vdash c = t_1$ 和 $\\vdash c = t_2$，于是 $\\vdash t_1 = t_2$。"
 
 #: manual/design/kernel.md:217
-msgid "The counterexamples in the second and last rows are stated, as in the specification, for constants identified by name. In the code the new constant always receives a fresh identity, so a name $c$ that occurs in $t$ can only denote an older constant, and a second definition of $c$ in an inner scope would get a new identity too; neither could then produce the contradiction shown. The two checks are kept anyway, by name and over the whole theory history: they make every definition read as non-circular and unique when constants are read by name, which is what the specification's freshness conditions require, and they keep the unfolding argument below simple. They are deliberately stricter than identities need: `ks_define_const` refuses `c := d` in an inner scope when an earlier definition of `d` mentions an outer, undefined constant named `c`."
-msgstr "第二行和最后一行的反例，与规范一样，是针对按名称识别的常量陈述的。在代码中，新常量总是获得一个新的标识，因此出现在 $t$ 中的名称 $c$ 只能指向更早的常量，而在内层作用域中对 $c$ 的第二次定义也会得到新的标识；两者都无法产生所示的矛盾。这两项检查仍然保留，并且按名称、针对整个理论历史进行：它们使每个定义在按名称阅读常量时都是非循环且唯一的，这正是规范的新鲜性条件所要求的，同时也让下面的展开论证保持简单。它们有意比标识所需的更严格：若先前对 `d` 的定义提到一个名为 `c` 的外层未定义常量，`ks_define_const` 就会拒绝在内层作用域中定义 `c := d`。"
+msgid "The counterexamples in the second and last rows are stated, as in the specification, for constants identified by name. The code identifies constants by `ConstId`: the new constant always receives a fresh identity, so an occurrence in $t$ of a name $c$ that already denotes a declared constant is an older constant (for example one of an outer scope that the new constant will shadow), and a definition cannot depend on itself through identities, whatever the earlier definitions mention. The only way $t$ can mention the constant being defined is an occurrence of the name $c$ that does not denote a declared constant yet, because after the definition that name would denote the new constant; `ks_define_const` refuses that with `DefinitionIsCyclic`. This is the freshness condition of the Lean `DefinitionGate` (the defined identifier does not occur in the right-hand side). In particular `ks_define_const` accepts `c := d` in an inner scope when an earlier definition of `d` mentions an outer, undefined constant named `c`. A second definition of one name is still refused (`DefinitionAlreadyExists`, which is by name over the whole theory history), and a theorem is never rebound from one constant to another of the same name (see `thm_bind_const_ids`)."
+msgstr "第二行和最后一行的反例，与规范一样，是针对按名称标识的常量陈述的。代码按 `ConstId` 标识常量：新常量总是获得一个新的标识，所以 $t$ 中已指向某个已声明常量的名称 $c$ 的出现是更早的常量（例如新常量将要遮蔽的外层作用域的常量），而且无论更早的定义提到什么，一个定义都不可能通过标识依赖自身。$t$ 能提到正在被定义的常量，唯一的方式是出现一个尚未指向已声明常量的名称 $c$，因为定义之后这个名称就会指向新的常量；`ks_define_const` 以 `DefinitionIsCyclic` 拒绝它。这正是 Lean `DefinitionGate` 的新鲜性条件（被定义的标识符不出现在右端）。特别地，当更早的某个 `d` 的定义提到一个外层的、未定义的名为 `c` 的常量时，`ks_define_const` 接受内层作用域中的 `c := d`。同一个名字的第二次定义仍然被拒绝（`DefinitionAlreadyExists`，它按名称并覆盖整个理论历史），定理也绝不会从一个常量被重新绑定到另一个同名常量（见 `thm_bind_const_ids`）。"
 
 #: manual/design/kernel.md:219
 msgid "Under these conditions a definition is conservative. Every instance of the new constant is $c{:}\\tau\\theta$ for some type substitution $\\theta$, and replacing it by $t\\theta$ maps each proof in the extended theory to a proof in the old theory: the definition theorem $\\vdash c = t$ and its type instances become instances of REFL, every other rule step maps to the same step, and a theorem that does not mention $c$ is mapped to itself. The ghost-variable condition is what makes the replacement a function of the instance $c{:}\\tau\\theta$ alone. The specification proves this as \"Definition-level conservativity\"."
@@ -8722,6 +8722,12 @@ msgstr "[tactics 设计](../design/tactics.md)解释了论证 (justification)，
 #: manual/tutorial/tactics.md:179
 msgid "The [prover tutorial](prover.md) runs the same proofs from scripts."
 msgstr "[prover 教程](prover.md)从脚本运行相同的证明。"
+
+#~ msgid "No constant named $c$ occurs in $t$, directly or through earlier definitions"
+#~ msgstr "$t$ 中不出现名为 $c$ 的常量，无论是直接出现还是经由先前的定义"
+
+#~ msgid "The counterexamples in the second and last rows are stated, as in the specification, for constants identified by name. In the code the new constant always receives a fresh identity, so a name $c$ that occurs in $t$ can only denote an older constant, and a second definition of $c$ in an inner scope would get a new identity too; neither could then produce the contradiction shown. The two checks are kept anyway, by name and over the whole theory history: they make every definition read as non-circular and unique when constants are read by name, which is what the specification's freshness conditions require, and they keep the unfolding argument below simple. They are deliberately stricter than identities need: `ks_define_const` refuses `c := d` in an inner scope when an earlier definition of `d` mentions an outer, undefined constant named `c`."
+#~ msgstr "第二行和最后一行的反例，与规范一样，是针对按名称识别的常量陈述的。在代码中，新常量总是获得一个新的标识，因此出现在 $t$ 中的名称 $c$ 只能指向更早的常量，而在内层作用域中对 $c$ 的第二次定义也会得到新的标识；两者都无法产生所示的矛盾。这两项检查仍然保留，并且按名称、针对整个理论历史进行：它们使每个定义在按名称阅读常量时都是非循环且唯一的，这正是规范的新鲜性条件所要求的，同时也让下面的展开论证保持简单。它们有意比标识所需的更严格：若先前对 `d` 的定义提到一个名为 `c` 的外层未定义常量，`ks_define_const` 就会拒绝在内层作用域中定义 `c := d`。"
 
 #~ msgid "A goal, unlike a term, may start with `forall (x : A), body` or `∀ (x : A), body`, also in parentheses. This form is accepted only here, as goal sugar."
 #~ msgstr "与项不同，目标可以以 `forall (x : A), body` 或 `∀ (x : A), body` 开头，也可置于括号中。这种形式只在此处作为目标语法糖被接受。"
