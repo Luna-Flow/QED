@@ -800,8 +800,8 @@ msgid "Primitive rules"
 msgstr "基本規則"
 
 #: manual/api/kernel.md:449
-msgid "Each rule takes the kernel state first, checks that its premise theorems are admissible in that state, applies the rule and checks the result. In the rules below $\\Gamma, \\Delta$ are hypothesis sets, $\\equiv_\\alpha$ is α-equivalence (constant identities ignored), and $\\setminus$ removes every hypothesis α-equivalent to the given term whose constants carry the same identity stamps (see `Thm` above). The [kernel design](../design/kernel.md) explains why each rule is sound."
-msgstr "各規則は最初にカーネル状態を取り、前提の定理がその状態で許容されることを検査し、規則を適用して結果を検査する。以下の規則では、$\\Gamma, \\Delta$ は仮定の集合、$\\equiv_\\alpha$ は(定数の同一性を無視した)α 同値、$\\setminus$ は与えられた項と α 同値で、定数が同じ同一性スタンプをもつすべての仮定を取り除く操作である(上の `Thm` を参照)。各規則がなぜ健全かは、[カーネル設計ノート](../design/kernel.md)で説明されている。"
+msgid "Each rule takes the kernel state first, checks that its premise theorems are admissible in that state, applies the rule and checks the result. In the rules below $\\Gamma, \\Delta$ are hypothesis sets, $\\equiv_\\alpha$ is α-equivalence (constant identities ignored), and $\\setminus$ removes every hypothesis α-equivalent to the given term (constant stamps are ignored, see `Thm` above). The [kernel design](../design/kernel.md) explains why each rule is sound."
+msgstr "各規則は最初にカーネル状態を取り、前提の定理がその状態で許容されることを検査し、規則を適用して結果を検査する。以下の規則では、$\\Gamma, \\Delta$ は仮定の集合、$\\equiv_\\alpha$ は(定数の同一性を無視した)α 同値、$\\setminus$ は与えられた項と α 同値なすべての仮定を取り除く操作である(定数のスタンプは無視される。上の `Thm` を参照)。各規則がなぜ健全かは、[カーネル設計ノート](../design/kernel.md)で説明されている。"
 
 #: manual/api/kernel.md:453
 msgid "`refl_checked` is REFL: it proves that a term equals itself."
@@ -4051,8 +4051,8 @@ msgid "Sequents and theorems"
 msgstr "シーケントと定理"
 
 #: manual/design/kernel.md:100
-msgid "A theorem is a sequent $\\Gamma \\vdash p$: a finite set $\\Gamma$ of propositions (terms of type `bool`) and a proposition $p$. The kernel stores $\\Gamma$ and $p$ as De Bruijn terms and deduplicates hypotheses with `db_term_eq`, so $\\Gamma$ is a set of α-equivalence classes: inserting a hypothesis that is α-equivalent to one already present does nothing (`db_hyps_union`). Because `db_term_eq` also compares constant stamps, two hypotheses that differ only in the stamp of a constant stay two entries, and DEDUCT_ANTISYM_RULE removes only the entry whose stamps match. This can leave an extra hypothesis (the rule is weaker than intended), never a missing one, so it does not affect soundness; build all terms of one proof with `ks_mk_const` to avoid it."
-msgstr "定理はシーケント $\\Gamma \\vdash p$ である。すなわち、命題（型 `bool` の項）の有限集合 $\\Gamma$ と、命題 $p$ からなる。カーネルは $\\Gamma$ と $p$ を de Bruijn 項として保持し、仮定の重複を `db_term_eq` で除くので、$\\Gamma$ は α 同値類の集合である。すでにある仮定と α 同値な仮定を挿入しても何も起こらない（`db_hyps_union`）。`db_term_eq` は定数のスタンプも比較するので、ある定数のスタンプだけが異なる二つの仮定は二つの項目のまま残り、DEDUCT_ANTISYM_RULE はスタンプが一致する項目しか取り除かない。その結果、余分な仮定が残ること(規則が意図より弱くなること)はあっても、仮定が欠けることはないので、健全性には影響しない。一つの証明の項をすべて `ks_mk_const` で作れば避けられる。"
+msgid "A theorem is a sequent $\\Gamma \\vdash p$: a finite set $\\Gamma$ of propositions (terms of type `bool`) and a proposition $p$. The kernel stores $\\Gamma$ and $p$ as De Bruijn terms and deduplicates hypotheses with `db_term_logical_eq`, so $\\Gamma$ is a set of α-equivalence classes: inserting a hypothesis that is α-equivalent to one already present does nothing (`db_hyps_union`), and DEDUCT_ANTISYM_RULE removes every entry α-equivalent to the given term (`db_hyps_remove`). The comparison ignores constant identity stamps: every checked rule has already shown its premises admissible in one state, where a constant name denotes one identity, so an unstamped occurrence (stamp $-1$, from `mk_const`) and a stamped one (from `ks_mk_const`) of the same constant are the same proposition and are not kept twice."
+msgstr "定理はシーケント $\\Gamma \\vdash p$ である。すなわち、命題（型 `bool` の項）の有限集合 $\\Gamma$ と、命題 $p$ からなる。カーネルは $\\Gamma$ と $p$ を de Bruijn 項として保持し、仮定の重複を `db_term_logical_eq` で除くので、$\\Gamma$ は α 同値類の集合である。すでにある仮定と α 同値な仮定を挿入しても何も起こらず（`db_hyps_union`）、DEDUCT_ANTISYM_RULE は与えられた項と α 同値なすべての項目を取り除く（`db_hyps_remove`）。この比較は定数のスタンプを無視する。検査付きの各規則は、前提が一つの状態で許容されることをすでに示しており、その状態では定数名は一つの同一性だけを表すため、同じ定数のスタンプなしの出現（スタンプ $-1$、`mk_const` による）とスタンプ付きの出現（`ks_mk_const` による）は同じ命題であり、二重に保持されない。"
 
 #: manual/design/kernel.md:102
 msgid "The intended meaning is the standard semantics of HOL: types denote non-empty sets, $\\mathit{bool}$ denotes $\\{\\top, \\bot\\}$, $\\sigma \\to \\tau$ denotes the full set of functions, $=$ denotes identity and $@$ denotes a choice function. A sequent is *valid* when every model and every valuation of the free variables that make all of $\\Gamma$ true also make $p$ true."
@@ -4313,8 +4313,8 @@ msgid "Invariants maintained by the code"
 msgstr "コードが保つ不変条件"
 
 #: manual/design/kernel.md:279
-msgid "A `Thm` stores its hypotheses as a list without duplicates under `db_term_eq` (α-equivalence with equal constant stamps) and its conclusion as a De Bruijn term; every rule result passes `ensure_thm_admissible` in the state it was built in."
-msgstr "`Thm` は仮定を `db_term_eq`(定数のスタンプが等しい α 同値)のもとで重複のないリストとして、結論を de Bruijn 項として保持する。すべての規則の結果は、それが構築された状態において `ensure_thm_admissible` を通過する。"
+msgid "A `Thm` stores its hypotheses as a list without duplicates under `db_term_logical_eq` (α-equivalence, constant stamps ignored) and its conclusion as a De Bruijn term; every rule result passes `ensure_thm_admissible` in the state it was built in."
+msgstr "`Thm` は仮定を `db_term_logical_eq`(α 同値、定数のスタンプは無視)のもとで重複のないリストとして、結論を de Bruijn 項として保持する。すべての規則の結果は、それが構築された状態において `ensure_thm_admissible` を通過する。"
 
 #: manual/design/kernel.md:280
 msgid "`KernelState` is persistent. A gate returns a new state; the base state stays valid, so `ks_conservative_replay_ok(base, extended, th)` can re-check `th` against both."

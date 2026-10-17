@@ -133,10 +133,15 @@ fn db_mk_eq(lhs : DbTerm, rhs : DbTerm) -> Result[DbTerm, LogicError] {
 }
 
 ///|
+/// Union of two hypothesis lists, comparing hypotheses as propositions: constant
+/// identity stamps are ignored. Every checked rule has already shown its premises
+/// admissible in one state, where a constant name denotes one identity, so an
+/// unstamped (`-1`) occurrence and a stamped one of the same name are the same
+/// proposition and must not be kept twice.
 fn db_hyps_union(a : Array[DbTerm], b : Array[DbTerm]) -> Array[DbTerm] {
   let out = a.copy()
   for h in b {
-    if !out.any(fn(x) { db_term_eq(x, h) }) {
+    if !out.any(fn(x) { db_term_logical_eq(x, h) }) {
       out.push(h)
     }
   }
@@ -150,7 +155,7 @@ fn db_hyps_dedup(hs : Array[DbTerm]) -> Array[DbTerm] {
 
 ///|
 fn db_hyps_remove(hs : Array[DbTerm], target : DbTerm) -> Array[DbTerm] {
-  hs.filter(fn(h) { !db_term_eq(h, target) })
+  hs.filter(fn(h) { !db_term_logical_eq(h, target) })
 }
 
 ///|

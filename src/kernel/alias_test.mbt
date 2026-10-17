@@ -12,6 +12,8 @@ using @kernel {
   type Thm,
   abs_rule_checked,
   assume_checked,
+  add_assum_checked,
+  term_logical_eq,
   beta_rule_checked,
   bool_ty,
   db_apply_ty_subst,

@@ -97,7 +97,7 @@ Substitution for *free* variables (`db_subst_free_parallel`, used by INST) is si
 
 ### Sequents and theorems
 
-A theorem is a sequent $\Gamma \vdash p$: a finite set $\Gamma$ of propositions (terms of type `bool`) and a proposition $p$. The kernel stores $\Gamma$ and $p$ as De Bruijn terms and deduplicates hypotheses with `db_term_eq`, so $\Gamma$ is a set of α-equivalence classes: inserting a hypothesis that is α-equivalent to one already present does nothing (`db_hyps_union`). Because `db_term_eq` also compares constant stamps, two hypotheses that differ only in the stamp of a constant stay two entries, and DEDUCT_ANTISYM_RULE removes only the entry whose stamps match. This can leave an extra hypothesis (the rule is weaker than intended), never a missing one, so it does not affect soundness; build all terms of one proof with `ks_mk_const` to avoid it.
+A theorem is a sequent $\Gamma \vdash p$: a finite set $\Gamma$ of propositions (terms of type `bool`) and a proposition $p$. The kernel stores $\Gamma$ and $p$ as De Bruijn terms and deduplicates hypotheses with `db_term_logical_eq`, so $\Gamma$ is a set of α-equivalence classes: inserting a hypothesis that is α-equivalent to one already present does nothing (`db_hyps_union`), and DEDUCT_ANTISYM_RULE removes every entry α-equivalent to the given term (`db_hyps_remove`). The comparison ignores constant identity stamps: every checked rule has already shown its premises admissible in one state, where a constant name denotes one identity, so an unstamped occurrence (stamp $-1$, from `mk_const`) and a stamped one (from `ks_mk_const`) of the same constant are the same proposition and are not kept twice.
 
 The intended meaning is the standard semantics of HOL: types denote non-empty sets, $\mathit{bool}$ denotes $\{\top, \bot\}$, $\sigma \to \tau$ denotes the full set of functions, $=$ denotes identity and $@$ denotes a choice function. A sequent is *valid* when every model and every valuation of the free variables that make all of $\Gamma$ true also make $p$ true.
 
@@ -276,7 +276,7 @@ Step 3 is a property of the code, not of the logic, and it is why nothing outsid
 
 ### Invariants maintained by the code
 
-- A `Thm` stores its hypotheses as a list without duplicates under `db_term_eq` (α-equivalence with equal constant stamps) and its conclusion as a De Bruijn term; every rule result passes `ensure_thm_admissible` in the state it was built in.
+- A `Thm` stores its hypotheses as a list without duplicates under `db_term_logical_eq` (α-equivalence, constant stamps ignored) and its conclusion as a De Bruijn term; every rule result passes `ensure_thm_admissible` in the state it was built in.
 - `KernelState` is persistent. A gate returns a new state; the base state stays valid, so `ks_conservative_replay_ok(base, extended, th)` can re-check `th` against both.
 - Constant identities are allocated from a counter in the theory state and never reused, even after a scope is popped. (The `sig_*` functions on a bare `GlobalSig` number new constants after the largest identity still visible, so they can reuse one after a pop; they never touch theorems.)
 - Definition heads, type-definition heads and the infinity anchor are recorded in the theory history, which `ks_pop_scope` does not touch: a name, once defined, cannot be defined again.
