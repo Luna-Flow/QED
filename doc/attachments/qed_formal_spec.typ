@@ -2600,12 +2600,23 @@ derivable at $D :: "es"$ is derivable, unchanged, at $"es"$.]
 The proof is by induction on the derivation. Replacement commutes with renaming,
 substitution and type instantiation; the last needs the functor laws of type instantiation
 on closed terms, which are proved through an annotation-preserving erasure to untyped terms.
-The defining equation becomes reflexivity of $r$ because $c$ does not occur in $r$. Erasure
-of specifications (replacing $c$ by $epsilon(lambda x. P)$) and of type definitions is not
-proved here.
+The defining equation becomes reflexivity of $r$ because $c$ does not occur in $r$. 
 
 #lean-proof("Unfold", ("HistoryDerivation.erase_definition", "HistoryDerivation.definition_conservative"))
 #lean-proof("TermLaws", ("Term.instType_var", "Term.instType_instType"))
+
+#theorem([Specification erasure])[Let $E$ be a specification extension of the constant $c$
+with predicate $P$, and let $U_E$ replace every occurrence $c_sigma$ by the choice term
+$epsilon (lambda x. P[sigma])$. If $s$ is derivable at the history $E :: "es"$, then $U_E s$
+is derivable at $"es"$; a sequent not mentioning $c$ is derivable unchanged.]
+
+The specification step carries a derivation of $P(w)$ at $"es"$. Under $U_E$ the step's
+theorem $P(c)$ becomes $P(epsilon P)$, which is the `chooseWitness` rule applied to that
+derivation, because $c$ occurs neither in $P$ nor in $w$. Compatibility with type
+instantiation holds because the replacement is the instantiation of a closed term. Erasure
+of type definitions is not proved here.
+
+#lean-proof("SpecErasure", ("HistoryDerivation.erase_specification", "HistoryDerivation.specification_conservative"))
 
 The freshness premises of the three introduction clauses serve a separate well-formedness
 condition: they require each declared constant identifier, and for a type definition the
