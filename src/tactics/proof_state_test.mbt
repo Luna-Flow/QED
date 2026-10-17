@@ -707,3 +707,24 @@ test "proof state exact closes lowered raw forall goals" {
   let ps3 = expect_ok_ps(ps_apply(st, prelude, ps2, step_exact("h")))
   assert_true(ps_qed(ps3) is Ok(_))
 }
+
+///|
+test "intro on a quantified goal states the subgoal about a fresh variable" {
+  let st = install_prop_prelude(empty_kernel_state()).unwrap()
+  let pre = default_prop_prelude()
+  let bool = bool_ty()
+  let y = mk_var("y", bool)
+  let t = ks_mk_const(st, "T").unwrap()
+  let hyp = mk_var("_b0", bool)
+  // goal: _b0 |- (λy. y) = (λy. T), that is ∀y. y under the hypothesis _b0
+  let concl = mk_eq(mk_abs(y, y), mk_abs(y, t)).unwrap()
+  let ps = ps_init(mk_goal([hyp], concl))
+  let ps = ps_apply(st, pre, ps, step_intro("x")).unwrap()
+  let current = goal_concl(ps_current_goal(ps).unwrap())
+  // the new goal is about the quantified variable, not about the hypothesis
+  assert_false(term_alpha_eq(current, hyp))
+  match ps_apply(st, pre, ps, step_assumption()) {
+    Err(GoalShapeMismatch(_)) => ()
+    _ => fail("assumption must not close a goal about a fresh variable")
+  }
+}
