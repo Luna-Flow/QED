@@ -2,6 +2,7 @@ import QEDFV.HOL.Soundness
 import QEDFV.HOL.HistoryAuditExamples
 import QEDFV.HOL.DeclarationAllocation
 import QEDFV.HOL.DeclarationAllocationExamples
+import QEDFV.HOL.Unfold
 
 /-! Reproducible foundation audit for the public Typed HOL core results. -/
 
@@ -17,6 +18,8 @@ import QEDFV.HOL.DeclarationAllocationExamples
 #print axioms QEDFV.HOL.typed_history_derivation_sound
 #print axioms QEDFV.HOL.history_derivation_old_language_valid
 #print axioms QEDFV.HOL.history_generic_false_not_derivable
+#print axioms QEDFV.HOL.HistoryDerivation.erase_definition
+#print axioms QEDFV.HOL.HistoryDerivation.definition_conservative
 #print axioms QEDFV.HOL.unit_absRep_function_valid
 #print axioms QEDFV.HOL.unit_history_composition_nonvacuous
 #print axioms QEDFV.HOL.falseGate_no_witness

@@ -165,16 +165,16 @@ Generated from [`qed_obligations.json`](qed_obligations.json). The dimensions ar
 
 A checked checklist item requires `proved-and-refined` in the refinement dimension. Open means an applicable obligation lacks checked implementation refinement; it does not mean a soundness defect has been demonstrated. Severity records the impact if the obligation is unsatisfied.
 
-Total: **11**; complete: **0**; not applicable: **0**; open: **11**.
+Total: **12**; complete: **0**; not applicable: **0**; open: **12**.
 
 ### Status Counts
 
 | Dimension | proved and refined | proved abstractly | tested only | implemented unverified | partial | not implemented | known deviation | not applicable |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| lean | 0 | 7 | 0 | 0 | 0 | 1 | 0 | 3 |
-| moonbit | 0 | 0 | 4 | 6 | 1 | 0 | 0 | 0 |
-| refinement | 0 | 0 | 0 | 0 | 0 | 11 | 0 | 0 |
-| tests | 0 | 0 | 10 | 0 | 0 | 0 | 0 | 1 |
+| lean | 0 | 7 | 0 | 0 | 1 | 1 | 0 | 3 |
+| moonbit | 0 | 0 | 4 | 6 | 1 | 1 | 0 | 0 |
+| refinement | 0 | 0 | 0 | 0 | 0 | 12 | 0 | 0 |
+| tests | 0 | 0 | 10 | 0 | 0 | 1 | 0 | 1 |
 
 ### Counts by Logical Subsystem
 
@@ -184,21 +184,21 @@ Total: **11**; complete: **0**; not applicable: **0**; open: **11**.
 | frontend-boundary | 1 | 0 | 0 | 1 |
 | implementation-correspondence | 1 | 0 | 0 | 1 |
 | logical-core | 3 | 0 | 0 | 3 |
-| theory-extension | 3 | 0 | 0 | 3 |
+| theory-extension | 4 | 0 | 0 | 4 |
 | trusted-kernel | 2 | 0 | 0 | 2 |
 
 ### Counts by Requirement Level
 
 | Group | Total | Complete | Not applicable | Open |
 | --- | ---: | ---: | ---: | ---: |
-| required | 11 | 0 | 0 | 11 |
+| required | 12 | 0 | 0 | 12 |
 
 ### Counts by Severity if Unsatisfied
 
 | Group | Total | Complete | Not applicable | Open |
 | --- | ---: | ---: | ---: | ---: |
 | critical | 7 | 0 | 0 | 7 |
-| high | 4 | 0 | 0 | 4 |
+| high | 5 | 0 | 0 | 5 |
 
 ### Checklist
 
@@ -207,6 +207,7 @@ Total: **11**; complete: **0**; not applicable: **0**; open: **11**.
 - [ ] `HOL-RULES-001` [required; critical] Every primitive theorem rule preserves semantic validity under its stated side conditions. (open)
 - [ ] `HOL-EXT-001` [required; critical] Definition, specification, and type-definition extensions have their stated local semantic laws and preserve validity of old-language sequents. (open)
 - [ ] `HOL-EXT-002` [required; high] History-indexed derivations require extension witnesses at the preceding history and preserve old-language validity across supported histories. (open)
+- [ ] `HOL-ERASE-001` [required; high] A derivation at a history that begins with a definition yields a derivation at the preceding history in which every occurrence of the defined constant is replaced by its instantiated definition; sequents not mentioning the constant are derivable unchanged. (open)
 - [ ] `HOL-GROW-001` [required; high] A finite declaration table records fresh constant allocation and preserves compatibility with the fixed total signature; old declarations remain available after a fresh allocation. (open)
 - [ ] `HOL-INFINITY-001` [required; high] The executable infinity registration is an audit marker; the canonical object-language infinity sentence is established by the Lean rule, not by the MoonBit gate. (open)
 - [ ] `KERNEL-BOUNDARY-001` [required; critical] Only checked kernel constructors and extension gates can produce theorem objects; frontend code cannot forge them. (open)
@@ -223,6 +224,7 @@ Total: **11**; complete: **0**; not applicable: **0**; open: **11**.
 | `HOL-RULES-001` | logical-core | required | critical | Every primitive theorem rule preserves semantic validity under its stated side conditions. | proved-abstractly | implemented-unverified | not-implemented | tested-only | [#17](https://github.com/Luna-Flow/QED/issues/17) |
 | `HOL-EXT-001` | theory-extension | required | critical | Definition, specification, and type-definition extensions have their stated local semantic laws and preserve validity of old-language sequents. | proved-abstractly | implemented-unverified | not-implemented | tested-only | [#7](https://github.com/Luna-Flow/QED/issues/7), [#8](https://github.com/Luna-Flow/QED/issues/8), [#17](https://github.com/Luna-Flow/QED/issues/17) |
 | `HOL-EXT-002` | theory-extension | required | high | History-indexed derivations require extension witnesses at the preceding history and preserve old-language validity across supported histories. | proved-abstractly | tested-only | not-implemented | tested-only | [#15](https://github.com/Luna-Flow/QED/issues/15), [#22](https://github.com/Luna-Flow/QED/issues/22) |
+| `HOL-ERASE-001` | theory-extension | required | high | A derivation at a history that begins with a definition yields a derivation at the preceding history in which every occurrence of the defined constant is replaced by its instantiated definition; sequents not mentioning the constant are derivable unchanged. | partial | not-implemented | not-implemented | not-implemented | [#17](https://github.com/Luna-Flow/QED/issues/17) |
 | `HOL-GROW-001` | theory-extension | required | high | A finite declaration table records fresh constant allocation and preserves compatibility with the fixed total signature; old declarations remain available after a fresh allocation. | proved-abstractly | partial | not-implemented | not-applicable | [#17](https://github.com/Luna-Flow/QED/issues/17) |
 | `HOL-INFINITY-001` | axiom-admission | required | high | The executable infinity registration is an audit marker; the canonical object-language infinity sentence is established by the Lean rule, not by the MoonBit gate. | proved-abstractly | tested-only | not-implemented | tested-only | [#7](https://github.com/Luna-Flow/QED/issues/7) |
 | `KERNEL-BOUNDARY-001` | trusted-kernel | required | critical | Only checked kernel constructors and extension gates can produce theorem objects; frontend code cannot forge them. | not-applicable | implemented-unverified | not-implemented | tested-only | [#17](https://github.com/Luna-Flow/QED/issues/17) |
@@ -291,6 +293,18 @@ History-indexed derivations require extension witnesses at the preceding history
 - Evidence: `formal_verification/QEDFV/HOL/ExtensionDerivation.lean`, `src/kernel/kernel_audit_test.mbt`
 - Assumptions: -
 - Exclusions: Lean does not certify the MoonBit lineage representation.
+
+#### `HOL-ERASE-001`
+
+A derivation at a history that begins with a definition yields a derivation at the preceding history in which every occurrence of the defined constant is replaced by its instantiated definition; sequents not mentioning the constant are derivable unchanged.
+
+- Specification: `doc/attachments/qed_formal_spec.typ::History-Indexed Extension Derivations`
+- MoonBit API: `src/kernel/sig.mbt`
+- Lean: `formal_verification/QEDFV/HOL/Unfold.lean::HistoryDerivation.erase_definition`, `formal_verification/QEDFV/HOL/Unfold.lean::HistoryDerivation.definition_conservative`
+- Verification: Lean induction on history derivations; Lean annotation-erasure laws for type instantiation
+- Evidence: `formal_verification/QEDFV/HOL/Unfold.lean`, `formal_verification/QEDFV/HOL/TermLaws.lean`
+- Assumptions: -
+- Exclusions: Specification and type-definition erasure are not proved.; Lean does not certify the MoonBit kernel.
 
 #### `HOL-GROW-001`
 
