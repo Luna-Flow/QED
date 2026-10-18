@@ -153,6 +153,21 @@ theorem HistoryDerivation.erase_specification_aux (E : SpecificationExtension S)
   | instTerm σ d ih => exact fun es heq ↦ replConst_step_instTerm E.repl σ (ih es heq)
   | chooseWitness p w d ih =>
       exact fun es heq ↦ replConst_step_chooseWitness E.repl p w (ih es heq)
+  | truthIntro => exact fun es heq ↦ HistoryDerivation.of_eq rfl .truthIntro
+  | falsityElim q hA d ih => exact fun es heq ↦ replConst_step_falsityElim E.repl q hA (ih es heq)
+  | conjIntro hA hB dA dB ihA ihB =>
+      exact fun es heq ↦ replConst_step_conjIntro E.repl hA hB (ihA es heq) (ihB es heq)
+  | conjElimLeft hA d ih => exact fun es heq ↦ replConst_step_conjElimLeft E.repl hA (ih es heq)
+  | conjElimRight hA d ih => exact fun es heq ↦ replConst_step_conjElimRight E.repl hA (ih es heq)
+  | impIntro p d ih => exact fun es heq ↦ replConst_step_impIntro E.repl p (ih es heq)
+  | impElim hA hB dA dB ihA ihB =>
+      exact fun es heq ↦ replConst_step_impElim E.repl hA hB (ihA es heq) (ihB es heq)
+  | allIntro d ih => exact fun es heq ↦ replConst_step_allIntro E.repl (ih es heq)
+  | allElim t hA d ih => exact fun es heq ↦ replConst_step_allElim E.repl t hA (ih es heq)
+  | exIntro t hA d ih => exact fun es heq ↦ replConst_step_exIntro E.repl t hA (ih es heq)
+  | exElim hA dA dB ihA ihB =>
+      exact fun es heq ↦ replConst_step_exElim E.repl hA (ihA es heq) (ihB es heq)
+  | classical hA d ih => exact fun es heq ↦ replConst_step_classical E.repl hA (ih es heq)
 
 /-- **Specification erasure.** A derivation at the history `specification E :: es` yields a
 derivation at `es` of the sequent in which the specified constant is replaced by the choice
