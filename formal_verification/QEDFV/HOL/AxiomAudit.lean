@@ -5,6 +5,7 @@ import QEDFV.HOL.DeclarationAllocationExamples
 import QEDFV.HOL.Unfold
 import QEDFV.HOL.TdNorm
 import QEDFV.HOL.TdMain
+import QEDFV.HOL.TdBelow
 import QEDFV.HOL.ConnectiveExamples
 import QEDFV.HOL.SpecErasure
 
@@ -32,6 +33,9 @@ import QEDFV.HOL.SpecErasure
 #print axioms QEDFV.HOL.TypeDefGate.nrm_idem
 #print axioms QEDFV.HOL.TypeDefGate.hd_trans
 #print axioms QEDFV.HOL.TypeDefGate.typedef_conservative
+#print axioms QEDFV.HOL.HistoryDerivation.erase_below
+#print axioms QEDFV.HOL.TypeDefGate.typedef_conservative_unfold
+#print axioms QEDFV.HOL.TypeDefGate.typedef_conservative_old
 #print axioms QEDFV.HOL.HistoryDerivation.erase_specification
 #print axioms QEDFV.HOL.HistoryDerivation.specification_conservative
 #print axioms QEDFV.HOL.unit_absRep_function_valid
