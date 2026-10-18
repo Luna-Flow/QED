@@ -21,7 +21,7 @@ hand-maintained matrix here.
 3. `Evaluation.lean` proves renaming, substitution and beta evaluation laws.
 4. `Instantiation.lean` proves type-instantiation and choice coherence.
 5. `Rules.lean` proves preservation for the primitive rules, weakening and witness-based choice.
-6. `Derivation.lean` packages the twenty-five constructors (thirteen equational and choice rules including the exact infinity sentence, and twelve connective and quantifier rules from `ConnectiveRules.lean`); `derivation_sound` is the induction theorem.
+6. `Derivation.lean` packages the twenty-six constructors (thirteen equational and choice rules including the exact infinity sentence, and thirteen connective, quantifier and choice rules from `ConnectiveRules.lean`); `derivation_sound` is the induction theorem.
 7. `Definitions.lean`, `Specification.lean` and `TypeDefinitions.lean` prove the local extension laws.
 8. `ModelExtension.lean` and `ExtensionDerivation.lean` interpret newest-first histories of definition, specification and type-definition steps. Witnesses are derivations at the preceding history; typedef laws are selected by `TypeDefLaw`; old derivations lift only when their sequents omit the new identifiers.
 9. `HistoryDerivation.lean` embeds those extension products and closes them under the core rules at one fixed total signature. The examples and negative audits check non-vacuity, empty predicates and repeated identifiers.

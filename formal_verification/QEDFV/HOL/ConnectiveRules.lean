@@ -122,4 +122,26 @@ theorem valid_classical (I : ConstVal κ S) (A : Sequent S Γ) (p : Term S Γ .b
   by_contra hn
   exact this (fun hp ↦ hn hp)
 
+/-- Hilbert choice from a witness derived under hypotheses: the form of the select axiom
+`P w ⟹ P (ε P)` that does not require a hypothesis-free witness. -/
+theorem valid_choose_hyp (I : ConstVal κ S) (A : Sequent S Γ) (p : Term S (a :: Γ) .bool)
+    (w : Term S Γ a) (hA : A.concl = p.substitute (Sub.single w)) (hV : Valid I A) :
+    Valid I { hyps := A.hyps,
+              concl := p.substitute (Sub.single (Term.choice.app (Term.lam p))) } := by
+  intro ρ hρ η hh
+  have hw := hV ρ hρ η hh
+  rw [hA] at hw
+  rw [Term.eval_substitute, Sub.eval_single]
+  rw [Term.eval_substitute, Sub.eval_single] at hw
+  letI : Nonempty (Ty.denote κ ρ a) := a.carrier_nonempty κ ρ hρ
+  change p.eval I ρ hρ
+    (Env.extend η ((Term.choice.app (Term.lam p)).eval I ρ hρ η))
+  change p.eval I ρ hρ
+    (Env.extend η
+      (select (Ty.denote κ ρ a)
+        (fun q ↦ p.eval I ρ hρ (Env.extend η q))))
+  exact select_spec (Ty.denote κ ρ a)
+    (fun q ↦ p.eval I ρ hρ (Env.extend η q))
+    ⟨w.eval I ρ hρ η, hw⟩
+
 end QEDFV.HOL

@@ -168,6 +168,7 @@ theorem HistoryDerivation.erase_specification_aux (E : SpecificationExtension S)
   | exElim hA dA dB ihA ihB =>
       exact fun es heq ↦ replConst_step_exElim E.repl hA (ihA es heq) (ihB es heq)
   | classical hA d ih => exact fun es heq ↦ replConst_step_classical E.repl hA (ih es heq)
+  | chooseHyp p w hA d ih => exact fun es heq ↦ replConst_step_chooseHyp E.repl p w hA (ih es heq)
 
 /-- **Specification erasure.** A derivation at the history `specification E :: es` yields a
 derivation at `es` of the sequent in which the specified constant is replaced by the choice
