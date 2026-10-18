@@ -82,10 +82,6 @@ theorem trans_abs_heq (hC : G.Closed) (σ : TypeSub) {Γ : List Ty} :
   rw [eN]
   rfl
 
-theorem trans_cast (hC : G.Closed) {Γ : List Ty} {a b : Ty} (h : a = b) (t : Term S Γ a) :
-    G.trans hC (h ▸ t) = (congrArg G.tr h) ▸ G.trans hC t := by
-  subst h; rfl
-
 theorem repI_app {Γ : List Ty} {es : List (ModelExtension S)} {L : List (Term S Γ .bool)}
     (z : Term S Γ G.repTy) :
     HistoryDerivation S es { hyps := L, concl := ((G.repI Γ).app z).equal (G.nrm z) } := by
@@ -118,6 +114,69 @@ theorem absI_app {Γ : List Ty} {es : List (ModelExtension S)} {L : List (Term S
     (L := L) (fun _ hh ↦ by simp at hh)
   have b3 := HistoryDerivation.mkComb' (HistoryDerivation.refl' (L := L) (G.normIn Γ)) b2
   exact HistoryDerivation.trans' b1 b3
+
+/-- The standing hypotheses on a gate for the erasure: no parameters, and a predicate whose
+constants carry canonical instance substitutions. -/
+structure Ok : Prop where
+  n_zero : G.n = 0
+  pred_clean : G.pred.SigClean G.k
+
+theorem Ok.closed (h : G.Ok) : G.Closed := Closed.of_n_zero G h.n_zero
+
+theorem Ok.pred_ground (h : G.Ok) : G.pred.annotVars = ∅ := by
+  ext i; constructor
+  · intro hi
+    have := G.closed i hi
+    have h0 := h.n_zero
+    omega
+  · intro hi; exact absurd hi (by simp)
+
+theorem Ok.pred_kfree (_h : G.Ok) : G.k ∉ G.pred.tyCons := G.k_fresh
+
+theorem heq_closedLift {S : Signature} {A B : Ty} (hAB : A = B) {u : Term S [] A} {v : Term S [] B}
+    (huv : HEq u v) (Γ : List Ty) : HEq (u.closedLift : Term S Γ A) (v.closedLift : Term S Γ B) := by
+  subst hAB
+  have := eq_of_heq huv
+  subst this
+  rfl
+
+theorem heq_rename_closed {S : Signature} {A B : Ty} (hAB : A = B) {u : Term S [] A}
+    {v : Term S [] B} (huv : HEq u v) {Δ : List Ty} (r r' : Ren [] Δ) :
+    HEq (u.rename r) (v.rename r') := by
+  subst hAB
+  have := eq_of_heq huv
+  subst this
+  rw [Ren.empty_ext r r']
+
+theorem trans_predIn_heq (h : G.Ok) (θ : TypeSub) (Γ : List Ty) :
+    HEq (G.trans h.closed ((G.predIn Γ).instType θ))
+      (G.predIn ((Γ.map (Ty.subst θ)).map G.tr)) := by
+  rw [G.predIn_eq, G.predIn_eq]
+  unfold Term.closedLift
+  rw [Term.rename_instType, ← G.trans_rename h.closed]
+  have hP : HEq (G.trans h.closed (G.pred.instType θ)) G.pred := by
+    refine Term.erase_inj_heq' _ _ rfl ?_ ?_
+    · have : G.k ∉ (Ty.arr G.repTy Ty.bool).tyCons := by
+        simp [Ty.tyCons]; exact fun h' ↦ G.repTy_tyCons_ne G.k h' rfl
+      have hv : (Ty.arr G.repTy Ty.bool).typeVars = ∅ := by
+        have := (G.pred.ty_annotVars_subset)
+        rw [h.pred_ground] at this
+        ext i; constructor
+        · intro hi; exact this hi
+        · intro hi; exact absurd hi (by simp)
+      exact G.tr_ground h.closed this hv θ
+    · exact G.erase_trans_inst h.closed G.pred G.k_fresh h.pred_clean h.pred_ground θ
+  have hty : G.tr ((Ty.arr G.repTy Ty.bool).subst θ) = Ty.arr G.repTy Ty.bool := by
+    have : G.k ∉ (Ty.arr G.repTy Ty.bool).tyCons := by
+      simp [Ty.tyCons]; exact fun h' ↦ G.repTy_tyCons_ne G.k h' rfl
+    have hv : (Ty.arr G.repTy Ty.bool).typeVars = ∅ := by
+      have := (G.pred.ty_annotVars_subset)
+      rw [h.pred_ground] at this
+      ext i; constructor
+      · intro hi; exact this hi
+      · intro hi; exact absurd hi (by simp)
+    exact G.tr_ground h.closed this hv θ
+  exact heq_rename_closed hty hP _ _
 
 end TypeDefGate
 

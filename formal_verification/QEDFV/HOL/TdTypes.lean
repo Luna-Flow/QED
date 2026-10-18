@@ -62,6 +62,21 @@ theorem Ty.tr_subst (hR : ∀ i, i ∉ R.typeVars) (a : Ty) (σ : TypeSub) :
         funext i
         exact ih i
 
+theorem Ty.subst_congr (a : Ty) {σ σ' : TypeSub} (h : ∀ i, i ∈ a.typeVars → σ i = σ' i) :
+    a.subst σ = a.subst σ' := by
+  induction a with
+  | bool => rfl
+  | ind => rfl
+  | var i => exact h i (by simp [Ty.typeVars])
+  | arr a b iha ihb =>
+      simp only [Ty.subst]
+      rw [iha (fun i hi ↦ h i (Or.inl hi)), ihb (fun i hi ↦ h i (Or.inr hi))]
+  | con j m args ih =>
+      simp only [Ty.subst]
+      congr 1
+      funext i
+      exact ih i (fun i' hi ↦ h i' ⟨i, hi⟩)
+
 end
 
 end QEDFV.HOL
