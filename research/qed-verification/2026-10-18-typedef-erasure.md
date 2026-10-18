@@ -5,7 +5,7 @@
 - Authority: subordinate to [`qed_formal_spec.typ`](../../doc/attachments/qed_formal_spec.typ) and the Lean sources
 - Scope: issue [#50](https://github.com/Luna-Flow/QED/issues/50); what is known, what fails, and the routes that remain
 - Evidence boundary: pen-and-paper analysis against the Lean sources at `origin/main` after [#49](https://github.com/Luna-Flow/QED/pull/49); no Lean proof of the target statement exists
-- Last reviewed: 2026-10-18
+- Last reviewed: 2026-10-18 (updated after M1, [#54](https://github.com/Luna-Flow/QED/pull/54))
 
 ## The statement
 
@@ -111,3 +111,38 @@ exercises most, are already covered.
    * M4: type-variable parameters and the typedef laws; the theorem.
    Decision point after M2: if the restricted class excludes derivations the kernel needs, stop.
 3. Otherwise close #50 as documented.
+
+## Update after M1: what the logical-relation route needs
+
+M1 is merged: with the connective rules, classical case analysis is available inside the
+calculus, so a retraction `norm y := ε z. (P y ⟹ z = y) ∧ P z` with `⊢ P (norm y)` is now
+derivable, and relativised equalities can be derived by `allIntro`/`impIntro`. A closer look at
+the translation of free constants shows the restriction that M2 must impose.
+
+* **Free constants cannot be translated.** Take a free constant `h : (α → bool) → α`. Its
+  instance at `α := k` is forced by compatibility with `instType` to translate to `h` at the
+  representation type, and that term is not self-related: `R(g, g')` only says `g` and `g'`
+  agree on `P`, but `h` may distinguish them, so `R_k(h g, h g')` fails. The refl rule on
+  `h_k` then has no translation. Replacing `h_k` by a default term breaks the compatibility
+  with `instType`. The same happens for free type constructors `j` with `j(k)` arguments.
+  Semantically this is harmless (the model assigns `h_k` an unrelated value), but a
+  syntactic translation cannot represent it.
+* **Defined constants and typedef-introduced constructors can be.** For a constant defined by
+  a closed term, self-relatedness of the translation is the fundamental lemma applied to
+  the right-hand side, by induction on the history. For an earlier typedef `J`, define
+  `R_{J(τ)}(u, v) := R_{rep_J(τ)}(Rep u, Rep v)`; this is well behaved because the predicate
+  of `J` is itself related to itself.
+* So M2 is not a bookkeeping change. It restricts derivations to *scoped* ones: every constant
+  occurring is introduced by a definition, a specification or a typedef of the history, and
+  every type constructor other than `bool`, `ind`, `→` is introduced by a typedef of the
+  history. That excludes the free constants and free type constructors that the total
+  `Signature` currently allows, and the scope must be preserved by every rule (a scope
+  predicate threaded through `HistoryDerivation`, or a derivation family indexed by an
+  allowed-symbol set).
+
+Revised estimate: M2 is a refactoring of the history calculus plus re-proving the definition and
+specification erasures for scoped derivations; M3 and M4 are the relativisation proper
+(relations at all types, the fundamental lemma for 25 rules, type-variable parameters,
+the typedef laws). Several thousand lines of Lean; weeks to months. Whether the result is worth
+it depends on whether the kernel's scoped histories are the intended object of the theorem,
+which they are.
