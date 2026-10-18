@@ -267,6 +267,267 @@ theorem core_trans {Γ : List Ty} {s : Sequent S Γ} (d : Derivation S s) (θ : 
 
 end Core
 
+section Main
+
+variable (hOk : G.Ok) {w : Term S [] G.repTy}
+  (hwit : HistoryDerivation S ([] : List (ModelExtension S))
+    { hyps := [], concl := G.pred.app w })
+include hOk hwit
+
+/-- The history is the empty history or the history with the single type definition. -/
+def HistOk (h : List (ModelExtension S)) : Prop := h = [] ∨ h = [ModelExtension.typeDefinition G]
+
+theorem ext_trans {h : List (ModelExtension S)} {Γ : List Ty} {s : Sequent S Γ}
+    (d : ExtensionDerivation S h s) (hh : G.HistOk h) (θ : TypeSub) :
+    HistoryDerivation S [] (G.transSeq hOk.closed (typeSubstSequent θ s)) := by
+  revert hh θ
+  induction d with
+  | core d => exact fun _ θ ↦ G.core_trans hOk hwit d θ
+  | @weaken es' Γ s e d hOld ih =>
+      intro hh θ
+      rcases hh with hh | hh
+      · simp at hh
+      · exact ih (Or.inl (List.cons.inj hh).2) θ
+  | definition D hFresh => intro hh; rcases hh with hh | hh <;> simp at hh
+  | specification E hFresh d ih => intro hh; rcases hh with hh | hh <;> simp at hh
+  | typedef G' l hk hrep habs w' d' ih =>
+      intro hh θ
+      rcases hh with hh | hh
+      · simp at hh
+      · obtain ⟨hG, _⟩ := List.cons.inj hh
+        cases hG
+        cases l with
+        | absRep => exact G.trans_law1 hOk θ hwit
+        | repRange => exact G.trans_law2 hOk θ hwit
+        | repAbs => exact G.trans_law3 hOk θ hwit
+
+
+theorem hd_trans {h : List (ModelExtension S)} {Γ : List Ty} {s : Sequent S Γ}
+    (d : HistoryDerivation S h s) (hh : G.HistOk h) (θ : TypeSub) :
+    HistoryDerivation S [] (G.transSeq hOk.closed (typeSubstSequent θ s)) := by
+  revert hh θ
+  induction d with
+  | core d => exact fun _ θ ↦ G.core_trans hOk hwit d θ
+  | extension d => exact fun hh θ ↦ G.ext_trans hOk hwit d hh θ
+  | @weaken es' Γ s e d hOld ih =>
+      intro hh θ
+      rcases hh with hh | hh
+      · simp at hh
+      · exact ih (Or.inl (List.cons.inj hh).2) θ
+  | definition D hFresh => intro hh; rcases hh with hh | hh <;> simp at hh
+  | specification E hFresh d ih => intro hh; rcases hh with hh | hh <;> simp at hh
+  | typedef G' l hk hrep habs w' d' ih =>
+      intro hh θ
+      rcases hh with hh | hh
+      · simp at hh
+      · obtain ⟨hG, _⟩ := List.cons.inj hh
+        cases hG
+        cases l with
+        | absRep => exact G.trans_law1 hOk θ hwit
+        | repRange => exact G.trans_law2 hOk θ hwit
+        | repAbs => exact G.trans_law3 hOk θ hwit
+  | @weakenHyps es' Γ A L hL d ih =>
+      intro hh θ
+      refine G.transSeq_mono hOk.closed ?_ ?_ (ih hh θ)
+      · rfl
+      · intro x hx
+        simp only [typeSubstSequent, List.mem_map] at hx ⊢
+        obtain ⟨u, hu, rfl⟩ := hx
+        exact ⟨u, hL u hu, rfl⟩
+  | addAssum p d ih =>
+      intro hh θ
+      exact G.step_addAssum hOk.closed hwit (p.instType θ) (ih hh θ)
+  | @trans es' Γ a A B x y z hA hB dA dB ihA ihB =>
+      intro hh θ
+      have hA' : (typeSubstSequent θ A).concl = (x.instType θ).equal (y.instType θ) := by
+        simp only [typeSubstSequent]; rw [hA]; rfl
+      have hB' : (typeSubstSequent θ B).concl = (y.instType θ).equal (z.instType θ) := by
+        simp only [typeSubstSequent]; rw [hB]; rfl
+      have step := G.step_trans hOk.closed hwit hA' hB' (ihA hh θ) (ihB hh θ)
+      refine G.transSeq_mono hOk.closed ?_ ?_ step
+      · rfl
+      · intro h hh
+        simp only [union, List.mem_append, typeSubstSequent, List.map_append] at hh ⊢
+        exact hh
+  | @mkComb es' Γ a b A B f g x y hA hB dA dB ihA ihB =>
+      intro hh θ
+      have hA' : (typeSubstSequent θ A).concl = (f.instType θ).equal (g.instType θ) := by
+        simp only [typeSubstSequent]; rw [hA]; rfl
+      have hB' : (typeSubstSequent θ B).concl = (x.instType θ).equal (y.instType θ) := by
+        simp only [typeSubstSequent]; rw [hB]; rfl
+      have step := G.step_mkComb hOk.closed hwit hA' hB' (ihA hh θ) (ihB hh θ)
+      refine G.transSeq_mono hOk.closed ?_ ?_ step
+      · rfl
+      · intro h hh
+        simp only [union, List.mem_append, typeSubstSequent, List.map_append] at hh ⊢
+        exact hh
+  | @abs es' Γ a b A s t d ih =>
+      intro hh θ
+      have e : typeSubstSequent θ (⟨(weakenSequent (b := a) A).hyps, s.equal t⟩ :
+          Sequent S (a :: Γ)) = ⟨(weakenSequent (b := a.subst θ) (typeSubstSequent θ A)).hyps,
+            (s.instType θ).equal (t.instType θ)⟩ := by
+        simp only [typeSubstSequent]
+        congr 1
+        exact weaken_inst A θ
+      exact G.step_abs hOk.closed hwit (G.transSeq_of_eq hOk.closed e (ih hh θ))
+  | @eqMp es' Γ A B p q hA hB dA dB ihA ihB =>
+      intro hh θ
+      have hA' : (typeSubstSequent θ A).concl = (p.instType θ).equal (q.instType θ) := by
+        simp only [typeSubstSequent]; rw [hA]; rfl
+      have hB' : (typeSubstSequent θ B).concl = p.instType θ := by
+        simp only [typeSubstSequent]; rw [hB]
+      have step := G.step_eqMp hOk.closed hwit hA' hB' (ihA hh θ) (ihB hh θ)
+      refine G.transSeq_mono hOk.closed ?_ ?_ step
+      · rfl
+      · intro h hh
+        simp only [union, List.mem_append, typeSubstSequent, List.map_append] at hh ⊢
+        exact hh
+  | @deduct es' Γ A B dA dB ihA ihB =>
+      intro hh θ
+      have step := G.step_deduct hOk.closed hwit (ihA hh θ) (ihB hh θ)
+      refine G.transSeq_mono hOk.closed ?_ ?_ step
+      · rfl
+      · intro h hh
+        simp only [union, List.mem_append, typeSubstSequent, List.map_append] at hh ⊢
+        rcases hh with hh | hh
+        · exact Or.inl (remove_map_sub (fun h ↦ h.instType θ) A.hyps B.concl h hh)
+        · exact Or.inr (remove_map_sub (fun h ↦ h.instType θ) B.hyps A.concl h hh)
+  | @instType es' Γ A θ' d ih =>
+      intro hh θ
+      exact G.transSeq_heq hOk.closed (ctx_map_comp Γ θ' θ).symm
+        (typeSubstSequent_comp A θ' θ).symm (ih hh (θ.comp θ'))
+  | @instTerm es' Γ Δ A σ d ih =>
+      intro hh θ
+      have step := G.step_instTerm hOk.closed hwit (Sub.mapTypes θ σ) (ih hh θ)
+      refine G.transSeq_of_eq hOk.closed ?_ step
+      simp only [termSubstSequent, typeSubstSequent, List.map_map]
+      congr 1
+      · apply List.map_congr_left
+        intro h _
+        exact (Term.substitute_instType h σ θ).symm
+      · exact (Term.substitute_instType _ σ θ).symm
+  | @chooseWitness es' Γ a p w d ih =>
+      intro hh θ
+      have hA' : (typeSubstSequent θ (⟨[], p.substitute (Sub.single w)⟩ : Sequent S Γ)).concl
+          = (p.instType θ).substitute (Sub.single (w.instType θ)) := by
+        simp only [typeSubstSequent]; rw [Term.instType_single]
+      have step := G.step_chooseHyp hOk.closed hwit (p.instType θ) (w.instType θ) hA' (ih hh θ)
+      refine G.transSeq_of_eq hOk.closed ?_ step
+      simp only [typeSubstSequent, List.map_nil]
+      congr 1
+      rw [Term.instType_single]
+      rfl
+  | truthIntro =>
+      intro hh θ
+      exact G.step_truthIntro hOk.closed hwit
+  | @falsityElim es' Γ A q hA d ih =>
+      intro hh θ
+      have hA' : (typeSubstSequent θ A).concl = Term.falsity := by
+        simp only [typeSubstSequent]; rw [hA]; rfl
+      exact G.step_falsityElim hOk.closed hwit (q.instType θ) hA' (ih hh θ)
+  | @conjIntro es' Γ A B p q hA hB dA dB ihA ihB =>
+      intro hh θ
+      have hA' : (typeSubstSequent θ A).concl = p.instType θ := by
+        simp only [typeSubstSequent]; rw [hA]
+      have hB' : (typeSubstSequent θ B).concl = q.instType θ := by
+        simp only [typeSubstSequent]; rw [hB]
+      have step := G.step_conjIntro hOk.closed hwit hA' hB' (ihA hh θ) (ihB hh θ)
+      refine G.transSeq_mono hOk.closed ?_ ?_ step
+      · rfl
+      · intro h hh
+        simp only [union, List.mem_append, typeSubstSequent, List.map_append] at hh ⊢
+        exact hh
+  | @conjElimLeft es' Γ A p q hA d ih =>
+      intro hh θ
+      have hA' : (typeSubstSequent θ A).concl = Term.conj (p.instType θ) (q.instType θ) := by
+        simp only [typeSubstSequent]; rw [hA]; rfl
+      exact G.step_conjElimLeft hOk.closed hwit hA' (ih hh θ)
+  | @conjElimRight es' Γ A p q hA d ih =>
+      intro hh θ
+      have hA' : (typeSubstSequent θ A).concl = Term.conj (p.instType θ) (q.instType θ) := by
+        simp only [typeSubstSequent]; rw [hA]; rfl
+      exact G.step_conjElimRight hOk.closed hwit hA' (ih hh θ)
+  | @impIntro es' Γ A p d ih =>
+      intro hh θ
+      have step := G.step_impIntro hOk.closed hwit (p.instType θ) (ih hh θ)
+      refine G.transSeq_mono hOk.closed ?_ ?_ step
+      · rfl
+      · intro h hh
+        simp only [typeSubstSequent] at hh ⊢
+        exact remove_map_sub (fun h ↦ h.instType θ) A.hyps p h hh
+  | @impElim es' Γ A B p q hA hB dA dB ihA ihB =>
+      intro hh θ
+      have hA' : (typeSubstSequent θ A).concl = Term.imp (p.instType θ) (q.instType θ) := by
+        simp only [typeSubstSequent]; rw [hA]; rfl
+      have hB' : (typeSubstSequent θ B).concl = p.instType θ := by
+        simp only [typeSubstSequent]; rw [hB]
+      have step := G.step_impElim hOk.closed hwit hA' hB' (ihA hh θ) (ihB hh θ)
+      refine G.transSeq_mono hOk.closed ?_ ?_ step
+      · rfl
+      · intro h hh
+        simp only [union, List.mem_append, typeSubstSequent, List.map_append] at hh ⊢
+        exact hh
+  | @allIntro es' Γ a A φ d ih =>
+      intro hh θ
+      have e : typeSubstSequent θ (⟨(weakenSequent (b := a) A).hyps, φ⟩ :
+          Sequent S (a :: Γ)) = ⟨(weakenSequent (b := a.subst θ) (typeSubstSequent θ A)).hyps,
+            φ.instType θ⟩ := by
+        simp only [typeSubstSequent]
+        congr 1
+        exact weaken_inst A θ
+      exact G.step_allIntro hOk.closed hwit (G.transSeq_of_eq hOk.closed e (ih hh θ))
+  | @allElim es' Γ a A φ t hA d ih =>
+      intro hh θ
+      have hA' : (typeSubstSequent θ A).concl = Term.all (φ.instType θ) := by
+        simp only [typeSubstSequent]; rw [hA]; rfl
+      have step := G.step_allElim hOk.closed hwit (t.instType θ) hA' (ih hh θ)
+      refine G.transSeq_of_eq hOk.closed ?_ step
+      simp only [typeSubstSequent]
+      rw [Term.instType_single]
+  | @exIntro es' Γ a A φ t hA d ih =>
+      intro hh θ
+      have hA' : (typeSubstSequent θ A).concl
+          = (φ.instType θ).substitute (Sub.single (t.instType θ)) := by
+        simp only [typeSubstSequent]; rw [hA, Term.instType_single]
+      exact G.step_exIntro hOk.closed hwit (t.instType θ) hA' (ih hh θ)
+  | @exElim es' Γ a A B φ hA dA dB ihA ihB =>
+      intro hh θ
+      have hA' : (typeSubstSequent θ A).concl = Term.ex (φ.instType θ) := by
+        simp only [typeSubstSequent]; rw [hA]; rfl
+      have e : typeSubstSequent θ (⟨φ :: (weakenSequent (b := a) B).hyps, weakenTerm B.concl⟩ :
+          Sequent S (a :: Γ)) = ⟨φ.instType θ :: (weakenSequent (b := a.subst θ)
+            (typeSubstSequent θ B)).hyps, weakenTerm (b := a.subst θ) (B.concl.instType θ)⟩ := by
+        simp only [typeSubstSequent, List.map_cons]
+        congr 1
+        · congr 1
+          exact weaken_inst B θ
+        · exact weakenTerm_inst B.concl θ
+      have step := G.step_exElim hOk.closed hwit hA' (ihA hh θ) (G.transSeq_of_eq hOk.closed e (ihB hh θ))
+      refine G.transSeq_mono hOk.closed ?_ ?_ step
+      · rfl
+      · intro h hh
+        simp only [union, List.mem_append, typeSubstSequent, List.map_append] at hh ⊢
+        exact hh
+  | @classical es' Γ A p hA d ih =>
+      intro hh θ
+      have hA' : (typeSubstSequent θ A).concl
+          = Term.imp (Term.imp (p.instType θ) Term.falsity) Term.falsity := by
+        simp only [typeSubstSequent]; rw [hA]; rfl
+      exact G.step_classical hOk.closed hwit hA' (ih hh θ)
+  | @chooseHyp es' Γ a A p w hA d ih =>
+      intro hh θ
+      have hA' : (typeSubstSequent θ A).concl
+          = (p.instType θ).substitute (Sub.single (w.instType θ)) := by
+        simp only [typeSubstSequent]; rw [hA, Term.instType_single]
+      have step := G.step_chooseHyp hOk.closed hwit (p.instType θ) (w.instType θ) hA' (ih hh θ)
+      refine G.transSeq_of_eq hOk.closed ?_ step
+      simp only [typeSubstSequent]
+      congr 1
+      rw [Term.instType_single]
+      rfl
+
+end Main
+
 end TypeDefGate
 
 end QEDFV.HOL
