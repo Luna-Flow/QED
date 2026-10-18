@@ -54,16 +54,11 @@ theorem Closed.of_n_zero (hn : G.n = 0) : G.Closed := fun i hi ↦ by
 theorem tr_repTy : G.tr G.repTy = G.repTy :=
   Ty.tr_of_not_mem G.repTy (fun h ↦ G.repTy_tyCons_ne G.k h rfl)
 
-open Classical in
-/-- The instance substitution of a translated constant: translated on the type variables of the
-schema and the identity elsewhere, so that instances agreeing on the schema translate alike. -/
-noncomputable def canonSub (c : Nat) (σ : TypeSub) : TypeSub :=
-  fun i ↦ if i ∈ (S c).typeVars then G.tr (σ i) else Ty.var i
-
-theorem tr_const_ty (hC : G.Closed) {c : Nat} (h : G.k ∉ (S c).tyCons) (σ : TypeSub) :
-    (S c).subst (G.canonSub c σ) = G.tr ((S c).subst σ) := by
+theorem IsInst_tr (hC : G.Closed) {c : Nat} (h : G.k ∉ (S c).tyCons) {τ : Ty}
+    (hτ : (S c).IsInst τ) : (S c).IsInst (G.tr τ) := by
+  obtain ⟨σ, rfl⟩ := hτ
+  refine ⟨fun i ↦ G.tr (σ i), ?_⟩
   rw [tr, Ty.tr_subst hC, Ty.tr_of_not_mem _ h]
-  exact Ty.subst_congr _ (fun i hi ↦ by simp [canonSub, hi, tr])
 
 theorem tr_paramTy_subst (σ : TypeSub) :
     (Ty.subst σ (paramTy G.k G.n)).tr G.k G.n G.repTy = G.repTy := by
@@ -89,18 +84,28 @@ theorem tr_abs_ty (hC : G.Closed) {c : Nat} (h : c = G.abs) (σ : TypeSub) :
   rw [G.abs_ty]
   simp only [Ty.subst, tr, Ty.tr, G.tr_paramTy_subst σ, G.tr_repTy_subst hC σ]
 
+theorem tr_rep_ty' (hC : G.Closed) {c : Nat} (h : c = G.rep) {τ : Ty}
+    (hτ : (S c).IsInst τ) : G.tr τ = .arr G.repTy G.repTy := by
+  obtain ⟨σ, rfl⟩ := hτ
+  exact G.tr_rep_ty hC h σ
+
+theorem tr_abs_ty' (hC : G.Closed) {c : Nat} (h : c = G.abs) {τ : Ty}
+    (hτ : (S c).IsInst τ) : G.tr τ = .arr G.repTy G.repTy := by
+  obtain ⟨σ, rfl⟩ := hτ
+  exact G.tr_abs_ty hC h σ
+
 open Classical in
 /-- The untranslated image of a constant at an instance: the constant itself at the
 translated instance when its schema avoids `k`; the identity for `rep` and `abs`; a default
 element otherwise. -/
-noncomputable def rawConst (hC : G.Closed) (c : Nat) (σ : TypeSub) {Δ : List Ty} :
-    Term S Δ (G.tr ((S c).subst σ)) :=
+noncomputable def rawConst (hC : G.Closed) (c : Nat) (τ : Ty) (hτ : (S c).IsInst τ)
+    {Δ : List Ty} : Term S Δ (G.tr τ) :=
   if h : G.k ∉ (S c).tyCons then
-    (G.tr_const_ty hC h σ) ▸ Term.const c (G.canonSub c σ)
+    Term.const c (G.tr τ) (G.IsInst_tr hC h hτ)
   else if h : c = G.rep then
-    (G.tr_rep_ty hC h σ).symm ▸ Term.lam (Term.var Var.zero)
+    (G.tr_rep_ty' hC h hτ).symm ▸ Term.lam (Term.var Var.zero)
   else if h : c = G.abs then
-    (G.tr_abs_ty hC h σ).symm ▸ Term.lam (Term.var Var.zero)
+    (G.tr_abs_ty' hC h hτ).symm ▸ Term.lam (Term.var Var.zero)
   else Term.choice.app (Term.lam Term.truth)
 
 /-- The binder substitution: the bound variable is replaced by its normalisation. -/
@@ -114,7 +119,7 @@ noncomputable def trans (hC : G.Closed) {Γ : List Ty} {a : Ty} (t : Term S Γ a
     Term S (Γ.map G.tr) (G.tr a) :=
   match t with
   | .var v => .var (Var.mapTy G.tr v)
-  | .const c σ => G.nrmTy _ (G.rawConst hC c σ)
+  | .const c τ h => G.nrmTy _ (G.rawConst hC c τ h)
   | .app f x => .app (trans hC f) (trans hC x)
   | .lam b => .lam ((trans hC b).substitute (G.nrmSub _ _))
   | .truth => .truth

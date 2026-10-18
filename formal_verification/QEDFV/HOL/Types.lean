@@ -200,6 +200,41 @@ theorem TypeSub.imageTypeVars_image (θ σ : TypeSub) (A : Set Nat) :
     (a.subst σ).subst θ = a.subst (θ.comp σ) := by
   induction a <;> simp_all [Ty.subst, TypeSub.comp]
 
+theorem Ty.subst_congr (a : Ty) {σ σ' : TypeSub} (h : ∀ i, i ∈ a.typeVars → σ i = σ' i) :
+    a.subst σ = a.subst σ' := by
+  induction a with
+  | bool => rfl
+  | ind => rfl
+  | var i => exact h i (by simp [Ty.typeVars])
+  | arr a b iha ihb =>
+      simp only [Ty.subst]
+      rw [iha (fun i hi ↦ h i (Or.inl hi)), ihb (fun i hi ↦ h i (Or.inr hi))]
+  | con j m args ih =>
+      simp only [Ty.subst]
+      congr 1
+      funext i
+      exact ih i (fun i' hi ↦ h i' ⟨i, hi⟩)
+
+/-- A substitution is determined on the type variables of `a` by the instance `a.subst σ`. -/
+theorem Ty.subst_unique (a : Ty) {σ σ' : TypeSub} (h : a.subst σ = a.subst σ') :
+    ∀ i, i ∈ a.typeVars → σ i = σ' i := by
+  induction a with
+  | bool => intro i hi; simp [Ty.typeVars] at hi
+  | ind => intro i hi; simp [Ty.typeVars] at hi
+  | var i => intro j hj; simp [Ty.typeVars] at hj; subst hj; simpa [Ty.subst] using h
+  | arr a b iha ihb =>
+      simp only [Ty.subst, Ty.arr.injEq] at h
+      intro i hi
+      rcases hi with hi | hi
+      · exact iha h.1 i hi
+      · exact ihb h.2 i hi
+  | con j m args ih =>
+      simp only [Ty.subst, Ty.con.injEq] at h
+      obtain ⟨_, _, hargs⟩ := h
+      intro i hi
+      obtain ⟨j', hj'⟩ := hi
+      exact ih j' (congrFun (eq_of_heq hargs) j') i hj'
+
 @[simp] theorem Ty.denote_subst (a : Ty) (κ : TyConVal) (θ : TypeSub) (ρ : TypeVal) :
     (a.subst θ).denote κ ρ = a.denote κ (θ.pull κ ρ) := by
   induction a <;> simp_all [Ty.subst, Ty.denote, TypeSub.pull]
@@ -277,5 +312,48 @@ theorem ind_infinity_anchor :
   intro h
   obtain ⟨n, hn⟩ := h 0
   exact Nat.noConfusion hn
+
+/-! ### Instances of a schema
+
+A constant occurrence records the *type* at which the constant is used, together with the fact
+that this type is an instance of the constant's schema. The instance substitution is determined
+on the type variables of the schema, so it is not part of the syntax. -/
+
+/-- `τ` is an instance of the schema `s`. -/
+def Ty.IsInst (s τ : Ty) : Prop := ∃ σ : TypeSub, s.subst σ = τ
+
+theorem Ty.IsInst.inst {s τ : Ty} (h : s.IsInst τ) (θ : TypeSub) : s.IsInst (τ.subst θ) := by
+  obtain ⟨σ, hσ⟩ := h
+  exact ⟨θ.comp σ, by rw [← Ty.subst_comp, hσ]⟩
+
+theorem Ty.IsInst.refl (s : Ty) : s.IsInst s := ⟨Ty.var, Ty.subst_id s⟩
+
+open Classical in
+/-- The canonical instance substitution of an instance `τ` of `s`: the unique one on the type
+variables of `s`, and a fixed type elsewhere. -/
+noncomputable def Ty.constSub (s τ : Ty) (h : s.IsInst τ) : TypeSub :=
+  fun i ↦ if i ∈ s.typeVars then (Classical.choose h) i else Ty.bool
+
+theorem Ty.constSub_spec (s τ : Ty) (h : s.IsInst τ) : s.subst (Ty.constSub s τ h) = τ := by
+  refine Eq.trans (Ty.subst_congr s (σ' := Classical.choose h) (fun i hi ↦ by simp [Ty.constSub, hi]))
+    (Classical.choose_spec h)
+
+theorem Ty.constSub_eq (s τ : Ty) (h : s.IsInst τ) {σ : TypeSub} (hσ : s.subst σ = τ) :
+    ∀ i, i ∈ s.typeVars → Ty.constSub s τ h i = σ i := by
+  intro i hi
+  have := Ty.subst_unique s ((Classical.choose_spec h).trans hσ.symm) i hi
+  simpa [Ty.constSub, hi] using this
+
+theorem Ty.constSub_off (s τ : Ty) (h : s.IsInst τ) {i : Nat} (hi : i ∉ s.typeVars) :
+    Ty.constSub s τ h i = Ty.bool := by
+  simp [Ty.constSub, hi]
+
+theorem Ty.constSub_inst (s τ : Ty) (h : s.IsInst τ) (θ : TypeSub) :
+    ∀ i, i ∈ s.typeVars →
+      Ty.constSub s (τ.subst θ) (h.inst θ) i = (Ty.constSub s τ h i).subst θ := by
+  intro i hi
+  have hs : s.subst (θ.comp (Ty.constSub s τ h)) = τ.subst θ := by
+    rw [← Ty.subst_comp, Ty.constSub_spec]
+  rw [Ty.constSub_eq s _ (h.inst θ) hs i hi]
 
 end QEDFV.HOL

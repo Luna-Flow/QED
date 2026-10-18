@@ -82,23 +82,20 @@ theorem Term.eval_instType
   induction t with
   | var v =>
       exact (cast_heq (Ty.denote_subst _ κ θ ρ) (η _ (v.mapTypes θ))).symm
-  | const c σ =>
-      have hpull : (θ.comp σ).pull κ ρ = σ.pull κ (θ.pull κ ρ) := by
+  | const c τ h =>
+      have hpull : (Ty.constSub (S c) (τ.subst θ) (h.inst θ)).pull κ ρ
+          = (Ty.constSub (S c) τ h).pull κ (θ.pull κ ρ) := by
         funext i
-        simp [TypeSub.pull, TypeSub.comp, Ty.denote_subst]
+        by_cases hi : i ∈ (S c).typeVars
+        · simp only [TypeSub.pull, Ty.constSub_inst (S c) τ h θ i hi, Ty.denote_subst]
+        · simp only [TypeSub.pull, Ty.constSub_off (S c) _ (h.inst θ) hi,
+            Ty.constSub_off (S c) τ h hi]
+          rfl
       simp only [Term.instType, Term.eval]
-      have hcast := eval_term_cast I ρ hρ η
-        (Ty.subst_comp (S c) θ σ).symm (.const c (θ.comp σ))
-      have hraw : HEq
-          ((Term.const c (θ.comp σ)).eval I ρ hρ η)
-          ((Term.const c σ).eval I (θ.pull κ ρ) (θ.pull_admissible κ ρ hρ)
-            (Env.instPull θ η)) := by
-        simp only [Term.eval]
-        have hi := constVal_heq I hpull
-          ((θ.comp σ).pull_admissible κ ρ hρ)
-          (σ.pull_admissible κ (θ.pull κ ρ) (θ.pull_admissible κ ρ hρ)) c
-        exact (cast_heq _ _).trans (hi.trans (cast_heq _ _).symm)
-      exact hcast.trans hraw
+      have hi := constVal_heq I hpull
+        ((Ty.constSub (S c) (τ.subst θ) (h.inst θ)).pull_admissible κ ρ hρ)
+        ((Ty.constSub (S c) τ h).pull_admissible κ (θ.pull κ ρ) (θ.pull_admissible κ ρ hρ)) c
+      exact (cast_heq _ _).trans (hi.trans (cast_heq _ _).symm)
   | @app Γ a b f x ihf ihx =>
       simp only [Term.instType, Term.eval]
       have hf := ihf η

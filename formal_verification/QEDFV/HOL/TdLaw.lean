@@ -29,8 +29,9 @@ theorem S_rep_subst (σ : TypeSub) :
       = .arr (.con G.k G.n (fun i : Fin G.n ↦ (Ty.var i.val).subst σ)) (G.repTy.subst σ) := by
   rw [G.rep_ty]; rfl
 
-theorem trans_rep_heq (hC : G.Closed) (σ : TypeSub) {Γ : List Ty} :
-    HEq (G.trans hC (Term.const (S := S) (Γ := Γ) G.rep σ)) (G.repI (Γ.map G.tr)) := by
+theorem trans_rep_heq' (hC : G.Closed) (σ : TypeSub) {Γ : List Ty} :
+    HEq (G.trans hC (Term.const (S := S) (Γ := Γ) G.rep ((S G.rep).subst σ) ⟨σ, rfl⟩))
+      (G.repI (Γ.map G.tr)) := by
   refine Term.erase_inj_heq' _ _ rfl (G.tr_rep_ty hC rfl σ) ?_
   have hk : G.k ∈ (Ty.arr (.con G.k G.n (fun i : Fin G.n ↦ (Ty.var i.val).subst σ))
       (G.repTy.subst σ)).tyCons := by simp [Ty.tyCons]
@@ -40,7 +41,7 @@ theorem trans_rep_heq (hC : G.Closed) (σ : TypeSub) {Γ : List Ty} :
     rw [Ty.subst_of_closed _ hC]; exact fun h ↦ G.repTy_tyCons_ne G.k h rfl
   have hS : ¬ G.k ∉ (S G.rep).tyCons := by
     rw [G.rep_ty]; simp [paramTy, Ty.tyCons]
-  have hraw : (G.rawConst hC G.rep σ : Term S (Γ.map G.tr) _)
+  have hraw : (G.rawConst hC G.rep _ ⟨σ, rfl⟩ : Term S (Γ.map G.tr) _)
       = (G.tr_rep_ty hC rfl σ).symm ▸ (Term.lam (Term.var Var.zero) : Term S (Γ.map G.tr) (.arr G.repTy G.repTy)) := by
     unfold rawConst; rw [dif_neg hS, dif_pos rfl]
   rw [G.nrmTy_of_not_mem _ hR, hraw]
@@ -60,8 +61,9 @@ theorem S_abs_subst (σ : TypeSub) :
       = .arr (G.repTy.subst σ) (.con G.k G.n (fun i : Fin G.n ↦ (Ty.var i.val).subst σ)) := by
   rw [G.abs_ty]; rfl
 
-theorem trans_abs_heq (hC : G.Closed) (σ : TypeSub) {Γ : List Ty} :
-    HEq (G.trans hC (Term.const (S := S) (Γ := Γ) G.abs σ)) (G.absI (Γ.map G.tr)) := by
+theorem trans_abs_heq' (hC : G.Closed) (σ : TypeSub) {Γ : List Ty} :
+    HEq (G.trans hC (Term.const (S := S) (Γ := Γ) G.abs ((S G.abs).subst σ) ⟨σ, rfl⟩))
+      (G.absI (Γ.map G.tr)) := by
   refine Term.erase_inj_heq' _ _ rfl (G.tr_abs_ty hC rfl σ) ?_
   have hk : G.k ∈ (Ty.arr (G.repTy.subst σ)
       (.con G.k G.n (fun i : Fin G.n ↦ (Ty.var i.val).subst σ))).tyCons := by simp [Ty.tyCons]
@@ -72,7 +74,7 @@ theorem trans_abs_heq (hC : G.Closed) (σ : TypeSub) {Γ : List Ty} :
   have hS : ¬ G.k ∉ (S G.abs).tyCons := by
     rw [G.abs_ty]; simp [paramTy, Ty.tyCons]
   have hne : G.abs ≠ G.rep := fun h ↦ G.rep_ne_abs h.symm
-  have hraw : (G.rawConst hC G.abs σ : Term S (Γ.map G.tr) _)
+  have hraw : (G.rawConst hC G.abs _ ⟨σ, rfl⟩ : Term S (Γ.map G.tr) _)
       = (G.tr_abs_ty hC rfl σ).symm ▸ (Term.lam (Term.var Var.zero) : Term S (Γ.map G.tr) (.arr G.repTy G.repTy)) := by
     unfold rawConst; rw [dif_neg hS, dif_neg hne, dif_pos rfl]
   have eN := G.tr_repTy_subst hC σ
@@ -81,6 +83,16 @@ theorem trans_abs_heq (hC : G.Closed) (σ : TypeSub) {Γ : List Ty} :
     eN, nrm, Term.rename]
   rw [eN]
   rfl
+
+theorem trans_rep_heq (hC : G.Closed) (τ : Ty) (h : (S G.rep).IsInst τ) {Γ : List Ty} :
+    HEq (G.trans hC (Term.const (S := S) (Γ := Γ) G.rep τ h)) (G.repI (Γ.map G.tr)) := by
+  obtain ⟨σ, rfl⟩ := h
+  exact G.trans_rep_heq' hC σ
+
+theorem trans_abs_heq (hC : G.Closed) (τ : Ty) (h : (S G.abs).IsInst τ) {Γ : List Ty} :
+    HEq (G.trans hC (Term.const (S := S) (Γ := Γ) G.abs τ h)) (G.absI (Γ.map G.tr)) := by
+  obtain ⟨σ, rfl⟩ := h
+  exact G.trans_abs_heq' hC σ
 
 theorem repI_app {Γ : List Ty} {es : List (ModelExtension S)} {L : List (Term S Γ .bool)}
     (z : Term S Γ G.repTy) :
@@ -115,11 +127,9 @@ theorem absI_app {Γ : List Ty} {es : List (ModelExtension S)} {L : List (Term S
   have b3 := HistoryDerivation.mkComb' (HistoryDerivation.refl' (L := L) (G.normIn Γ)) b2
   exact HistoryDerivation.trans' b1 b3
 
-/-- The standing hypotheses on a gate for the erasure: no parameters, and a predicate whose
-constants carry canonical instance substitutions. -/
+/-- The standing hypothesis on a gate for the erasure: no parameters. -/
 structure Ok : Prop where
   n_zero : G.n = 0
-  pred_clean : G.pred.SigClean G.k
 
 theorem Ok.closed (h : G.Ok) : G.Closed := Closed.of_n_zero G h.n_zero
 
@@ -165,7 +175,7 @@ theorem trans_predIn_heq (h : G.Ok) (θ : TypeSub) (Γ : List Ty) :
         · intro hi; exact this hi
         · intro hi; exact absurd hi (by simp)
       exact G.tr_ground h.closed this hv θ
-    · exact G.erase_trans_inst h.closed G.pred G.k_fresh h.pred_clean h.pred_ground θ
+    · exact G.erase_trans_inst h.closed G.pred G.k_fresh h.pred_ground θ
   have hty : G.tr ((Ty.arr G.repTy Ty.bool).subst θ) = Ty.arr G.repTy Ty.bool := by
     have : G.k ∉ (Ty.arr G.repTy Ty.bool).tyCons := by
       simp [Ty.tyCons]; exact fun h' ↦ G.repTy_tyCons_ne G.k h' rfl
@@ -253,18 +263,12 @@ variable {S : Signature} (G : TypeDefGate S)
 theorem trans_repTerm_heq (hC : G.Closed) (θ : TypeSub) {Γ : List Ty} :
     HEq (G.trans hC ((G.repTerm (Γ := Γ)).instType θ)) (G.repI (Γ.map (Ty.subst θ) |>.map G.tr)) := by
   unfold repTerm
-  rw [Term.instType_cast]
-  simp only [Term.instType]
-  rw [G.trans_cast hC, G.trans_cast hC]
-  exact (eqRec_heq _ _).trans ((eqRec_heq _ _).trans (G.trans_rep_heq hC _))
+  exact G.trans_rep_heq hC _ _
 
 theorem trans_absTerm_heq (hC : G.Closed) (θ : TypeSub) {Γ : List Ty} :
     HEq (G.trans hC ((G.absTerm (Γ := Γ)).instType θ)) (G.absI (Γ.map (Ty.subst θ) |>.map G.tr)) := by
   unfold absTerm
-  rw [Term.instType_cast]
-  simp only [Term.instType]
-  rw [G.trans_cast hC, G.trans_cast hC]
-  exact (eqRec_heq _ _).trans ((eqRec_heq _ _).trans (G.trans_abs_heq hC _))
+  exact G.trans_abs_heq hC _ _
 
 end TypeDefGate
 

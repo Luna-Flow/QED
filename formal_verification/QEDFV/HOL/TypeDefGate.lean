@@ -48,6 +48,34 @@ structure TypeDefGate (S : Signature) where
   rep_fresh : rep ∉ pred.constIds
   abs_fresh : abs ∉ pred.constIds
 
+theorem heq_choice {A B : Type} (hA : Nonempty A) (hB : Nonempty B) (h : A = B) :
+    HEq (Classical.choice hA) (Classical.choice hB) := by
+  subst h
+  rfl
+
+section Layer
+
+variable {T T' E0 E0' E1 E1' : Type} {P0 : E0 → Prop} {P0' : E0' → Prop}
+
+theorem layerRep_congr (hT : T = SubCarrier E0 P0) (hT' : T' = SubCarrier E0' P0')
+    (e : E0 = E1) (e' : E0' = E1') {d : E1} {d' : E1'} (hTT : T = T') (h0 : E0 = E0')
+    (h1 : E1 = E1') (hP : HEq P0 P0') (hd : HEq d d') :
+    HEq (layerRep hT e d) (layerRep hT' e' d') := by
+  subst hTT h0 h1
+  obtain rfl := eq_of_heq hP
+  obtain rfl := eq_of_heq hd
+  rfl
+
+theorem layerAbs_congr (hT : T = SubCarrier E0 P0) (hT' : T' = SubCarrier E0' P0')
+    (e : E0 = E1) (e' : E0' = E1') (hTT : T = T') (h0 : E0 = E0')
+    (h1 : E1 = E1') (hP : HEq P0 P0') :
+    HEq (layerAbs hT e) (layerAbs hT' e') := by
+  subst hTT h0 h1
+  obtain rfl := eq_of_heq hP
+  rfl
+
+end Layer
+
 namespace TypeDefGate
 
 variable {S : Signature} (G : TypeDefGate S)
@@ -201,13 +229,74 @@ theorem newConst_old (hκ : κ.IsAdmissible) (I : ConstVal κ S) {c : Nat} (hr :
   unfold baseConst
   rw [dif_pos hk]
 
+theorem newTy_typeVars_lt : ∀ i, i ∈ G.newTy.typeVars → i < G.n := by
+  intro i hi
+  obtain ⟨j, hj⟩ := hi
+  have : i = j.val := by simpa [Ty.typeVars] using hj
+  exact this ▸ j.isLt
+
+theorem lt_mem_rep_typeVars {i : Nat} (h : i < G.n) : i ∈ (S G.rep).typeVars := by
+  rw [G.rep_ty]
+  exact Or.inl ⟨⟨i, h⟩, by simp [Ty.typeVars]⟩
+
+theorem lt_mem_abs_typeVars {i : Nat} (h : i < G.n) : i ∈ (S G.abs).typeVars := by
+  rw [G.abs_ty]
+  exact Or.inr ⟨⟨i, h⟩, by simp [Ty.typeVars]⟩
+
+theorem rho0_congr {ρ ρ' : TypeVal} (h : ∀ i, i < G.n → ρ i = ρ' i) : G.rho0 ρ = G.rho0 ρ' := by
+  funext i
+  by_cases hi : i < G.n
+  · rw [G.rho0_of_lt ρ hi, G.rho0_of_lt ρ' hi]
+    exact h i hi
+  · simp [rho0, paramVal, hi]
+
+/-- `Rep` depends on the valuation only through the type parameters. -/
+theorem repVal_heq (I : ConstVal κ S) {ρ ρ' : TypeVal} (hρ : Admissible (G.newTyCon I) ρ)
+    (hρ' : Admissible (G.newTyCon I) ρ') (h : ∀ i, i < G.n → ρ i = ρ' i) :
+    HEq (G.repVal I ρ hρ) (G.repVal I ρ' hρ') := by
+  have hr := G.rho0_congr h
+  unfold repVal
+  refine layerRep_congr _ _ _ _ ?_ ?_ ?_ ?_ ?_
+  · exact G.newTy.denote_congr_vars _ fun i hi ↦ h i (G.newTy_typeVars_lt i hi)
+  · rw [hr]
+  · exact G.repTy.denote_congr_vars _ fun i hi ↦ h i (G.repTy_typeVars_lt i hi)
+  · rw [hr]
+  · exact heq_choice _ _
+      (G.repTy.denote_congr_vars _ fun i hi ↦ h i (G.repTy_typeVars_lt i hi))
+
+/-- `Abs` depends on the valuation only through the type parameters. -/
+theorem absVal_heq (I : ConstVal κ S) {ρ ρ' : TypeVal}
+    (h : ∀ i, i < G.n → ρ i = ρ' i) : HEq (G.absVal I ρ) (G.absVal I ρ') := by
+  have hr := G.rho0_congr h
+  unfold absVal
+  refine layerAbs_congr _ _ _ _ ?_ ?_ ?_ ?_
+  · exact G.newTy.denote_congr_vars _ fun i hi ↦ h i (G.newTy_typeVars_lt i hi)
+  · rw [hr]
+  · exact G.repTy.denote_congr_vars _ fun i hi ↦ h i (G.repTy_typeVars_lt i hi)
+  · rw [hr]
+
+theorem newConst_local_rep (hκ : κ.IsAdmissible) (I : ConstVal κ S) :
+    (G.newConst hκ I).Local G.rep := by
+  intro ρ hρ ρ' hρ' hag
+  rw [G.newConst_rep hκ I ρ hρ, G.newConst_rep hκ I ρ' hρ']
+  exact (cast_heq _ _).trans
+    ((G.repVal_heq I hρ hρ' fun i hi ↦ hag i (G.lt_mem_rep_typeVars hi)).trans
+      (cast_heq _ _).symm)
+
+theorem newConst_local_abs (hκ : κ.IsAdmissible) (I : ConstVal κ S) :
+    (G.newConst hκ I).Local G.abs := by
+  intro ρ hρ ρ' hρ' hag
+  rw [G.newConst_abs hκ I ρ hρ, G.newConst_abs hκ I ρ' hρ']
+  exact (cast_heq _ _).trans ((G.absVal_heq I fun i hi ↦ hag i (G.lt_mem_abs_typeVars hi)).trans
+    (cast_heq _ _).symm)
+
 /-- The constant `rep` as a term. -/
 def repTerm {Γ : List Ty} : Term S Γ (.arr G.newTy G.repTy) :=
-  ((Ty.subst_id (S G.rep)).trans G.rep_ty) ▸ Term.const (S := S) (Γ := Γ) G.rep Ty.var
+  .const G.rep _ (G.rep_ty ▸ Ty.IsInst.refl _)
 
 /-- The constant `abs` as a term. -/
 def absTerm {Γ : List Ty} : Term S Γ (.arr G.repTy G.newTy) :=
-  ((Ty.subst_id (S G.abs)).trans G.abs_ty) ▸ Term.const (S := S) (Γ := Γ) G.abs Ty.var
+  .const G.abs _ (G.abs_ty ▸ Ty.IsInst.refl _)
 
 /-- The predicate in an arbitrary context. -/
 def predIn (Γ : List Ty) : Term S Γ (.arr G.repTy .bool) :=
@@ -216,24 +305,22 @@ def predIn (Γ : List Ty) : Term S Γ (.arr G.repTy .bool) :=
 theorem eval_repTerm (hκ : κ.IsAdmissible) (I : ConstVal κ S) (ρ : TypeVal)
     (hρ : Admissible (G.newTyCon I) ρ) {Γ : List Ty} (η : Env (G.newTyCon I) ρ Γ) :
     (G.repTerm (Γ := Γ)).eval (G.newConst hκ I) ρ hρ η = G.repVal I ρ hρ := by
-  have hcast := eval_term_cast (G.newConst hκ I) ρ hρ η
-    ((Ty.subst_id (S G.rep)).trans G.rep_ty) (Term.const (S := S) (Γ := Γ) G.rep Ty.var)
-  have hraw := eval_const_var (G.newConst hκ I) ρ hρ G.rep η
+  have hraw := eval_const_self (G.newConst hκ I) (G.newConst_local_rep hκ I) G.rep_ty
+    (G.rep_ty ▸ Ty.IsInst.refl _) ρ hρ η
   have hv : HEq (G.newConst hκ I ρ hρ G.rep) (G.repVal I ρ hρ) := by
     rw [G.newConst_rep]
     exact cast_heq _ _
-  exact eq_of_heq (hcast.trans (hraw.trans hv))
+  exact eq_of_heq (hraw.trans hv)
 
 theorem eval_absTerm (hκ : κ.IsAdmissible) (I : ConstVal κ S) (ρ : TypeVal)
     (hρ : Admissible (G.newTyCon I) ρ) {Γ : List Ty} (η : Env (G.newTyCon I) ρ Γ) :
     (G.absTerm (Γ := Γ)).eval (G.newConst hκ I) ρ hρ η = G.absVal I ρ := by
-  have hcast := eval_term_cast (G.newConst hκ I) ρ hρ η
-    ((Ty.subst_id (S G.abs)).trans G.abs_ty) (Term.const (S := S) (Γ := Γ) G.abs Ty.var)
-  have hraw := eval_const_var (G.newConst hκ I) ρ hρ G.abs η
+  have hraw := eval_const_self (G.newConst hκ I) (G.newConst_local_abs hκ I) G.abs_ty
+    (G.abs_ty ▸ Ty.IsInst.refl _) ρ hρ η
   have hv : HEq (G.newConst hκ I ρ hρ G.abs) (G.absVal I ρ) := by
     rw [G.newConst_abs]
     exact cast_heq _ _
-  exact eq_of_heq (hcast.trans (hraw.trans hv))
+  exact eq_of_heq (hraw.trans hv)
 
 theorem eval_predIn (J : ConstVal κ' S) (ρ : TypeVal) (hρ : Admissible κ' ρ) {Γ : List Ty}
     (η : Env κ' ρ Γ) :
@@ -325,7 +412,11 @@ theorem holdsAny_iff (hκ : κ.IsAdmissible) (I : ConstVal κ S) (hloc : G.PredL
       (fun i hi ↦ (G.rho0_of_lt ρ hi).symm) (G.agreeOn_new I fun _ hj ↦ hj).symm ?_
       G.pred G.closed (fun j hj ↦ G.pred_tyCons_ne j hj) (fun _ h ↦ h) _ _
       (fun _ v _ _ ↦ nomatch v)
-    intro c hc σ hσv hσc
+    intro c hc τ hτ hτv hτc
+    have hspec := Ty.constSub_spec (S c) τ hτ
+    generalize Ty.constSub (S c) τ hτ = σ at hspec ⊢
+    have hσv : ((S c).subst σ).typeVars ⊆ Set.Iio G.n := hspec ▸ hτv
+    have hσc : ((S c).subst σ).tyCons ⊆ {j | j ≠ G.k} := hspec ▸ hτc
     have hr : c ≠ G.rep := fun h ↦ G.rep_fresh (h ▸ hc)
     have ha : c ≠ G.abs := fun h ↦ G.abs_fresh (h ▸ hc)
     have hk : G.k ∉ (S c).tyCons := by

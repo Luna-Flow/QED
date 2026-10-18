@@ -31,8 +31,11 @@ theorem select_spec (α : Type) [Nonempty α] (p : α → Prop) (h : ∃ x, p x)
 noncomputable def Term.eval (I : ConstVal κ S) (ρ : TypeVal) (hρ : Admissible κ ρ)
     (η : Env κ ρ Γ) : Term S Γ a → Ty.denote κ ρ a
   | .var v => η _ v
-  | .const c σ =>
-      cast ((S c).denote_subst κ σ ρ).symm (I (σ.pull κ ρ) (σ.pull_admissible κ ρ hρ) c)
+  | .const c τ h =>
+      cast (((S c).denote_subst κ (Ty.constSub (S c) τ h) ρ).symm.trans
+          (congrArg (Ty.denote κ ρ) (Ty.constSub_spec (S c) τ h)))
+        (I ((Ty.constSub (S c) τ h).pull κ ρ)
+          ((Ty.constSub (S c) τ h).pull_admissible κ ρ hρ) c)
   | .app f x => f.eval I ρ hρ η (x.eval I ρ hρ η)
   | .lam b => fun x ↦ b.eval I ρ hρ (η.extend x)
   | .truth => True
@@ -88,7 +91,7 @@ theorem Term.eval_rename (I : ConstVal κ S) (ρ : TypeVal) (hρ : Admissible κ
     (t.rename r).eval I ρ hρ η = t.eval I ρ hρ (Env.pull η r) := by
   induction t generalizing Δ with
   | var v => rfl
-  | const c σ => rfl
+  | const c τ h => rfl
   | app f x ihf ihx => simp only [rename, eval, ihf, ihx]
   | lam b ih =>
       funext x
@@ -143,7 +146,7 @@ theorem Term.eval_substitute (I : ConstVal κ S) (ρ : TypeVal) (hρ : Admissibl
     (t.substitute σ).eval I ρ hρ η = t.eval I ρ hρ (Sub.evalSubst σ I ρ hρ η) := by
   induction t generalizing Δ with
   | var v => rfl
-  | const c θ => rfl
+  | const c τ h => rfl
   | app f x ihf ihx => simp only [substitute, eval, ihf, ihx]
   | lam b ih =>
       funext x

@@ -23,7 +23,7 @@ theorem Term.rename_rename (t : Term S Γ a) (r : Ren Γ Δ) (r' : Ren Δ Θ) :
     (t.rename r).rename r' = t.rename (Ren.comp r' r) := by
   induction t generalizing Δ Θ with
   | var v => rfl
-  | const c σ => rfl
+  | const c τ h => rfl
   | app f x ihf ihx => simp only [Term.rename, ihf, ihx]
   | lam b ih => simp only [Term.rename, ih, Ren.lift_comp]
   | truth => rfl
@@ -65,7 +65,7 @@ theorem Sub.lift_rename (σ : Sub S Γ Δ) (r : Ren Δ Θ) :
 theorem Term.rename_id (t : Term S Γ a) : t.rename (fun v ↦ v) = t := by
   induction t with
   | var v => rfl
-  | const c σ => rfl
+  | const c τ h => rfl
   | app f x ihf ihx => simp only [Term.rename, ihf, ihx]
   | lam b ih =>
       simp only [Term.rename, Ren.lift_id, ih]
@@ -84,7 +84,7 @@ theorem Term.substitute_var (t : Term S Γ a) (r : Ren Γ Δ) :
     t.substitute (fun v ↦ Term.var (r v)) = t.rename r := by
   induction t generalizing Δ with
   | var v => rfl
-  | const c σ => rfl
+  | const c τ h => rfl
   | app f x ihf ihx => simp only [Term.substitute, Term.rename, ihf, ihx]
   | lam b ih =>
       simp only [Term.substitute, Term.rename, Sub.lift_var, ih]
@@ -103,7 +103,7 @@ theorem Term.substitute_rename (t : Term S Γ a) (r : Ren Γ Δ) (σ : Sub S Δ 
     (t.rename r).substitute σ = t.substitute (fun v ↦ σ (r v)) := by
   induction t generalizing Δ Θ with
   | var v => rfl
-  | const c θ => rfl
+  | const c τ h => rfl
   | app f x ihf ihx => simp only [Term.rename, Term.substitute, ihf, ihx]
   | lam b ih =>
       simp only [Term.rename, Term.substitute, ih, Sub.lift_ren]
@@ -122,7 +122,7 @@ theorem Term.rename_substitute (t : Term S Γ a) (σ : Sub S Γ Δ) (r : Ren Δ 
     (t.substitute σ).rename r = t.substitute (fun v ↦ (σ v).rename r) := by
   induction t generalizing Δ Θ with
   | var v => rfl
-  | const c θ => rfl
+  | const c τ h => rfl
   | app f x ihf ihx => simp only [Term.substitute, Term.rename, ihf, ihx]
   | lam b ih =>
       simp only [Term.substitute, Term.rename, ih, Sub.lift_rename]
@@ -213,7 +213,7 @@ theorem Term.rename_instType (t : Term S Γ a) (θ : TypeSub) (r : Ren Γ Δ) :
     (t.rename r).instType θ = (t.instType θ).rename (Ren.mapTypes θ r) := by
   induction t generalizing Δ with
   | var v => exact congrArg Term.var (Ren.mapTypes_apply θ r v).symm
-  | const c σ => simp only [Term.rename, Term.instType, Term.rename_cast]
+  | const c τ h => rfl
   | app f x ihf ihx => simp only [Term.rename, Term.instType, ihf, ihx]
   | lam b ih => simp only [Term.rename, Term.instType, ih, Ren.mapTypes_lift]
   | truth => rfl
@@ -238,7 +238,7 @@ theorem Term.closedLift_instType (t : Term S [] a) (θ : TypeSub) :
 type with equal erasures are equal (`Term.erase_inj`). -/
 inductive UTerm where
   | var (n : Nat)
-  | const (c : Nat) (σ : TypeSub)
+  | const (c : Nat) (τ : Ty)
   | app (a : Ty) (f x : UTerm)
   | lam (a : Ty) (b : UTerm)
   | truth
@@ -267,7 +267,7 @@ theorem Var.erase_inj (v : Var Γ a) (w : Var Γ a) (h : v.erase = w.erase) : v 
 def Term.erase {Γ : List Ty} {a : Ty} (t : Term S Γ a) : UTerm :=
   match t with
   | .var v => .var v.erase
-  | .const c σ => .const c σ
+  | .const c τ _ => .const c τ
   | @Term.app _ _ a _ f x => .app a f.erase x.erase
   | @Term.lam _ a _ _ b => .lam a b.erase
   | .truth => .truth
@@ -287,7 +287,7 @@ theorem Term.erase_inj_heq (t : Term S Γ a) :
       cases t' <;> simp [Term.erase] at h
       subst ha
       exact heq_of_eq (congrArg Term.var (Var.erase_inj _ _ h))
-  | const c σ =>
+  | const c τ h =>
       intro a' t' ha h
       cases t' <;> simp [Term.erase] at h
       obtain ⟨rfl, rfl⟩ := h
@@ -352,7 +352,7 @@ theorem Term.erase_inj_heq' (t : Term S Γ a) :
       cases t' <;> simp [Term.erase] at h
       subst ha
       exact heq_of_eq (congrArg Term.var (Var.erase_inj _ _ h))
-  | const c σ =>
+  | const c τ h =>
       intro Γ' a' t' hΓ ha h
       subst hΓ
       cases t' <;> simp [Term.erase] at h
@@ -425,7 +425,7 @@ theorem Term.erase_inj {t t' : Term S Γ a} (h : t.erase = t'.erase) : t = t' :=
 
 def UTerm.inst (θ : TypeSub) : UTerm → UTerm
   | .var n => .var n
-  | .const c σ => .const c (θ.comp σ)
+  | .const c τ => .const c (τ.subst θ)
   | .app a f x => .app (a.subst θ) (f.inst θ) (x.inst θ)
   | .lam a b => .lam (a.subst θ) (b.inst θ)
   | .truth => .truth
@@ -438,17 +438,11 @@ def UTerm.inst (θ : TypeSub) : UTerm → UTerm
   | .choice a => .choice (a.subst θ)
 
 theorem UTerm.inst_var (u : UTerm) : u.inst Ty.var = u := by
-  induction u <;> simp_all [UTerm.inst]
-  rename_i c σ
-  funext i
-  simp [TypeSub.comp]
+  induction u <;> simp_all [UTerm.inst, Ty.subst_id]
 
 theorem UTerm.inst_comp (u : UTerm) (σ θ : TypeSub) :
     (u.inst σ).inst θ = u.inst (θ.comp σ) := by
-  induction u <;> simp_all [UTerm.inst]
-  rename_i c τ
-  funext i
-  simp [TypeSub.comp]
+  induction u <;> simp_all [UTerm.inst, Ty.subst_comp]
 
 theorem Term.erase_cast {h : a = b} (t : Term S Γ a) : (h ▸ t).erase = t.erase := by
   cases h; rfl
@@ -462,7 +456,7 @@ theorem Term.erase_instType (t : Term S Γ a) (θ : TypeSub) :
     (t.instType θ).erase = t.erase.inst θ := by
   induction t with
   | var v => simp [Term.instType, Term.erase, UTerm.inst, Var.erase_mapTypes]
-  | const c σ => simp [Term.instType, Term.erase_cast, Term.erase, UTerm.inst]
+  | const c τ h => rfl
   | app f x ihf ihx => simp [Term.instType, Term.erase, UTerm.inst, ihf, ihx]
   | lam b ih => simp [Term.instType, Term.erase, UTerm.inst, ih]
   | truth => rfl
@@ -487,5 +481,133 @@ theorem Term.instType_instType (t : Term S [] a) (σ θ : TypeSub) :
   apply Term.erase_inj
   rw [Term.erase_cast, Term.erase_instType, Term.erase_instType, Term.erase_instType,
     UTerm.inst_comp]
+
+/-! ### Dependence on the instance only through the annotation variables -/
+
+/-- Type variables mentioned by the annotations of an untyped term. -/
+def UTerm.vars : UTerm → Set Nat
+  | .var _ => ∅
+  | .const _ τ => τ.typeVars
+  | .app a f x => a.typeVars ∪ f.vars ∪ x.vars
+  | .lam a b => a.typeVars ∪ b.vars
+  | .truth => ∅
+  | .falsity => ∅
+  | .conj p q => p.vars ∪ q.vars
+  | .imp p q => p.vars ∪ q.vars
+  | .all a p => a.typeVars ∪ p.vars
+  | .ex a p => a.typeVars ∪ p.vars
+  | .eq a => a.typeVars
+  | .choice a => a.typeVars
+
+theorem UTerm.inst_congr (u : UTerm) {θ θ' : TypeSub} (h : ∀ i, i ∈ u.vars → θ i = θ' i) :
+    u.inst θ = u.inst θ' := by
+  induction u with
+  | var n => rfl
+  | const c τ => simp only [UTerm.inst]; rw [Ty.subst_congr τ h]
+  | app a f x ihf ihx =>
+      simp only [UTerm.vars, Set.mem_union] at h
+      simp only [UTerm.inst]
+      rw [Ty.subst_congr a (fun i hi ↦ h i (Or.inl (Or.inl hi))),
+        ihf (fun i hi ↦ h i (Or.inl (Or.inr hi))), ihx (fun i hi ↦ h i (Or.inr hi))]
+  | lam a b ih =>
+      simp only [UTerm.vars, Set.mem_union] at h
+      simp only [UTerm.inst]
+      rw [Ty.subst_congr a (fun i hi ↦ h i (Or.inl hi)), ih (fun i hi ↦ h i (Or.inr hi))]
+  | truth => rfl
+  | falsity => rfl
+  | conj p q ihp ihq =>
+      simp only [UTerm.vars, Set.mem_union] at h
+      simp only [UTerm.inst]
+      rw [ihp (fun i hi ↦ h i (Or.inl hi)), ihq (fun i hi ↦ h i (Or.inr hi))]
+  | imp p q ihp ihq =>
+      simp only [UTerm.vars, Set.mem_union] at h
+      simp only [UTerm.inst]
+      rw [ihp (fun i hi ↦ h i (Or.inl hi)), ihq (fun i hi ↦ h i (Or.inr hi))]
+  | all a p ih =>
+      simp only [UTerm.vars, Set.mem_union] at h
+      simp only [UTerm.inst]
+      rw [Ty.subst_congr a (fun i hi ↦ h i (Or.inl hi)), ih (fun i hi ↦ h i (Or.inr hi))]
+  | ex a p ih =>
+      simp only [UTerm.vars, Set.mem_union] at h
+      simp only [UTerm.inst]
+      rw [Ty.subst_congr a (fun i hi ↦ h i (Or.inl hi)), ih (fun i hi ↦ h i (Or.inr hi))]
+  | eq a => simp only [UTerm.inst]; rw [Ty.subst_congr a h]
+  | choice a => simp only [UTerm.inst]; rw [Ty.subst_congr a h]
+
+/-- The type of a term has its type variables among the annotation variables. -/
+theorem Term.ty_typeVars_subset_annotVars (t : Term S Γ a) : a.typeVars ⊆ t.annotVars := by
+  induction t with
+  | var v => exact subset_rfl
+  | const c τ h => exact subset_rfl
+  | app f x ihf ihx =>
+      intro i hi
+      exact Or.inl (ihf (by simp [Ty.typeVars, hi]))
+  | lam b ih =>
+      intro i hi
+      simp only [Ty.typeVars, Set.mem_union] at hi
+      rcases hi with hi | hi
+      · exact Or.inl hi
+      · exact Or.inr (ih hi)
+  | truth => intro i hi; simp [Ty.typeVars] at hi
+  | falsity => intro i hi; simp [Ty.typeVars] at hi
+  | conj p q => intro i hi; simp [Ty.typeVars] at hi
+  | imp p q => intro i hi; simp [Ty.typeVars] at hi
+  | all p ih => intro i hi; simp [Ty.typeVars] at hi
+  | ex p ih => intro i hi; simp [Ty.typeVars] at hi
+  | eq => exact subset_rfl
+  | choice => exact subset_rfl
+
+theorem Term.erase_vars_subset (t : Term S Γ a) : t.erase.vars ⊆ t.annotVars := by
+  induction t with
+  | var v => intro i hi; simp [Term.erase, UTerm.vars] at hi
+  | const c τ h => exact subset_rfl
+  | app f x ihf ihx =>
+      intro i hi
+      simp only [Term.erase, UTerm.vars, Set.mem_union] at hi
+      rcases hi with (hi | hi) | hi
+      · exact Or.inl (f.ty_typeVars_subset_annotVars (Or.inl hi))
+      · exact Or.inl (ihf hi)
+      · exact Or.inr (ihx hi)
+  | lam b ih =>
+      intro i hi
+      simp only [Term.erase, UTerm.vars, Set.mem_union] at hi
+      rcases hi with hi | hi
+      · exact Or.inl hi
+      · exact Or.inr (ih hi)
+  | truth => intro i hi; simp [Term.erase, UTerm.vars] at hi
+  | falsity => intro i hi; simp [Term.erase, UTerm.vars] at hi
+  | conj p q ihp ihq =>
+      intro i hi
+      simp only [Term.erase, UTerm.vars, Set.mem_union] at hi
+      rcases hi with hi | hi
+      · exact Or.inl (ihp hi)
+      · exact Or.inr (ihq hi)
+  | imp p q ihp ihq =>
+      intro i hi
+      simp only [Term.erase, UTerm.vars, Set.mem_union] at hi
+      rcases hi with hi | hi
+      · exact Or.inl (ihp hi)
+      · exact Or.inr (ihq hi)
+  | all p ih =>
+      intro i hi
+      simp only [Term.erase, UTerm.vars, Set.mem_union] at hi
+      rcases hi with hi | hi
+      · exact Or.inl hi
+      · exact Or.inr (ih hi)
+  | ex p ih =>
+      intro i hi
+      simp only [Term.erase, UTerm.vars, Set.mem_union] at hi
+      rcases hi with hi | hi
+      · exact Or.inl hi
+      · exact Or.inr (ih hi)
+  | eq => intro i hi; simpa [Term.erase, UTerm.vars, Term.annotVars, Ty.typeVars] using hi
+  | choice => intro i hi; simpa [Term.erase, UTerm.vars, Term.annotVars, Ty.typeVars] using hi
+
+/-- Instantiating a closed term depends on the substitution only on its annotation variables. -/
+theorem Term.instType_congr (t : Term S [] a) {σ σ' : TypeSub}
+    (h : ∀ i, i ∈ t.annotVars → σ i = σ' i) : HEq (t.instType σ) (t.instType σ') := by
+  refine Term.erase_inj_heq _ _ (Ty.subst_congr a fun i hi ↦ h i (t.ty_typeVars_subset_annotVars hi)) ?_
+  rw [Term.erase_instType, Term.erase_instType]
+  exact UTerm.inst_congr _ fun i hi ↦ h i (t.erase_vars_subset hi)
 
 end QEDFV.HOL

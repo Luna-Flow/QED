@@ -153,6 +153,7 @@ structure TypedHOLCoreProofPackage : Prop where
       Valid I { hyps := [], concl := p.substitute (Sub.single (Term.choice.app (Term.lam p))) }
   definitionEquation :
     ∀ {κ : TyConVal} {S : Signature} (D : DefinitionGate S) (I : ConstVal κ S),
+      (∀ c, I.Local c) →
       Valid (I.withDefinition D)
         { hyps := [], concl := (D.head.equal D.rhs) }
   definitionConservativity :
@@ -161,7 +162,7 @@ structure TypedHOLCoreProofPackage : Prop where
       (Valid (I.withDefinition D) s ↔ Valid I s)
   specificationValidity :
     ∀ {κ : TyConVal} {S : Signature} (G : SpecificationGate S) (I : ConstVal κ S)
-      (hTy : S G.id = G.ty)
+      (hTy : S G.id = G.ty) (_hI : ∀ c, I.Local c)
       (d : Derivation S { hyps := [], concl := G.body }),
       let _witnessDerivation := d
       Valid (I.withSpecification G hTy)
@@ -285,12 +286,12 @@ noncomputable def typedHOLCoreProofPackage : TypedHOLCoreProofPackage := by
     exact valid_add_assum I s p hValid
   · intro κ S Γ a I p w hValid
     exact valid_choose_from_witness I p w hValid
-  · intro κ S D I
-    exact valid_definition_equation D I
+  · intro κ S D I hI
+    exact valid_definition_equation D I hI
   · intro κ S Γ D I s hOld
     exact valid_definition_old_language_iff D I s hOld
-  · intro κ S G I hTy d
-    exact G.valid_constant_from_typed_derivation I hTy d
+  · intro κ S G I hTy hI d
+    exact G.valid_constant_from_typed_derivation I hTy hI d
   · intro κ S Γ G I hTy s hOld
     exact G.valid_old_language_iff I hTy s hOld
   · intro S M hM es Γ s d

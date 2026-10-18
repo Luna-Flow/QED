@@ -137,7 +137,8 @@ theorem history_derivation_sound (M : Model S) (hM : M.IsLocal)
         fun c _ ↦ interpretModels_isLocal _ hM c).2 ih
   | @definition es D hFresh =>
       exact valid_definition_equation D (interpretModels es M).I
-  | specification E hFresh d ih => exact E.valid_gate (interpretModels _ M).I ih
+        (fun c ↦ interpretModels_isLocal _ hM c)
+  | specification E hFresh d ih => exact E.valid_gate (interpretModels _ M).I (fun c ↦ interpretModels_isLocal _ hM c) ih
   | typedef G l hk hrep habs w d ih =>
       exact G.valid_law (interpretModels _ M)
         (fun c _ ↦ interpretModels_isLocal _ hM c) (G.witnessAt_of_valid _ w ih) l
