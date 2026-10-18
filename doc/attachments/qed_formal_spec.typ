@@ -679,8 +679,10 @@ mathematics; it does not prove that this registration procedure is correct.]
   semantic soundness induction does not use, but it is required to form
   well-formed histories. The signature stays total. Consequences that chain the
   derived laws with core rules use `HistoryDerivation`; syntactic erasure of a
-  definition is proved (`HistoryDerivation.erase_definition`), that of a specification, a
-  type definition and the kernel's string-name lowering are not provided. The
+  definition and of a specification is proved (`HistoryDerivation.erase_definition`,
+  `HistoryDerivation.erase_specification`), that of a parameter-free type definition over the
+  empty history is proved (`TypeDefGate.typedef_conservative`), and general type
+  definitions and the kernel's string-name lowering are not provided. The
   carrier proof must not be cited as a
   proof of the kernel's registration procedure.
 ])
@@ -2645,10 +2647,36 @@ is derivable at $"es"$; a sequent not mentioning $c$ is derivable unchanged.]
 The specification step carries a derivation of $P(w)$ at $"es"$. Under $U_E$ the step's
 theorem $P(c)$ becomes $P(epsilon P)$, which is the `chooseWitness` rule applied to that
 derivation, because $c$ occurs neither in $P$ nor in $w$. Compatibility with type
-instantiation holds because the replacement is the instantiation of a closed term. Erasure
-of type definitions is not proved here.
+instantiation holds because the replacement is the instantiation of a closed term.
 
 #lean-proof("SpecErasure", ("HistoryDerivation.erase_specification", "HistoryDerivation.specification_conservative"))
+
+#theorem([Type-definition conservativity (parameter-free)])[Let $G$ be a type-definition gate
+with no type parameters and with a canonical predicate $P$, and let $w$ be a closed term such
+that $tack.r P(w)$ is derivable at the empty history. If a sequent $s$ whose context and
+types avoid the defined constructor $k$, and whose constants carry canonical instance
+substitutions, is derivable at the history $[G]$, then $s$ is derivable at the empty history.]
+
+The proof does not relativise quantifiers; it normalises. With the classical rules and
+`chooseHyp`, the retraction $"norm"(y) = epsilon z. (P(y) => z = y) and P(z)$ of the
+representation type onto $P$ satisfies $tack.r P("norm" y)$, $P(y) tack.r "norm" y = y$ and
+$tack.r "norm"("norm" y) = "norm" y$. The translation $T$ replaces $k(dots)$ by the
+representation type, keeps variables, sends `rep` and `abs` to $lambda x. "norm" x$,
+wraps every constant, `eq` and `choice` in the normalisation at its type, and substitutes
+the normalised variable under each binder; a sequent is translated together with the
+hypotheses that its context variables are normalised. The three laws translate to the three
+properties of $"norm"$, each rule of the calculus translates to the same rule (with a
+Leibniz rewriting by the idempotence of $"norm"$ wherever a substitution occurs), and the
+statement is proved for every type instance simultaneously so that the instantiation rule is
+handled. For a sequent in the old language $T$ is the identity.
+
+The restrictions are those of the proof: no type parameters, the empty history below the
+type definition (older definitions would have to be unfolded first), and canonical
+instance substitutions, which the kernel's lowering produces. Parameters and older steps are
+open.
+
+#lean-proof("TdNorm", ("TypeDefGate.nrm_range", "TypeDefGate.nrm_fix", "TypeDefGate.nrm_idem"))
+#lean-proof("TdMain", ("TypeDefGate.hd_trans", "TypeDefGate.typedef_conservative"))
 
 The freshness premises of the three introduction clauses serve a separate well-formedness
 condition: they require each declared constant identifier, and for a type definition the

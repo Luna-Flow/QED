@@ -531,3 +531,100 @@ end Main
 end TypeDefGate
 
 end QEDFV.HOL
+
+namespace QEDFV.HOL
+
+theorem Var.mem {Γ : List Ty} {a : Ty} (v : Var Γ a) : a ∈ Γ := by
+  induction v with
+  | zero => exact List.mem_cons_self ..
+  | succ v ih => exact List.mem_cons_of_mem _ ih
+
+namespace TypeDefGate
+
+variable {S : Signature} (G : TypeDefGate S)
+
+theorem ctx_tr_var (Γ : List Ty) (hΓ : ∀ b, b ∈ Γ → G.k ∉ b.tyCons) :
+    (Γ.map (Ty.subst Ty.var)).map G.tr = Γ := by
+  induction Γ with
+  | nil => rfl
+  | cons b Γ ih =>
+      simp only [List.map_cons, Ty.subst_id]
+      rw [G.tr_kfree (hΓ b (List.mem_cons_self ..)),
+        ih (fun b' hb' ↦ hΓ b' (List.mem_cons_of_mem _ hb'))]
+
+theorem trans_inst_var_heq (hC : G.Closed) {Γ : List Ty} {a : Ty} (t : Term S Γ a)
+    (hk : G.k ∉ t.tyCons) (hs : t.SigClean G.k)
+    (e : (Γ.map (Ty.subst Ty.var)).map G.tr = Γ) (ha : G.tr (a.subst Ty.var) = a) :
+    HEq (G.trans hC (t.instType Ty.var)) t :=
+  Term.erase_inj_heq' _ _ e ha (G.erase_trans_var hC t hk hs)
+
+/-- Transport of a derivation along a context equality, discharging reflexive hypotheses. -/
+theorem final_transport {Γ1 Γ : List Ty} (e : Γ1 = Γ) (s1 : Sequent S Γ1) (s : Sequent S Γ)
+    (hconcl : HEq s1.concl s.concl)
+    (hhyps : ∀ h, h ∈ s1.hyps → (∃ h0, h0 ∈ s.hyps ∧ HEq h h0) ∨
+      ∃ (a : Ty) (x : Term S Γ1 a), h = x.equal x)
+    (hback : ∀ h0, h0 ∈ s.hyps → ∃ h, h ∈ s1.hyps ∧ HEq h h0)
+    (d : HistoryDerivation S ([] : List (ModelExtension S)) s1) :
+    HistoryDerivation S ([] : List (ModelExtension S)) s := by
+  subst e
+  have hc := eq_of_heq hconcl
+  have d2 : HistoryDerivation S ([] : List (ModelExtension S))
+      { hyps := s.hyps, concl := s1.concl } := by
+    refine HistoryDerivation.cutAll (H := s1.hyps) (fun h hh ↦ ?_) d
+    rcases hhyps h hh with ⟨h0, h0m, hh0⟩ | ⟨a, x, rfl⟩
+    · rw [eq_of_heq hh0]; exact HistoryDerivation.assume' _ h0m
+    · exact HistoryDerivation.refl' x
+  rw [hc] at d2
+  exact d2
+
+end TypeDefGate
+
+end QEDFV.HOL
+
+namespace QEDFV.HOL
+
+/-- A sequent whose types avoid the constructor `k` and whose constants carry canonical
+instance substitutions. -/
+def Sequent.Clean {S : Signature} {Γ : List Ty} (k : Nat) (s : Sequent S Γ) : Prop :=
+  (∀ h, h ∈ s.hyps → k ∉ h.tyCons ∧ h.SigClean k) ∧ k ∉ s.concl.tyCons ∧ s.concl.SigClean k
+
+namespace TypeDefGate
+
+variable {S : Signature} (G : TypeDefGate S)
+
+/-- **Syntactic conservativity of a type definition** (a type definition without parameters
+over the empty history): a sequent in the old language that is derivable after the type
+definition is derivable before it, provided the predicate has a derivable witness. -/
+theorem typedef_conservative (hOk : G.Ok) {Γ : List Ty} {s : Sequent S Γ}
+    (hΓ : ∀ b, b ∈ Γ → G.k ∉ b.tyCons) (hclean : s.Clean G.k) {w : Term S [] G.repTy}
+    (hwit : HistoryDerivation S ([] : List (ModelExtension S))
+      { hyps := [], concl := G.pred.app w })
+    (d : HistoryDerivation S [ModelExtension.typeDefinition G] s) :
+    HistoryDerivation S ([] : List (ModelExtension S)) s := by
+  have d1 := G.hd_trans hOk hwit d (Or.inr rfl) Ty.var
+  have e := G.ctx_tr_var Γ hΓ
+  refine final_transport e _ s ?_ ?_ ?_ d1
+  · exact G.trans_inst_var_heq hOk.closed s.concl hclean.2.1 hclean.2.2 e rfl
+  · intro h hh
+    simp only [transSeq, typeSubstSequent, List.mem_append, List.mem_map] at hh
+    rcases hh with hh | ⟨u, ⟨h0, hh0, rfl⟩, rfl⟩
+    · right
+      obtain ⟨a, v, rfl⟩ := G.ctxFix_elem h hh
+      have ha : G.k ∉ a.tyCons := by
+        have hm := Var.mem v
+        simp only [List.mem_map] at hm
+        obtain ⟨b, hb, rfl⟩ := hm
+        rw [Ty.subst_id]; exact hΓ b hb
+      refine ⟨G.tr a, Term.var (Var.mapTy G.tr v), ?_⟩
+      rw [G.nrmTy_of_not_mem a ha]
+    · left
+      exact ⟨h0, hh0, G.trans_inst_var_heq hOk.closed h0 (hclean.1 h0 hh0).1 (hclean.1 h0 hh0).2 e rfl⟩
+  · intro h0 hh0
+    refine ⟨G.trans hOk.closed (h0.instType Ty.var), ?_,
+      G.trans_inst_var_heq hOk.closed h0 (hclean.1 h0 hh0).1 (hclean.1 h0 hh0).2 e rfl⟩
+    simp only [transSeq, typeSubstSequent, List.mem_append, List.mem_map]
+    exact Or.inr ⟨h0.instType Ty.var, ⟨h0, hh0, rfl⟩, rfl⟩
+
+end TypeDefGate
+
+end QEDFV.HOL
