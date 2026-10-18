@@ -2654,9 +2654,10 @@ instantiation holds because the replacement is the instantiation of a closed ter
 
 #lean-proof("SpecErasure", ("HistoryDerivation.erase_specification", "HistoryDerivation.specification_conservative"))
 
-#theorem([Type-definition conservativity (parameter-free)])[Let $G$ be a type-definition gate
-with no type parameters, and let $w$ be a closed term such that $tack.r P(w)$ is derivable at
-the empty history. If a sequent $s$ whose context and types avoid the defined constructor $k$
+#theorem([Type-definition conservativity (phantom parameters)])[Let $G$ be a type-definition gate
+whose representation type is closed and whose predicate has no type variable in its annotations
+(the type parameters occur only in the new type, which includes the case of no parameters), and
+let $w$ be a closed term such that $tack.r P(w)$ is derivable at the empty history. If a sequent $s$ whose context and types avoid the defined constructor $k$
 is derivable at the history $[G]$, then $s$ is derivable at the empty history.]
 
 The proof does not relativise quantifiers; it normalises. With the classical rules and
@@ -2672,8 +2673,8 @@ Leibniz rewriting by the idempotence of $"norm"$ wherever a substitution occurs)
 statement is proved for every type instance simultaneously so that the instantiation rule is
 handled. For a sequent in the old language $T$ is the identity.
 
-The restriction of this theorem is that there are no type parameters and that the history
-below the type definition is empty.
+The restriction of this theorem is that the type parameters do not occur in the representation
+type or the predicate, and that the history below the type definition is empty.
 
 *Older declarations.* Declarations below the type definition are unfolded one at a time,
 the step directly below $G$ first. The unfolding of a definition or specification $U$ (an
@@ -2702,9 +2703,12 @@ above them (`HistoryDerivation.erase_chain`).
 #lean-proof("TdChain", ("TypeDefGate.typedef_conservative_chain",))
 #lean-proof("TdAll", ("TypeDefGate.typedef_conservative_hist",))
 
-The restrictions of the proof are therefore: neither $G$ nor the older type definitions have type
-parameters, and the result is a derivation at a history of type definitions. Type parameters are
-open.
+The restrictions of the proof are therefore: the type parameters of $G$ occur only in the new
+type, the older type definitions have no type parameters, and the result is a derivation at a
+history of type definitions. A type definition whose representation type or predicate depends on
+its parameters (a list, a product) is open: the normalisation at an instance of $k$ with
+arguments that themselves contain $k$ must be built from the translation of the predicate at that
+instance, which makes the translation recursive in the nesting depth of $k$.
 
 #lean-proof("TdNorm", ("TypeDefGate.nrm_range", "TypeDefGate.nrm_fix", "TypeDefGate.nrm_idem"))
 #lean-proof("TdMain", ("TypeDefGate.hd_trans", "TypeDefGate.typedef_conservative"))

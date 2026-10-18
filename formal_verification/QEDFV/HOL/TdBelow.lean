@@ -8,6 +8,14 @@ namespace QEDFV.HOL
 
 variable {S : Signature}
 
+theorem TypeDefGate.Ok.unfold {G : TypeDefGate S} (h : G.Ok) (U : Unfolder S) (hB : U.Below G) :
+    (G.unfold U hB).Ok where
+  closed := h.closed
+  pred_ground := by
+    have := Term.annotVars_replConst_subset U.R U.annot G.pred
+    rw [h.pred_ground] at this
+    exact Set.subset_eq_empty this rfl
+
 /-- Unfold a list of declarations in a sequent, the step directly below the type definition
 first. -/
 def Sequent.unfoldAll {Γ : List Ty} (us : List (Unfolder S)) (s : Sequent S Γ) : Sequent S Γ :=
@@ -50,7 +58,7 @@ theorem TypeDefGate.typedef_conservative_unfold (us : List (Unfolder S)) :
       have hw' : HistoryDerivation S (us.map Unfolder.step)
           { hyps := [], concl := (G.unfold U hBU).pred.app (w.replConst U.R) } :=
         U.erase hwit
-      exact ih (G.unfold U hBU) ⟨hOk.n_zero⟩
+      exact ih (G.unfold U hBU) (hOk.unfold U hBU)
         (fun U' hU' ↦ ⟨(hB U' (List.mem_cons_of_mem _ hU')).k_fresh,
           (hB U' (List.mem_cons_of_mem _ hU')).rep_fresh,
           (hB U' (List.mem_cons_of_mem _ hU')).abs_fresh,
