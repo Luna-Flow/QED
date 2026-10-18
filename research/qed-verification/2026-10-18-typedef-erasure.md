@@ -303,3 +303,16 @@ theorem on the empty history. No scoping predicate on histories was needed in th
 `weaken` case of the type definition is handled by erasing the head declaration from the
 inner derivation and weakening by the new gate, and the old-language condition of the new
 gate follows from the bounds. Remaining: type parameters, and type definitions below.
+
+## Update: older parameter-free type definitions
+
+Unlike definitions and specifications, an older type definition cannot be unfolded, but it does
+not need to be when it has no parameters: its constants have closed types and its laws are
+ground. If the new type definition's symbols do not occur in those laws, the translation is the
+identity on every rule instance of the older step. The translation theorem was therefore
+generalised from the target history `[]` to the old history `T` (all older steps), and the
+`weaken` case no longer needs the translated sequent to be in the old language of the step: the
+rule instances of the older steps are lifted from their own suffix of `T` to `T`, using that
+the newer type definitions between them do not occur in their laws (`Older`). The scoping is a
+hypothesis because the Lean signature is total and nothing else forbids it. Remaining:
+type parameters, and older type definitions with parameters.

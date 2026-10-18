@@ -277,6 +277,18 @@
         {
           "path": "formal_verification/QEDFV/HOL/TdBelow.lean",
           "symbol": "TypeDefGate.typedef_conservative_old"
+        },
+        {
+          "path": "formal_verification/QEDFV/HOL/UnfoldChain.lean",
+          "symbol": "HistoryDerivation.erase_chain"
+        },
+        {
+          "path": "formal_verification/QEDFV/HOL/TdChain.lean",
+          "symbol": "TypeDefGate.typedef_conservative_chain"
+        },
+        {
+          "path": "formal_verification/QEDFV/HOL/TdAll.lean",
+          "symbol": "TypeDefGate.typedef_conservative_hist"
         }
       ],
       "verification": [
@@ -290,7 +302,10 @@
         "formal_verification/QEDFV/HOL/TdMain.lean",
         "research/qed-verification/2026-10-18-typedef-erasure.md",
         "formal_verification/QEDFV/HOL/UnfoldBelow.lean",
-        "formal_verification/QEDFV/HOL/TdBelow.lean"
+        "formal_verification/QEDFV/HOL/TdBelow.lean",
+        "formal_verification/QEDFV/HOL/UnfoldChain.lean",
+        "formal_verification/QEDFV/HOL/TdChain.lean",
+        "formal_verification/QEDFV/HOL/TdAll.lean"
       ],
       "status": {
         "lean": "partial",
@@ -304,8 +319,8 @@
       ],
       "assumptions": [],
       "exclusions": [
-        "Type-definition erasure is proved for a type definition without type parameters above any list of definitions and specifications (which may be polymorphic).",
-        "Type definitions with parameters and type definitions above older type definitions are not proved.",
+        "Type-definition erasure is proved for a type definition without type parameters above any list of definitions and specifications (which may be polymorphic) and above older type definitions without type parameters, whose symbols do not occur in the new type definition and which are scoped as stated in the theorem.",
+        "Type definitions with parameters, and older type definitions with parameters, are not proved. The result for older type definitions is a derivation at a history of type definitions, not at the empty history.",
         "Lean does not certify the MoonBit kernel."
       ]
     },
