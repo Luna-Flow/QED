@@ -1,5 +1,6 @@
 import QEDFV.HOL.ExtensionDerivation
 import QEDFV.HOL.Concrete
+import QEDFV.HOL.ConnectiveRules
 
 /-! A full inference calculus at a fixed declaration history. Extension products can be
 premises of the ordinary core rules, and composed derivations can witness later specification
@@ -77,6 +78,46 @@ inductive HistoryDerivation (S : Signature) :
       HistoryDerivation S es
         { hyps := [], concl := p.substitute
             (Sub.single (Term.choice.app (Term.lam p))) }
+  | truthIntro {es Γ} :
+      HistoryDerivation S es ({ hyps := [], concl := Term.truth } : Sequent S Γ)
+  | falsityElim {es Γ} {A : Sequent S Γ} (q : Term S Γ .bool)
+      (hA : A.concl = Term.falsity) (d : HistoryDerivation S es A) :
+      HistoryDerivation S es { hyps := A.hyps, concl := q }
+  | conjIntro {es Γ} {A B : Sequent S Γ} {p q : Term S Γ .bool}
+      (hA : A.concl = p) (hB : B.concl = q)
+      (dA : HistoryDerivation S es A) (dB : HistoryDerivation S es B) :
+      HistoryDerivation S es { hyps := union A.hyps B.hyps, concl := Term.conj p q }
+  | conjElimLeft {es Γ} {A : Sequent S Γ} {p q : Term S Γ .bool}
+      (hA : A.concl = Term.conj p q) (d : HistoryDerivation S es A) :
+      HistoryDerivation S es { hyps := A.hyps, concl := p }
+  | conjElimRight {es Γ} {A : Sequent S Γ} {p q : Term S Γ .bool}
+      (hA : A.concl = Term.conj p q) (d : HistoryDerivation S es A) :
+      HistoryDerivation S es { hyps := A.hyps, concl := q }
+  | impIntro {es Γ} {A : Sequent S Γ} (p : Term S Γ .bool) (d : HistoryDerivation S es A) :
+      HistoryDerivation S es { hyps := remove A.hyps p, concl := Term.imp p A.concl }
+  | impElim {es Γ} {A B : Sequent S Γ} {p q : Term S Γ .bool}
+      (hA : A.concl = Term.imp p q) (hB : B.concl = p)
+      (dA : HistoryDerivation S es A) (dB : HistoryDerivation S es B) :
+      HistoryDerivation S es { hyps := union A.hyps B.hyps, concl := q }
+  | allIntro {es Γ} {a : Ty} {A : Sequent S Γ} {φ : Term S (a :: Γ) .bool}
+      (d : HistoryDerivation S es { hyps := (weakenSequent A).hyps, concl := φ }) :
+      HistoryDerivation S es { hyps := A.hyps, concl := Term.all φ }
+  | allElim {es Γ} {a : Ty} {A : Sequent S Γ} {φ : Term S (a :: Γ) .bool}
+      (t : Term S Γ a) (hA : A.concl = Term.all φ) (d : HistoryDerivation S es A) :
+      HistoryDerivation S es { hyps := A.hyps, concl := φ.substitute (Sub.single t) }
+  | exIntro {es Γ} {a : Ty} {A : Sequent S Γ} {φ : Term S (a :: Γ) .bool}
+      (t : Term S Γ a) (hA : A.concl = φ.substitute (Sub.single t))
+      (d : HistoryDerivation S es A) :
+      HistoryDerivation S es { hyps := A.hyps, concl := Term.ex φ }
+  | exElim {es Γ} {a : Ty} {A B : Sequent S Γ} {φ : Term S (a :: Γ) .bool}
+      (hA : A.concl = Term.ex φ) (dA : HistoryDerivation S es A)
+      (dB : HistoryDerivation S es { hyps := φ :: (weakenSequent B).hyps,
+                                      concl := weakenTerm B.concl }) :
+      HistoryDerivation S es { hyps := union A.hyps B.hyps, concl := B.concl }
+  | classical {es Γ} {A : Sequent S Γ} {p : Term S Γ .bool}
+      (hA : A.concl = Term.imp (Term.imp p Term.falsity) Term.falsity)
+      (d : HistoryDerivation S es A) :
+      HistoryDerivation S es { hyps := A.hyps, concl := p }
 
 /-- Every full history derivation is valid at the history's model pair. Locality is
 preserved by every extension; witness derivations are interpreted at the preceding history. -/
@@ -111,6 +152,18 @@ theorem history_derivation_sound (M : Model S) (hM : M.IsLocal)
   | instType θ d ih => exact valid_inst_type select_natural (interpretModels _ M).I θ _ ih
   | instTerm σ d ih => exact valid_inst_term (interpretModels _ M).I σ _ ih
   | chooseWitness p w d ih => exact valid_choose_from_witness (interpretModels _ M).I p w ih
+  | truthIntro => exact valid_truth _
+  | falsityElim q hA d ih => exact valid_falsity_elim _ _ q hA ih
+  | conjIntro hA hB dA dB ihA ihB => exact valid_conj_intro _ _ _ _ _ hA hB ihA ihB
+  | conjElimLeft hA d ih => exact valid_conj_elim_left _ _ _ _ hA ih
+  | conjElimRight hA d ih => exact valid_conj_elim_right _ _ _ _ hA ih
+  | impIntro p d ih => exact valid_imp_intro _ _ p ih
+  | impElim hA hB dA dB ihA ihB => exact valid_imp_elim _ _ _ _ _ hA hB ihA ihB
+  | allIntro d ih => exact valid_all_intro _ _ _ ih
+  | allElim t hA d ih => exact valid_all_elim _ _ _ t hA ih
+  | exIntro t hA d ih => exact valid_ex_intro _ _ _ t hA ih
+  | exElim hA dA dB ihA ihB => exact valid_ex_elim _ _ _ _ hA ihA ihB
+  | classical hA d ih => exact valid_classical _ _ _ hA ih
 
 /-- Canonical admissible models discharge the locality premise of history soundness. -/
 theorem typed_history_derivation_sound {κ : TyConVal} (hκ : κ.IsAdmissible)

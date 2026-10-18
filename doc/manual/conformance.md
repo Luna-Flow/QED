@@ -264,9 +264,9 @@ Every primitive theorem rule preserves semantic validity under its stated side c
 
 - Specification: `doc/attachments/qed_formal_spec.typ::Primitive Inference Rules`
 - MoonBit API: `src/kernel/thm.mbt`
-- Lean: `formal_verification/QEDFV/HOL/Rules.lean::valid_refl`, `formal_verification/QEDFV/HOL/Derivation.lean::derivation_sound`
+- Lean: `formal_verification/QEDFV/HOL/Rules.lean::valid_refl`, `formal_verification/QEDFV/HOL/Derivation.lean::derivation_sound`, `formal_verification/QEDFV/HOL/ConnectiveRules.lean::valid_classical`
 - Verification: Lean induction; MoonBit kernel tests
-- Evidence: `formal_verification/QEDFV/HOL/Derivation.lean`, `src/kernel/kernel_thm_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`
+- Evidence: `formal_verification/QEDFV/HOL/Derivation.lean`, `src/kernel/kernel_thm_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`, `formal_verification/QEDFV/HOL/ConnectiveRules.lean`
 - Assumptions: -
 - Exclusions: The Lean derivation constructors are not a source-level refinement of MoonBit constructors.
 

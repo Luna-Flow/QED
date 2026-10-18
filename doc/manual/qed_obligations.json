@@ -115,6 +115,10 @@
         {
           "path": "formal_verification/QEDFV/HOL/Derivation.lean",
           "symbol": "derivation_sound"
+        },
+        {
+          "path": "formal_verification/QEDFV/HOL/ConnectiveRules.lean",
+          "symbol": "valid_classical"
         }
       ],
       "verification": [
@@ -124,7 +128,8 @@
       "evidence": [
         "formal_verification/QEDFV/HOL/Derivation.lean",
         "src/kernel/kernel_thm_test.mbt",
-        "src/kernel/kernel_thm_wbtest.mbt"
+        "src/kernel/kernel_thm_wbtest.mbt",
+        "formal_verification/QEDFV/HOL/ConnectiveRules.lean"
       ],
       "status": {
         "lean": "proved-abstractly",

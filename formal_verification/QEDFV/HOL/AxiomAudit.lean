@@ -3,12 +3,16 @@ import QEDFV.HOL.HistoryAuditExamples
 import QEDFV.HOL.DeclarationAllocation
 import QEDFV.HOL.DeclarationAllocationExamples
 import QEDFV.HOL.Unfold
+import QEDFV.HOL.ConnectiveExamples
 import QEDFV.HOL.SpecErasure
 
 /-! Reproducible foundation audit for the public Typed HOL core results. -/
 
 #print axioms QEDFV.HOL.typed_hol_core_proof_complete
 #print axioms QEDFV.HOL.derivation_sound
+#print axioms QEDFV.HOL.derive_truth_and_truth
+#print axioms QEDFV.HOL.derive_forall_refl
+#print axioms QEDFV.HOL.derive_imp_self
 #print axioms QEDFV.HOL.indInfinitySentence_valid
 #print axioms QEDFV.HOL.valid_definition_equation
 #print axioms QEDFV.HOL.typed_signature_generic_consistency

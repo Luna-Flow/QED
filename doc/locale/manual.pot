@@ -3417,7 +3417,7 @@ msgid "MoonBit API: `src/kernel/thm.mbt`"
 msgstr ""
 
 #: manual/conformance.md:267
-msgid "Lean: `formal_verification/QEDFV/HOL/Rules.lean::valid_refl`, `formal_verification/QEDFV/HOL/Derivation.lean::derivation_sound`"
+msgid "Lean: `formal_verification/QEDFV/HOL/Rules.lean::valid_refl`, `formal_verification/QEDFV/HOL/Derivation.lean::derivation_sound`, `formal_verification/QEDFV/HOL/ConnectiveRules.lean::valid_classical`"
 msgstr ""
 
 #: manual/conformance.md:268
@@ -3425,7 +3425,7 @@ msgid "Verification: Lean induction; MoonBit kernel tests"
 msgstr ""
 
 #: manual/conformance.md:269
-msgid "Evidence: `formal_verification/QEDFV/HOL/Derivation.lean`, `src/kernel/kernel_thm_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`"
+msgid "Evidence: `formal_verification/QEDFV/HOL/Derivation.lean`, `src/kernel/kernel_thm_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`, `formal_verification/QEDFV/HOL/ConnectiveRules.lean`"
 msgstr ""
 
 #: manual/conformance.md:271

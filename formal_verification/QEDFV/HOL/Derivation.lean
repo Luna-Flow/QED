@@ -1,4 +1,5 @@
 import QEDFV.HOL.Infinity
+import QEDFV.HOL.ConnectiveRules
 
 namespace QEDFV.HOL
 
@@ -60,6 +61,46 @@ inductive Derivation (S : Signature) :
             (Sub.single (Term.choice.app (Term.lam p))) }
   | indInfinity :
       Derivation S { hyps := [], concl := indInfinitySentence S }
+  /-- Rules of the primitive connectives and quantifiers. The kernel defines these as
+  constants and derives the same rules; see `ConnectiveRules.lean`. -/
+  | truthIntro {Γ : List Ty} :
+      Derivation S ({ hyps := [], concl := Term.truth } : Sequent S Γ)
+  | falsityElim {Γ : List Ty} {A : Sequent S Γ} (q : Term S Γ .bool)
+      (hA : A.concl = Term.falsity) (d : Derivation S A) :
+      Derivation S { hyps := A.hyps, concl := q }
+  | conjIntro {Γ : List Ty} {A B : Sequent S Γ} {p q : Term S Γ .bool}
+      (hA : A.concl = p) (hB : B.concl = q)
+      (dA : Derivation S A) (dB : Derivation S B) :
+      Derivation S { hyps := union A.hyps B.hyps, concl := Term.conj p q }
+  | conjElimLeft {Γ : List Ty} {A : Sequent S Γ} {p q : Term S Γ .bool}
+      (hA : A.concl = Term.conj p q) (d : Derivation S A) :
+      Derivation S { hyps := A.hyps, concl := p }
+  | conjElimRight {Γ : List Ty} {A : Sequent S Γ} {p q : Term S Γ .bool}
+      (hA : A.concl = Term.conj p q) (d : Derivation S A) :
+      Derivation S { hyps := A.hyps, concl := q }
+  | impIntro {Γ : List Ty} {A : Sequent S Γ} (p : Term S Γ .bool) (d : Derivation S A) :
+      Derivation S { hyps := remove A.hyps p, concl := Term.imp p A.concl }
+  | impElim {Γ : List Ty} {A B : Sequent S Γ} {p q : Term S Γ .bool}
+      (hA : A.concl = Term.imp p q) (hB : B.concl = p)
+      (dA : Derivation S A) (dB : Derivation S B) :
+      Derivation S { hyps := union A.hyps B.hyps, concl := q }
+  | allIntro {Γ : List Ty} {a : Ty} {A : Sequent S Γ} {φ : Term S (a :: Γ) .bool}
+      (d : Derivation S { hyps := (weakenSequent A).hyps, concl := φ }) :
+      Derivation S { hyps := A.hyps, concl := Term.all φ }
+  | allElim {Γ : List Ty} {a : Ty} {A : Sequent S Γ} {φ : Term S (a :: Γ) .bool}
+      (t : Term S Γ a) (hA : A.concl = Term.all φ) (d : Derivation S A) :
+      Derivation S { hyps := A.hyps, concl := φ.substitute (Sub.single t) }
+  | exIntro {Γ : List Ty} {a : Ty} {A : Sequent S Γ} {φ : Term S (a :: Γ) .bool}
+      (t : Term S Γ a) (hA : A.concl = φ.substitute (Sub.single t)) (d : Derivation S A) :
+      Derivation S { hyps := A.hyps, concl := Term.ex φ }
+  | exElim {Γ : List Ty} {a : Ty} {A B : Sequent S Γ} {φ : Term S (a :: Γ) .bool}
+      (hA : A.concl = Term.ex φ) (dA : Derivation S A)
+      (dB : Derivation S { hyps := φ :: (weakenSequent B).hyps,
+                           concl := weakenTerm B.concl }) :
+      Derivation S { hyps := union A.hyps B.hyps, concl := B.concl }
+  | classical {Γ : List Ty} {A : Sequent S Γ} {p : Term S Γ .bool}
+      (hA : A.concl = Term.imp (Term.imp p Term.falsity) Term.falsity) (d : Derivation S A) :
+      Derivation S { hyps := A.hyps, concl := p }
 
 theorem derivation_sound (hChoice : ChoiceNatural) (I : ConstVal κ S)
     {Γ : List Ty} {s : Sequent S Γ}
@@ -82,6 +123,18 @@ theorem derivation_sound (hChoice : ChoiceNatural) (I : ConstVal κ S)
   | instTerm σ d ih => exact valid_inst_term I σ _ ih
   | chooseWitness p w d ih => exact valid_choose_from_witness I p w ih
   | indInfinity => exact indInfinitySentence_valid S I
+  | truthIntro => exact valid_truth I
+  | falsityElim q hA d ih => exact valid_falsity_elim I _ q hA ih
+  | conjIntro hA hB dA dB ihA ihB => exact valid_conj_intro I _ _ _ _ hA hB ihA ihB
+  | conjElimLeft hA d ih => exact valid_conj_elim_left I _ _ _ hA ih
+  | conjElimRight hA d ih => exact valid_conj_elim_right I _ _ _ hA ih
+  | impIntro p d ih => exact valid_imp_intro I _ p ih
+  | impElim hA hB dA dB ihA ihB => exact valid_imp_elim I _ _ _ _ hA hB ihA ihB
+  | allIntro d ih => exact valid_all_intro I _ _ ih
+  | allElim t hA d ih => exact valid_all_elim I _ _ t hA ih
+  | exIntro t hA d ih => exact valid_ex_intro I _ _ t hA ih
+  | exElim hA dA dB ihA ihB => exact valid_ex_elim I _ _ _ hA ihA ihB
+  | classical hA d ih => exact valid_classical I _ _ hA ih
 
 theorem derivation_sound_all {Γ : List Ty} {s : Sequent S Γ}
     (d : Derivation S s) :

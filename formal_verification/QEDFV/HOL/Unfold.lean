@@ -263,6 +263,133 @@ theorem replConst_step_weakenHyps {A : Sequent S Γ} (L : List (Term S Γ .bool)
       obtain ⟨h0, hh0, rfl⟩ := List.mem_map.mp hh
       exact List.mem_map.mpr ⟨h0, hL h0 hh0, rfl⟩) d
 
+theorem replConst_step_falsityElim {A : Sequent S Γ} (q : Term S Γ .bool)
+    (hA : A.concl = Term.falsity)
+    (d : HistoryDerivation S es (A.replConst R)) :
+    HistoryDerivation S es
+      (({ hyps := A.hyps, concl := q } : Sequent S Γ).replConst R) := by
+  have hA' : (A.replConst R).concl = Term.falsity := by
+    simp only [Sequent.replConst, hA]; rfl
+  exact .falsityElim (q.replConst R) hA' d
+
+theorem replConst_step_conjIntro {A B : Sequent S Γ} {p q : Term S Γ .bool}
+    (hA : A.concl = p) (hB : B.concl = q)
+    (dA : HistoryDerivation S es (A.replConst R)) (dB : HistoryDerivation S es (B.replConst R)) :
+    HistoryDerivation S es
+      (({ hyps := union A.hyps B.hyps, concl := Term.conj p q } : Sequent S Γ).replConst R) := by
+  have hA' : (A.replConst R).concl = p.replConst R := by simp only [Sequent.replConst, hA]
+  have hB' : (B.replConst R).concl = q.replConst R := by simp only [Sequent.replConst, hB]
+  refine HistoryDerivation.of_eq ?_ (.conjIntro hA' hB' dA dB)
+  simp [Sequent.replConst, union, List.map_append]; rfl
+
+theorem replConst_step_conjElimLeft {A : Sequent S Γ} {p q : Term S Γ .bool}
+    (hA : A.concl = Term.conj p q) (d : HistoryDerivation S es (A.replConst R)) :
+    HistoryDerivation S es
+      (({ hyps := A.hyps, concl := p } : Sequent S Γ).replConst R) := by
+  have hA' : (A.replConst R).concl = Term.conj (p.replConst R) (q.replConst R) := by
+    simp only [Sequent.replConst, hA]; rfl
+  exact .conjElimLeft hA' d
+
+theorem replConst_step_conjElimRight {A : Sequent S Γ} {p q : Term S Γ .bool}
+    (hA : A.concl = Term.conj p q) (d : HistoryDerivation S es (A.replConst R)) :
+    HistoryDerivation S es
+      (({ hyps := A.hyps, concl := q } : Sequent S Γ).replConst R) := by
+  have hA' : (A.replConst R).concl = Term.conj (p.replConst R) (q.replConst R) := by
+    simp only [Sequent.replConst, hA]; rfl
+  exact .conjElimRight hA' d
+
+theorem replConst_step_impIntro {A : Sequent S Γ} (p : Term S Γ .bool)
+    (d : HistoryDerivation S es (A.replConst R)) :
+    HistoryDerivation S es
+      (({ hyps := remove A.hyps p, concl := Term.imp p A.concl } : Sequent S Γ).replConst R) := by
+  have key : ∀ (xs : List (Term S Γ .bool)) (c h : Term S Γ .bool),
+      h ∈ remove (xs.map (Term.replConst R)) (c.replConst R) →
+      h ∈ (remove xs c).map (Term.replConst R) := by
+    intro xs c h hh
+    classical
+    simp only [remove, List.mem_filter, List.mem_map] at hh ⊢
+    obtain ⟨⟨h0, hh0, rfl⟩, hne⟩ := hh
+    refine ⟨h0, ⟨hh0, ?_⟩, rfl⟩
+    by_cases e : h0 = c
+    · subst e; simp at hne
+    · simp [e]
+  exact HistoryDerivation.weakenHyps _ (fun h hh ↦ key _ _ _ hh) (.impIntro (p.replConst R) d)
+
+theorem replConst_step_impElim {A B : Sequent S Γ} {p q : Term S Γ .bool}
+    (hA : A.concl = Term.imp p q) (hB : B.concl = p)
+    (dA : HistoryDerivation S es (A.replConst R)) (dB : HistoryDerivation S es (B.replConst R)) :
+    HistoryDerivation S es
+      (({ hyps := union A.hyps B.hyps, concl := q } : Sequent S Γ).replConst R) := by
+  have hA' : (A.replConst R).concl = Term.imp (p.replConst R) (q.replConst R) := by
+    simp only [Sequent.replConst, hA]; rfl
+  have hB' : (B.replConst R).concl = p.replConst R := by simp only [Sequent.replConst, hB]
+  refine HistoryDerivation.of_eq ?_ (.impElim hA' hB' dA dB)
+  simp [Sequent.replConst, union, List.map_append]
+
+theorem replConst_step_allIntro {A : Sequent S Γ} {φ : Term S (a :: Γ) .bool}
+    (d : HistoryDerivation S es
+      (({ hyps := (weakenSequent A).hyps, concl := φ } : Sequent S (a :: Γ)).replConst R)) :
+    HistoryDerivation S es
+      (({ hyps := A.hyps, concl := Term.all φ } : Sequent S Γ).replConst R) := by
+  have e : (weakenSequent (b := a) (A.replConst R)).hyps
+      = ((weakenSequent (b := a) A).replConst R).hyps := Sequent.replConst_weaken R A
+  have ih' : HistoryDerivation S es
+      { hyps := (weakenSequent (b := a) (A.replConst R)).hyps, concl := φ.replConst R } := by
+    rw [e]; exact d
+  exact .allIntro ih'
+
+theorem replConst_step_allElim {A : Sequent S Γ} {φ : Term S (a :: Γ) .bool}
+    (t : Term S Γ a) (hA : A.concl = Term.all φ)
+    (d : HistoryDerivation S es (A.replConst R)) :
+    HistoryDerivation S es
+      (({ hyps := A.hyps, concl := φ.substitute (Sub.single t) } : Sequent S Γ).replConst R) := by
+  have hA' : (A.replConst R).concl = Term.all (φ.replConst R) := by
+    simp only [Sequent.replConst, hA]; rfl
+  refine HistoryDerivation.of_eq ?_ (.allElim (t.replConst R) hA' d)
+  simp only [Sequent.replConst]
+  rw [Term.replConst_single]
+
+theorem replConst_step_exIntro {A : Sequent S Γ} {φ : Term S (a :: Γ) .bool}
+    (t : Term S Γ a) (hA : A.concl = φ.substitute (Sub.single t))
+    (d : HistoryDerivation S es (A.replConst R)) :
+    HistoryDerivation S es
+      (({ hyps := A.hyps, concl := Term.ex φ } : Sequent S Γ).replConst R) := by
+  have hA' : (A.replConst R).concl
+      = (φ.replConst R).substitute (Sub.single (t.replConst R)) := by
+    simp only [Sequent.replConst, hA]
+    rw [Term.replConst_single]
+  exact .exIntro (t.replConst R) hA' d
+
+theorem replConst_step_exElim {A B : Sequent S Γ} {φ : Term S (a :: Γ) .bool}
+    (hA : A.concl = Term.ex φ) (dA : HistoryDerivation S es (A.replConst R))
+    (dB : HistoryDerivation S es
+      (({ hyps := φ :: (weakenSequent B).hyps, concl := weakenTerm B.concl } :
+        Sequent S (a :: Γ)).replConst R)) :
+    HistoryDerivation S es
+      (({ hyps := union A.hyps B.hyps, concl := B.concl } : Sequent S Γ).replConst R) := by
+  have hA' : (A.replConst R).concl = Term.ex (φ.replConst R) := by
+    simp only [Sequent.replConst, hA]; rfl
+  have e1 : (weakenSequent (b := a) (B.replConst R)).hyps
+      = ((weakenSequent (b := a) B).replConst R).hyps := Sequent.replConst_weaken R B
+  have e2 : weakenTerm (b := a) (B.replConst R).concl = (weakenTerm B.concl).replConst R :=
+    (Term.replConst_rename R B.concl Var.succ).symm
+  have dB' : HistoryDerivation S es
+      { hyps := φ.replConst R :: (weakenSequent (b := a) (B.replConst R)).hyps
+      , concl := weakenTerm (b := a) (B.replConst R).concl } := by
+    rw [e1, e2]; exact dB
+  refine HistoryDerivation.of_eq ?_ (.exElim hA' dA dB')
+  simp [Sequent.replConst, union, List.map_append]
+
+theorem replConst_step_classical {A : Sequent S Γ} {p : Term S Γ .bool}
+    (hA : A.concl = Term.imp (Term.imp p Term.falsity) Term.falsity)
+    (d : HistoryDerivation S es (A.replConst R)) :
+    HistoryDerivation S es
+      (({ hyps := A.hyps, concl := p } : Sequent S Γ).replConst R) := by
+  have hA' : (A.replConst R).concl
+      = Term.imp (Term.imp (p.replConst R) Term.falsity) Term.falsity := by
+    simp only [Sequent.replConst, hA]; rfl
+  exact .classical hA' d
+
 end Steps
 
 /-- A compatible replacement maps core derivations to history derivations of the
@@ -287,6 +414,18 @@ theorem Derivation.replConst (R : ConstRepl S) (hR : R.Compatible)
   | instTerm σ d ih => exact replConst_step_instTerm R σ ih
   | chooseWitness p w d ih => exact replConst_step_chooseWitness R p w ih
   | indInfinity => exact HistoryDerivation.of_eq rfl (.core .indInfinity)
+  | truthIntro => exact HistoryDerivation.of_eq rfl .truthIntro
+  | falsityElim q hA d ih => exact replConst_step_falsityElim R q hA ih
+  | conjIntro hA hB dA dB ihA ihB => exact replConst_step_conjIntro R hA hB ihA ihB
+  | conjElimLeft hA d ih => exact replConst_step_conjElimLeft R hA ih
+  | conjElimRight hA d ih => exact replConst_step_conjElimRight R hA ih
+  | impIntro p d ih => exact replConst_step_impIntro R p ih
+  | impElim hA hB dA dB ihA ihB => exact replConst_step_impElim R hA hB ihA ihB
+  | allIntro d ih => exact replConst_step_allIntro R ih
+  | allElim t hA d ih => exact replConst_step_allElim R t hA ih
+  | exIntro t hA d ih => exact replConst_step_exIntro R t hA ih
+  | exElim hA dA dB ihA ihB => exact replConst_step_exElim R hA ihA ihB
+  | classical hA d ih => exact replConst_step_classical R hA ih
 
 /-! ### Unfolding a definition -/
 
@@ -420,6 +559,21 @@ theorem HistoryDerivation.erase_definition_aux (D : DefinitionGate S)
   | instTerm σ d ih => exact fun es heq ↦ replConst_step_instTerm D.repl σ (ih es heq)
   | chooseWitness p w d ih =>
       exact fun es heq ↦ replConst_step_chooseWitness D.repl p w (ih es heq)
+  | truthIntro => exact fun es heq ↦ HistoryDerivation.of_eq rfl .truthIntro
+  | falsityElim q hA d ih => exact fun es heq ↦ replConst_step_falsityElim D.repl q hA (ih es heq)
+  | conjIntro hA hB dA dB ihA ihB =>
+      exact fun es heq ↦ replConst_step_conjIntro D.repl hA hB (ihA es heq) (ihB es heq)
+  | conjElimLeft hA d ih => exact fun es heq ↦ replConst_step_conjElimLeft D.repl hA (ih es heq)
+  | conjElimRight hA d ih => exact fun es heq ↦ replConst_step_conjElimRight D.repl hA (ih es heq)
+  | impIntro p d ih => exact fun es heq ↦ replConst_step_impIntro D.repl p (ih es heq)
+  | impElim hA hB dA dB ihA ihB =>
+      exact fun es heq ↦ replConst_step_impElim D.repl hA hB (ihA es heq) (ihB es heq)
+  | allIntro d ih => exact fun es heq ↦ replConst_step_allIntro D.repl (ih es heq)
+  | allElim t hA d ih => exact fun es heq ↦ replConst_step_allElim D.repl t hA (ih es heq)
+  | exIntro t hA d ih => exact fun es heq ↦ replConst_step_exIntro D.repl t hA (ih es heq)
+  | exElim hA dA dB ihA ihB =>
+      exact fun es heq ↦ replConst_step_exElim D.repl hA (ihA es heq) (ihB es heq)
+  | classical hA d ih => exact fun es heq ↦ replConst_step_classical D.repl hA (ih es heq)
 
 theorem HistoryDerivation.erase_definition (D : DefinitionGate S) {es : List (ModelExtension S)}
     {Γ : List Ty} {s : Sequent S Γ}
