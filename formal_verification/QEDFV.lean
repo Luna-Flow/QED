@@ -14,3 +14,5 @@ import QEDFV.HOL.TdRules
 import QEDFV.HOL.TdKfree
 import QEDFV.HOL.TdLaw
 import QEDFV.HOL.TdMain
+import QEDFV.HOL.UnfoldBelow
+import QEDFV.HOL.TdBelow

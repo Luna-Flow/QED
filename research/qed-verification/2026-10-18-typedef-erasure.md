@@ -289,3 +289,17 @@ extension, a type definition above older steps, was analysed again against the s
 Estimated size: the monomorphic variant is a rework of `HistOk`/`ext_trans`/`hd_trans` plus a
 history-scoping predicate; the polymorphic variant is a second development of the size of
 `Unfold.lean` + `SpecErasure.lean`. Neither is started.
+
+## Update: older definitions and specifications are covered
+
+The polymorphic case was done by unfolding, not by monomorphising. `TypeDefGate.unfold` rewrites
+the predicate of the type definition with a declaration below it unfolded; the gate fields
+(`closed`, `k_fresh`, `rep_fresh`, `abs_fresh`) are preserved under `Unfolder.Below`, which
+only asks that the declaration's own data does not mention `k`, `rep`, `abs`. The three laws of
+the old gate unfold to the three laws of the new gate (`unfold_law`), so the `typedef` rule is
+reproduced at the shorter history and a derivation at `G :: U :: es` becomes one at `G[U] :: es`
+(`HistoryDerivation.erase_below`). Iterating over the list of declarations ends at the base
+theorem on the empty history. No scoping predicate on histories was needed in the end: the
+`weaken` case of the type definition is handled by erasing the head declaration from the
+inner derivation and weakening by the new gate, and the old-language condition of the new
+gate follows from the bounds. Remaining: type parameters, and type definitions below.

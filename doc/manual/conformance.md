@@ -300,11 +300,11 @@ A derivation at a history that begins with a definition, a specification or a ty
 
 - Specification: `doc/attachments/qed_formal_spec.typ::History-Indexed Extension Derivations`
 - MoonBit API: `src/kernel/sig.mbt`
-- Lean: `formal_verification/QEDFV/HOL/Unfold.lean::HistoryDerivation.erase_definition`, `formal_verification/QEDFV/HOL/Unfold.lean::HistoryDerivation.definition_conservative`, `formal_verification/QEDFV/HOL/SpecErasure.lean::HistoryDerivation.erase_specification`, `formal_verification/QEDFV/HOL/SpecErasure.lean::HistoryDerivation.specification_conservative`, `formal_verification/QEDFV/HOL/TdMain.lean::typedef_conservative`
+- Lean: `formal_verification/QEDFV/HOL/Unfold.lean::HistoryDerivation.erase_definition`, `formal_verification/QEDFV/HOL/Unfold.lean::HistoryDerivation.definition_conservative`, `formal_verification/QEDFV/HOL/SpecErasure.lean::HistoryDerivation.erase_specification`, `formal_verification/QEDFV/HOL/SpecErasure.lean::HistoryDerivation.specification_conservative`, `formal_verification/QEDFV/HOL/TdMain.lean::typedef_conservative`, `formal_verification/QEDFV/HOL/UnfoldBelow.lean::HistoryDerivation.erase_below`, `formal_verification/QEDFV/HOL/TdBelow.lean::TypeDefGate.typedef_conservative_unfold`, `formal_verification/QEDFV/HOL/TdBelow.lean::TypeDefGate.typedef_conservative_old`
 - Verification: Lean induction on history derivations; Lean annotation-erasure laws for type instantiation
-- Evidence: `formal_verification/QEDFV/HOL/Unfold.lean`, `formal_verification/QEDFV/HOL/TermLaws.lean`, `formal_verification/QEDFV/HOL/SpecErasure.lean`, `formal_verification/QEDFV/HOL/TdMain.lean`, `research/qed-verification/2026-10-18-typedef-erasure.md`
+- Evidence: `formal_verification/QEDFV/HOL/Unfold.lean`, `formal_verification/QEDFV/HOL/TermLaws.lean`, `formal_verification/QEDFV/HOL/SpecErasure.lean`, `formal_verification/QEDFV/HOL/TdMain.lean`, `research/qed-verification/2026-10-18-typedef-erasure.md`, `formal_verification/QEDFV/HOL/UnfoldBelow.lean`, `formal_verification/QEDFV/HOL/TdBelow.lean`
 - Assumptions: -
-- Exclusions: Type-definition erasure is proved only for a type definition without type parameters over the empty history, for sequents whose constants carry canonical instance substitutions.; Type definitions with parameters and type definitions above other declaration steps are not proved.; Lean does not certify the MoonBit kernel.
+- Exclusions: Type-definition erasure is proved for a type definition without type parameters above any list of definitions and specifications (which may be polymorphic).; Type definitions with parameters and type definitions above older type definitions are not proved.; Lean does not certify the MoonBit kernel.
 
 #### `HOL-GROW-001`
 

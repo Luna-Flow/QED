@@ -265,6 +265,18 @@
         {
           "path": "formal_verification/QEDFV/HOL/TdMain.lean",
           "symbol": "typedef_conservative"
+        },
+        {
+          "path": "formal_verification/QEDFV/HOL/UnfoldBelow.lean",
+          "symbol": "HistoryDerivation.erase_below"
+        },
+        {
+          "path": "formal_verification/QEDFV/HOL/TdBelow.lean",
+          "symbol": "TypeDefGate.typedef_conservative_unfold"
+        },
+        {
+          "path": "formal_verification/QEDFV/HOL/TdBelow.lean",
+          "symbol": "TypeDefGate.typedef_conservative_old"
         }
       ],
       "verification": [
@@ -276,7 +288,9 @@
         "formal_verification/QEDFV/HOL/TermLaws.lean",
         "formal_verification/QEDFV/HOL/SpecErasure.lean",
         "formal_verification/QEDFV/HOL/TdMain.lean",
-        "research/qed-verification/2026-10-18-typedef-erasure.md"
+        "research/qed-verification/2026-10-18-typedef-erasure.md",
+        "formal_verification/QEDFV/HOL/UnfoldBelow.lean",
+        "formal_verification/QEDFV/HOL/TdBelow.lean"
       ],
       "status": {
         "lean": "partial",
@@ -290,8 +304,8 @@
       ],
       "assumptions": [],
       "exclusions": [
-        "Type-definition erasure is proved only for a type definition without type parameters over the empty history, for sequents whose constants carry canonical instance substitutions.",
-        "Type definitions with parameters and type definitions above other declaration steps are not proved.",
+        "Type-definition erasure is proved for a type definition without type parameters above any list of definitions and specifications (which may be polymorphic).",
+        "Type definitions with parameters and type definitions above older type definitions are not proved.",
         "Lean does not certify the MoonBit kernel."
       ]
     },

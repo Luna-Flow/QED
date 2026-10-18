@@ -2655,10 +2655,9 @@ instantiation holds because the replacement is the instantiation of a closed ter
 #lean-proof("SpecErasure", ("HistoryDerivation.erase_specification", "HistoryDerivation.specification_conservative"))
 
 #theorem([Type-definition conservativity (parameter-free)])[Let $G$ be a type-definition gate
-with no type parameters and with a canonical predicate $P$, and let $w$ be a closed term such
-that $tack.r P(w)$ is derivable at the empty history. If a sequent $s$ whose context and
-types avoid the defined constructor $k$, and whose constants carry canonical instance
-substitutions, is derivable at the history $[G]$, then $s$ is derivable at the empty history.]
+with no type parameters, and let $w$ be a closed term such that $tack.r P(w)$ is derivable at
+the empty history. If a sequent $s$ whose context and types avoid the defined constructor $k$
+is derivable at the history $[G]$, then $s$ is derivable at the empty history.]
 
 The proof does not relativise quantifiers; it normalises. With the classical rules and
 `chooseHyp`, the retraction $"norm"(y) = epsilon z. (P(y) => z = y) and P(z)$ of the
@@ -2673,8 +2672,26 @@ Leibniz rewriting by the idempotence of $"norm"$ wherever a substitution occurs)
 statement is proved for every type instance simultaneously so that the instantiation rule is
 handled. For a sequent in the old language $T$ is the identity.
 
-The restrictions are those of the proof: no type parameters, the empty history below the
-type definition (older definitions would have to be unfolded first), Parameters and older steps are open.
+The restriction of this theorem is that there are no type parameters and that the history
+below the type definition is empty.
+
+*Older declarations.* Declarations below the type definition are unfolded one at a time,
+the step directly below $G$ first. The unfolding of a definition or specification $U$ (an
+`Unfolder`: a compatible replacement of the declared constant, with bounds on the annotation
+variables, type constructors and constants it introduces) turns the type definition into a
+type definition $G[U]$ whose predicate is the unfolded predicate. The gate fields are preserved
+exactly when $U$ does not mention $k$, `rep` or `abs` (`Unfolder.Below`), and the three laws of
+$G$ unfold to the three laws of $G[U]$. A derivation at $G :: U :: "es"$ then yields one at
+$G[U] :: "es"$ (`HistoryDerivation.erase_below`), the witness derivation is unfolded by the
+erasure of $U$, and the induction over the list of declarations ends at the base theorem. The
+older declarations may be polymorphic: they are unfolded, not kept as constants.
+
+#lean-proof("UnfoldBelow", ("HistoryDerivation.erase_below",))
+#lean-proof("TdBelow", ("TypeDefGate.typedef_conservative_unfold", "TypeDefGate.typedef_conservative_old"))
+
+The restrictions of the proof are therefore: no type parameters, and older type definitions
+below $G$ are not handled (only definitions and specifications). Type parameters and older type
+definitions are open.
 
 #lean-proof("TdNorm", ("TypeDefGate.nrm_range", "TypeDefGate.nrm_fix", "TypeDefGate.nrm_idem"))
 #lean-proof("TdMain", ("TypeDefGate.hd_trans", "TypeDefGate.typedef_conservative"))
