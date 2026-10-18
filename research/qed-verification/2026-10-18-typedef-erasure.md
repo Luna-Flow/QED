@@ -334,3 +334,38 @@ translation is recursive in that depth (well-founded recursion, or a fuel parame
 monotonicity lemma), and the laws at depth `d` need the translation of the witness derivation at
 depth `d - 1`, so the main induction becomes an induction on the depth as well. This touches the
 definition of `trans` and every lemma about it, not only the norm. It is a separate development.
+
+## Parametric type definitions: why a rewrite of the `Td*` files is not enough
+
+The previous section says the translation becomes recursive in the nesting depth of `k`. Working
+the design through shows that this is not the only obstruction.
+
+1. **Oracle form.** The recursion can be removed from `trans` by abstracting the normaliser at
+   each type with head `k` into an oracle `N`. `trans N` is then structurally recursive, and the
+   step lemmas only need `N` to be *good*: `⊢ Q(N u)`, `Q u ⊢ N u = u`, with `Q` the translation
+   of the predicate at that instance. `N` itself is defined by well-founded recursion on the
+   depth of `k`, and `Good N` is proved by strong induction on the depth.
+2. **The witness at a nested instance.** `Good N` at `k(args)` needs `⊢ ∃z. Q z`, the
+   translation of the witness derivation `hwit` at the instance `θ_τ` of the parameters. That is
+   an application of the main translation theorem to `hwit`, with an oracle that is good only for
+   depths below `τ`. The proof of the main theorem is an induction over the derivation, and it
+   needs `Good N` at every type the derivation visits. For `hwit` those types stay below the
+   depth of `τ` only if every sequent and every instantiation inside `hwit` is free of `k`.
+3. **A derivation is a proof.** `HistoryDerivation` is a `Prop`. A statement about the types
+   that occur inside a derivation cannot be defined by recursion on it (any two proofs are
+   definitionally equal). So "`hwit` is `k`-free internally" and "the translation of `hwit` at
+   `θ` needs fuel `B`" have no definition. The usual remedy is a second, depth-indexed copy of
+   the calculus. `hwit` is then transformed by `erase_definition`, `erase_specification` and
+   `erase_chain` along the way (`TdAll`), so each of those would need a version for the copy
+   as well.
+
+Without internal `k`-freeness the induction does not close: the fuel needed to translate `hwit`
+at an instance of depth `d` can be `d` or more, and the oracle at that depth is the one being
+constructed. The expected size is therefore a second derivation calculus and a second set of
+erasure theorems, on top of the rewrite of `Td*`, not a rewrite alone. The alternative is route A
+(a logical relation), where the relation at `k(args)` is structurally recursive in the type and
+no fuel appears, but it needs the fundamental lemma of the whole calculus.
+
+Parametric type definitions whose representation type or predicate mentions the parameters thus
+stay open. They are not needed for kernel soundness, which uses the semantic conservativity
+theorem.
