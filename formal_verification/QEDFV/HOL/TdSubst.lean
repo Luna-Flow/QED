@@ -180,11 +180,11 @@ theorem nrmTy_substitute (τ : Ty) {Γ Δ : List Ty} (u : Term S Γ (G.tr τ)) (
       · simp only [nrmTy, h, and_self, dite_true, Term.substitute_cast, nrm_substitute]
       · simp only [nrmTy, h, dite_false]
 
-theorem rawConst_rename (hC : G.Closed) (c : Nat) (σ : TypeSub) {Δ Θ : List Ty} (r : Ren Δ Θ) :
-    (G.rawConst hC c σ : Term S Δ _).rename r = G.rawConst hC c σ := by
+theorem rawConst_rename (hC : G.Closed) (c : Nat) (τ : Ty) (hτ : (S c).IsInst τ) {Δ Θ : List Ty} (r : Ren Δ Θ) :
+    (G.rawConst hC c τ hτ : Term S Δ _).rename r = G.rawConst hC c τ hτ := by
   unfold rawConst
   by_cases h1 : G.k ∉ (S c).tyCons
-  · rw [dif_pos h1, dif_pos h1, Term.rename_cast]; rfl
+  · rw [dif_pos h1, dif_pos h1]; rfl
   · by_cases h2 : c = G.rep
     · rw [dif_neg h1, dif_neg h1, dif_pos h2, dif_pos h2, Term.rename_cast]; rfl
     · by_cases h3 : c = G.abs
@@ -192,12 +192,12 @@ theorem rawConst_rename (hC : G.Closed) (c : Nat) (σ : TypeSub) {Δ Θ : List T
           Term.rename_cast]; rfl
       · rw [dif_neg h1, dif_neg h1, dif_neg h2, dif_neg h2, dif_neg h3, dif_neg h3]; rfl
 
-theorem rawConst_substitute (hC : G.Closed) (c : Nat) (σ : TypeSub) {Δ Θ : List Ty}
+theorem rawConst_substitute (hC : G.Closed) (c : Nat) (τ : Ty) (hτ : (S c).IsInst τ) {Δ Θ : List Ty}
     (ρ : Sub S Δ Θ) :
-    (G.rawConst hC c σ : Term S Δ _).substitute ρ = G.rawConst hC c σ := by
+    (G.rawConst hC c τ hτ : Term S Δ _).substitute ρ = G.rawConst hC c τ hτ := by
   unfold rawConst
   by_cases h1 : G.k ∉ (S c).tyCons
-  · rw [dif_pos h1, dif_pos h1, Term.substitute_cast]; rfl
+  · rw [dif_pos h1, dif_pos h1]; rfl
   · by_cases h2 : c = G.rep
     · rw [dif_neg h1, dif_neg h1, dif_pos h2, dif_pos h2, Term.substitute_cast]; rfl
     · by_cases h3 : c = G.abs
@@ -220,7 +220,7 @@ theorem trans_rename (hC : G.Closed) {a : Ty} (t : Term S Γ a) (r : Ren Γ Δ) 
     (G.trans hC t).rename (Ren.mapTy G.tr r) = G.trans hC (t.rename r) := by
   induction t generalizing Δ with
   | var v => exact congrArg Term.var (Ren.mapTy_apply G.tr r v)
-  | const c σ =>
+  | const c τ hτ =>
       simp only [trans, Term.rename]
       rw [G.nrmTy_rename, G.rawConst_rename]
   | app f x ihf ihx => simp only [trans, Term.rename, ihf, ihx]
@@ -304,7 +304,7 @@ theorem trans_substitute (hC : G.Closed) {a : Ty} (t : Term S Γ a) (σ : Sub S 
     G.trans hC (t.substitute σ) = (G.trans hC t).substitute (Sub.transS G hC σ) := by
   induction t generalizing Δ with
   | var v => exact (transS_apply G hC σ v).symm
-  | const c σ' =>
+  | const c τ hτ =>
       simp only [trans, Term.substitute]
       rw [G.nrmTy_substitute, G.rawConst_substitute]
   | app f x ihf ihx => simp only [trans, Term.substitute, ihf, ihx]

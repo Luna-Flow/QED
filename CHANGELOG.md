@@ -4,6 +4,10 @@ All notable changes to QED are recorded here. The format follows [Keep a Changel
 
 ## Unreleased
 
+### Changed
+
+- Lean (`formal_verification`): **breaking change to the core syntax.** A constant occurrence `Term.const c τ h` now stores its instance *type* `τ` with a proof `h : (S c).IsInst τ`, instead of a total type substitution. Two occurrences at the same type are now the same term, which removes the "instance junk" (distinct terms differing only off the schema's support) that blocked the typedef erasure from older steps. Evaluation recovers the instance by `Ty.constSub`; the locality of the constant interpretation is now an explicit hypothesis of `valid_definition_equation`, `SpecificationGate.valid_constant` and `SpecificationExtension.valid_gate` (all callers have it from `Model.IsLocal`). The canonical-substitution machinery of the erasure (`canonSub`, `SigClean`, the `pred_clean` field) is deleted; `ConstRepl` is now `∀ c τ, (S c).IsInst τ → Term S [] τ`, and `Term.instType_congr` shows instantiation of a closed term depends only on its annotation variables. `eval_congr` takes the interpretation hypothesis per instance type.
+
 ### Added
 
 - Lean (`formal_verification`): syntactic conservativity of a type definition without type parameters over the empty history (`TypeDefGate.typedef_conservative`, `TdMain.lean`, [#50](https://github.com/Luna-Flow/QED/issues/50)): a sequent in the old language that is derivable after the type definition is derivable before it, given a derivable witness of the predicate. The proof normalises instead of relativising: the retraction `norm` of the representation type onto the predicate, a translation of terms that sends the defined type to its representation type, keeps variables and normalises constants and binders, a translation of every rule of the calculus, and the three typedef laws as the properties of `norm`, proved at every type instance so that the instantiation rule is covered. Supporting files: `TdTypes`, `TdNorm`, `TdTerms`, `TdSubst`, `TdLaws`, `TdFL`, `TdRules`, `TdKfree`, `TdLaw`, `TdMain`. Parameterised type definitions and type definitions above other steps remain open.

@@ -65,12 +65,10 @@ theorem trans_sentence (hC : G.Closed) (θ : TypeSub) :
     (G.trans hC ((indInfinitySentence S).instType θ) : Term S [] .bool) = indInfinitySentence S := by
   have hk : G.k ∉ (indInfinitySentence S).tyCons := by
     simp [indInfinitySentence, indInjectiveBody, indNonSurjectiveBody, Term.tyCons, Ty.tyCons]
-  have hs : (indInfinitySentence S).SigClean G.k := by
-    simp [indInfinitySentence, indInjectiveBody, indNonSurjectiveBody, Term.SigClean, Term.equal]
   have hg : (indInfinitySentence S).annotVars = ∅ := by
     simp [indInfinitySentence, indInjectiveBody, indNonSurjectiveBody, Term.annotVars, Ty.typeVars,
       Term.equal]
-  exact eq_of_heq (Term.erase_inj_heq' _ _ rfl rfl (G.erase_trans_inst hC _ hk hs hg θ))
+  exact eq_of_heq (Term.erase_inj_heq' _ _ rfl rfl (G.erase_trans_inst hC _ hk hg θ))
 
 section Core
 
@@ -553,10 +551,10 @@ theorem ctx_tr_var (Γ : List Ty) (hΓ : ∀ b, b ∈ Γ → G.k ∉ b.tyCons) :
         ih (fun b' hb' ↦ hΓ b' (List.mem_cons_of_mem _ hb'))]
 
 theorem trans_inst_var_heq (hC : G.Closed) {Γ : List Ty} {a : Ty} (t : Term S Γ a)
-    (hk : G.k ∉ t.tyCons) (hs : t.SigClean G.k)
+    (hk : G.k ∉ t.tyCons)
     (e : (Γ.map (Ty.subst Ty.var)).map G.tr = Γ) (ha : G.tr (a.subst Ty.var) = a) :
     HEq (G.trans hC (t.instType Ty.var)) t :=
-  Term.erase_inj_heq' _ _ e ha (G.erase_trans_var hC t hk hs)
+  Term.erase_inj_heq' _ _ e ha (G.erase_trans_var hC t hk)
 
 /-- Transport of a derivation along a context equality, discharging reflexive hypotheses. -/
 theorem final_transport {Γ1 Γ : List Ty} (e : Γ1 = Γ) (s1 : Sequent S Γ1) (s : Sequent S Γ)
@@ -583,10 +581,9 @@ end QEDFV.HOL
 
 namespace QEDFV.HOL
 
-/-- A sequent whose types avoid the constructor `k` and whose constants carry canonical
-instance substitutions. -/
+/-- A sequent whose types avoid the constructor `k`. -/
 def Sequent.Clean {S : Signature} {Γ : List Ty} (k : Nat) (s : Sequent S Γ) : Prop :=
-  (∀ h, h ∈ s.hyps → k ∉ h.tyCons ∧ h.SigClean k) ∧ k ∉ s.concl.tyCons ∧ s.concl.SigClean k
+  (∀ h, h ∈ s.hyps → k ∉ h.tyCons) ∧ k ∉ s.concl.tyCons
 
 namespace TypeDefGate
 
@@ -604,7 +601,7 @@ theorem typedef_conservative (hOk : G.Ok) {Γ : List Ty} {s : Sequent S Γ}
   have d1 := G.hd_trans hOk hwit d (Or.inr rfl) Ty.var
   have e := G.ctx_tr_var Γ hΓ
   refine final_transport e _ s ?_ ?_ ?_ d1
-  · exact G.trans_inst_var_heq hOk.closed s.concl hclean.2.1 hclean.2.2 e rfl
+  · exact G.trans_inst_var_heq hOk.closed s.concl hclean.2 e rfl
   · intro h hh
     simp only [transSeq, typeSubstSequent, List.mem_append, List.mem_map] at hh
     rcases hh with hh | ⟨u, ⟨h0, hh0, rfl⟩, rfl⟩
@@ -618,10 +615,10 @@ theorem typedef_conservative (hOk : G.Ok) {Γ : List Ty} {s : Sequent S Γ}
       refine ⟨G.tr a, Term.var (Var.mapTy G.tr v), ?_⟩
       rw [G.nrmTy_of_not_mem a ha]
     · left
-      exact ⟨h0, hh0, G.trans_inst_var_heq hOk.closed h0 (hclean.1 h0 hh0).1 (hclean.1 h0 hh0).2 e rfl⟩
+      exact ⟨h0, hh0, G.trans_inst_var_heq hOk.closed h0 (hclean.1 h0 hh0) e rfl⟩
   · intro h0 hh0
     refine ⟨G.trans hOk.closed (h0.instType Ty.var), ?_,
-      G.trans_inst_var_heq hOk.closed h0 (hclean.1 h0 hh0).1 (hclean.1 h0 hh0).2 e rfl⟩
+      G.trans_inst_var_heq hOk.closed h0 (hclean.1 h0 hh0) e rfl⟩
     simp only [transSeq, typeSubstSequent, List.mem_append, List.mem_map]
     exact Or.inr ⟨h0.instType Ty.var, ⟨h0, hh0, rfl⟩, rfl⟩
 

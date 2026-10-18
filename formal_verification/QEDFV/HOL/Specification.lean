@@ -60,33 +60,12 @@ def SpecificationGate.body (G : SpecificationGate S) : Term S [] .bool :=
 
 def SpecificationGate.constant (G : SpecificationGate S)
     (hTy : S G.id = G.ty) : Term S [] G.ty :=
-  let hEq : Ty.subst Ty.var (S G.id) = G.ty :=
-    (Ty.subst_id (S G.id)).trans hTy
-  hEq ▸ (Term.const (S := S) G.id Ty.var)
+  .const G.id G.ty (hTy ▸ Ty.IsInst.refl _)
 
 noncomputable def ConstVal.withSpecification (I : ConstVal κ S)
     (G : SpecificationGate S) (hTy : S G.id = G.ty) : ConstVal κ S :=
   I.override G.id (fun ρ hρ ↦
     hTy.symm ▸ (specificationTerm G.predicate).eval I ρ hρ closedEnv)
-
-theorem SpecificationGate.constant_eval_withSpecification
-    (G : SpecificationGate S) (I : ConstVal κ S) (hTy : S G.id = G.ty)
-    (ρ : TypeVal) (hρ : Admissible κ ρ) :
-    (G.constant hTy).eval (I.withSpecification G hTy) ρ hρ closedEnv =
-      (specificationTerm G.predicate).eval I ρ hρ closedEnv := by
-  let hEq : Ty.subst Ty.var (S G.id) = G.ty :=
-    (Ty.subst_id (S G.id)).trans hTy
-  have hcast := eval_term_cast (I.withSpecification G hTy) ρ hρ closedEnv
-    hEq (.const G.id Ty.var)
-  have hraw := eval_const_var (I.withSpecification G hTy) ρ hρ G.id closedEnv
-  have hoverride := ConstVal.override_value I G.id
-    (fun ρ hρ ↦ hTy.symm ▸ (specificationTerm G.predicate).eval I ρ hρ closedEnv)
-    ρ hρ
-  have hvalue : HEq
-      ((Term.const G.id Ty.var).eval (I.withSpecification G hTy) ρ hρ closedEnv)
-      (hTy.symm ▸ (specificationTerm G.predicate).eval I ρ hρ closedEnv) := by
-    exact hraw.trans (by exact heq_of_eq hoverride)
-  simpa [SpecificationGate.constant, hEq] using hcast.trans hvalue
 
 /-- A specification step preserves locality of the constant interpretation. -/
 theorem SpecificationGate.withSpecification_local (G : SpecificationGate S) (I : ConstVal κ S)
@@ -120,6 +99,22 @@ theorem SpecificationGate.withSpecification_local (G : SpecificationGate S) (I :
     rw [a1, a2]
     exact hI c ρ hρ ρ' hρ' hag
 
+theorem SpecificationGate.constant_eval_withSpecification
+    (G : SpecificationGate S) (I : ConstVal κ S) (hTy : S G.id = G.ty)
+    (hI : ∀ c, I.Local c)
+    (ρ : TypeVal) (hρ : Admissible κ ρ) :
+    (G.constant hTy).eval (I.withSpecification G hTy) ρ hρ closedEnv =
+      (specificationTerm G.predicate).eval I ρ hρ closedEnv := by
+  have hraw := eval_const_self (I.withSpecification G hTy)
+    (G.withSpecification_local I hTy hI G.id) hTy (hTy ▸ Ty.IsInst.refl _) ρ hρ closedEnv
+  have hoverride := ConstVal.override_value I G.id
+    (fun ρ hρ ↦ hTy.symm ▸ (specificationTerm G.predicate).eval I ρ hρ closedEnv)
+    ρ hρ
+  have hvalue : HEq ((G.constant hTy).eval (I.withSpecification G hTy) ρ hρ closedEnv)
+      (hTy.symm ▸ (specificationTerm G.predicate).eval I ρ hρ closedEnv) :=
+    hraw.trans (heq_of_eq hoverride)
+  exact eq_of_heq (hvalue.trans (heq_rec_symm (T := fun t ↦ t.denote κ ρ) hTy.symm _))
+
 theorem SpecificationGate.valid_body (G : SpecificationGate S) (I : ConstVal κ S)
     (hWitness : Valid I { hyps := [], concl := G.body }) :
     Valid I
@@ -128,7 +123,7 @@ theorem SpecificationGate.valid_body (G : SpecificationGate S) (I : ConstVal κ 
   valid_specification I G.predicate G.witness hWitness
 
 theorem SpecificationGate.valid_constant (G : SpecificationGate S) (I : ConstVal κ S)
-    (hTy : S G.id = G.ty)
+    (hTy : S G.id = G.ty) (hI : ∀ c, I.Local c)
     (hWitness : Valid I { hyps := [], concl := G.body }) :
     Valid (I.withSpecification G hTy)
       { hyps := [], concl := G.predicate.substitute (Sub.single (G.constant hTy)) } := by
@@ -145,7 +140,7 @@ theorem SpecificationGate.valid_constant (G : SpecificationGate S) (I : ConstVal
   rw [Term.eval_substitute, Sub.eval_single]
   rw [Term.eval_substitute] at hSpec
   rw [Sub.eval_single] at hSpec
-  have hConst := G.constant_eval_withSpecification I hTy ρ hρ
+  have hConst := G.constant_eval_withSpecification I hTy hI ρ hρ
   change G.predicate.eval (I.withSpecification G hTy) ρ hρ
     (Env.extend closedEnv
       ((G.constant hTy).eval (I.withSpecification G hTy) ρ hρ closedEnv))
@@ -185,11 +180,11 @@ theorem SpecificationGate.valid_old_language_iff
 
 theorem SpecificationGate.valid_constant_from_derivation
     (hChoice : ChoiceNatural) (G : SpecificationGate S) (I : ConstVal κ S)
-    (hTy : S G.id = G.ty)
+    (hTy : S G.id = G.ty) (hI : ∀ c, I.Local c)
     (d : Derivation S { hyps := [], concl := G.body }) :
     Valid (I.withSpecification G hTy)
       { hyps := [], concl := G.predicate.substitute (Sub.single (G.constant hTy)) } :=
-  G.valid_constant I hTy (derivation_sound hChoice I d)
+  G.valid_constant I hTy hI (derivation_sound hChoice I d)
 
 theorem specification_valid_from_derivation
     (hChoice : ChoiceNatural) (I : ConstVal κ S)
@@ -202,11 +197,11 @@ theorem specification_valid_from_derivation
 
 theorem SpecificationGate.valid_constant_from_typed_derivation
     (G : SpecificationGate S) (I : ConstVal κ S)
-    (hTy : S G.id = G.ty)
+    (hTy : S G.id = G.ty) (hI : ∀ c, I.Local c)
     (d : Derivation S { hyps := [], concl := G.body }) :
     Valid (I.withSpecification G hTy)
       { hyps := [], concl := G.predicate.substitute (Sub.single (G.constant hTy)) } :=
-  G.valid_constant I hTy (derivation_sound select_natural I d)
+  G.valid_constant I hTy hI (derivation_sound select_natural I d)
 
 theorem specification_valid_from_typed_derivation
     (I : ConstVal κ S)

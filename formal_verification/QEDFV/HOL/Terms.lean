@@ -14,7 +14,7 @@ abbrev Signature := Nat → Ty
 
 inductive Term (S : Signature) : List Ty → Ty → Type where
   | var : Var Γ a → Term S Γ a
-  | const (c : Nat) (σ : TypeSub) : Term S Γ ((S c).subst σ)
+  | const (c : Nat) (τ : Ty) (h : (S c).IsInst τ) : Term S Γ τ
   | app : Term S Γ (.arr a b) → Term S Γ a → Term S Γ b
   | lam : Term S (a :: Γ) b → Term S Γ (.arr a b)
   | truth : Term S Γ .bool
@@ -28,7 +28,7 @@ inductive Term (S : Signature) : List Ty → Ty → Type where
 
 def Term.typeVars : Term S Γ a → Set Nat
   | .var _ => a.typeVars
-  | .const c σ => ((S c).subst σ).typeVars
+  | .const _ τ _ => τ.typeVars
   | .app f x => f.typeVars ∪ x.typeVars
   | .lam b => b.typeVars
   | .truth => ∅
@@ -45,7 +45,7 @@ an unused lambda binder. Unlike `Term.typeVars` (which the closure gates use and
 not add an unused binder's domain), this is the support on which evaluation depends. -/
 def Term.annotVars : Term S Γ a → Set Nat
   | .var _ => a.typeVars
-  | .const c σ => ((S c).subst σ).typeVars
+  | .const _ τ _ => τ.typeVars
   | .app f x => f.annotVars ∪ x.annotVars
   | @Term.lam _ a _ _ b => a.typeVars ∪ b.annotVars
   | .truth => ∅
@@ -61,7 +61,7 @@ def Term.annotVars : Term S Γ a → Set Nat
 the schema instances of constants. Patterned on `Term.typeVars`. -/
 def Term.tyCons : Term S Γ a → Set Nat
   | .var _ => a.tyCons
-  | .const c σ => ((S c).subst σ).tyCons
+  | .const _ τ _ => τ.tyCons
   | .app f x => f.tyCons ∪ x.tyCons
   | @Term.lam _ a _ _ b => a.tyCons ∪ b.tyCons
   | .truth => ∅
@@ -77,7 +77,7 @@ def Term.tyCons : Term S Γ a → Set Nat
 theorem Term.typeVars_subset_annotVars (t : Term S Γ a) : t.typeVars ⊆ t.annotVars := by
   induction t with
   | var v => exact fun _ h ↦ h
-  | const c σ => exact fun _ h ↦ h
+  | const c τ h => exact fun _ h ↦ h
   | app f x ihf ihx => exact Set.union_subset_union ihf ihx
   | lam b ih => exact fun i h ↦ Or.inr (ih h)
   | truth => exact fun _ h ↦ h
@@ -93,7 +93,7 @@ theorem Term.typeVars_subset_annotVars (t : Term S Γ a) : t.typeVars ⊆ t.anno
 theorem Term.ty_annotVars_subset (t : Term S Γ a) : a.typeVars ⊆ t.annotVars := by
   induction t with
   | var v => exact fun _ h ↦ h
-  | const c σ => exact fun _ h ↦ h
+  | const c τ h => exact fun _ h ↦ h
   | app f x ihf ihx =>
       intro i hi
       exact Or.inl (ihf (Or.inr hi))
@@ -114,7 +114,7 @@ theorem Term.ty_annotVars_subset (t : Term S Γ a) : a.typeVars ⊆ t.annotVars 
 theorem Term.ty_tyCons_subset (t : Term S Γ a) : a.tyCons ⊆ t.tyCons := by
   induction t with
   | var v => exact fun _ h ↦ h
-  | const c σ => exact fun _ h ↦ h
+  | const c τ h => exact fun _ h ↦ h
   | app f x ihf ihx =>
       intro i hi
       exact Or.inl (ihf (Or.inr hi))
@@ -133,7 +133,7 @@ theorem Term.ty_tyCons_subset (t : Term S Γ a) : a.tyCons ⊆ t.tyCons := by
 
 def Term.constIds : Term S Γ a → Finset Nat
   | .var _ => ∅
-  | .const c _ => {c}
+  | .const c _ _ => {c}
   | .app f x => f.constIds ∪ x.constIds
   | .lam b => b.constIds
   | .truth => ∅
@@ -154,7 +154,7 @@ def Ren.lift (r : Ren Γ Δ) : Ren (a :: Γ) (a :: Δ)
 
 def Term.rename (r : Ren Γ Δ) : Term S Γ a → Term S Δ a
   | .var v => .var (r v)
-  | .const c σ => .const c σ
+  | .const c τ h => .const c τ h
   | .app f x => .app (f.rename r) (x.rename r)
   | .lam b => .lam (b.rename r.lift)
   | .truth => .truth
@@ -172,7 +172,7 @@ def Sub.lift (σ : Sub S Γ Δ) : Sub S (a :: Γ) (a :: Δ)
 
 def Term.substitute (σ : Sub S Γ Δ) : Term S Γ a → Term S Δ a
   | .var v => σ v
-  | .const c θ => .const c θ
+  | .const c τ h => .const c τ h
   | .app f x => .app (f.substitute σ) (x.substitute σ)
   | .lam b => .lam (b.substitute σ.lift)
   | .truth => .truth
@@ -197,7 +197,7 @@ def Var.mapTypes (θ : TypeSub) : Var Γ a → Var (Γ.map (Ty.subst θ)) (a.sub
 def Term.instType (θ : TypeSub) : Term S Γ a →
     Term S (Γ.map (Ty.subst θ)) (a.subst θ)
   | .var v => .var (v.mapTypes θ)
-  | .const c σ => (Ty.subst_comp (S c) θ σ).symm ▸ .const c (θ.comp σ)
+  | .const c τ h => .const c (τ.subst θ) (h.inst θ)
   | .app f x => .app (f.instType θ) (x.instType θ)
   | .lam b => .lam (b.instType θ)
   | .truth => .truth
@@ -219,12 +219,9 @@ theorem Term.typeVars_cast {h : a = b} (t : Term S Γ a) :
   induction t with
   | var v =>
       simp [Term.instType, Term.typeVars, Ty.typeVars_subst]
-  | const c σ =>
-      simp only [Term.instType]
-      rw [Term.typeVars_cast]
-      change ((S c).subst (θ.comp σ)).typeVars =
-        TypeSub.imageTypeVars θ ((S c).subst σ).typeVars
-      rw [Ty.typeVars_subst, Ty.typeVars_subst, TypeSub.imageTypeVars_image]
+  | const c τ h =>
+      simp only [Term.instType, Term.typeVars]
+      rw [Ty.typeVars_subst]
   | app f x ihf ihx =>
       simp only [Term.instType, Term.typeVars, ihf, ihx]
       exact TypeSub.imageTypeVars_union θ f.typeVars x.typeVars |>.symm
@@ -261,17 +258,9 @@ theorem Term.tyCons_cast {h : a = b} (t : Term S Γ a) :
   induction t with
   | var v =>
       simp [Term.instType, Term.tyCons, Term.annotVars, Ty.tyCons_subst]
-  | const c σ =>
-      simp only [Term.instType]
-      rw [Term.tyCons_cast]
-      change ((S c).subst (θ.comp σ)).tyCons =
-        ((S c).subst σ).tyCons ∪ TypeSub.imageTyCons θ ((S c).subst σ).typeVars
-      rw [Ty.tyCons_subst, Ty.tyCons_subst, Ty.typeVars_subst]
-      change (S c).tyCons ∪ TypeSub.imageTyCons (fun i ↦ (σ i).subst θ) (S c).typeVars = _
-      rw [TypeSub.imageTyCons_comp]
-      ext k
-      simp only [Set.mem_union]
-      tauto
+  | const c τ h =>
+      simp only [Term.instType, Term.tyCons, Term.annotVars]
+      rw [Ty.tyCons_subst]
   | app f x ihf ihx =>
       simp only [Term.instType, Term.tyCons, Term.annotVars, ihf, ihx,
         TypeSub.imageTyCons_union]

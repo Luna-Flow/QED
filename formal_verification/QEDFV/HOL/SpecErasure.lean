@@ -11,29 +11,55 @@ def SpecificationExtension.choiceAt (E : SpecificationExtension S) (σ : TypeSub
     Term S [] (E.gate.ty.subst σ) :=
   Term.choice.app ((Term.lam E.gate.predicate).instType σ)
 
-/-- Replacement unfolding a specification: the specified constant at instance `σ` becomes the
-choice term of the predicate instantiated at `σ`; every other constant stays. -/
-def SpecificationExtension.repl (E : SpecificationExtension S) : ConstRepl S := fun c σ ↦
-  if h : c = E.gate.id then
-    (congrArg (Ty.subst σ) ((congrArg S h).trans E.typeEq)).symm ▸ E.choiceAt σ
-  else Term.const c σ
+theorem SpecificationExtension.instTy_eq (E : SpecificationExtension S) {τ : Ty}
+    (h : (S E.gate.id).IsInst τ) : E.gate.ty.subst (Ty.constSub (S E.gate.id) τ h) = τ := by
+  rw [← E.typeEq]
+  exact Ty.constSub_spec _ τ h
+
+/-- Replacement unfolding a specification: the specified constant at instance `τ` becomes the
+choice term of the predicate instantiated at the canonical instance substitution; every other
+constant stays. -/
+noncomputable def SpecificationExtension.repl (E : SpecificationExtension S) : ConstRepl S :=
+  fun c τ h ↦
+  if hc : c = E.gate.id then
+    (by subst hc; exact E.instTy_eq h ▸ E.choiceAt (Ty.constSub (S E.gate.id) τ h))
+  else Term.const c τ h
+
+theorem SpecificationExtension.repl_erase_id (E : SpecificationExtension S) (τ : Ty)
+    (h : (S E.gate.id).IsInst τ) :
+    (E.repl E.gate.id τ h).erase =
+      (specificationTerm E.gate.predicate).erase.inst (Ty.constSub (S E.gate.id) τ h) := by
+  simp only [SpecificationExtension.repl, dite_true]
+  rw [Term.erase_cast]
+  simp [SpecificationExtension.choiceAt, specificationTerm, Term.erase, UTerm.inst,
+    Term.erase_instType, Ty.subst]
+
+theorem SpecificationExtension.vars_subset (E : SpecificationExtension S) :
+    (specificationTerm E.gate.predicate).erase.vars ⊆ (S E.gate.id).typeVars := by
+  intro i hi
+  have h := (specificationTerm E.gate.predicate).erase_vars_subset hi
+  rw [E.typeEq]
+  simp only [specificationTerm, Term.annotVars, Ty.typeVars, Set.mem_union] at h
+  have hcl : i ∈ E.gate.predicate.annotVars → i ∈ E.gate.ty.typeVars :=
+    fun h ↦ E.gate.typeVarsClosed h
+  tauto
 
 theorem SpecificationExtension.repl_compatible (E : SpecificationExtension S) :
     E.repl.Compatible := by
-  intro c θ σ
-  by_cases h : c = E.gate.id
-  · simp only [SpecificationExtension.repl, h, dite_true]
+  intro c τ h θ
+  by_cases hc : c = E.gate.id
+  · subst hc
     apply Term.erase_inj
-    rw [Term.erase_cast, Term.erase_instType, Term.erase_cast, Term.erase_cast]
-    simp [SpecificationExtension.choiceAt, Term.erase, UTerm.inst, Term.erase_instType,
-      UTerm.inst_comp, Ty.subst]
-  · simp [SpecificationExtension.repl, h, Term.instType]
+    rw [Term.erase_instType, E.repl_erase_id, E.repl_erase_id, UTerm.inst_comp]
+    refine UTerm.inst_congr _ fun i hi ↦ ?_
+    exact (Ty.constSub_inst (S E.gate.id) τ h θ i (E.vars_subset hi)).symm
+  · simp [SpecificationExtension.repl, hc, Term.instType]
 
 theorem SpecificationExtension.replConst_of_not_mem (E : SpecificationExtension S)
     (t : Term S Γ a) (h : E.gate.id ∉ t.constIds) : t.replConst E.repl = t := by
   induction t with
   | var v => rfl
-  | const c σ =>
+  | const c τ hτ =>
       have hne : c ≠ E.gate.id := fun e ↦ h (by simp [Term.constIds, e])
       simp [Term.replConst, SpecificationExtension.repl, hne, Term.closedLift, Term.rename]
   | app f x ihf ihx =>
@@ -71,13 +97,14 @@ theorem SpecificationExtension.replConst_seq_of_not_mem (E : SpecificationExtens
 theorem SpecificationExtension.replConst_constant (E : SpecificationExtension S) :
     (E.gate.constant E.typeEq).replConst E.repl = specificationTerm E.gate.predicate := by
   unfold SpecificationGate.constant
-  simp only []
-  rw [Term.replConst_cast]
-  simp only [Term.replConst, SpecificationExtension.repl, dite_true]
+  simp only [Term.replConst]
   rw [Term.closedLift_nil]
   apply Term.erase_inj
-  simp [Term.erase_cast, SpecificationExtension.choiceAt, specificationTerm, Term.erase,
-    Term.erase_instType, UTerm.inst_var]
+  rw [E.repl_erase_id, UTerm.inst_congr _ (θ' := Ty.var)]
+  · exact UTerm.inst_var _
+  · intro i hi
+    exact Ty.constSub_eq (S E.gate.id) E.gate.ty _ (σ := Ty.var)
+      ((Ty.subst_id _).trans E.typeEq) i (E.vars_subset hi)
 
 /-- The replaced conclusion of a specification step is derivable from the witness
 derivation: the replaced predicate is the predicate itself, and the replaced constant is the

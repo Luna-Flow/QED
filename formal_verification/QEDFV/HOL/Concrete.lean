@@ -20,9 +20,10 @@ noncomputable def standardConstVal : ConstVal defaultTyCon standardSignature := 
 
 def emptyEnv : Env κ baseTypeVal [] := fun _ v ↦ by cases v
 
-def zeroTerm : Term standardSignature [] .ind := .const 0 Ty.var
+def zeroTerm : Term standardSignature [] .ind := .const 0 .ind (Ty.IsInst.refl _)
 
-def succTerm : Term standardSignature [] (.arr .ind .ind) := .const 1 Ty.var
+def succTerm : Term standardSignature [] (.arr .ind .ind) :=
+  .const 1 (.arr .ind .ind) (Ty.IsInst.refl _)
 
 def falseSentence : Term standardSignature [] .bool :=
   (succTerm.app zeroTerm).equal zeroTerm
@@ -89,15 +90,17 @@ def conSignature : Signature := fun _ ↦ .con 3 1 fun _ ↦ .bool
 noncomputable def conConstVal : ConstVal defaultTyCon conSignature := fun ρ hρ c ↦
   Classical.choice ((conSignature c).carrier_nonempty defaultTyCon ρ hρ)
 
-example : Term conSignature [] (.con 3 1 fun _ ↦ .bool) := .const 0 Ty.var
+example : Term conSignature [] (.con 3 1 fun _ ↦ .bool) :=
+  .const 0 (.con 3 1 fun _ ↦ .bool) (Ty.IsInst.refl _)
 
 /-- A term of constructor type evaluates, and the reflexivity theorem over it is valid. -/
-example : (Term.const (S := conSignature) 0 Ty.var).eval conConstVal baseTypeVal
+example : (Term.const (S := conSignature) 0 (.con 3 1 fun _ ↦ .bool)
+    (Ty.IsInst.refl _)).eval conConstVal baseTypeVal
     baseTypeVal_admissible emptyEnv = PUnit.unit := rfl
 
 example : Valid conConstVal (Γ := [])
-    { hyps := [], concl := (Term.const (S := conSignature) (Γ := []) 0 Ty.var).equal
-        (.const 0 Ty.var) } :=
+    { hyps := [], concl := (Term.const (S := conSignature) (Γ := []) 0 (.con 3 1 fun _ ↦ .bool)
+      (Ty.IsInst.refl _)).equal (.const 0 (.con 3 1 fun _ ↦ .bool) (Ty.IsInst.refl _)) } :=
   valid_refl conConstVal _
 
 end QEDFV.HOL

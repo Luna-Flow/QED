@@ -8,18 +8,18 @@ namespace QEDFV.HOL
 variable {S : Signature} {Γ Δ Θ : List Ty} {a b : Ty}
 
 /-- A closed replacement term for every instance of every constant. -/
-abbrev ConstRepl (S : Signature) := ∀ (c : Nat) (σ : TypeSub), Term S [] ((S c).subst σ)
+abbrev ConstRepl (S : Signature) := ∀ (c : Nat) (τ : Ty), (S c).IsInst τ → Term S [] τ
 
 /-- A replacement is compatible with type instantiation when instantiating a replacement
 instance gives the replacement of the composite instance. -/
 def ConstRepl.Compatible (R : ConstRepl S) : Prop :=
-  ∀ (c : Nat) (θ σ : TypeSub),
-    (R c σ).instType θ = (Ty.subst_comp (S c) θ σ).symm ▸ R c (θ.comp σ)
+  ∀ (c : Nat) (τ : Ty) (h : (S c).IsInst τ) (θ : TypeSub),
+    (R c τ h).instType θ = R c (τ.subst θ) (h.inst θ)
 
 /-- Replace every constant occurrence by its replacement. -/
 def Term.replConst (R : ConstRepl S) : {Γ : List Ty} → {a : Ty} → Term S Γ a → Term S Γ a
   | _, _, .var v => .var v
-  | _, _, .const c σ => (R c σ).closedLift
+  | _, _, .const c τ h => (R c τ h).closedLift
   | _, _, .app f x => .app (f.replConst R) (x.replConst R)
   | _, _, .lam b => .lam (b.replConst R)
   | _, _, .truth => .truth
@@ -43,7 +43,7 @@ theorem Term.replConst_rename (R : ConstRepl S) (t : Term S Γ a) (r : Ren Γ Δ
     (t.rename r).replConst R = (t.replConst R).rename r := by
   induction t generalizing Δ with
   | var v => rfl
-  | const c σ => exact (Term.closedLift_rename _ r).symm
+  | const c τ h => exact (Term.closedLift_rename _ r).symm
   | app f x ihf ihx => simp only [Term.rename, Term.replConst, ihf, ihx]
   | lam b ih => simp only [Term.rename, Term.replConst, ih]
   | truth => rfl
@@ -67,7 +67,7 @@ theorem Term.replConst_substitute (R : ConstRepl S) (t : Term S Γ a) (σ : Sub 
     (t.substitute σ).replConst R = (t.replConst R).substitute (fun v ↦ (σ v).replConst R) := by
   induction t generalizing Δ with
   | var v => rfl
-  | const c θ => exact (Term.closedLift_substitute _ _).symm
+  | const c τ h => exact (Term.closedLift_substitute _ _).symm
   | app f x ihf ihx => simp only [Term.substitute, Term.replConst, ihf, ihx]
   | lam b ih => simp only [Term.substitute, Term.replConst, ih, Sub.lift_replConst]
   | truth => rfl
@@ -83,9 +83,9 @@ theorem Term.replConst_instType (R : ConstRepl S) (hR : R.Compatible) (t : Term 
     (θ : TypeSub) : (t.instType θ).replConst R = (t.replConst R).instType θ := by
   induction t with
   | var v => rfl
-  | const c σ =>
-      simp only [Term.instType, Term.replConst_cast, Term.replConst]
-      rw [Term.closedLift_instType, hR c θ σ, Term.closedLift_cast]
+  | const c τ h =>
+      simp only [Term.instType, Term.replConst]
+      rw [Term.closedLift_instType, hR c τ h θ]
   | app f x ihf ihx => simp only [Term.instType, Term.replConst, ihf, ihx]
   | lam b ih => simp only [Term.instType, Term.replConst, ih]
   | truth => rfl
@@ -447,25 +447,36 @@ theorem Derivation.replConst (R : ConstRepl S) (hR : R.Compatible)
 theorem Term.cast_symm_cast {h : a = b} (t : Term S Γ a) : h.symm ▸ (h ▸ t) = t := by
   cases h; rfl
 
-/-- The replacement that unfolds a definition: the defined constant at instance `σ` becomes
-the right-hand side instantiated at `σ`; every other constant stays. -/
-def DefinitionGate.repl (D : DefinitionGate S) : ConstRepl S := fun c σ ↦
-  if h : c = D.id then h ▸ D.rhs.instType σ else Term.const c σ
+/-- The replacement that unfolds a definition: the defined constant at instance `τ` becomes
+the right-hand side instantiated along the canonical instance substitution; every other
+constant stays. -/
+noncomputable def DefinitionGate.repl (D : DefinitionGate S) : ConstRepl S := fun c τ h ↦
+  if hc : c = D.id then
+    (by subst hc; exact (Ty.constSub_spec (S D.id) τ h) ▸ D.rhs.instType (Ty.constSub (S D.id) τ h))
+  else Term.const c τ h
+
+/-- The unfolded instance at a canonical substitution, as an erased term. -/
+theorem DefinitionGate.repl_erase_id (D : DefinitionGate S) (τ : Ty) (h : (S D.id).IsInst τ) :
+    (D.repl D.id τ h).erase = D.rhs.erase.inst (Ty.constSub (S D.id) τ h) := by
+  simp only [DefinitionGate.repl, dite_true]
+  rw [Term.erase_cast, Term.erase_instType]
 
 theorem DefinitionGate.repl_compatible (D : DefinitionGate S) : D.repl.Compatible := by
-  intro c θ σ
-  by_cases h : c = D.id
-  · subst h
-    simp only [DefinitionGate.repl, dite_true]
-    have := Term.instType_instType D.rhs σ θ
-    rw [← this, Term.cast_symm_cast]
-  · simp [DefinitionGate.repl, h, Term.instType]
+  intro c τ h θ
+  by_cases hc : c = D.id
+  · subst hc
+    apply Term.erase_inj
+    rw [Term.erase_instType, D.repl_erase_id, D.repl_erase_id, UTerm.inst_comp]
+    refine UTerm.inst_congr _ fun i hi ↦ ?_
+    have hi' : i ∈ (S D.id).typeVars := D.typeVarsClosed (D.rhs.erase_vars_subset hi)
+    exact (Ty.constSub_inst (S D.id) τ h θ i hi').symm
+  · simp [DefinitionGate.repl, hc, Term.instType]
 
 theorem DefinitionGate.replConst_of_not_mem (D : DefinitionGate S) (t : Term S Γ a)
     (h : D.id ∉ t.constIds) : t.replConst D.repl = t := by
   induction t with
   | var v => rfl
-  | const c σ =>
+  | const c τ hτ =>
       have hne : c ≠ D.id := fun e ↦ h (by simp [Term.constIds, e])
       simp [Term.replConst, DefinitionGate.repl, hne, Term.closedLift, Term.rename]
   | app f x ihf ihx =>
@@ -502,10 +513,15 @@ theorem DefinitionGate.replConst_seq_of_not_mem (D : DefinitionGate S) (s : Sequ
 theorem DefinitionGate.replConst_head (D : DefinitionGate S) :
     D.head.replConst D.repl = D.rhs := by
   unfold DefinitionGate.head
-  rw [Term.replConst_cast]
-  simp only [Term.replConst, DefinitionGate.repl, dite_true]
+  simp only [Term.replConst]
   rw [Term.closedLift_nil]
-  exact Term.instType_var D.rhs
+  apply Term.erase_inj
+  rw [D.repl_erase_id]
+  rw [UTerm.inst_congr D.rhs.erase (θ' := Ty.var)]
+  · exact UTerm.inst_var _
+  · intro i hi
+    exact Ty.constSub_eq (S D.id) (S D.id) (Ty.IsInst.refl _) (σ := Ty.var) (Ty.subst_id _) i
+      (D.typeVarsClosed (D.rhs.erase_vars_subset hi))
 
 /-! ### Erasing a definition from a derivation -/
 

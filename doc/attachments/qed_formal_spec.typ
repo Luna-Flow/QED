@@ -411,8 +411,11 @@ components of an arrow type. We write the result as $tau[theta]$.]
 
 Write $tau prec.eq upsilon$ when $tau$ is an instance of the schema $upsilon$,
 that is, when $tau=upsilon[theta]$ for some $theta$. A constant occurrence records this substitution: $c[theta]$ has
-type $Sigma(c)[theta]$. An instance relation alone would hide the witness;
-recording $theta$ gives the evaluator the valuation needed for that occurrence.
+type $Sigma(c)[theta]$. The occurrence stores the instance type $tau$ together with the proof
+that $tau$ is an instance of $Sigma(c)$, not the substitution: $theta$ is determined by $tau$
+on the type variables of $Sigma(c)$ and nothing else about it is meaningful, so two occurrences
+at the same type are the same term. The evaluator recovers the valuation as the canonical
+substitution of that proof (`Ty.constSub`).
 
 For example, a constant with schema $alpha_0 -> alpha_0$ may be used at
 $"bool" -> "bool"$ and at $"ind" -> "ind"$. These are distinct instances of
@@ -2671,9 +2674,7 @@ statement is proved for every type instance simultaneously so that the instantia
 handled. For a sequent in the old language $T$ is the identity.
 
 The restrictions are those of the proof: no type parameters, the empty history below the
-type definition (older definitions would have to be unfolded first), and canonical
-instance substitutions, which the kernel's lowering produces. Parameters and older steps are
-open.
+type definition (older definitions would have to be unfolded first), Parameters and older steps are open.
 
 #lean-proof("TdNorm", ("TypeDefGate.nrm_range", "TypeDefGate.nrm_fix", "TypeDefGate.nrm_idem"))
 #lean-proof("TdMain", ("TypeDefGate.hd_trans", "TypeDefGate.typedef_conservative"))

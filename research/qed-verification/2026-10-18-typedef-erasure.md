@@ -223,7 +223,7 @@ must be unfolded, not just kept).
 
 Three extensions of `typedef_conservative` were examined.
 
-1. **Instance junk.** A `Term.const c σ` carries a total `σ : TypeSub`, but only the values of
+1. **Instance junk (resolved by a syntax change).** A `Term.const c σ` carried a total `σ : TypeSub`, but only the values of
    `σ` on the type variables of `S c` matter. Two constants that differ only off that support
    are different Lean terms, and no rule identifies them. The translation therefore uses a
    canonical substitution (translated on the support, identity elsewhere), and the theorem needs
@@ -254,6 +254,9 @@ Three extensions of `typedef_conservative` were examined.
    rework of every file of the development (about the size of the development itself), and it
    still leaves point 2, so it does not yet reach histories with older steps.
 
-So the statement is now: proved for a parameter-free type definition over the empty history
-with canonical terms; open for parameters and for older steps, the latter blocked first by
+Resolution of point 1: a constant occurrence now stores its instance type with an `IsInst` proof, so
+there is no junk and the canonicality hypotheses are gone (see the Unreleased changelog). Points 2
+and 3 remain.
+
+So the statement is now: proved for a parameter-free type definition over the empty history; open for parameters and for older steps, the latter blocked first by
 the instance-junk identification above.

@@ -31,18 +31,20 @@ theorem DefinitionGate.instType_type_vars_closed
   exact ⟨j, D.type_vars_closed hj, hi⟩
 
 def DefinitionGate.head (D : DefinitionGate S) : Term S [] (S D.id) :=
-  (Ty.subst_id (S D.id)).symm ▸ (.const D.id Ty.var)
+  .const D.id (S D.id) (Ty.IsInst.refl _)
 
-theorem eval_const_var (I : ConstVal κ S) (ρ : TypeVal) (hρ : Admissible κ ρ)
-    (c : Nat) (η : Env κ ρ Γ) :
-    HEq ((Term.const c Ty.var).eval I ρ hρ η) (I ρ hρ c) := by
-  change HEq
-    (cast (Ty.denote_subst (S c) κ Ty.var ρ).symm
-      (I (TypeSub.pull Ty.var κ ρ) (TypeSub.pull_admissible Ty.var κ ρ hρ) c))
-    (I ρ hρ c)
-  have hI := constVal_heq I (show TypeSub.pull Ty.var κ ρ = ρ by rfl)
-    (TypeSub.pull_admissible Ty.var κ ρ hρ) hρ c
-  exact (cast_heq _ _).trans hI
+/-- A constant occurrence at the type `τ = S c` evaluates to the interpretation, for a local
+interpretation. -/
+theorem eval_const_self (I : ConstVal κ S) {c : Nat} (hI : I.Local c) {τ : Ty}
+    (e : S c = τ) (h : (S c).IsInst τ) (ρ : TypeVal) (hρ : Admissible κ ρ)
+    {Γ : List Ty} (η : Env κ ρ Γ) :
+    HEq ((Term.const c τ h).eval I ρ hρ η) (I ρ hρ c) := by
+  subst e
+  refine (cast_heq _ _).trans (hI _ _ ρ hρ ?_)
+  intro i hi
+  have := Ty.constSub_eq (S c) (S c) h (σ := Ty.var) (Ty.subst_id _) i hi
+  simp only [TypeSub.pull, this]
+  rfl
 
 noncomputable def ConstVal.withDefinition (I : ConstVal κ S) (D : DefinitionGate S) :
     ConstVal κ S := fun ρ hρ c ↦
@@ -122,7 +124,8 @@ theorem valid_definition_old_language_iff
   valid_definition_old_language_iff_κ D I I s hOld (fun _ ↦ Iff.rfl)
     (TyConVal.AgreeOn.refl κ _) fun _ _ ↦ ConstVal.AgreeAt.of_eq fun _ _ ↦ rfl
 
-theorem valid_definition_equation (D : DefinitionGate S) (I : ConstVal κ S) :
+theorem valid_definition_equation (D : DefinitionGate S) (I : ConstVal κ S)
+    (hI : ∀ c, I.Local c) :
     Valid (I.withDefinition D)
       { hyps := [], concl := (D.head.equal D.rhs) } := by
   intro ρ hρ η _
@@ -132,34 +135,23 @@ theorem valid_definition_equation (D : DefinitionGate S) (I : ConstVal κ S) :
     funext a v
     cases v
   subst η
-  have hhead : D.head.eval (I.withDefinition D) ρ hρ closedEnv =
-      D.rhs.eval I ρ hρ closedEnv := by
-    have hcast := eval_term_cast (I.withDefinition D) ρ hρ closedEnv
-      (Ty.subst_id (S D.id)) (.const D.id Ty.var)
-    have hdenote := congrArg (Ty.denote κ ρ) (Ty.subst_id (S D.id))
-    have htarget : HEq
-        (D.head.eval (I.withDefinition D) ρ hρ closedEnv)
-        (cast hdenote ((Term.const (S := S) D.id Ty.var).eval
-          (I.withDefinition D) ρ hρ closedEnv)) := by
-      exact hcast.trans (cast_heq hdenote _).symm
-    have heq := eq_of_heq htarget
-    calc
-      D.head.eval (I.withDefinition D) ρ hρ closedEnv =
-          cast hdenote ((Term.const (S := S) D.id Ty.var).eval
-            (I.withDefinition D) ρ hρ closedEnv) := heq
-      _ = D.rhs.eval I ρ hρ closedEnv := by
-        have hvar := eval_const_var (I.withDefinition D) ρ hρ D.id closedEnv
-        have hval : HEq
-            ((Term.const (S := S) D.id Ty.var).eval
-              (I.withDefinition D) ρ hρ closedEnv)
-            (D.rhs.eval I ρ hρ closedEnv) := by
-          exact hvar.trans (by
-            simp [ConstVal.withDefinition])
-        have hcastval := cast_heq hdenote
-          ((Term.const (S := S) D.id Ty.var).eval
-            (I.withDefinition D) ρ hρ closedEnv)
-        exact eq_of_heq (hcastval.trans hval)
-  have hrhs := D.rhs_eval_withDefinition I ρ hρ
-  exact hhead.trans hrhs.symm
+  set π := (Ty.constSub (S D.id) (S D.id) (Ty.IsInst.refl _)).pull κ ρ with hπ
+  have hπa : Admissible κ π := TypeSub.pull_admissible _ κ ρ hρ
+  have hag : ∀ i, i ∈ (S D.id).typeVars → π i = ρ i := by
+    intro i hi
+    have := Ty.constSub_eq (S D.id) (S D.id) (Ty.IsInst.refl _) (σ := Ty.var)
+      (Ty.subst_id _) i hi
+    simp only [hπ, TypeSub.pull, this]
+    rfl
+  have h1 : HEq (D.head.eval (I.withDefinition D) ρ hρ closedEnv)
+      (D.rhs.eval I π hπa closedEnv) := by
+    refine (cast_heq _ _).trans ?_
+    have e : I.withDefinition D π hπa D.id = D.rhs.eval I π hπa closedEnv := by
+      simp [ConstVal.withDefinition, DefinitionGate.rhs_eval_withDefinition]
+    rw [e]
+  have h2 : HEq (D.rhs.eval I π hπa closedEnv) (D.rhs.eval I ρ hρ closedEnv) :=
+    Term.eval_congr_vars hπa hρ I D.rhs (fun i hi ↦ hag i (D.typeVarsClosed hi))
+      (fun c _ ↦ hI c) closedEnv closedEnv (fun _ v _ ↦ nomatch v)
+  exact eq_of_heq (h1.trans (h2.trans (D.rhs_eval_withDefinition I ρ hρ ▸ HEq.rfl)))
 
 end QEDFV.HOL

@@ -57,6 +57,12 @@ theorem Env.extend_heq {ρ ρ' : TypeVal} {Γ : List Ty} {a : Ty} (V C : Set Nat
   | zero => exact hx
   | succ v => exact hη b v h1 h2
 
+theorem constVal_heq' {S : Signature} (I : ConstVal κ S) {ρ σ : TypeVal}
+    (h : ρ = σ) (hρ : Admissible κ ρ) (hσ : Admissible κ σ) (c : Nat) :
+    HEq (I ρ hρ c) (I σ hσ c) := by
+  cases h
+  rfl
+
 /-- General congruence of evaluation. Two evaluations of the same term, under possibly
 different constructor interpretations `κ κ'`, valuations `ρ ρ'`, constant interpretations
 `I I'` and environments, have `HEq` values provided that:
@@ -69,10 +75,12 @@ theorem Term.eval_congr (V C : Set Nat) (K : Finset Nat) {ρ ρ' : TypeVal}
     {I : ConstVal κ S} {I' : ConstVal κ' S}
     (hρ : Admissible κ ρ) (hρ' : Admissible κ' ρ')
     (hV : ∀ i, i ∈ V → ρ i = ρ' i) (hC : κ.AgreeOn C κ')
-    (hI : ∀ c, c ∈ K → ∀ σ : TypeSub,
-      ((S c).subst σ).typeVars ⊆ V → ((S c).subst σ).tyCons ⊆ C →
-        HEq (I (σ.pull κ ρ) (σ.pull_admissible κ ρ hρ) c)
-          (I' (σ.pull κ' ρ') (σ.pull_admissible κ' ρ' hρ') c))
+    (hI : ∀ c, c ∈ K → ∀ (τ : Ty) (h : (S c).IsInst τ),
+      τ.typeVars ⊆ V → τ.tyCons ⊆ C →
+        HEq (I ((Ty.constSub (S c) τ h).pull κ ρ)
+            ((Ty.constSub (S c) τ h).pull_admissible κ ρ hρ) c)
+          (I' ((Ty.constSub (S c) τ h).pull κ' ρ')
+            ((Ty.constSub (S c) τ h).pull_admissible κ' ρ' hρ') c))
     {Γ : List Ty} {a : Ty} (t : Term S Γ a)
     (htv : t.annotVars ⊆ V) (htc : t.tyCons ⊆ C) (htk : t.constIds ⊆ K)
     (η : Env κ ρ Γ) (η' : Env κ' ρ' Γ)
@@ -82,10 +90,10 @@ theorem Term.eval_congr (V C : Set Nat) (K : Finset Nat) {ρ ρ' : TypeVal}
     fun b h1 h2 ↦ b.denote_congr_gen V C hV hC h1 h2
   induction t with
   | var v => exact hη _ v htv htc
-  | const c σ =>
+  | const c τ h =>
       simp only [Term.eval]
       exact (cast_heq _ _).trans
-        ((hI c (htk (by simp [Term.constIds])) σ htv htc).trans (cast_heq _ _).symm)
+        ((hI c (htk (by simp [Term.constIds])) τ h htv htc).trans (cast_heq _ _).symm)
   | @app Γ' a' b' f x ihf ihx =>
       have hf : f.annotVars ⊆ V := fun i hi ↦ htv (Or.inl hi)
       have hx : x.annotVars ⊆ V := fun i hi ↦ htv (Or.inr hi)
@@ -203,7 +211,8 @@ theorem Term.eval_congr_κ {ρ : TypeVal} (hρ : Admissible κ ρ) (hρ' : Admis
     (hη : ∀ b (v : Var Γ b), b.tyCons ⊆ t.tyCons → HEq (η b v) (η' b v)) :
     HEq (t.eval I ρ hρ η) (t.eval I' ρ hρ' η') :=
   Term.eval_congr Set.univ t.tyCons t.constIds hρ hρ' (fun _ _ ↦ rfl) hC
-    (fun c hc σ _ hσc ↦ hI c hc ρ hρ hρ' σ hσc) t (Set.subset_univ _) subset_rfl subset_rfl
+    (fun c hc τ h _ hτc ↦ hI c hc ρ hρ hρ' (Ty.constSub (S c) τ h)
+      (by rw [Ty.constSub_spec]; exact hτc)) t (Set.subset_univ _) subset_rfl subset_rfl
     η η' (fun b v _ h ↦ hη b v h)
 
 /-- Evaluation depends only on the type variables occurring in the term's type annotations
@@ -220,12 +229,17 @@ theorem Term.eval_congr_vars {ρ ρ' : TypeVal} (hρ : Admissible κ ρ) (hρ' :
   refine Term.eval_congr t.annotVars Set.univ t.constIds hρ hρ' hρρ
     (TyConVal.AgreeOn.refl κ _) ?_ t subset_rfl (Set.subset_univ _) subset_rfl η η'
     (fun b v h _ ↦ hη b v h)
-  intro c hc σ hσv _
-  apply hI c hc
-  intro i hi
-  exact (σ i).denote_congr_vars κ (fun j hj ↦ hρρ j (hσv (by
-    rw [Ty.typeVars_subst]
-    exact ⟨i, hi, hj⟩)))
+  intro c hc τ h hτv _
+  have hpull : (Ty.constSub (S c) τ h).pull κ ρ = (Ty.constSub (S c) τ h).pull κ ρ' := by
+    funext i
+    by_cases hi : i ∈ (S c).typeVars
+    · simp only [TypeSub.pull]
+      exact (Ty.constSub (S c) τ h i).denote_congr_vars κ (fun j hj ↦ hρρ j (hτv (by
+        rw [← Ty.constSub_spec (S c) τ h, Ty.typeVars_subst]
+        exact ⟨i, hi, hj⟩)))
+    · simp only [TypeSub.pull, Ty.constSub_off (S c) τ h hi]
+      rfl
+  exact constVal_heq' I hpull _ _ c
 
 /-- Closed terms whose type variables lie below `n` evaluate identically under valuations
 that agree below `n` (the situation of a gate with `typeVarsClosed`-style hypotheses). -/

@@ -14,12 +14,12 @@ structure SpecificationExtension (S : Signature) where
   typeEq : S gate.id = gate.ty
 
 theorem SpecificationExtension.valid_gate
-    (E : SpecificationExtension S) (I : ConstVal κ S)
+    (E : SpecificationExtension S) (I : ConstVal κ S) (hI : ∀ c, I.Local c)
     (hWitness : Valid I { hyps := [], concl := E.gate.body }) :
     Valid (I.withSpecification E.gate E.typeEq)
       { hyps := [], concl := E.gate.predicate.substitute
           (Sub.single (E.gate.constant E.typeEq)) } :=
-  E.gate.valid_constant I E.typeEq hWitness
+  E.gate.valid_constant I E.typeEq hI hWitness
 
 inductive Extension (κ : TyConVal) (S : Signature) where
   | definition (gate : DefinitionGate S)
