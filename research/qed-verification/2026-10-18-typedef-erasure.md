@@ -218,3 +218,42 @@ type definitions above older definitions, specifications or type definitions (th
 would be unfolded first, which needs erasure of a step that is not at the head of the history;
 the example `c := λx. h (h x)` with a free polymorphic `h` shows that the older definitions
 must be unfolded, not just kept).
+
+## Where the proof stops, and why
+
+Three extensions of `typedef_conservative` were examined.
+
+1. **Instance junk.** A `Term.const c σ` carries a total `σ : TypeSub`, but only the values of
+   `σ` on the type variables of `S c` matter. Two constants that differ only off that support
+   are different Lean terms, and no rule identifies them. The translation therefore uses a
+   canonical substitution (translated on the support, identity elsewhere), and the theorem needs
+   the old-language sequent and the predicate to be canonical, so that the translation is the
+   identity on them. This is harmless for terms that come from the kernel's lowering, but it is
+   not stable under the operations the proof would use next: instantiating a canonical term by
+   `θ` makes it non-canonical, and unfolding a definition `D` inside a predicate puts instances
+   of the right-hand side (with off-support junk) into the predicate.
+2. **Older steps.** A type definition above a definition or specification needs those steps
+   unfolded first (the example `c := λx. h (h x)` with a free polymorphic `h` shows that keeping
+   them as constants does not work). Unfolding is available for the head of a history (`erase_definition`,
+   `erase_specification`) and would have to be extended to a step below a type definition. Its
+   output predicate is non-canonical by point 1, and the gate of the type definition would no
+   longer match the one used by the derivation. A type definition above another type definition
+   additionally needs the normalisation at the older defined type, built from its `rep`/`abs`.
+   The clean fix is a rule `⊢ const c σ = const c σ'` for `σ`, `σ'` agreeing on the schema's
+   variables, available in `HistoryDerivation` (whose soundness already assumes a local base
+   model); it is the identification the kernel makes implicitly. With it the canonicality
+   hypotheses disappear, but every erasure theorem gets a new case and the translation needs a
+   congruence lemma for the junk.
+3. **Type parameters.** The development uses a closed representation type throughout:
+   `Ty.tr` replaces `k(args)` by a fixed type, `norm` is a closed term, and the translation of
+   `rep` and `abs` does not depend on the instance. With parameters, `tr (k(args))` is the
+   representation type instantiated at the translated arguments, and `norm` becomes a term
+   polymorphic in the parameters, instantiated at each use. The facts `nrm_range`, `nrm_fix`,
+   `nrm_idem` would be derived once polymorphically and instantiated with the `instType` rule
+   of the target, and the commutation lemmas would need the instantiated `norm`. This is a
+   rework of every file of the development (about the size of the development itself), and it
+   still leaves point 2, so it does not yet reach histories with older steps.
+
+So the statement is now: proved for a parameter-free type definition over the empty history
+with canonical terms; open for parameters and for older steps, the latter blocked first by
+the instance-junk identification above.
