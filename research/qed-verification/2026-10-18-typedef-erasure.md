@@ -389,3 +389,16 @@ onto the elements fixed by the normalisation at the representation type `R[a]`, 
 nontrivial when `a` mentions `k` (`Qc`); without it the first law fails. And everything that
 depends on the instance had to be made to depend only on its first `n` arguments (`args`), so
 that laws for instances with the same arguments transport trivially.
+
+## The remaining case: older type definitions with parameters
+
+A typedef above an older parametric typedef `G0` is the last open case. If `G0` is instantiated at
+a type containing `k` (`k0(k)`), the translation keeps `k0` and sends the instance to `k0(R)`. The
+carrier of `k0(R)` in the target is cut out by the raw predicate `P0[R]`, whereas the translated
+source elements of `k0(k)` satisfy the translated predicate and are fixed by the normalisation at
+`R0[k]`. A normaliser at `k0(R)` would have to project onto the second subset by mapping the
+normalisation at `R0[k]` through the structure of `R0` and then land in the raw predicate; for an
+arbitrary `R0` there is no term for that (it needs a functorial action on `R0`), and the landing
+step fails because the translated predicate is not the raw one. This is a limit of the
+normalisation method, not of effort; relativisation of quantifiers (route A) would be the way.
+The case is recorded as an exclusion of `HOL-ERASE-001`.
