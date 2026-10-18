@@ -260,3 +260,32 @@ and 3 remain.
 
 So the statement is now: proved for a parameter-free type definition over the empty history; open for parameters and for older steps, the latter blocked first by
 the instance-junk identification above.
+
+## After the syntax change: what the older-steps extension needs
+
+The instance-junk problem is gone (a constant occurrence stores its instance type). The next
+extension, a type definition above older steps, was analysed again against the sources.
+
+* `core_trans` is already stated for an arbitrary target history, and the step lemmas are
+  history-independent. Only `HistOk` (history is `[]` or `[G]`) and the `weaken` case of
+  `hd_trans` fix the history.
+* **Monomorphic older steps do not need unfolding.** If every constant declared below has a
+  closed type (definitions, specifications, parameter-free typedefs), its theorems are ground
+  and free of `k`, so `erase_trans_inst` makes the translation the identity on them and the
+  step's own rule can be reused at the old history. The polymorphic case still needs unfolding:
+  `c := λx. h (h x)` with a free polymorphic `h` gives `c[k] = λx. h[k] (h[k] x)`, whose
+  translation wraps `h` in `norm` and is not an instance of the stored equation.
+* **Even the monomorphic case needs a scoping hypothesis on the history.** A derivation at a
+  suffix of the history must be lifted to the full history, and `weaken` requires the
+  lifted sequent to avoid every newer step's constants. The translation introduces the
+  predicate's constants, which may be newer than the suffix. The Lean signature is total, so
+  nothing forbids a term below a step from mentioning that step's constant. The statement
+  therefore needs a `Scoped` predicate on histories (data of a step avoids the symbols of newer
+  steps and of `k`), and the translation target is always the full old history.
+* The polymorphic case additionally needs erasure of a step that is not at the head of the
+  history (rewrite the typedef's own predicate, check the gate fields `k_fresh`, `rep_fresh`,
+  `abs_fresh` still hold, which also needs scoping).
+
+Estimated size: the monomorphic variant is a rework of `HistOk`/`ext_trans`/`hd_trans` plus a
+history-scoping predicate; the polymorphic variant is a second development of the size of
+`Unfold.lean` + `SpecErasure.lean`. Neither is started.
