@@ -146,3 +146,53 @@ specification erasures for scoped derivations; M3 and M4 are the relativisation 
 the typedef laws). Several thousand lines of Lean; weeks to months. Whether the result is worth
 it depends on whether the kernel's scoped histories are the intended object of the theorem,
 which they are.
+
+## Route A′: normalisation instead of a logical relation (current plan)
+
+With classical reasoning available (M1), relativisation can be replaced by *normalisation*,
+which keeps every equation an equation and needs no relativised quantifiers or relation
+variables.
+
+* **Retraction.** Let `norm y := ε z. (P y ⟹ z = y) ∧ P z` on the representation type. From a
+  witness `⊢ ∃ z. P z` one derives (i) `⊢ P (norm y)`, (ii) `P y ⊢ norm y = y`, (iii)
+  `⊢ norm (norm y) = norm y`. Extend to all types: `norm_k = norm`, `norm_{σ→τ} f = λx.
+  norm_τ (f (norm_σ x))`, and `norm_τ = id` for `bool`, `ind`, type variables and other
+  type constructors.
+* **Translation `T`.** Send `k(args)` to the representation type with parameters `args`
+  translated; `T` is homomorphic on the logical constructors; a variable `x : τ` goes to
+  `norm_τ x`; `rep ↦ norm_{k→rep}(λx. x)`, `abs ↦ norm_{rep→k}(λx. x)`; equality, choice and
+  every other constant `c_σ ↦ norm_τ(c_σ°)`. Every translated term is a fixed point of its
+  `norm`, and `∀x. φ(norm x)` is exactly the relativised quantifier, so no hypotheses
+  `P x` are needed and a sequent translates to a sequent with the same context.
+* **Laws.** `T(Abs (Rep a)) = norm (norm (norm a))`, `T a = norm a`: law (1) is (iii); law (2)
+  is (i); law (3) is (ii) applied twice. Each translated rule is the same rule on translated
+  premises, with an idempotence rewrite for the rules that substitute (`beta`, `instTerm`,
+  `allElim`, `exIntro`, `chooseWitness`), proved by induction on terms using the fixed point
+  property. The witness is a hypothesis of the theorem (a typedef step is only created
+  together with a derivable witness).
+* **What remains hard.**
+  1. *Type variables.* `norm_α = id` for a variable, but `instType` can replace `α` by a
+     type containing `k`; `T(s[θ])` is then not derivably equal to `T(s)[θ°]`, because bound
+     variables and `eq`/`choice` instances differ by a normalisation. Two ways out: push
+     `instType` to the leaves first (an instType-free normal form of derivations, with
+     instantiated typedef laws as leaves; needs substitution/instType commutation and
+     composition of instantiations on arbitrary contexts), or give each type variable a
+     normalisation parameter `ν_α` carried in the context.
+  2. *Polymorphic constants.* A free polymorphic constant `c` (for example
+     `h : (α → bool) → α`) has `T(c_k) = norm(c_rep)`, which is not the instance of
+     `T(c_α)`; the translation is compatible with `instType` only for constants that are
+     ground or defined (then unfold: translate the definition's right-hand side). So the
+     theorem is for scoped histories whose other steps are first erased from the middle of
+     the history (erasure of a definition or specification that is not at the head, which
+     rewrites the gates of the steps above it).
+  3. *Context management* for the translated sequents, the `norm` terms at every type and the
+     commutation lemmas with `substitute`, `rename` and `instType` (the `Ren.mapTypes`-style
+     machinery of `TermLaws.lean`, extended to substitutions and to a type translation that
+     is not a type substitution).
+* **Work list.** W1 instType-free normal form (or ν-parameters); W2 types, `norm_τ`,
+  idempotence and fixed point lemmas; W3 term translation and its commutation with
+  substitution up to derivable equality; W4 the 28 rule cases; W5 laws and the theorem for
+  ground signatures; W6 middle erasure of definitions and specifications and the scoped
+  statement for polymorphic constants. Roughly 5 000–8 000 lines of Lean. W1–W5 together give
+  the theorem for signatures whose constants other than `rep`, `abs` have ground schemas; W6
+  extends it to the kernel's scoped histories.
