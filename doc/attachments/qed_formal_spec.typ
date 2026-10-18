@@ -2689,9 +2689,22 @@ older declarations may be polymorphic: they are unfolded, not kept as constants.
 #lean-proof("UnfoldBelow", ("HistoryDerivation.erase_below",))
 #lean-proof("TdBelow", ("TypeDefGate.typedef_conservative_unfold", "TypeDefGate.typedef_conservative_old"))
 
-The restrictions of the proof are therefore: no type parameters, and older type definitions
-below $G$ are not handled (only definitions and specifications). Type parameters and older type
-definitions are open.
+*Older type definitions.* An older type definition $G_0$ without parameters cannot be unfolded,
+but its rule instances are ground and free of $k$ when $G$'s symbols do not occur in its laws
+(`Scoped`), so their translation is the instance itself. The translation then targets the
+whole old history $T$ rather than the empty one: a rule instance of $G_0$ is lifted from
+$G_0$'s own history to $T$ by `weaken` through the type definitions between them, which is
+possible because the newer type definitions' symbols are absent from $G_0$'s laws (`Older`).
+Declarations below the older type definitions are first unfolded in every type definition
+above them (`HistoryDerivation.erase_chain`).
+
+#lean-proof("UnfoldChain", ("HistoryDerivation.erase_chain",))
+#lean-proof("TdChain", ("TypeDefGate.typedef_conservative_chain",))
+#lean-proof("TdAll", ("TypeDefGate.typedef_conservative_hist",))
+
+The restrictions of the proof are therefore: neither $G$ nor the older type definitions have type
+parameters, and the result is a derivation at a history of type definitions. Type parameters are
+open.
 
 #lean-proof("TdNorm", ("TypeDefGate.nrm_range", "TypeDefGate.nrm_fix", "TypeDefGate.nrm_idem"))
 #lean-proof("TdMain", ("TypeDefGate.hd_trans", "TypeDefGate.typedef_conservative"))

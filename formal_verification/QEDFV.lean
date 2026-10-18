@@ -16,3 +16,6 @@ import QEDFV.HOL.TdLaw
 import QEDFV.HOL.TdMain
 import QEDFV.HOL.UnfoldBelow
 import QEDFV.HOL.TdBelow
+import QEDFV.HOL.UnfoldChain
+import QEDFV.HOL.TdChain
+import QEDFV.HOL.TdAll
