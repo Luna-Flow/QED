@@ -6,3 +6,11 @@ import QEDFV.HOL.InstLaws
 import QEDFV.HOL.DerivedRules
 import QEDFV.HOL.TdTypes
 import QEDFV.HOL.TdNorm
+import QEDFV.HOL.TdTerms
+import QEDFV.HOL.TdSubst
+import QEDFV.HOL.TdLaws
+import QEDFV.HOL.TdFL
+import QEDFV.HOL.TdRules
+import QEDFV.HOL.TdKfree
+import QEDFV.HOL.TdLaw
+import QEDFV.HOL.TdMain

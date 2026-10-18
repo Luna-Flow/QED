@@ -196,3 +196,25 @@ variables.
   statement for polymorphic constants. Roughly 5 000–8 000 lines of Lean. W1–W5 together give
   the theorem for signatures whose constants other than `rep`, `abs` have ground schemas; W6
   extends it to the kernel's scoped histories.
+
+## Result for the parameter-free case
+
+`TypeDefGate.typedef_conservative` (TdMain.lean) proves the statement for a type definition
+without type parameters over the empty history, using Route A′ above. Two points differ from
+the plan.
+
+* The instantiation rule is handled by proving the translation at every type instance
+  simultaneously (`hd_trans`), so neither an instantiation-free normal form nor relation
+  variables were needed. Free polymorphic constants are not an obstacle in this formulation,
+  because each constant instance is translated on its own.
+* Two bookkeeping facts were needed: the translation of a constant uses a canonical instance
+  substitution (the translated substitution on the type variables of the schema, the
+  identity elsewhere), so that instances that agree on the schema translate alike, and the
+  old-language sequent must carry canonical substitutions for the translation to be the
+  identity on it.
+
+Open: type parameters (the normalisation becomes a term polymorphic in the parameters), and
+type definitions above older definitions, specifications or type definitions (the older steps
+would be unfolded first, which needs erasure of a step that is not at the head of the history;
+the example `c := λx. h (h x)` with a free polymorphic `h` shows that the older definitions
+must be unfolded, not just kept).

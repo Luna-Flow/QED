@@ -120,4 +120,29 @@ theorem typeSubstSequent_comp (s : Sequent S Γ) (σ θ : TypeSub) :
     exact Term.instType_instType_heq _ σ θ
   · exact Term.instType_instType_heq _ σ θ
 
+theorem Sub.mapTypes_ren (θ : TypeSub) (r : Ren Γ Δ) {c : Ty} (w : Var (Γ.map (Ty.subst θ)) c) :
+    Sub.mapTypes θ (fun {_} u ↦ (Term.var (r u) : Term S Δ _)) w
+      = Term.var (Ren.mapTypes θ r w) := by
+  induction Γ generalizing Δ with
+  | nil => cases w
+  | cons x Γ ih =>
+      cases w with
+      | zero => rfl
+      | succ w => exact ih (fun u ↦ r (.succ u)) w
+
+theorem Sub.mapTypes_single (θ : TypeSub) (x : Term S Γ a) :
+    @Eq (Sub S ((a :: Γ).map (Ty.subst θ)) (Γ.map (Ty.subst θ)))
+      (Sub.mapTypes θ (Sub.single x)) (Sub.single (x.instType θ)) := by
+  funext c v
+  cases v with
+  | zero => rfl
+  | succ w =>
+      change Sub.mapTypes θ (fun {_} u ↦ (Term.var u : Term S Γ _)) w = Term.var w
+      rw [Sub.mapTypes_ren θ (fun {_} u ↦ u) w, Ren.mapTypes_id]
+
+theorem Term.instType_single (p : Term S (a :: Γ) b) (w : Term S Γ a) (θ : TypeSub) :
+    (p.substitute (Sub.single w)).instType θ
+      = (p.instType θ).substitute (Sub.single (w.instType θ)) := by
+  rw [Term.substitute_instType, Sub.mapTypes_single]
+
 end QEDFV.HOL
