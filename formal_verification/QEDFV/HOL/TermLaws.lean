@@ -342,6 +342,82 @@ theorem Term.erase_inj_heq (t : Term S Γ a) :
       subst h
       rfl
 
+theorem Term.erase_inj_heq' (t : Term S Γ a) :
+    ∀ {Γ' : List Ty} {a' : Ty} (t' : Term S Γ' a'), Γ = Γ' → a = a' → t.erase = t'.erase →
+      HEq t t' := by
+  induction t with
+  | var v =>
+      intro Γ' a' t' hΓ ha h
+      subst hΓ
+      cases t' <;> simp [Term.erase] at h
+      subst ha
+      exact heq_of_eq (congrArg Term.var (Var.erase_inj _ _ h))
+  | const c σ =>
+      intro Γ' a' t' hΓ ha h
+      subst hΓ
+      cases t' <;> simp [Term.erase] at h
+      obtain ⟨rfl, rfl⟩ := h
+      rfl
+  | app f x ihf ihx =>
+      intro Γ' a' t' hΓ ha h
+      subst hΓ
+      cases t' <;> simp [Term.erase] at h
+      obtain ⟨rfl, hf, hx⟩ := h
+      subst ha
+      have h1 := ihf _ rfl rfl hf
+      have h2 := ihx _ rfl rfl hx
+      rw [eq_of_heq h1, eq_of_heq h2]
+  | lam b ih =>
+      intro Γ' a' t' hΓ ha h
+      subst hΓ
+      cases t' <;> simp [Term.erase] at h
+      obtain ⟨rfl, rfl⟩ := Ty.arr.inj ha
+      rw [eq_of_heq (ih _ rfl rfl h.2)]
+  | truth =>
+      intro Γ' a' t' hΓ ha h
+      subst hΓ
+      cases t' <;> simp [Term.erase] at h
+      rfl
+  | falsity =>
+      intro Γ' a' t' hΓ ha h
+      subst hΓ
+      cases t' <;> simp [Term.erase] at h
+      rfl
+  | conj p q ihp ihq =>
+      intro Γ' a' t' hΓ ha h
+      subst hΓ
+      cases t' <;> simp [Term.erase] at h
+      rw [eq_of_heq (ihp _ rfl rfl h.1), eq_of_heq (ihq _ rfl rfl h.2)]
+  | imp p q ihp ihq =>
+      intro Γ' a' t' hΓ ha h
+      subst hΓ
+      cases t' <;> simp [Term.erase] at h
+      rw [eq_of_heq (ihp _ rfl rfl h.1), eq_of_heq (ihq _ rfl rfl h.2)]
+  | all p ih =>
+      intro Γ' a' t' hΓ ha h
+      subst hΓ
+      cases t' <;> simp [Term.erase] at h
+      obtain ⟨rfl, h⟩ := h
+      rw [eq_of_heq (ih _ rfl rfl h)]
+  | ex p ih =>
+      intro Γ' a' t' hΓ ha h
+      subst hΓ
+      cases t' <;> simp [Term.erase] at h
+      obtain ⟨rfl, h⟩ := h
+      rw [eq_of_heq (ih _ rfl rfl h)]
+  | eq =>
+      intro Γ' a' t' hΓ ha h
+      subst hΓ
+      cases t' <;> simp [Term.erase] at h
+      subst h
+      rfl
+  | choice =>
+      intro Γ' a' t' hΓ ha h
+      subst hΓ
+      cases t' <;> simp [Term.erase] at h
+      subst h
+      rfl
+
 theorem Term.erase_inj {t t' : Term S Γ a} (h : t.erase = t'.erase) : t = t' :=
   eq_of_heq (Term.erase_inj_heq t t' rfl h)
 
