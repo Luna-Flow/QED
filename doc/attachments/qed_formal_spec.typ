@@ -2717,8 +2717,18 @@ above them (`HistoryDerivation.erase_chain`).
 #lean-proof("TdAll", ("TypeDefGate.typedef_conservative_hist",))
 
 The restrictions of the proof are therefore: the older type definitions have no type
-parameters, and the result is a derivation at a history of type definitions. Older type
-definitions with parameters are open.
+parameters, and the result is a derivation at a history of type definitions.
+
+*Why older type definitions with parameters are excluded.* A parameter-free older type definition
+$G_0$ has closed types, so $k$ never occurs in its instances. A parametric one can be
+instantiated at a type containing $k$, say $k_0(k)$, and the translation of $k_0(k)$ would have
+to be $k_0(R)$. But $k_0$ is not erased: its carrier in the target is the subset of $R_0[R]$ cut
+out by the *raw* predicate $P_0[R]$, while the translated source elements of $k_0(k)$ are those
+satisfying the *translated* predicate (constants wrapped by the normalisation) and fixed by the
+normalisation at $R_0[k]$. The two subsets differ, and the normalisation that projects onto the
+right one would have to map the normalisation at $R_0[k]$ through the structure of $R_0$ and land
+in the raw predicate, which is not definable for an arbitrary $R_0$. The normalisation method
+therefore stops at this case; it would need relativisation of quantifiers instead.
 
 The freshness premises of the three introduction clauses serve a separate well-formedness
 condition: they require each declared constant identifier, and for a type definition the
