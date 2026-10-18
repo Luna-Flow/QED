@@ -128,6 +128,84 @@ theorem trans_cast (hC : G.Closed) {Γ : List Ty} {a b : Ty} (h : a = b) (t : Te
     G.trans hC (h ▸ t) = (congrArg G.tr h) ▸ G.trans hC t := by
   subst h; rfl
 
+/-- Translating the identity instance of a clean term is translating the term. -/
+theorem erase_trans_var (hC : G.Closed) {Γ : List Ty} {a : Ty} (t : Term S Γ a)
+    (hk : G.k ∉ t.tyCons) (hs : t.SigClean G.k) :
+    (G.trans hC (t.instType Ty.var)).erase = t.erase := by
+  induction t with
+  | var v => simp [Term.instType, trans, Term.erase, Var.erase_mapTy, Var.erase_mapTypes]
+  | @const Γ c σ =>
+      have hτ : G.k ∉ ((S c).subst σ).tyCons := hk
+      have hc : G.k ∉ (S c).tyCons := by
+        intro h; apply hτ; rw [Ty.tyCons_subst]; exact Or.inl h
+      have hτ' : (S c).subst (TypeSub.comp Ty.var σ) = (S c).subst σ := by
+        rw [← Ty.subst_comp, Ty.subst_id]
+      simp only [Term.instType]
+      rw [G.trans_cast hC, Term.erase_cast]
+      simp only [trans]
+      rw [G.nrmTy_of_not_mem _ (by rw [hτ']; exact hτ)]
+      unfold rawConst
+      rw [dif_pos hc, Term.erase_cast]
+      simp only [Term.erase]
+      congr 1
+      funext i
+      by_cases hi : i ∈ (S c).typeVars
+      · simp only [canonSub, hi, if_true, TypeSub.comp, Ty.subst_id]
+        exact G.tr_kfree (hs i).1
+      · simp [canonSub, hi, (hs i).2 hi]
+  | @app Γ a b f x ihf ihx =>
+      have hf : G.k ∉ f.tyCons := fun h ↦ hk (Or.inl h)
+      have hx : G.k ∉ x.tyCons := fun h ↦ hk (Or.inr h)
+      have ha : G.k ∉ a.tyCons := fun h ↦
+        hf (f.ty_tyCons_subset (by simp [Ty.tyCons]; exact Or.inl h))
+      have htg : (a.subst Ty.var).tr G.k G.n G.repTy = a := by
+        rw [Ty.subst_id]; exact G.tr_kfree ha
+      simp only [Term.instType, trans, Term.erase]
+      rw [ihf hf hs.1, ihx hx hs.2, htg]
+  | @lam a Γ b b0 ih =>
+      have ha : G.k ∉ a.tyCons := fun h ↦ hk (Or.inl h)
+      have hb : G.k ∉ b0.tyCons := fun h ↦ hk (Or.inr h)
+      have hsub : a.subst Ty.var = a := Ty.subst_id a
+      simp only [Term.instType, trans, Term.erase]
+      rw [G.nrmSub_kfree (by rw [hsub]; exact ha), substitute_id_erase, ih hb hs, hsub]
+      first | rw [G.tr_kfree ha] | rw [Ty.tr_of_not_mem a ha]
+  | truth => rfl
+  | falsity => rfl
+  | conj p q ihp ihq =>
+      have hp : G.k ∉ p.tyCons := fun h ↦ hk (Or.inl h)
+      have hq : G.k ∉ q.tyCons := fun h ↦ hk (Or.inr h)
+      simp only [Term.instType, trans, Term.erase, ihp hp hs.1, ihq hq hs.2]
+  | imp p q ihp ihq =>
+      have hp : G.k ∉ p.tyCons := fun h ↦ hk (Or.inl h)
+      have hq : G.k ∉ q.tyCons := fun h ↦ hk (Or.inr h)
+      simp only [Term.instType, trans, Term.erase, ihp hp hs.1, ihq hq hs.2]
+  | @all a Γ p ih =>
+      have ha : G.k ∉ a.tyCons := fun h ↦ hk (Or.inl h)
+      have hp : G.k ∉ p.tyCons := fun h ↦ hk (Or.inr h)
+      have hsub : a.subst Ty.var = a := Ty.subst_id a
+      simp only [Term.instType, trans, Term.erase]
+      rw [G.nrmSub_kfree (by rw [hsub]; exact ha), substitute_id_erase, ih hp hs, hsub]
+      first | rw [G.tr_kfree ha] | rw [Ty.tr_of_not_mem a ha]
+  | @ex a Γ p ih =>
+      have ha : G.k ∉ a.tyCons := fun h ↦ hk (Or.inl h)
+      have hp : G.k ∉ p.tyCons := fun h ↦ hk (Or.inr h)
+      have hsub : a.subst Ty.var = a := Ty.subst_id a
+      simp only [Term.instType, trans, Term.erase]
+      rw [G.nrmSub_kfree (by rw [hsub]; exact ha), substitute_id_erase, ih hp hs, hsub]
+      first | rw [G.tr_kfree ha] | rw [Ty.tr_of_not_mem a ha]
+  | @eq Γ a =>
+      have ha : G.k ∉ a.tyCons := fun h ↦ hk (by simp [Term.tyCons, Ty.tyCons, h])
+      have hsub : a.subst Ty.var = a := Ty.subst_id a
+      simp only [Term.instType, trans]
+      rw [G.nrmTy_of_not_mem _ (by simp [Ty.tyCons, hsub, ha])]
+      simp [Term.erase, hsub, G.tr_kfree ha]
+  | @choice Γ a =>
+      have ha : G.k ∉ a.tyCons := fun h ↦ hk (by simp [Term.tyCons, Ty.tyCons, h])
+      have hsub : a.subst Ty.var = a := Ty.subst_id a
+      simp only [Term.instType, trans]
+      rw [G.nrmTy_of_not_mem _ (by simp [Ty.tyCons, hsub, ha])]
+      simp [Term.erase, hsub, G.tr_kfree ha]
+
 /-- Translating an instance of a ground clean term is the same as translating the term. -/
 theorem erase_trans_inst (hC : G.Closed) {Γ : List Ty} {a : Ty} (t : Term S Γ a)
     (hk : G.k ∉ t.tyCons) (hs : t.SigClean G.k) (hg : t.annotVars = ∅) (θ : TypeSub) :
