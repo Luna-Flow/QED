@@ -683,9 +683,9 @@ mathematics; it does not prove that this registration procedure is correct.]
   well-formed histories. The signature stays total. Consequences that chain the
   derived laws with core rules use `HistoryDerivation`; syntactic erasure of a
   definition and of a specification is proved (`HistoryDerivation.erase_definition`,
-  `HistoryDerivation.erase_specification`), that of a parameter-free type definition over the
-  empty history is proved (`TypeDefGate.typedef_conservative`), and general type
-  definitions and the kernel's string-name lowering are not provided. The
+  `HistoryDerivation.erase_specification`), that of a type definition with type parameters,
+  above older declarations, is proved (`TypeDefGate.typedef_conservative_hist`), and the kernel's
+  string-name lowering is not provided. The
   carrier proof must not be cited as a
   proof of the kernel's registration procedure.
 ])
@@ -2654,27 +2654,42 @@ instantiation holds because the replacement is the instantiation of a closed ter
 
 #lean-proof("SpecErasure", ("HistoryDerivation.erase_specification", "HistoryDerivation.specification_conservative"))
 
-#theorem([Type-definition conservativity (phantom parameters)])[Let $G$ be a type-definition gate
-whose representation type is closed and whose predicate has no type variable in its annotations
-(the type parameters occur only in the new type, which includes the case of no parameters), and
-let $w$ be a closed term such that $tack.r P(w)$ is derivable at the empty history. If a sequent $s$ whose context and types avoid the defined constructor $k$
-is derivable at the history $[G]$, then $s$ is derivable at the empty history.]
+#theorem([Type-definition conservativity])[Let $G$ be a type-definition gate, with any number of
+type parameters, and let $w$ be a closed term such that $tack.r P(w)$ is derivable at the old
+history. If a sequent $s$ whose context and types avoid the defined constructor $k$ is derivable
+at the history $G :: "es"$, then $s$ is derivable at a history of type definitions, after the
+declarations of $"es"$ below the type definitions have been unfolded in $s$. If $"es"$ consists of
+parameter-free type definitions whose laws do not mention the symbols of $G$ (`Scoped`,
+`Older`), $s$ is derivable at $"es"$.]
 
-The proof does not relativise quantifiers; it normalises. With the classical rules and
-`chooseHyp`, the retraction $"norm"(y) = epsilon z. (P(y) => z = y) and P(z)$ of the
-representation type onto $P$ satisfies $tack.r P("norm" y)$, $P(y) tack.r "norm" y = y$ and
-$tack.r "norm"("norm" y) = "norm" y$. The translation $T$ replaces $k(dots)$ by the
-representation type, keeps variables, sends `rep` and `abs` to $lambda x. "norm" x$,
-wraps every constant, `eq` and `choice` in the normalisation at its type, and substitutes
-the normalised variable under each binder; a sequent is translated together with the
-hypotheses that its context variables are normalised. The three laws translate to the three
-properties of $"norm"$, each rule of the calculus translates to the same rule (with a
-Leibniz rewriting by the idempotence of $"norm"$ wherever a substitution occurs), and the
-statement is proved for every type instance simultaneously so that the instantiation rule is
-handled. For a sequent in the old language $T$ is the identity.
+The proof does not relativise quantifiers; it normalises. The retraction of the representation
+type $R$ onto the predicate $P$ is
+$"norm"(y) = epsilon z. (P(y) => z = y) and P(z)$. With the classical rules and `chooseHyp` it
+satisfies $tack.r P("norm" y)$, $P(y) tack.r "norm" y = y$ and
+$tack.r "norm"("norm" y) = "norm" y$, from a witness of $P$ (`NormCfg`). The translation $T$
+replaces $k(a_0,dots,a_(n-1))$ by $R[T(a_0),dots,T(a_(n-1))]$, keeps variables, sends `rep` and
+`abs` to $lambda x. "NR"("NK"(x))$ and $lambda x. "NK"("NR"(x))$, wraps every constant, `eq` and
+`choice` in the normalisation at its type, and substitutes the normalised variable under each
+binder; a sequent is translated together with the hypotheses that its context variables are
+normalised. Each rule of the calculus translates to the same rule (with a Leibniz rewriting by
+the idempotence of the normalisation wherever a substitution occurs), and the statement is
+proved for every type instance simultaneously so that the instantiation rule is handled.
 
-The restriction of this theorem is that the type parameters do not occur in the representation
-type or the predicate, and that the history below the type definition is empty.
+When the representation type or the predicate depends on the parameters, the normalisation at
+an instance $k(a)$ whose arguments themselves contain $k$ cannot be the retraction of the raw
+instance of $P$: the translated predicate at that instance has the normalisation wrapped around
+its constants. The normaliser at each instance is therefore an *oracle*, a family of closed
+terms indexed by the instance, and the translation is parametrised by it. The oracle at $k(a)$
+is the retraction of the predicate "fixed by the normalisation at $R[a]$ and satisfying the
+translation of $P[a]$"; it is built by recursion on the nesting depth of $k$ in $a$, with the
+identity above the current depth. The key point is that a derivation that does not use the laws
+of $G$, such as the witness, translates with any idempotent oracle, in particular with the stage
+that is already built, so the translated witness at an instance of depth $d$ comes from the
+stages below $d$ (`TypeDefGate.exists_oracle`).
+
+#lean-proof("TdNorm", ("NormCfg.nrm_range", "NormCfg.nrm_fix", "NormCfg.nrm_idem"))
+#lean-proof("TdMain", ("TypeDefGate.core_trans",))
+#lean-proof("TdGood", ("TypeDefGate.exists_oracle",))
 
 *Older declarations.* Declarations below the type definition are unfolded one at a time,
 the step directly below $G$ first. The unfolding of a definition or specification $U$ (an
@@ -2687,9 +2702,6 @@ $G[U] :: "es"$ (`HistoryDerivation.erase_below`), the witness derivation is unfo
 erasure of $U$, and the induction over the list of declarations ends at the base theorem. The
 older declarations may be polymorphic: they are unfolded, not kept as constants.
 
-#lean-proof("UnfoldBelow", ("HistoryDerivation.erase_below",))
-#lean-proof("TdBelow", ("TypeDefGate.typedef_conservative_unfold", "TypeDefGate.typedef_conservative_old"))
-
 *Older type definitions.* An older type definition $G_0$ without parameters cannot be unfolded,
 but its rule instances are ground and free of $k$ when $G$'s symbols do not occur in its laws
 (`Scoped`), so their translation is the instance itself. The translation then targets the
@@ -2699,19 +2711,14 @@ possible because the newer type definitions' symbols are absent from $G_0$'s law
 Declarations below the older type definitions are first unfolded in every type definition
 above them (`HistoryDerivation.erase_chain`).
 
+#lean-proof("UnfoldBelow", ("HistoryDerivation.erase_below",))
 #lean-proof("UnfoldChain", ("HistoryDerivation.erase_chain",))
 #lean-proof("TdChain", ("TypeDefGate.typedef_conservative_chain",))
 #lean-proof("TdAll", ("TypeDefGate.typedef_conservative_hist",))
 
-The restrictions of the proof are therefore: the type parameters of $G$ occur only in the new
-type, the older type definitions have no type parameters, and the result is a derivation at a
-history of type definitions. A type definition whose representation type or predicate depends on
-its parameters (a list, a product) is open: the normalisation at an instance of $k$ with
-arguments that themselves contain $k$ must be built from the translation of the predicate at that
-instance, which makes the translation recursive in the nesting depth of $k$.
-
-#lean-proof("TdNorm", ("TypeDefGate.nrm_range", "TypeDefGate.nrm_fix", "TypeDefGate.nrm_idem"))
-#lean-proof("TdMain", ("TypeDefGate.hd_trans", "TypeDefGate.typedef_conservative"))
+The restrictions of the proof are therefore: the older type definitions have no type
+parameters, and the result is a derivation at a history of type definitions. Older type
+definitions with parameters are open.
 
 The freshness premises of the three introduction clauses serve a separate well-formedness
 condition: they require each declared constant identifier, and for a type definition the

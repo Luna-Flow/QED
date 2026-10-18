@@ -8,14 +8,6 @@ namespace QEDFV.HOL
 
 variable {S : Signature}
 
-theorem TypeDefGate.Ok.unfold {G : TypeDefGate S} (h : G.Ok) (U : Unfolder S) (hB : U.Below G) :
-    (G.unfold U hB).Ok where
-  closed := h.closed
-  pred_ground := by
-    have := Term.annotVars_replConst_subset U.R U.annot G.pred
-    rw [h.pred_ground] at this
-    exact Set.subset_eq_empty this rfl
-
 /-- Unfold a list of declarations in a sequent, the step directly below the type definition
 first. -/
 def Sequent.unfoldAll {Γ : List Ty} (us : List (Unfolder S)) (s : Sequent S Γ) : Sequent S Γ :=
@@ -35,36 +27,6 @@ theorem Sequent.clean_replConst {Γ : List Ty} {k : Nat} {s : Sequent S Γ} (U :
   · rcases hsub (Sequent.tyCons_concl _ hxk) with h' | h'
     · exact hS h'
     · exact hk h'
-
-/-- **Conservativity of a parameter-free type definition above older declarations.** A
-sequent whose types avoid the new constructor, derivable after the type definition above the
-declarations `us`, has its unfolding derivable at the empty history, given a witness for the
-predicate at the old history. The declarations may be polymorphic. -/
-theorem TypeDefGate.typedef_conservative_unfold (us : List (Unfolder S)) :
-    ∀ (G : TypeDefGate S) (hOk : G.Ok) (hB : ∀ U, U ∈ us → U.Below G) {Γ : List Ty}
-      {s : Sequent S Γ} (hΓ : ∀ b, b ∈ Γ → G.k ∉ b.tyCons) (hclean : s.Clean G.k)
-      {w : Term S [] G.repTy}
-      (hwit : HistoryDerivation S (us.map Unfolder.step) { hyps := [], concl := G.pred.app w })
-      (d : HistoryDerivation S (ModelExtension.typeDefinition G :: us.map Unfolder.step) s),
-      HistoryDerivation S ([] : List (ModelExtension S)) (s.unfoldAll us) := by
-  induction us with
-  | nil =>
-      intro G hOk hB Γ s hΓ hclean w hwit d
-      exact G.typedef_conservative hOk hΓ hclean hwit d
-  | cons U us ih =>
-      intro G hOk hB Γ s hΓ hclean w hwit d
-      have hBU : U.Below G := hB U (List.mem_cons_self ..)
-      have d' := HistoryDerivation.erase_below G U hBU d
-      have hw' : HistoryDerivation S (us.map Unfolder.step)
-          { hyps := [], concl := (G.unfold U hBU).pred.app (w.replConst U.R) } :=
-        U.erase hwit
-      exact ih (G.unfold U hBU) (hOk.unfold U hBU)
-        (fun U' hU' ↦ ⟨(hB U' (List.mem_cons_of_mem _ hU')).k_fresh,
-          (hB U' (List.mem_cons_of_mem _ hU')).rep_fresh,
-          (hB U' (List.mem_cons_of_mem _ hU')).abs_fresh,
-          (hB U' (List.mem_cons_of_mem _ hU')).id_ne_rep,
-          (hB U' (List.mem_cons_of_mem _ hU')).id_ne_abs⟩)
-        hΓ (Sequent.clean_replConst U hBU.k_fresh hclean) hw' d'
 
 theorem Unfolder.fixes_seq (U : Unfolder S) {Γ : List Ty} (s : Sequent S Γ)
     (h : U.id ∉ s.constIds) : s.replConst U.R = s := by
@@ -88,17 +50,5 @@ theorem Sequent.unfoldAll_of_not_mem {Γ : List Ty} (us : List (Unfolder S)) (s 
       simp only [Sequent.unfoldAll, List.foldl_cons]
       rw [U.fixes_seq s (h U (List.mem_cons_self ..))]
       exact ih (fun U' hU' ↦ h U' (List.mem_cons_of_mem _ hU'))
-
-/-- A sequent in the language of neither the type definition nor the older declarations is
-derivable at the empty history. -/
-theorem TypeDefGate.typedef_conservative_old (us : List (Unfolder S)) (G : TypeDefGate S)
-    (hOk : G.Ok) (hB : ∀ U, U ∈ us → U.Below G) {Γ : List Ty} {s : Sequent S Γ}
-    (hΓ : ∀ b, b ∈ Γ → G.k ∉ b.tyCons) (hclean : s.Clean G.k)
-    (hold : ∀ U, U ∈ us → U.id ∉ s.constIds) {w : Term S [] G.repTy}
-    (hwit : HistoryDerivation S (us.map Unfolder.step) { hyps := [], concl := G.pred.app w })
-    (d : HistoryDerivation S (ModelExtension.typeDefinition G :: us.map Unfolder.step) s) :
-    HistoryDerivation S ([] : List (ModelExtension S)) s := by
-  have := G.typedef_conservative_unfold us hOk hB hΓ hclean hwit d
-  rwa [Sequent.unfoldAll_of_not_mem us s hold] at this
 
 end QEDFV.HOL

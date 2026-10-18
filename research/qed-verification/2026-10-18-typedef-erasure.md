@@ -369,3 +369,23 @@ no fuel appears, but it needs the fundamental lemma of the whole calculus.
 Parametric type definitions whose representation type or predicate mentions the parameters thus
 stay open. They are not needed for kernel soundness, which uses the semantic conservativity
 theorem.
+
+## Update: parametric type definitions are done
+
+The analysis in the previous section assumed that the translated witness at a nested instance
+needs control of the types the witness derivation visits. It does not, once the oracle is
+staged. The translation theorem for a derivation that does not use the laws of the new type
+definition (`hd_trans_chain` at a suffix of the old history) requires only that the oracle is
+idempotent. The oracle at stage `d` is the identity at every type of depth above `d` (which is
+idempotent) and the retraction of the translated predicate at the types of depth `d`. The witness
+at an instance of depth `d` is the translation of the old witness instantiated at the arguments,
+computed with stage `d - 1`; whatever deeper types its derivation visits are translated by the
+identity oracle, which is harmless. So no second calculus and no `k`-free copy of the witness is
+needed, and the `HDF` calculus and the constructor-substitution map considered earlier were
+discarded unused.
+
+Two corrections to the plan were needed along the way. The normaliser at `k(a)` must also project
+onto the elements fixed by the normalisation at the representation type `R[a]`, which is
+nontrivial when `a` mentions `k` (`Qc`); without it the first law fails. And everything that
+depends on the instance had to be made to depend only on its first `n` arguments (`args`), so
+that laws for instances with the same arguments transport trivially.

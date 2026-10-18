@@ -14,12 +14,12 @@ namespace TypeDefGate
 variable {S : Signature} (G : TypeDefGate S)
 
 theorem nrmSub_kfree {Γ' : List Ty} {a : Ty} (h : G.k ∉ a.tyCons) :
-    @Eq (Sub S (G.tr a :: Γ') (G.tr a :: Γ')) (G.nrmSub a Γ') (fun v ↦ Term.var v) := by
+    @Eq (Sub S (G.tr a :: Γ') (G.tr a :: Γ')) (G.nrmSub N a Γ') (fun v ↦ Term.var v) := by
   funext c v
   cases v with
   | zero =>
-      change G.nrmTy a (Term.var Var.zero) = Term.var Var.zero
-      exact G.nrmTy_of_not_mem a h _
+      change G.nrmTy N a (Term.var Var.zero) = Term.var Var.zero
+      exact G.nrmTy_of_not_mem N a h _
   | succ w => rfl
 
 theorem substitute_id_erase {Γ : List Ty} {a : Ty} (t : Term S Γ a) :
@@ -30,8 +30,8 @@ theorem substitute_id_erase {Γ : List Ty} {a : Ty} (t : Term S Γ a) :
 
 theorem tr_kfree {a : Ty} (h : G.k ∉ a.tyCons) : G.tr a = a := Ty.tr_of_not_mem a h
 
-theorem erase_trans (hC : G.Closed) {Γ : List Ty} {a : Ty} (t : Term S Γ a)
-    (hk : G.k ∉ t.tyCons) : (G.trans hC t).erase = t.erase := by
+theorem erase_trans (N : G.Oracle) {Γ : List Ty} {a : Ty} (t : Term S Γ a)
+    (hk : G.k ∉ t.tyCons) : (G.trans N t).erase = t.erase := by
   induction t with
   | var v => simp [trans, Term.erase, Var.erase_mapTy]
   | @const Γ c τ hτ =>
@@ -40,7 +40,7 @@ theorem erase_trans (hC : G.Closed) {Γ : List Ty} {a : Ty} (t : Term S Γ a)
         obtain ⟨σ, rfl⟩ := hτ
         intro h; apply hτk; rw [Ty.tyCons_subst]; exact Or.inl h
       simp only [trans]
-      rw [G.nrmTy_of_not_mem _ hτk]
+      rw [G.nrmTy_of_not_mem N _ hτk]
       unfold rawConst
       rw [dif_pos hc]
       simp [Term.erase, G.tr_kfree hτk]
@@ -79,12 +79,12 @@ theorem erase_trans (hC : G.Closed) {Γ : List Ty} {a : Ty} (t : Term S Γ a)
   | @eq Γ a =>
       have ha : G.k ∉ a.tyCons := fun h ↦ hk (by simp [Term.tyCons, Ty.tyCons, h])
       simp only [trans]
-      rw [G.nrmTy_of_not_mem _ (by simp [Ty.tyCons, ha])]
+      rw [G.nrmTy_of_not_mem N _ (by simp [Ty.tyCons, ha])]
       simp [Term.erase, G.tr_kfree ha]
   | @choice Γ a =>
       have ha : G.k ∉ a.tyCons := fun h ↦ hk (by simp [Term.tyCons, Ty.tyCons, h])
       simp only [trans]
-      rw [G.nrmTy_of_not_mem _ (by simp [Ty.tyCons, ha])]
+      rw [G.nrmTy_of_not_mem N _ (by simp [Ty.tyCons, ha])]
       simp [Term.erase, G.tr_kfree ha]
 
 end TypeDefGate
@@ -100,19 +100,19 @@ variable {S : Signature} (G : TypeDefGate S)
 /-- Ground terms: no type variable occurs in any type annotation. -/
 def Term.Ground {Γ : List Ty} {a : Ty} (t : Term S Γ a) : Prop := t.annotVars = ∅
 
-theorem tr_ground (hC : G.Closed) {a : Ty} (h : G.k ∉ a.tyCons) (hv : a.typeVars = ∅)
+theorem tr_ground (N : G.Oracle) {a : Ty} (h : G.k ∉ a.tyCons) (hv : a.typeVars = ∅)
     (θ : TypeSub) : G.tr (a.subst θ) = a := by
   have : a.subst θ = a := Ty.subst_of_closed a (fun i hi ↦ by rw [hv] at hi; exact hi) θ
   rw [this]; exact G.tr_kfree h
 
-theorem trans_cast (hC : G.Closed) {Γ : List Ty} {a b : Ty} (h : a = b) (t : Term S Γ a) :
-    G.trans hC (h ▸ t) = (congrArg G.tr h) ▸ G.trans hC t := by
+theorem trans_cast (N : G.Oracle) {Γ : List Ty} {a b : Ty} (h : a = b) (t : Term S Γ a) :
+    G.trans N (h ▸ t) = (congrArg G.tr h) ▸ G.trans N t := by
   subst h; rfl
 
 /-- Translating the identity instance of a clean term is translating the term. -/
-theorem erase_trans_var (hC : G.Closed) {Γ : List Ty} {a : Ty} (t : Term S Γ a)
+theorem erase_trans_var (N : G.Oracle) {Γ : List Ty} {a : Ty} (t : Term S Γ a)
     (hk : G.k ∉ t.tyCons) :
-    (G.trans hC (t.instType Ty.var)).erase = t.erase := by
+    (G.trans N (t.instType Ty.var)).erase = t.erase := by
   induction t with
   | var v => simp [Term.instType, trans, Term.erase, Var.erase_mapTy, Var.erase_mapTypes]
   | @const Γ c τ hτ =>
@@ -122,7 +122,7 @@ theorem erase_trans_var (hC : G.Closed) {Γ : List Ty} {a : Ty} (t : Term S Γ a
         intro h; apply hτk; rw [Ty.tyCons_subst]; exact Or.inl h
       have hτ' : G.k ∉ (τ.subst Ty.var).tyCons := by rw [Ty.subst_id]; exact hτk
       simp only [Term.instType, trans]
-      rw [G.nrmTy_of_not_mem _ hτ']
+      rw [G.nrmTy_of_not_mem N _ hτ']
       unfold rawConst
       rw [dif_pos hc]
       simp [Term.erase, Ty.subst_id, G.tr_kfree hτk]
@@ -170,19 +170,19 @@ theorem erase_trans_var (hC : G.Closed) {Γ : List Ty} {a : Ty} (t : Term S Γ a
       have ha : G.k ∉ a.tyCons := fun h ↦ hk (by simp [Term.tyCons, Ty.tyCons, h])
       have hsub : a.subst Ty.var = a := Ty.subst_id a
       simp only [Term.instType, trans]
-      rw [G.nrmTy_of_not_mem _ (by simp [Ty.tyCons, hsub, ha])]
+      rw [G.nrmTy_of_not_mem N _ (by simp [Ty.tyCons, hsub, ha])]
       simp [Term.erase, hsub, G.tr_kfree ha]
   | @choice Γ a =>
       have ha : G.k ∉ a.tyCons := fun h ↦ hk (by simp [Term.tyCons, Ty.tyCons, h])
       have hsub : a.subst Ty.var = a := Ty.subst_id a
       simp only [Term.instType, trans]
-      rw [G.nrmTy_of_not_mem _ (by simp [Ty.tyCons, hsub, ha])]
+      rw [G.nrmTy_of_not_mem N _ (by simp [Ty.tyCons, hsub, ha])]
       simp [Term.erase, hsub, G.tr_kfree ha]
 
 /-- Translating an instance of a ground clean term is the same as translating the term. -/
-theorem erase_trans_inst (hC : G.Closed) {Γ : List Ty} {a : Ty} (t : Term S Γ a)
+theorem erase_trans_inst (N : G.Oracle) {Γ : List Ty} {a : Ty} (t : Term S Γ a)
     (hk : G.k ∉ t.tyCons) (hg : t.annotVars = ∅) (θ : TypeSub) :
-    (G.trans hC (t.instType θ)).erase = t.erase := by
+    (G.trans N (t.instType θ)).erase = t.erase := by
   induction t with
   | var v => simp [Term.instType, trans, Term.erase, Var.erase_mapTy, Var.erase_mapTypes]
   | @const Γ c τ hτ =>
@@ -194,7 +194,7 @@ theorem erase_trans_inst (hC : G.Closed) {Γ : List Ty} {a : Ty} (t : Term S Γ 
       have hsub : τ.subst θ = τ :=
         Ty.subst_of_closed _ (fun i hi ↦ by rw [hτv] at hi; exact hi) θ
       simp only [Term.instType, trans]
-      rw [G.nrmTy_of_not_mem _ (by rw [hsub]; exact hτk)]
+      rw [G.nrmTy_of_not_mem N _ (by rw [hsub]; exact hτk)]
       unfold rawConst
       rw [dif_pos hc]
       simp [Term.erase, hsub, G.tr_kfree hτk]
@@ -214,7 +214,7 @@ theorem erase_trans_inst (hC : G.Closed) {Γ : List Ty} {a : Ty} (t : Term S Γ 
         · intro hi; exact (this (by simp [Ty.typeVars]; exact Or.inl hi) : i ∈ (∅ : Set Nat))
         · intro hi; exact absurd hi (by simp)
       simp only [Term.instType, trans, Term.erase]
-      have htg := G.tr_ground hC ha hav θ
+      have htg := G.tr_ground N ha hav θ
       simp only [tr] at htg
       rw [ihf hf hgf, ihx hx hgx, htg]
   | @lam a Γ b b0 ih =>
@@ -225,7 +225,7 @@ theorem erase_trans_inst (hC : G.Closed) {Γ : List Ty} {a : Ty} (t : Term S Γ 
       have hbv : b0.annotVars = ∅ := by
         have := hg; simp only [Term.annotVars, Set.union_empty_iff] at this; exact this.2
       have hsub : a.subst θ = a := Ty.subst_of_closed a (fun i hi ↦ by rw [hav] at hi; exact hi) θ
-      have htg := G.tr_ground hC ha hav θ
+      have htg := G.tr_ground N ha hav θ
       simp only [tr] at htg
       simp only [Term.instType, trans, Term.erase]
       rw [G.nrmSub_kfree (by rw [hsub]; exact ha), substitute_id_erase, ih hb hbv, htg]
@@ -255,7 +255,7 @@ theorem erase_trans_inst (hC : G.Closed) {Γ : List Ty} {a : Ty} (t : Term S Γ 
       have hpv : p.annotVars = ∅ := by
         have := hg; simp only [Term.annotVars, Set.union_empty_iff] at this; exact this.2
       have hsub : a.subst θ = a := Ty.subst_of_closed a (fun i hi ↦ by rw [hav] at hi; exact hi) θ
-      have htg := G.tr_ground hC ha hav θ
+      have htg := G.tr_ground N ha hav θ
       simp only [Term.instType, trans, Term.erase]
       rw [G.nrmSub_kfree (by rw [hsub]; exact ha), substitute_id_erase, ih hp hpv, htg]
   | @ex a Γ p ih =>
@@ -266,7 +266,7 @@ theorem erase_trans_inst (hC : G.Closed) {Γ : List Ty} {a : Ty} (t : Term S Γ 
       have hpv : p.annotVars = ∅ := by
         have := hg; simp only [Term.annotVars, Set.union_empty_iff] at this; exact this.2
       have hsub : a.subst θ = a := Ty.subst_of_closed a (fun i hi ↦ by rw [hav] at hi; exact hi) θ
-      have htg := G.tr_ground hC ha hav θ
+      have htg := G.tr_ground N ha hav θ
       simp only [Term.instType, trans, Term.erase]
       rw [G.nrmSub_kfree (by rw [hsub]; exact ha), substitute_id_erase, ih hp hpv, htg]
   | @eq Γ a =>
@@ -276,9 +276,9 @@ theorem erase_trans_inst (hC : G.Closed) {Γ : List Ty} {a : Ty} (t : Term S Γ 
         simp only [Ty.typeVars, Set.union_empty_iff] at this
         exact this.1
       have hsub : a.subst θ = a := Ty.subst_of_closed a (fun i hi ↦ by rw [hav] at hi; exact hi) θ
-      have htg := G.tr_ground hC ha hav θ
+      have htg := G.tr_ground N ha hav θ
       simp only [Term.instType, trans]
-      rw [G.nrmTy_of_not_mem _ (by simp [Ty.tyCons, hsub, ha])]
+      rw [G.nrmTy_of_not_mem N _ (by simp [Ty.tyCons, hsub, ha])]
       simp [Term.erase, htg]
   | @choice Γ a =>
       have ha : G.k ∉ a.tyCons := fun h ↦ hk (by simp [Term.tyCons, Ty.tyCons, h])
@@ -287,9 +287,9 @@ theorem erase_trans_inst (hC : G.Closed) {Γ : List Ty} {a : Ty} (t : Term S Γ 
         simp only [Ty.typeVars, Set.union_empty_iff] at this
         exact this.2
       have hsub : a.subst θ = a := Ty.subst_of_closed a (fun i hi ↦ by rw [hav] at hi; exact hi) θ
-      have htg := G.tr_ground hC ha hav θ
+      have htg := G.tr_ground N ha hav θ
       simp only [Term.instType, trans]
-      rw [G.nrmTy_of_not_mem _ (by simp [Ty.tyCons, hsub, ha])]
+      rw [G.nrmTy_of_not_mem N _ (by simp [Ty.tyCons, hsub, ha])]
       simp [Term.erase, htg]
 
 end TypeDefGate

@@ -5,14 +5,21 @@ closed: every occurrence of the defined constructor `k(args)` is replaced by the
 representation type. -/
 namespace QEDFV.HOL
 
-/-- Replace the constructor `k` of arity `n` by the (closed) representation type `R`. -/
+/-- The substitution that sends the first `m` type variables to the given types and leaves the
+others fixed. -/
+def Ty.argsSub (m : Nat) (f : Fin m → Ty) : TypeSub :=
+  fun i ↦ if h : i < m then f ⟨i, h⟩ else Ty.var i
+
+/-- Replace the constructor `k` of arity `n` by the representation type `R`, whose type
+variables `0..n-1` stand for the arguments. -/
 def Ty.tr : Ty → Nat → Nat → Ty → Ty
   | .bool, _, _, _ => .bool
   | .ind, _, _, _ => .ind
   | .var i, _, _, _ => .var i
   | .arr a b, k, n, R => .arr (a.tr k n R) (b.tr k n R)
   | .con j m args, k, n, R =>
-      if j = k ∧ m = n then R else .con j m (fun i ↦ (args i).tr k n R)
+      if j = k ∧ m = n then R.subst (Ty.argsSub m (fun i ↦ (args i).tr k n R))
+      else .con j m (fun i ↦ (args i).tr k n R)
 
 section
 variable {k n : Nat} {R : Ty}
@@ -47,7 +54,7 @@ theorem Ty.subst_of_closed (R : Ty) (hR : ∀ i, i ∉ R.typeVars) (θ : TypeSub
       funext i
       exact ih i (fun i' hi ↦ hR i' (by simp only [Ty.typeVars]; exact ⟨i, hi⟩))
 
-theorem Ty.tr_subst (hR : ∀ i, i ∉ R.typeVars) (a : Ty) (σ : TypeSub) :
+theorem Ty.tr_subst (hR : ∀ i, i ∈ R.typeVars → i < n) (a : Ty) (σ : TypeSub) :
     (a.subst σ).tr k n R = (a.tr k n R).subst (fun i ↦ (σ i).tr k n R) := by
   induction a with
   | bool => rfl
@@ -56,7 +63,12 @@ theorem Ty.tr_subst (hR : ∀ i, i ∉ R.typeVars) (a : Ty) (σ : TypeSub) :
   | arr a b iha ihb => simp only [Ty.subst, Ty.tr, iha, ihb]
   | con j m args ih =>
       by_cases h : j = k ∧ m = n
-      · simp [Ty.subst, Ty.tr, h, Ty.subst_of_closed R hR]
+      · simp only [Ty.subst, Ty.tr, h, and_self, if_true]
+        rw [Ty.subst_comp]
+        refine Ty.subst_congr R (fun i hi ↦ ?_)
+        have hi' : i < m := h.2 ▸ hR i hi
+        simp only [Ty.argsSub, hi', dite_true, TypeSub.comp]
+        exact ih ⟨i, hi'⟩
       · simp only [Ty.subst, Ty.tr, h, if_false]
         congr 1
         funext i

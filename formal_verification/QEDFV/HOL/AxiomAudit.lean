@@ -7,6 +7,7 @@ import QEDFV.HOL.TdNorm
 import QEDFV.HOL.TdMain
 import QEDFV.HOL.TdBelow
 import QEDFV.HOL.TdAll
+import QEDFV.HOL.TdGood
 import QEDFV.HOL.ConnectiveExamples
 import QEDFV.HOL.SpecErasure
 
@@ -29,15 +30,12 @@ import QEDFV.HOL.SpecErasure
 #print axioms QEDFV.HOL.history_generic_false_not_derivable
 #print axioms QEDFV.HOL.HistoryDerivation.erase_definition
 #print axioms QEDFV.HOL.HistoryDerivation.definition_conservative
-#print axioms QEDFV.HOL.TypeDefGate.nrm_range
-#print axioms QEDFV.HOL.TypeDefGate.nrm_fix
-#print axioms QEDFV.HOL.TypeDefGate.nrm_idem
-#print axioms QEDFV.HOL.TypeDefGate.hd_trans
-#print axioms QEDFV.HOL.TypeDefGate.typedef_conservative
+#print axioms QEDFV.HOL.NormCfg.nrm_range
+#print axioms QEDFV.HOL.NormCfg.nrm_fix
+#print axioms QEDFV.HOL.NormCfg.nrm_idem
 #print axioms QEDFV.HOL.HistoryDerivation.erase_below
-#print axioms QEDFV.HOL.TypeDefGate.typedef_conservative_unfold
-#print axioms QEDFV.HOL.TypeDefGate.typedef_conservative_old
 #print axioms QEDFV.HOL.HistoryDerivation.erase_chain
+#print axioms QEDFV.HOL.TypeDefGate.exists_oracle
 #print axioms QEDFV.HOL.TypeDefGate.typedef_conservative_chain
 #print axioms QEDFV.HOL.TypeDefGate.typedef_conservative_hist
 #print axioms QEDFV.HOL.HistoryDerivation.erase_specification

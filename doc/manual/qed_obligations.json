@@ -263,20 +263,8 @@
           "symbol": "HistoryDerivation.specification_conservative"
         },
         {
-          "path": "formal_verification/QEDFV/HOL/TdMain.lean",
-          "symbol": "typedef_conservative"
-        },
-        {
           "path": "formal_verification/QEDFV/HOL/UnfoldBelow.lean",
           "symbol": "HistoryDerivation.erase_below"
-        },
-        {
-          "path": "formal_verification/QEDFV/HOL/TdBelow.lean",
-          "symbol": "TypeDefGate.typedef_conservative_unfold"
-        },
-        {
-          "path": "formal_verification/QEDFV/HOL/TdBelow.lean",
-          "symbol": "TypeDefGate.typedef_conservative_old"
         },
         {
           "path": "formal_verification/QEDFV/HOL/UnfoldChain.lean",
@@ -289,6 +277,10 @@
         {
           "path": "formal_verification/QEDFV/HOL/TdAll.lean",
           "symbol": "TypeDefGate.typedef_conservative_hist"
+        },
+        {
+          "path": "formal_verification/QEDFV/HOL/TdGood.lean",
+          "symbol": "TypeDefGate.exists_oracle"
         }
       ],
       "verification": [
@@ -305,7 +297,8 @@
         "formal_verification/QEDFV/HOL/TdBelow.lean",
         "formal_verification/QEDFV/HOL/UnfoldChain.lean",
         "formal_verification/QEDFV/HOL/TdChain.lean",
-        "formal_verification/QEDFV/HOL/TdAll.lean"
+        "formal_verification/QEDFV/HOL/TdAll.lean",
+        "formal_verification/QEDFV/HOL/TdGood.lean"
       ],
       "status": {
         "lean": "partial",
@@ -319,8 +312,8 @@
       ],
       "assumptions": [],
       "exclusions": [
-        "Type-definition erasure is proved for a type definition whose type parameters occur only in the new type (representation type closed, predicate ground), above any list of definitions and specifications (which may be polymorphic) and above older type definitions without type parameters, whose symbols do not occur in the new type definition and which are scoped as stated in the theorem.",
-        "Type definitions whose representation type or predicate depends on the parameters, and older type definitions with parameters, are not proved. The result for older type definitions is a derivation at a history of type definitions, not at the empty history.",
+        "Type-definition erasure is proved for a type definition with any number of type parameters, above any list of definitions and specifications (which may be polymorphic) and above older type definitions without type parameters, whose symbols do not occur in the new type definition and which are scoped as stated in the theorem.",
+        "Older type definitions with type parameters are not proved. The result for older type definitions is a derivation at a history of type definitions, not at the empty history.",
         "Lean does not certify the MoonBit kernel."
       ]
     },
