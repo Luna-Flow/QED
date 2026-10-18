@@ -390,6 +390,20 @@ theorem replConst_step_classical {A : Sequent S Γ} {p : Term S Γ .bool}
     simp only [Sequent.replConst, hA]; rfl
   exact .classical hA' d
 
+theorem replConst_step_chooseHyp {A : Sequent S Γ} (p : Term S (a :: Γ) .bool) (w : Term S Γ a)
+    (hA : A.concl = p.substitute (Sub.single w))
+    (d : HistoryDerivation S es (A.replConst R)) :
+    HistoryDerivation S es
+      (({ hyps := A.hyps, concl := p.substitute
+            (Sub.single (Term.choice.app (Term.lam p))) } : Sequent S Γ).replConst R) := by
+  have hA' : (A.replConst R).concl
+      = (p.replConst R).substitute (Sub.single (w.replConst R)) := by
+    simp only [Sequent.replConst, hA]
+    rw [Term.replConst_single]
+  refine HistoryDerivation.of_eq ?_ (.chooseHyp (p.replConst R) (w.replConst R) hA' d)
+  simp only [Sequent.replConst]
+  rw [Term.replConst_single]; rfl
+
 end Steps
 
 /-- A compatible replacement maps core derivations to history derivations of the
@@ -426,6 +440,7 @@ theorem Derivation.replConst (R : ConstRepl S) (hR : R.Compatible)
   | exIntro t hA d ih => exact replConst_step_exIntro R t hA ih
   | exElim hA dA dB ihA ihB => exact replConst_step_exElim R hA ihA ihB
   | classical hA d ih => exact replConst_step_classical R hA ih
+  | chooseHyp p w hA d ih => exact replConst_step_chooseHyp R p w hA ih
 
 /-! ### Unfolding a definition -/
 
@@ -574,6 +589,7 @@ theorem HistoryDerivation.erase_definition_aux (D : DefinitionGate S)
   | exElim hA dA dB ihA ihB =>
       exact fun es heq ↦ replConst_step_exElim D.repl hA (ihA es heq) (ihB es heq)
   | classical hA d ih => exact fun es heq ↦ replConst_step_classical D.repl hA (ih es heq)
+  | chooseHyp p w hA d ih => exact fun es heq ↦ replConst_step_chooseHyp D.repl p w hA (ih es heq)
 
 theorem HistoryDerivation.erase_definition (D : DefinitionGate S) {es : List (ModelExtension S)}
     {Γ : List Ty} {s : Sequent S Γ}

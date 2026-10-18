@@ -118,6 +118,10 @@ inductive HistoryDerivation (S : Signature) :
       (hA : A.concl = Term.imp (Term.imp p Term.falsity) Term.falsity)
       (d : HistoryDerivation S es A) :
       HistoryDerivation S es { hyps := A.hyps, concl := p }
+  | chooseHyp {es Γ} {a : Ty} {A : Sequent S Γ} (p : Term S (a :: Γ) .bool)
+      (w : Term S Γ a) (hA : A.concl = p.substitute (Sub.single w))
+      (d : HistoryDerivation S es A) :
+      HistoryDerivation S es { hyps := A.hyps, concl := p.substitute (Sub.single (Term.choice.app (Term.lam p))) }
 
 /-- Every full history derivation is valid at the history's model pair. Locality is
 preserved by every extension; witness derivations are interpreted at the preceding history. -/
@@ -164,6 +168,7 @@ theorem history_derivation_sound (M : Model S) (hM : M.IsLocal)
   | exIntro t hA d ih => exact valid_ex_intro _ _ _ t hA ih
   | exElim hA dA dB ihA ihB => exact valid_ex_elim _ _ _ _ hA ihA ihB
   | classical hA d ih => exact valid_classical _ _ _ hA ih
+  | chooseHyp p w hA d ih => exact valid_choose_hyp _ _ p w hA ih
 
 /-- Canonical admissible models discharge the locality premise of history soundness. -/
 theorem typed_history_derivation_sound {κ : TyConVal} (hκ : κ.IsAdmissible)

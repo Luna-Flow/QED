@@ -243,7 +243,7 @@
 QED is a theorem prover built around a small LCF-style kernel. Its mathematical
 core is a simply typed higher-order language with polymorphic constant schemas,
 equality, and Hilbert choice. This specification develops the language, its
-substitution operations, its semantics, and its twenty-five primitive inference rules: thirteen equational and choice rules and twelve rules for the connectives and quantifiers.
+substitution operations, its semantics, and its twenty-six primitive inference rules: thirteen equational and choice rules and thirteen rules for the connectives, quantifiers and hypothesis-carrying choice.
 It proves soundness by induction on typed derivations, then gives direct
 constructions for definition and specification interpretations and witnessed
 subtype carriers. The proof order makes the semantic premises explicit and
@@ -287,7 +287,7 @@ a separate refinement proof.
 ])
 
 The normative mathematical core consists of indexed types and terms, typed
-substitutions, the twenty-five-constructor derivation relation, and the interpretation
+substitutions, the twenty-six-constructor derivation relation, and the interpretation
 specified below. The signature is fixed throughout each derivation. Extension
 contracts change an interpretation of that signature; their precise scope is
 stated separately from derivability.
@@ -312,7 +312,7 @@ schema is $Sigma(c)$. The identifier is not its user-visible name.
   columns: (1fr, 3fr), inset: 6pt, align: left,
   [*Notation*], [*Meaning*],
   [$Gamma tack.r_Sigma t : tau$], [A term in the indexed family $"Tm"_(Sigma)(Gamma,tau)$.],
-  [$H tack.r_(Sigma,Gamma) p$], [Derivability by the twenty-five primitive constructors.],
+  [$H tack.r_(Sigma,Gamma) p$], [Derivability by the twenty-six primitive constructors.],
   [$H models_I p$], [Validity for the fixed signature and context under interpretation $I$.],
   [$D_(rho)(tau)$], [The carrier interpreting type $tau$ under type valuation $rho$.],
   [$E_(I,rho,eta)(t)$], [The value of term $t$ under constant interpretation $I$ and environment $eta$.],
@@ -1901,7 +1901,7 @@ The intended implementation must enforce additional admission duties:
 = Primitive Inference Rules
 
 The thirteen equational and choice constructors collected in this section and the preceding
-`SPECIFY` section, together with the twelve connective rules of the section on connective
+`SPECIFY` section, together with the thirteen connective rules of the section on connective
 and quantifier rules, define the derivation relation. Fix a signature $Sigma$.
 Terms in each rule share its displayed type context, except where abstraction
 or instantiation changes that context explicitly. Each rule is followed by a
@@ -2205,6 +2205,7 @@ $p$, and $Gamma - q$ for the hypotheses without $q$:
   $Gamma tack.r "ex" r$ and $r, Delta^+ tack.r q^+$ conclude $Gamma union Delta tack.r q$, where
   $+$ weakens into the binder context.
 - `classical`: from $Gamma tack.r (p "implies" "false") "implies" "false"$ conclude $Gamma tack.r p$.
+- `chooseHyp`: from $Gamma tack.r r[w]$ conclude $Gamma tack.r r[epsilon (lambda x. r)]$; the witness may be derived under hypotheses, unlike `chooseWitness`.
 
 Each rule preserves validity by unfolding the evaluator clause of its connective, using the
 weakening and substitution lemmas for the binder rules. The same twelve rules are constructors
@@ -2213,16 +2214,16 @@ specification erasure theorems have one case for each. Non-vacuity examples deri
 $tack.r "true" "and" "true"$, $tack.r "all" (x = x)$ and $tack.r "true" "implies" "true"$.
 
 #lean-def("Derivation", ("Derivation",))
-#lean-proof("ConnectiveRules", ("valid_truth", "valid_falsity_elim", "valid_conj_intro", "valid_conj_elim_left", "valid_conj_elim_right", "valid_imp_intro", "valid_imp_elim", "valid_all_intro", "valid_all_elim", "valid_ex_intro", "valid_ex_elim", "valid_classical"))
+#lean-proof("ConnectiveRules", ("valid_truth", "valid_falsity_elim", "valid_conj_intro", "valid_conj_elim_left", "valid_conj_elim_right", "valid_imp_intro", "valid_imp_elim", "valid_all_intro", "valid_all_elim", "valid_ex_intro", "valid_ex_elim", "valid_classical", "valid_choose_hyp"))
 #lean-proof("ConnectiveExamples", ("derive_truth_and_truth", "derive_forall_refl", "derive_imp_self"))
 
-The next theorem lifts the thirteen equational local arguments, and the twelve connective ones above, to every finite typed derivation.
+The next theorem lifts the thirteen equational local arguments, and the thirteen connective ones above, to every finite typed derivation.
 
 
 
 = Soundness Strategy
 
-The main theorem concerns the derivation relation defined by the twenty-five rules.
+The main theorem concerns the derivation relation defined by the twenty-six rules.
 The proof proceeds from constructed semantics to local preservation and then to
 induction on a derivation. It does not require a named converter, mutable scope,
 or executable theorem handle.
@@ -2237,7 +2238,7 @@ primitive soundness.
   #diagram(
     node((0, 0), [Typed syntax and nonempty carriers]),
     node((0, 1), [Recursive evaluation and substitution lemmas]),
-node((0, 2), [Twenty-five direct rule-preservation proofs]),
+node((0, 2), [Twenty-six direct rule-preservation proofs]),
     node((0, 3), [Induction on typed derivations]),
     node((0, 4), [Extension validity and countermodel consequences]),
     edge((0, 0), (0, 1), "->"),
@@ -3439,7 +3440,7 @@ Audit certificates may expose evidence but may not substitute for it.
 
 #keyblock("info", [Established Results], [
   The checked core has nonempty carriers, a coherent selector, recursive
-  evaluation, substitution laws, preservation of all twenty-five derivation rules, and
+  evaluation, substitution laws, preservation of all twenty-six derivation rules, and
   derivation soundness. Definition and specification overrides preserve validity
   of unaffected sequents; witnessed subtypes satisfy the Abs/Rep laws. The
   concrete natural-number interpretation provides a non-derivability witness.

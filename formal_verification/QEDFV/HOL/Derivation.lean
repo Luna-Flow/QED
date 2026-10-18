@@ -101,6 +101,9 @@ inductive Derivation (S : Signature) :
   | classical {Γ : List Ty} {A : Sequent S Γ} {p : Term S Γ .bool}
       (hA : A.concl = Term.imp (Term.imp p Term.falsity) Term.falsity) (d : Derivation S A) :
       Derivation S { hyps := A.hyps, concl := p }
+  | chooseHyp {Γ : List Ty} {a : Ty} {A : Sequent S Γ} (p : Term S (a :: Γ) .bool)
+      (w : Term S Γ a) (hA : A.concl = p.substitute (Sub.single w)) (d : Derivation S A) :
+      Derivation S { hyps := A.hyps, concl := p.substitute (Sub.single (Term.choice.app (Term.lam p))) }
 
 theorem derivation_sound (hChoice : ChoiceNatural) (I : ConstVal κ S)
     {Γ : List Ty} {s : Sequent S Γ}
@@ -135,6 +138,7 @@ theorem derivation_sound (hChoice : ChoiceNatural) (I : ConstVal κ S)
   | exIntro t hA d ih => exact valid_ex_intro I _ _ t hA ih
   | exElim hA dA dB ihA ihB => exact valid_ex_elim I _ _ _ hA ihA ihB
   | classical hA d ih => exact valid_classical I _ _ hA ih
+  | chooseHyp p w hA d ih => exact valid_choose_hyp I _ p w hA ih
 
 theorem derivation_sound_all {Γ : List Ty} {s : Sequent S Γ}
     (d : Derivation S s) :
