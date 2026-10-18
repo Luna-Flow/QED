@@ -83,7 +83,7 @@ theorem TypeDefGate.typedef_conservative_hist (us : List (Unfolder S)) :
       have hBgs : ∀ G', G' ∈ gs → U.Below G' := fun G' h ↦ hB' G' (List.mem_cons_of_mem _ h)
       have d' := HistoryDerivation.erase_chain U (G :: gs) hB' d
       have hw' := HistoryDerivation.erase_chain U gs hBgs hwit
-      obtain ⟨gs', hgs'⟩ := ih (G.unfold U hBG) (gatesUnfold U gs hBgs) ⟨hOk.n_zero⟩
+      obtain ⟨gs', hgs'⟩ := ih (G.unfold U hBG) (gatesUnfold U gs hBgs) (hOk.unfold U hBG)
         (fun G0' hG0' ↦ by
           obtain ⟨G0, hG0, rfl⟩ := mem_gatesUnfold' U gs hBgs G0' hG0'
           exact (hsc G0 hG0).unfold U hBG _)

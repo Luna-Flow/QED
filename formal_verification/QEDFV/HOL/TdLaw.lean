@@ -127,19 +127,21 @@ theorem absI_app {Γ : List Ty} {es : List (ModelExtension S)} {L : List (Term S
   have b3 := HistoryDerivation.mkComb' (HistoryDerivation.refl' (L := L) (G.normIn Γ)) b2
   exact HistoryDerivation.trans' b1 b3
 
-/-- The standing hypothesis on a gate for the erasure: no parameters. -/
+/-- The standing hypothesis on a gate for the erasure: the representation type and the
+predicate do not depend on the type parameters (the parameters may occur only in the new
+type). A gate without parameters satisfies it (`Ok.of_n_zero`). -/
 structure Ok : Prop where
-  n_zero : G.n = 0
+  closed : G.Closed
+  pred_ground : G.pred.annotVars = ∅
 
-theorem Ok.closed (h : G.Ok) : G.Closed := Closed.of_n_zero G h.n_zero
-
-theorem Ok.pred_ground (h : G.Ok) : G.pred.annotVars = ∅ := by
-  ext i; constructor
-  · intro hi
-    have := G.closed i hi
-    have h0 := h.n_zero
-    omega
-  · intro hi; exact absurd hi (by simp)
+theorem Ok.of_n_zero (hn : G.n = 0) : G.Ok where
+  closed := Closed.of_n_zero G hn
+  pred_ground := by
+    ext i; constructor
+    · intro hi
+      have := G.closed i hi
+      omega
+    · intro hi; exact absurd hi (by simp)
 
 theorem Ok.pred_kfree (_h : G.Ok) : G.k ∉ G.pred.tyCons := G.k_fresh
 

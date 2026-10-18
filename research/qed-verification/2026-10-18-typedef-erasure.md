@@ -316,3 +316,21 @@ rule instances of the older steps are lifted from their own suffix of `T` to `T`
 the newer type definitions between them do not occur in their laws (`Older`). The scoping is a
 hypothesis because the Lean signature is total and nothing else forbids it. Remaining:
 type parameters, and older type definitions with parameters.
+
+## Update: phantom parameters, and why genuine parameters are harder than expected
+
+The proof used `n = 0` only to obtain two facts: the representation type is closed and the
+predicate is ground. `n` itself never restricted `tr_con_pos`, the types of `rep` and `abs`, or
+the laws. The standing hypothesis `Ok` is now exactly those two facts, so type parameters that
+occur only in the new type (newtype-style wrappers) are covered.
+
+For a representation type or predicate that mentions the parameters, the earlier estimate
+("make `norm` polymorphic in the parameters") is too low. `norm` at an instance `k(args)` must
+be built from the translation of the predicate at that instance, not from the raw instance of
+the predicate: when `args` contains `k`, the translated predicate has `norm` wrappers around the
+constants at those types, and the raw instance is not equivalent to it. The translation of the
+predicate at an instance is itself a translation at a smaller nesting depth of `k`, so the
+translation is recursive in that depth (well-founded recursion, or a fuel parameter with a
+monotonicity lemma), and the laws at depth `d` need the translation of the witness derivation at
+depth `d - 1`, so the main induction becomes an induction on the depth as well. This touches the
+definition of `trans` and every lemma about it, not only the norm. It is a separate development.
