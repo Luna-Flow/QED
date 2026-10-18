@@ -18,4 +18,5 @@ import QEDFV.HOL.UnfoldBelow
 import QEDFV.HOL.TdBelow
 import QEDFV.HOL.UnfoldChain
 import QEDFV.HOL.TdChain
+import QEDFV.HOL.TdGood
 import QEDFV.HOL.TdAll
