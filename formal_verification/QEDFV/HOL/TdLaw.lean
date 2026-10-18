@@ -82,6 +82,78 @@ theorem trans_abs_heq (hC : G.Closed) (σ : TypeSub) {Γ : List Ty} :
   rw [eN]
   rfl
 
+theorem trans_cast (hC : G.Closed) {Γ : List Ty} {a b : Ty} (h : a = b) (t : Term S Γ a) :
+    G.trans hC (h ▸ t) = (congrArg G.tr h) ▸ G.trans hC t := by
+  subst h; rfl
+
+theorem repI_app {Γ : List Ty} {es : List (ModelExtension S)} {L : List (Term S Γ .bool)}
+    (z : Term S Γ G.repTy) :
+    HistoryDerivation S es { hyps := L, concl := ((G.repI Γ).app z).equal (G.nrm z) } := by
+  have b1 := (HistoryDerivation.core (es := es)
+    (Derivation.beta ((Term.lam (Term.var Var.zero)).app (G.nrm (Term.var Var.zero))) z)).mono
+    (L := L) (fun _ hh ↦ by simp at hh)
+  have hb : (((Term.lam (Term.var Var.zero)).app (G.nrm (Term.var Var.zero))).substitute
+      (Sub.single z) : Term S Γ G.repTy)
+      = (Term.lam (Term.var Var.zero)).app (G.nrm z) := by
+    simp only [Term.substitute, G.nrm_substitute]; rfl
+  rw [hb] at b1
+  have b2 := (HistoryDerivation.core (es := es)
+    (Derivation.beta (Term.var Var.zero : Term S (G.repTy :: Γ) G.repTy) (G.nrm z))).mono
+    (L := L) (fun _ hh ↦ by simp at hh)
+  exact HistoryDerivation.trans' b1 b2
+
+theorem absI_app {Γ : List Ty} {es : List (ModelExtension S)} {L : List (Term S Γ .bool)}
+    (z : Term S Γ G.repTy) :
+    HistoryDerivation S es { hyps := L, concl := ((G.absI Γ).app z).equal (G.nrm z) } := by
+  have b1 := (HistoryDerivation.core (es := es)
+    (Derivation.beta (G.nrm ((Term.lam (Term.var Var.zero)).app (Term.var Var.zero))) z)).mono
+    (L := L) (fun _ hh ↦ by simp at hh)
+  have hb : ((G.nrm ((Term.lam (Term.var Var.zero)).app (Term.var Var.zero))).substitute
+      (Sub.single z) : Term S Γ G.repTy)
+      = G.nrm ((Term.lam (Term.var Var.zero)).app z) := by
+    rw [G.nrm_substitute]; rfl
+  rw [hb] at b1
+  have b2 := (HistoryDerivation.core (es := es)
+    (Derivation.beta (Term.var Var.zero : Term S (G.repTy :: Γ) G.repTy) z)).mono
+    (L := L) (fun _ hh ↦ by simp at hh)
+  have b3 := HistoryDerivation.mkComb' (HistoryDerivation.refl' (L := L) (G.normIn Γ)) b2
+  exact HistoryDerivation.trans' b1 b3
+
 end TypeDefGate
+
+theorem Term.instType_cast {S : Signature} {Γ : List Ty} {a b : Ty} (h : a = b) (t : Term S Γ a)
+    (θ : TypeSub) : (h ▸ t).instType θ = (congrArg (Ty.subst θ) h) ▸ t.instType θ := by
+  subst h; rfl
+
+namespace TypeDefGate
+
+variable {S : Signature} (G : TypeDefGate S)
+
+theorem trans_repTerm_heq (hC : G.Closed) (θ : TypeSub) {Γ : List Ty} :
+    HEq (G.trans hC ((G.repTerm (Γ := Γ)).instType θ)) (G.repI (Γ.map (Ty.subst θ) |>.map G.tr)) := by
+  unfold repTerm
+  rw [Term.instType_cast]
+  simp only [Term.instType]
+  rw [G.trans_cast hC, G.trans_cast hC]
+  exact (eqRec_heq _ _).trans ((eqRec_heq _ _).trans (G.trans_rep_heq hC _))
+
+theorem trans_absTerm_heq (hC : G.Closed) (θ : TypeSub) {Γ : List Ty} :
+    HEq (G.trans hC ((G.absTerm (Γ := Γ)).instType θ)) (G.absI (Γ.map (Ty.subst θ) |>.map G.tr)) := by
+  unfold absTerm
+  rw [Term.instType_cast]
+  simp only [Term.instType]
+  rw [G.trans_cast hC, G.trans_cast hC]
+  exact (eqRec_heq _ _).trans ((eqRec_heq _ _).trans (G.trans_abs_heq hC _))
+
+end TypeDefGate
+
+theorem HistoryDerivation.app_heq {S : Signature} {Γ : List Ty} {es : List (ModelExtension S)}
+    {L : List (Term S Γ .bool)} {A B A' B' : Ty} (hA : A = A') (hB : B = B')
+    {f : Term S Γ (.arr A B)} {g : Term S Γ (.arr A' B')} (hfg : HEq f g) (y : Term S Γ A) :
+    HistoryDerivation S es { hyps := L, concl := (f.app y).equal (hB ▸ g.app (hA ▸ y)) } := by
+  subst hA; subst hB
+  have := eq_of_heq hfg
+  subst this
+  exact HistoryDerivation.refl' _
 
 end QEDFV.HOL
