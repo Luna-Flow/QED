@@ -164,6 +164,10 @@
         {
           "path": "formal_verification/QEDFV/HOL/ModelExtension.lean",
           "symbol": "valid_interpretModels_iff"
+        },
+        {
+          "path": "formal_verification/QEDFV/HOL/SpecAsDefinition.lean",
+          "symbol": "SpecificationExtension.spec_of_definition"
         }
       ],
       "verification": [
@@ -173,7 +177,8 @@
       "evidence": [
         "formal_verification/QEDFV/HOL/TypeDefGate.lean",
         "formal_verification/QEDFV/HOL/ExtensionDerivation.lean",
-        "src/kernel/kernel_sig_test.mbt"
+        "src/kernel/kernel_sig_test.mbt",
+        "formal_verification/QEDFV/HOL/SpecAsDefinition.lean"
       ],
       "status": {
         "lean": "proved-abstractly",
@@ -187,7 +192,8 @@
         17
       ],
       "assumptions": [
-        "Type-definition derivations are interpreted through model pairs."
+        "Type-definition derivations are interpreted through model pairs.",
+        "The kernel's specification is the definition c := ε P followed by P c; both published theorems are derivable from the definition step (SpecificationExtension.spec_of_definition)."
       ],
       "exclusions": [
         "Growing-signature syntax and syntactic erasure remain open."

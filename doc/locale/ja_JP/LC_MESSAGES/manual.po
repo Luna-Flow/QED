@@ -3453,20 +3453,20 @@ msgid "MoonBit API: `src/kernel/sig.mbt`"
 msgstr "MoonBit API：`src/kernel/sig.mbt`"
 
 #: manual/conformance.md:279
-msgid "Lean: `formal_verification/QEDFV/HOL/ExtensionDerivation.lean::extension_derivation_sound`, `formal_verification/QEDFV/HOL/ModelExtension.lean::valid_interpretModels_iff`"
-msgstr "Lean: `formal_verification/QEDFV/HOL/ExtensionDerivation.lean::extension_derivation_sound`, `formal_verification/QEDFV/HOL/ModelExtension.lean::valid_interpretModels_iff`"
+msgid "Lean: `formal_verification/QEDFV/HOL/ExtensionDerivation.lean::extension_derivation_sound`, `formal_verification/QEDFV/HOL/ModelExtension.lean::valid_interpretModels_iff`, `formal_verification/QEDFV/HOL/SpecAsDefinition.lean::SpecificationExtension.spec_of_definition`"
+msgstr "Lean: `formal_verification/QEDFV/HOL/ExtensionDerivation.lean::extension_derivation_sound`, `formal_verification/QEDFV/HOL/ModelExtension.lean::valid_interpretModels_iff`, `formal_verification/QEDFV/HOL/SpecAsDefinition.lean::SpecificationExtension.spec_of_definition`"
 
 #: manual/conformance.md:280
 msgid "Verification: Lean model-extension proofs; MoonBit gate tests"
 msgstr "検証：Lean のモデル拡張の証明、MoonBit のゲートテスト"
 
 #: manual/conformance.md:281
-msgid "Evidence: `formal_verification/QEDFV/HOL/TypeDefGate.lean`, `formal_verification/QEDFV/HOL/ExtensionDerivation.lean`, `src/kernel/kernel_sig_test.mbt`"
-msgstr "根拠：`formal_verification/QEDFV/HOL/TypeDefGate.lean`, `formal_verification/QEDFV/HOL/ExtensionDerivation.lean`, `src/kernel/kernel_sig_test.mbt`"
+msgid "Evidence: `formal_verification/QEDFV/HOL/TypeDefGate.lean`, `formal_verification/QEDFV/HOL/ExtensionDerivation.lean`, `src/kernel/kernel_sig_test.mbt`, `formal_verification/QEDFV/HOL/SpecAsDefinition.lean`"
+msgstr "根拠：`formal_verification/QEDFV/HOL/TypeDefGate.lean`, `formal_verification/QEDFV/HOL/ExtensionDerivation.lean`, `src/kernel/kernel_sig_test.mbt`, `formal_verification/QEDFV/HOL/SpecAsDefinition.lean`"
 
 #: manual/conformance.md:282
-msgid "Assumptions: Type-definition derivations are interpreted through model pairs."
-msgstr "仮定：型定義の導出はモデル対を通じて解釈される。"
+msgid "Assumptions: Type-definition derivations are interpreted through model pairs.; The kernel's specification is the definition c := ε P followed by P c; both published theorems are derivable from the definition step (SpecificationExtension.spec_of_definition)."
+msgstr "仮定：型定義の導出はモデル対を通じて解釈される。；カーネルの仕様は定義 c := ε P の後に P c を公開するものであり、公開される二つの定理はいずれもこの定義ステップから導出できる（SpecificationExtension.spec_of_definition）。"
 
 #: manual/conformance.md:283
 msgid "Exclusions: Growing-signature syntax and syntactic erasure remain open."
@@ -8760,6 +8760,9 @@ msgstr "[tactics 設計](../design/tactics.md)は、正当化と、不正なス�
 #: manual/tutorial/tactics.md:179
 msgid "The [prover tutorial](prover.md) runs the same proofs from scripts."
 msgstr "[prover チュートリアル](prover.md)は、同じ証明をスクリプトから実行する。"
+
+#~ msgid "Assumptions: Type-definition derivations are interpreted through model pairs."
+#~ msgstr "仮定：型定義の導出はモデル対を通じて解釈される。"
 
 #~ msgid "Verification: Deterministic adversarial regression corpus"
 #~ msgstr "検証：決定的な敵対的回帰コーパス"

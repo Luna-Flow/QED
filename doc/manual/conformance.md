@@ -276,10 +276,10 @@ Definition, specification, and type-definition extensions have their stated loca
 
 - Specification: `doc/attachments/qed_formal_spec.typ::Kernel Extension Mapping and Open Gates`
 - MoonBit API: `src/kernel/sig.mbt`
-- Lean: `formal_verification/QEDFV/HOL/ExtensionDerivation.lean::extension_derivation_sound`, `formal_verification/QEDFV/HOL/ModelExtension.lean::valid_interpretModels_iff`
+- Lean: `formal_verification/QEDFV/HOL/ExtensionDerivation.lean::extension_derivation_sound`, `formal_verification/QEDFV/HOL/ModelExtension.lean::valid_interpretModels_iff`, `formal_verification/QEDFV/HOL/SpecAsDefinition.lean::SpecificationExtension.spec_of_definition`
 - Verification: Lean model-extension proofs; MoonBit gate tests
-- Evidence: `formal_verification/QEDFV/HOL/TypeDefGate.lean`, `formal_verification/QEDFV/HOL/ExtensionDerivation.lean`, `src/kernel/kernel_sig_test.mbt`
-- Assumptions: Type-definition derivations are interpreted through model pairs.
+- Evidence: `formal_verification/QEDFV/HOL/TypeDefGate.lean`, `formal_verification/QEDFV/HOL/ExtensionDerivation.lean`, `src/kernel/kernel_sig_test.mbt`, `formal_verification/QEDFV/HOL/SpecAsDefinition.lean`
+- Assumptions: Type-definition derivations are interpreted through model pairs.; The kernel's specification is the definition c := ε P followed by P c; both published theorems are derivable from the definition step (SpecificationExtension.spec_of_definition).
 - Exclusions: Growing-signature syntax and syntactic erasure remain open.
 
 #### `HOL-EXT-002`

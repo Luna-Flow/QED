@@ -3453,20 +3453,20 @@ msgid "MoonBit API: `src/kernel/sig.mbt`"
 msgstr "MoonBit API：`src/kernel/sig.mbt`"
 
 #: manual/conformance.md:279
-msgid "Lean: `formal_verification/QEDFV/HOL/ExtensionDerivation.lean::extension_derivation_sound`, `formal_verification/QEDFV/HOL/ModelExtension.lean::valid_interpretModels_iff`"
-msgstr "Lean: `formal_verification/QEDFV/HOL/ExtensionDerivation.lean::extension_derivation_sound`, `formal_verification/QEDFV/HOL/ModelExtension.lean::valid_interpretModels_iff`"
+msgid "Lean: `formal_verification/QEDFV/HOL/ExtensionDerivation.lean::extension_derivation_sound`, `formal_verification/QEDFV/HOL/ModelExtension.lean::valid_interpretModels_iff`, `formal_verification/QEDFV/HOL/SpecAsDefinition.lean::SpecificationExtension.spec_of_definition`"
+msgstr "Lean: `formal_verification/QEDFV/HOL/ExtensionDerivation.lean::extension_derivation_sound`, `formal_verification/QEDFV/HOL/ModelExtension.lean::valid_interpretModels_iff`, `formal_verification/QEDFV/HOL/SpecAsDefinition.lean::SpecificationExtension.spec_of_definition`"
 
 #: manual/conformance.md:280
 msgid "Verification: Lean model-extension proofs; MoonBit gate tests"
 msgstr "验证：Lean 模型扩张证明；MoonBit 闸门测试"
 
 #: manual/conformance.md:281
-msgid "Evidence: `formal_verification/QEDFV/HOL/TypeDefGate.lean`, `formal_verification/QEDFV/HOL/ExtensionDerivation.lean`, `src/kernel/kernel_sig_test.mbt`"
-msgstr "证据：`formal_verification/QEDFV/HOL/TypeDefGate.lean`, `formal_verification/QEDFV/HOL/ExtensionDerivation.lean`, `src/kernel/kernel_sig_test.mbt`"
+msgid "Evidence: `formal_verification/QEDFV/HOL/TypeDefGate.lean`, `formal_verification/QEDFV/HOL/ExtensionDerivation.lean`, `src/kernel/kernel_sig_test.mbt`, `formal_verification/QEDFV/HOL/SpecAsDefinition.lean`"
+msgstr "证据：`formal_verification/QEDFV/HOL/TypeDefGate.lean`, `formal_verification/QEDFV/HOL/ExtensionDerivation.lean`, `src/kernel/kernel_sig_test.mbt`, `formal_verification/QEDFV/HOL/SpecAsDefinition.lean`"
 
 #: manual/conformance.md:282
-msgid "Assumptions: Type-definition derivations are interpreted through model pairs."
-msgstr "假设：类型定义推导通过模型对来解释。"
+msgid "Assumptions: Type-definition derivations are interpreted through model pairs.; The kernel's specification is the definition c := ε P followed by P c; both published theorems are derivable from the definition step (SpecificationExtension.spec_of_definition)."
+msgstr "假设：类型定义推导通过模型对来解释。；内核的规范即定义 c := ε P 之后发布 P c；两条发布的定理都可由该定义步骤推导（SpecificationExtension.spec_of_definition）。"
 
 #: manual/conformance.md:283
 msgid "Exclusions: Growing-signature syntax and syntactic erasure remain open."
@@ -8760,6 +8760,9 @@ msgstr "[tactics 设计](../design/tactics.md)解释了论证 (justification)，
 #: manual/tutorial/tactics.md:179
 msgid "The [prover tutorial](prover.md) runs the same proofs from scripts."
 msgstr "[prover 教程](prover.md)从脚本运行相同的证明。"
+
+#~ msgid "Assumptions: Type-definition derivations are interpreted through model pairs."
+#~ msgstr "假设：类型定义推导通过模型对来解释。"
 
 #~ msgid "Verification: Deterministic adversarial regression corpus"
 #~ msgstr "验证：确定性的对抗式回归语料"
