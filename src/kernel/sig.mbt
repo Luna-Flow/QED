@@ -1019,18 +1019,13 @@ fn term_const_instances_ok(state : KernelState, term : Term) -> Bool {
 ///|
 /// Whether `term` has an occurrence of a constant named `name` that does not denote
 /// a constant declared in `state`.
-fn term_mentions_undeclared_const(
-  state : KernelState,
-  term : Term,
-  name : String,
-) -> Bool {
+fn term_mentions_const_name(term : Term, name : String) -> Bool {
   match term {
     Var(_, _) => false
-    Const(n, _, _) => n == name && ks_lookup_const_id(state, n) is None
+    Const(n, _, _) => n == name
     Comb(f, x) =>
-      term_mentions_undeclared_const(state, f, name) ||
-      term_mentions_undeclared_const(state, x, name)
-    Abs(_, body) => term_mentions_undeclared_const(state, body, name)
+      term_mentions_const_name(f, name) || term_mentions_const_name(x, name)
+    Abs(_, body) => term_mentions_const_name(body, name)
   }
 }
 
@@ -1349,13 +1344,13 @@ pub fn ks_define_const(
   if !term_is_closed(rhs) {
     return Err(DefinitionNotClosed)
   }
-  // A constant is identified by its ConstId, and the one being defined gets a
-  // fresh id, so a definition can only depend on itself through an occurrence of
-  // `name` that does not denote an existing constant: after the definition that
-  // name would denote the new constant. An occurrence that resolves to a
-  // constant already declared (for example one of an outer scope that the new
-  // constant will shadow) is a different constant and is allowed.
-  if term_mentions_undeclared_const(state, rhs, name) {
+  // The right-hand side must not mention `name` at all. The gate below checks
+  // it in the current state, but the definition theorem is stamped after the
+  // new constant shadows `name`, so an occurrence that denotes an outer constant
+  // here would denote the new one in the published theorem, which then states a
+  // cyclic definition (#69). An occurrence of the outer constant would also be
+  // unusable afterwards, since shadowed ids are not admissible.
+  if term_mentions_const_name(rhs, name) {
     return Err(DefinitionIsCyclic)
   }
   if !ks_type_is_admissible(state, decl_ty) {

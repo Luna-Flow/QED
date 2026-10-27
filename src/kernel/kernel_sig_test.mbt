@@ -254,6 +254,39 @@ test "ks_define_const compares constants by identity, not by name" {
 }
 
 ///|
+test "ks_define_const rejects the defined name in the right-hand side under shadowing" {
+  // #69: an outer c is visible when the gate checks the right-hand side, but the
+  // definition theorem is stamped after the new c shadows it, so an occurrence of
+  // c would denote the new constant and state a cyclic definition.
+  let bool = bool_ty()
+  let st1 = expect_ok_sig(ks_add_const(empty_kernel_state(), "c", bool))
+  let outer_c = ks_lookup_const_id(st1, "c").unwrap()
+  let st2 = ks_push_scope(st1)
+  let unstamped = match mk_eq(mk_const("c", bool), mk_const("c", bool)) {
+    Ok(t) => t
+    Err(_) => panic()
+  }
+  assert_true(
+    ks_define_const(st2, "c", bool, unstamped) is Err(DefinitionIsCyclic),
+  )
+  let stamped = @kernel.mk_const_bound("c", bool, outer_c)
+  assert_true(
+    ks_define_const(st2, "c", bool, stamped) is Err(DefinitionIsCyclic),
+  )
+  // the same path through a specification: P = λx. x = c, witness ⊢ c = c
+  let x = mk_var("x", bool)
+  let pred = match mk_eq(x, mk_const("c", bool)) {
+    Ok(body) => mk_abs(x, body)
+    Err(_) => panic()
+  }
+  let witness = match refl_checked(st1, mk_const("c", bool)) {
+    Ok(th) => th
+    Err(_) => panic()
+  }
+  assert_true(ks_specify_const(st2, "c", bool, pred, witness) is Err(_))
+}
+
+///|
 test "ks_define_const rejects reserved symbol and type mismatch" {
   let st0 = expect_ok_sig(ks_add_const(empty_kernel_state(), "P", bool_ty()))
   let p = mk_const("P", bool_ty())
