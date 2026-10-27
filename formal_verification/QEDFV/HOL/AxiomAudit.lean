@@ -12,6 +12,7 @@ import QEDFV.HOL.ConnectiveExamples
 import QEDFV.HOL.SpecErasure
 import QEDFV.HOL.KernelState
 import QEDFV.HOL.SpecAsDefinition
+import QEDFV.HOL.NameResolution
 
 /-! Reproducible foundation audit for the public Typed HOL core results. -/
 
@@ -104,3 +105,6 @@ import QEDFV.HOL.SpecAsDefinition
 #print axioms QEDFV.HOL.LineageCode.admissible
 #print axioms QEDFV.HOL.SpecificationExtension.choice_eq
 #print axioms QEDFV.HOL.SpecificationExtension.spec_of_definition
+#print axioms QEDFV.HOL.UTerm.named_inj
+#print axioms QEDFV.HOL.Term.eq_of_named_eq
+#print axioms QEDFV.HOL.Sequent.mem_hyps_of_named

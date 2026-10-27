@@ -2749,7 +2749,7 @@ msgid "Implementation"
 msgstr ""
 
 #: manual/conformance.md:88
-#: manual/conformance.md:235
+#: manual/conformance.md:237
 msgid "Evidence"
 msgstr ""
 
@@ -2966,7 +2966,7 @@ msgid "A checked checklist item requires `proved-and-refined` in the refinement 
 msgstr ""
 
 #: manual/conformance.md:168
-msgid "Total: **12**; complete: **0**; not applicable: **0**; open: **12**."
+msgid "Total: **13**; complete: **0**; not applicable: **0**; open: **13**."
 msgstr ""
 
 #: manual/conformance.md:170
@@ -2994,8 +2994,8 @@ msgid "implemented unverified"
 msgstr ""
 
 #: manual/conformance.md:172
-#: manual/conformance.md:227
 #: manual/conformance.md:228
+#: manual/conformance.md:229
 msgid "partial"
 msgstr ""
 
@@ -3056,38 +3056,39 @@ msgid "Open"
 msgstr ""
 
 #: manual/conformance.md:183
-#: manual/conformance.md:229
+#: manual/conformance.md:230
 msgid "axiom-admission"
 msgstr ""
 
 #: manual/conformance.md:184
-#: manual/conformance.md:232
+#: manual/conformance.md:234
 msgid "frontend-boundary"
 msgstr ""
 
 #: manual/conformance.md:185
-#: manual/conformance.md:233
+#: manual/conformance.md:235
 msgid "implementation-correspondence"
 msgstr ""
 
 #: manual/conformance.md:186
-#: manual/conformance.md:222
 #: manual/conformance.md:223
 #: manual/conformance.md:224
+#: manual/conformance.md:225
 msgid "logical-core"
 msgstr ""
 
 #: manual/conformance.md:187
-#: manual/conformance.md:225
 #: manual/conformance.md:226
 #: manual/conformance.md:227
 #: manual/conformance.md:228
+#: manual/conformance.md:229
 msgid "theory-extension"
 msgstr ""
 
 #: manual/conformance.md:188
-#: manual/conformance.md:230
 #: manual/conformance.md:231
+#: manual/conformance.md:232
+#: manual/conformance.md:233
 msgid "trusted-kernel"
 msgstr ""
 
@@ -3096,7 +3097,6 @@ msgid "Counts by Requirement Level"
 msgstr ""
 
 #: manual/conformance.md:194
-#: manual/conformance.md:222
 #: manual/conformance.md:223
 #: manual/conformance.md:224
 #: manual/conformance.md:225
@@ -3108,6 +3108,8 @@ msgstr ""
 #: manual/conformance.md:231
 #: manual/conformance.md:232
 #: manual/conformance.md:233
+#: manual/conformance.md:234
+#: manual/conformance.md:235
 msgid "required"
 msgstr ""
 
@@ -3116,22 +3118,23 @@ msgid "Counts by Severity if Unsatisfied"
 msgstr ""
 
 #: manual/conformance.md:200
-#: manual/conformance.md:222
 #: manual/conformance.md:223
 #: manual/conformance.md:224
 #: manual/conformance.md:225
-#: manual/conformance.md:230
+#: manual/conformance.md:226
 #: manual/conformance.md:231
+#: manual/conformance.md:232
 #: manual/conformance.md:233
+#: manual/conformance.md:235
 msgid "critical"
 msgstr ""
 
 #: manual/conformance.md:201
-#: manual/conformance.md:226
 #: manual/conformance.md:227
 #: manual/conformance.md:228
 #: manual/conformance.md:229
-#: manual/conformance.md:232
+#: manual/conformance.md:230
+#: manual/conformance.md:234
 msgid "high"
 msgstr ""
 
@@ -3180,83 +3183,88 @@ msgid "[ ] `KERNEL-PROVENANCE-001` [required; critical] A theorem is admissible 
 msgstr ""
 
 #: manual/conformance.md:215
-msgid "[ ] `FRONTEND-LOWERING-001` [required; high] Parsing and elaboration preserve the proposition and resolved constant identity supplied to the kernel, or fail closed. (open)"
+msgid "[ ] `KERNEL-NAMES-001` [required; critical] Checked rules that compare constants by name rather than by identity stamp are sound: a theorem admissible in a state resolves each constant name it mentions to the identity it carries, so within one state equal names mean equal constants. (open)"
 msgstr ""
 
 #: manual/conformance.md:216
+msgid "[ ] `FRONTEND-LOWERING-001` [required; high] Parsing and elaboration preserve the proposition and resolved constant identity supplied to the kernel, or fail closed. (open)"
+msgstr ""
+
+#: manual/conformance.md:217
 msgid "[ ] `REFINEMENT-001` [required; critical] MoonBit types, terms, theorem objects, state transitions, and theorem constructors are connected to the Typed HOL calculus by a checked refinement or proof-producing translation. (open)"
 msgstr ""
 
-#: manual/conformance.md:218
+#: manual/conformance.md:219
 msgid "Obligations"
 msgstr ""
 
-#: manual/conformance.md:220
+#: manual/conformance.md:221
 msgid "ID"
 msgstr ""
 
-#: manual/conformance.md:220
+#: manual/conformance.md:221
 msgid "Category"
 msgstr ""
 
-#: manual/conformance.md:220
+#: manual/conformance.md:221
 msgid "Requirement"
 msgstr ""
 
-#: manual/conformance.md:220
+#: manual/conformance.md:221
 msgid "Severity"
 msgstr ""
 
-#: manual/conformance.md:220
+#: manual/conformance.md:221
 msgid "Normative statement"
 msgstr ""
 
-#: manual/conformance.md:220
+#: manual/conformance.md:221
 msgid "Lean"
 msgstr ""
 
-#: manual/conformance.md:220
+#: manual/conformance.md:221
 msgid "MoonBit"
 msgstr ""
 
-#: manual/conformance.md:220
+#: manual/conformance.md:221
 msgid "Refinement"
 msgstr ""
 
-#: manual/conformance.md:220
+#: manual/conformance.md:221
 msgid "Tests"
 msgstr ""
 
-#: manual/conformance.md:220
+#: manual/conformance.md:221
 msgid "Issues"
 msgstr ""
 
-#: manual/conformance.md:222
-#: manual/conformance.md:239
+#: manual/conformance.md:223
+#: manual/conformance.md:241
 msgid "HOL types, type constructors, non-empty carriers, and type substitution are well-formed."
 msgstr ""
 
-#: manual/conformance.md:222
 #: manual/conformance.md:223
 #: manual/conformance.md:224
 #: manual/conformance.md:225
 #: manual/conformance.md:226
-#: manual/conformance.md:228
+#: manual/conformance.md:227
 #: manual/conformance.md:229
-#: manual/conformance.md:231
+#: manual/conformance.md:230
+#: manual/conformance.md:232
+#: manual/conformance.md:233
 msgid "proved-abstractly"
 msgstr ""
 
-#: manual/conformance.md:222
 #: manual/conformance.md:223
 #: manual/conformance.md:224
 #: manual/conformance.md:225
-#: manual/conformance.md:230
+#: manual/conformance.md:226
+#: manual/conformance.md:231
 #: manual/conformance.md:233
+#: manual/conformance.md:235
 msgid "implemented-unverified"
 msgstr ""
 
-#: manual/conformance.md:222
 #: manual/conformance.md:223
 #: manual/conformance.md:224
 #: manual/conformance.md:225
@@ -3268,381 +3276,414 @@ msgstr ""
 #: manual/conformance.md:231
 #: manual/conformance.md:232
 #: manual/conformance.md:233
+#: manual/conformance.md:234
+#: manual/conformance.md:235
 msgid "not-implemented"
 msgstr ""
 
-#: manual/conformance.md:222
 #: manual/conformance.md:223
 #: manual/conformance.md:224
 #: manual/conformance.md:225
 #: manual/conformance.md:226
-#: manual/conformance.md:229
+#: manual/conformance.md:227
 #: manual/conformance.md:230
 #: manual/conformance.md:231
 #: manual/conformance.md:232
 #: manual/conformance.md:233
+#: manual/conformance.md:234
+#: manual/conformance.md:235
 msgid "tested-only"
 msgstr ""
 
-#: manual/conformance.md:223
-#: manual/conformance.md:251
+#: manual/conformance.md:224
+#: manual/conformance.md:253
 msgid "Typed terms, alpha-equivalence, capture-avoiding substitution, beta evaluation, and type instantiation preserve typing and meaning."
 msgstr ""
 
-#: manual/conformance.md:224
-#: manual/conformance.md:263
+#: manual/conformance.md:225
+#: manual/conformance.md:265
 msgid "Every primitive theorem rule preserves semantic validity under its stated side conditions."
 msgstr ""
 
-#: manual/conformance.md:225
-#: manual/conformance.md:275
+#: manual/conformance.md:226
+#: manual/conformance.md:277
 msgid "Definition, specification, and type-definition extensions have their stated local semantic laws and preserve validity of old-language sequents."
 msgstr ""
 
-#: manual/conformance.md:226
-#: manual/conformance.md:287
+#: manual/conformance.md:227
+#: manual/conformance.md:289
 msgid "History-indexed derivations require extension witnesses at the preceding history and preserve old-language validity across supported histories."
 msgstr ""
 
-#: manual/conformance.md:227
-#: manual/conformance.md:299
+#: manual/conformance.md:228
+#: manual/conformance.md:301
 msgid "A derivation at a history that begins with a definition, a specification or a type definition yields a derivation at the preceding history in which every occurrence of the declared constant is replaced by its instantiated definition, by the choice term of its instantiated predicate, or (for a type definition) in which the defined type is translated to its representation type; sequents not mentioning the declared symbols are derivable unchanged."
 msgstr ""
 
-#: manual/conformance.md:228
-#: manual/conformance.md:311
+#: manual/conformance.md:229
+#: manual/conformance.md:313
 msgid "A finite declaration table records fresh constant allocation and preserves compatibility with the fixed total signature; old declarations remain available after a fresh allocation."
 msgstr ""
 
-#: manual/conformance.md:228
-#: manual/conformance.md:230
-#: manual/conformance.md:232
+#: manual/conformance.md:229
+#: manual/conformance.md:231
+#: manual/conformance.md:234
 msgid "not-applicable"
 msgstr ""
 
-#: manual/conformance.md:229
-#: manual/conformance.md:323
+#: manual/conformance.md:230
+#: manual/conformance.md:325
 msgid "The executable infinity registration is an audit marker; the canonical object-language infinity sentence is established by the Lean rule, not by the MoonBit gate."
 msgstr ""
 
-#: manual/conformance.md:230
-#: manual/conformance.md:335
+#: manual/conformance.md:231
+#: manual/conformance.md:337
 msgid "Only checked kernel constructors and extension gates can produce theorem objects; frontend code cannot forge them."
 msgstr ""
 
-#: manual/conformance.md:231
-#: manual/conformance.md:347
+#: manual/conformance.md:232
+#: manual/conformance.md:349
 msgid "A theorem is admissible only in a compatible declaration lineage; divergent sibling histories cannot exchange theorem evidence."
 msgstr ""
 
-#: manual/conformance.md:232
-#: manual/conformance.md:359
+#: manual/conformance.md:233
+#: manual/conformance.md:361
+msgid "Checked rules that compare constants by name rather than by identity stamp are sound: a theorem admissible in a state resolves each constant name it mentions to the identity it carries, so within one state equal names mean equal constants."
+msgstr ""
+
+#: manual/conformance.md:234
+#: manual/conformance.md:373
 msgid "Parsing and elaboration preserve the proposition and resolved constant identity supplied to the kernel, or fail closed."
 msgstr ""
 
-#: manual/conformance.md:233
-#: manual/conformance.md:371
+#: manual/conformance.md:235
+#: manual/conformance.md:385
 msgid "MoonBit types, terms, theorem objects, state transitions, and theorem constructors are connected to the Typed HOL calculus by a checked refinement or proof-producing translation."
 msgstr ""
 
-#: manual/conformance.md:241
+#: manual/conformance.md:243
 msgid "Specification: `doc/attachments/qed_formal_spec.typ::Type Grammar and Carrier Interpretation`"
 msgstr ""
 
-#: manual/conformance.md:242
+#: manual/conformance.md:244
 msgid "MoonBit API: `src/kernel/types.mbt`"
 msgstr ""
 
-#: manual/conformance.md:243
+#: manual/conformance.md:245
 msgid "Lean: `formal_verification/QEDFV/HOL/Types.lean::Ty.carrier_nonempty`"
 msgstr ""
 
-#: manual/conformance.md:244
+#: manual/conformance.md:246
 msgid "Verification: Lean theorem; MoonBit tests"
 msgstr ""
 
-#: manual/conformance.md:245
+#: manual/conformance.md:247
 msgid "Evidence: `formal_verification/QEDFV/HOL/Types.lean`, `src/kernel/kernel_types_test.mbt`"
 msgstr ""
 
-#: manual/conformance.md:246
+#: manual/conformance.md:248
 msgid "Assumptions: The fixed total signature and admissible constructor interpretation are explicit Lean parameters."
 msgstr ""
 
-#: manual/conformance.md:247
+#: manual/conformance.md:249
 msgid "Exclusions: No MoonBit-to-Lean refinement theorem exists."
 msgstr ""
 
-#: manual/conformance.md:253
+#: manual/conformance.md:255
 msgid "Specification: `doc/attachments/qed_formal_spec.typ::Alpha-Equivalence and the Named Boundary`"
 msgstr ""
 
-#: manual/conformance.md:254
+#: manual/conformance.md:256
 msgid "MoonBit API: `src/kernel/terms.mbt`"
 msgstr ""
 
-#: manual/conformance.md:255
+#: manual/conformance.md:257
 msgid "Lean: `formal_verification/QEDFV/HOL/Terms.lean::Term`, `formal_verification/QEDFV/HOL/Evaluation.lean::Term.eval_substitute`"
 msgstr ""
 
-#: manual/conformance.md:256
+#: manual/conformance.md:258
 msgid "Verification: Lean theorem; MoonBit regression tests"
 msgstr ""
 
-#: manual/conformance.md:257
+#: manual/conformance.md:259
 msgid "Evidence: `formal_verification/QEDFV/HOL/Evaluation.lean`, `src/kernel/kernel_terms_test.mbt`"
 msgstr ""
 
-#: manual/conformance.md:258
-#: manual/conformance.md:270
-#: manual/conformance.md:294
-#: manual/conformance.md:306
-#: manual/conformance.md:330
-#: manual/conformance.md:366
-#: manual/conformance.md:378
+#: manual/conformance.md:260
+#: manual/conformance.md:272
+#: manual/conformance.md:296
+#: manual/conformance.md:308
+#: manual/conformance.md:332
+#: manual/conformance.md:380
+#: manual/conformance.md:392
 msgid "Assumptions: -"
 msgstr ""
 
-#: manual/conformance.md:259
+#: manual/conformance.md:261
 msgid "Exclusions: Frontend lowering is outside this proof."
 msgstr ""
 
-#: manual/conformance.md:265
+#: manual/conformance.md:267
 msgid "Specification: `doc/attachments/qed_formal_spec.typ::Primitive Inference Rules`"
 msgstr ""
 
-#: manual/conformance.md:266
+#: manual/conformance.md:268
+#: manual/conformance.md:364
 msgid "MoonBit API: `src/kernel/thm.mbt`"
 msgstr ""
 
-#: manual/conformance.md:267
+#: manual/conformance.md:269
 msgid "Lean: `formal_verification/QEDFV/HOL/Rules.lean::valid_refl`, `formal_verification/QEDFV/HOL/Derivation.lean::derivation_sound`, `formal_verification/QEDFV/HOL/ConnectiveRules.lean::valid_classical`"
 msgstr ""
 
-#: manual/conformance.md:268
+#: manual/conformance.md:270
 msgid "Verification: Lean induction; MoonBit kernel tests"
 msgstr ""
 
-#: manual/conformance.md:269
+#: manual/conformance.md:271
 msgid "Evidence: `formal_verification/QEDFV/HOL/Derivation.lean`, `src/kernel/kernel_thm_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`, `formal_verification/QEDFV/HOL/ConnectiveRules.lean`"
 msgstr ""
 
-#: manual/conformance.md:271
+#: manual/conformance.md:273
 msgid "Exclusions: The Lean derivation constructors are not a source-level refinement of MoonBit constructors."
 msgstr ""
 
-#: manual/conformance.md:277
+#: manual/conformance.md:279
 msgid "Specification: `doc/attachments/qed_formal_spec.typ::Kernel Extension Mapping and Open Gates`"
 msgstr ""
 
-#: manual/conformance.md:278
-#: manual/conformance.md:302
-#: manual/conformance.md:314
-#: manual/conformance.md:326
+#: manual/conformance.md:280
+#: manual/conformance.md:304
+#: manual/conformance.md:316
+#: manual/conformance.md:328
 msgid "MoonBit API: `src/kernel/sig.mbt`"
 msgstr ""
 
-#: manual/conformance.md:279
+#: manual/conformance.md:281
 msgid "Lean: `formal_verification/QEDFV/HOL/ExtensionDerivation.lean::extension_derivation_sound`, `formal_verification/QEDFV/HOL/ModelExtension.lean::valid_interpretModels_iff`, `formal_verification/QEDFV/HOL/SpecAsDefinition.lean::SpecificationExtension.spec_of_definition`"
 msgstr ""
 
-#: manual/conformance.md:280
+#: manual/conformance.md:282
 msgid "Verification: Lean model-extension proofs; MoonBit gate tests"
 msgstr ""
 
-#: manual/conformance.md:281
+#: manual/conformance.md:283
 msgid "Evidence: `formal_verification/QEDFV/HOL/TypeDefGate.lean`, `formal_verification/QEDFV/HOL/ExtensionDerivation.lean`, `src/kernel/kernel_sig_test.mbt`, `formal_verification/QEDFV/HOL/SpecAsDefinition.lean`"
 msgstr ""
 
-#: manual/conformance.md:282
+#: manual/conformance.md:284
 msgid "Assumptions: Type-definition derivations are interpreted through model pairs.; The kernel's specification is the definition c := ε P followed by P c; both published theorems are derivable from the definition step (SpecificationExtension.spec_of_definition)."
 msgstr ""
 
-#: manual/conformance.md:283
+#: manual/conformance.md:285
 msgid "Exclusions: Growing-signature syntax and syntactic erasure remain open."
 msgstr ""
 
-#: manual/conformance.md:289
-#: manual/conformance.md:301
+#: manual/conformance.md:291
+#: manual/conformance.md:303
 msgid "Specification: `doc/attachments/qed_formal_spec.typ::History-Indexed Extension Derivations`"
 msgstr ""
 
-#: manual/conformance.md:290
-#: manual/conformance.md:350
+#: manual/conformance.md:292
+#: manual/conformance.md:352
 msgid "MoonBit API: `src/kernel/sig.mbt`, `src/kernel/thm.mbt`"
 msgstr ""
 
-#: manual/conformance.md:291
+#: manual/conformance.md:293
 msgid "Lean: `formal_verification/QEDFV/HOL/ExtensionDerivation.lean::typed_extension_derivation_sound`"
 msgstr ""
 
-#: manual/conformance.md:292
+#: manual/conformance.md:294
 msgid "Verification: Lean history induction; MoonBit lineage regression tests"
 msgstr ""
 
-#: manual/conformance.md:293
+#: manual/conformance.md:295
 msgid "Evidence: `formal_verification/QEDFV/HOL/ExtensionDerivation.lean`, `src/kernel/kernel_audit_test.mbt`"
 msgstr ""
 
-#: manual/conformance.md:295
+#: manual/conformance.md:297
 msgid "Exclusions: Lean does not certify the MoonBit lineage representation."
 msgstr ""
 
-#: manual/conformance.md:303
+#: manual/conformance.md:305
 msgid "Lean: `formal_verification/QEDFV/HOL/Unfold.lean::HistoryDerivation.erase_definition`, `formal_verification/QEDFV/HOL/Unfold.lean::HistoryDerivation.definition_conservative`, `formal_verification/QEDFV/HOL/SpecErasure.lean::HistoryDerivation.erase_specification`, `formal_verification/QEDFV/HOL/SpecErasure.lean::HistoryDerivation.specification_conservative`, `formal_verification/QEDFV/HOL/UnfoldBelow.lean::HistoryDerivation.erase_below`, `formal_verification/QEDFV/HOL/UnfoldChain.lean::HistoryDerivation.erase_chain`, `formal_verification/QEDFV/HOL/TdChain.lean::TypeDefGate.typedef_conservative_chain`, `formal_verification/QEDFV/HOL/TdAll.lean::TypeDefGate.typedef_conservative_hist`, `formal_verification/QEDFV/HOL/TdGood.lean::TypeDefGate.exists_oracle`"
 msgstr ""
 
-#: manual/conformance.md:304
+#: manual/conformance.md:306
 msgid "Verification: Lean induction on history derivations; Lean annotation-erasure laws for type instantiation"
 msgstr ""
 
-#: manual/conformance.md:305
+#: manual/conformance.md:307
 msgid "Evidence: `formal_verification/QEDFV/HOL/Unfold.lean`, `formal_verification/QEDFV/HOL/TermLaws.lean`, `formal_verification/QEDFV/HOL/SpecErasure.lean`, `formal_verification/QEDFV/HOL/TdMain.lean`, `research/qed-verification/2026-10-18-typedef-erasure.md`, `formal_verification/QEDFV/HOL/UnfoldBelow.lean`, `formal_verification/QEDFV/HOL/TdBelow.lean`, `formal_verification/QEDFV/HOL/UnfoldChain.lean`, `formal_verification/QEDFV/HOL/TdChain.lean`, `formal_verification/QEDFV/HOL/TdAll.lean`, `formal_verification/QEDFV/HOL/TdGood.lean`"
 msgstr ""
 
-#: manual/conformance.md:307
+#: manual/conformance.md:309
 msgid "Exclusions: Type-definition erasure is proved for a type definition with any number of type parameters, above any list of definitions and specifications (which may be polymorphic) and above older type definitions without type parameters, whose symbols do not occur in the new type definition and which are scoped as stated in the theorem.; Older type definitions with type parameters are not proved. The result for older type definitions is a derivation at a history of type definitions, not at the empty history.; Lean does not certify the MoonBit kernel."
 msgstr ""
 
-#: manual/conformance.md:313
+#: manual/conformance.md:315
 msgid "Specification: `doc/attachments/qed_formal_spec.typ::Signature Integration Boundary`"
 msgstr ""
 
-#: manual/conformance.md:315
+#: manual/conformance.md:317
 msgid "Lean: `formal_verification/QEDFV/HOL/DeclarationAllocation.lean::DeclTable.compatible_add`, `formal_verification/QEDFV/HOL/DeclarationAllocationExamples.lean::trueTable2_compatible`"
 msgstr ""
 
-#: manual/conformance.md:316
+#: manual/conformance.md:318
 msgid "Verification: Lean finite-allocation lemmas; Concrete Rep/Abs allocation example"
 msgstr ""
 
-#: manual/conformance.md:317
+#: manual/conformance.md:319
 msgid "Evidence: `formal_verification/QEDFV/HOL/DeclarationAllocation.lean`, `formal_verification/QEDFV/HOL/DeclarationAllocationExamples.lean`"
 msgstr ""
 
-#: manual/conformance.md:318
+#: manual/conformance.md:320
 msgid "Assumptions: The fixed total signature supplies the declared type slot."
 msgstr ""
 
-#: manual/conformance.md:319
+#: manual/conformance.md:321
 msgid "Exclusions: This does not prove constructor allocation, growing-signature model transport, committed-equation preservation, or MoonBit refinement."
 msgstr ""
 
-#: manual/conformance.md:325
+#: manual/conformance.md:327
 msgid "Specification: `doc/attachments/qed_formal_spec.typ::indInfinitySentence`"
 msgstr ""
 
-#: manual/conformance.md:327
+#: manual/conformance.md:329
 msgid "Lean: `formal_verification/QEDFV/HOL/Infinity.lean::indInfinitySentence_valid`"
 msgstr ""
 
-#: manual/conformance.md:328
+#: manual/conformance.md:330
 msgid "Verification: Lean validity theorem; MoonBit marker regressions"
 msgstr ""
 
-#: manual/conformance.md:329
+#: manual/conformance.md:331
 msgid "Evidence: `formal_verification/QEDFV/HOL/Infinity.lean`, `src/kernel/kernel_sig_test.mbt`"
 msgstr ""
 
-#: manual/conformance.md:331
+#: manual/conformance.md:333
 msgid "Exclusions: The MoonBit marker does not check that the registered theorem states that ind is infinite, and is not connected to the Lean sentence by a refinement proof."
 msgstr ""
 
-#: manual/conformance.md:337
+#: manual/conformance.md:339
 msgid "Specification: `doc/attachments/qed_formal_spec.typ::The LCF Boundary`"
 msgstr ""
 
-#: manual/conformance.md:338
+#: manual/conformance.md:340
 msgid "MoonBit API: `src/kernel/pkg.generated.mbti`, `src/kernel/thm.mbt`, `src/kernel/sig.mbt`"
 msgstr ""
 
-#: manual/conformance.md:339
-#: manual/conformance.md:363
-#: manual/conformance.md:375
+#: manual/conformance.md:341
+#: manual/conformance.md:377
+#: manual/conformance.md:389
 msgid "Lean: -"
 msgstr ""
 
-#: manual/conformance.md:340
+#: manual/conformance.md:342
 msgid "Verification: MoonBit package visibility audit; kernel regression tests"
 msgstr ""
 
-#: manual/conformance.md:341
+#: manual/conformance.md:343
 msgid "Evidence: `src/kernel/pkg.generated.mbti`, `src/kernel/kernel_audit_test.mbt`, `src/kernel/kernel_immutability_test.mbt`"
 msgstr ""
 
-#: manual/conformance.md:342
+#: manual/conformance.md:344
 msgid "Assumptions: MoonBit package abstraction remains enforced by the toolchain."
 msgstr ""
 
-#: manual/conformance.md:343
+#: manual/conformance.md:345
 msgid "Exclusions: No independent proof checker is shipped yet."
 msgstr ""
 
-#: manual/conformance.md:349
+#: manual/conformance.md:351
 msgid "Specification: `doc/attachments/qed_formal_spec.typ::Stability Theorem for Scope Mutation`"
 msgstr ""
 
-#: manual/conformance.md:351
+#: manual/conformance.md:353
 msgid "Lean: `formal_verification/QEDFV/HOL/KernelState.lean::KReach.lift`, `formal_verification/QEDFV/HOL/KernelState.lean::KThm.sound_at`, `formal_verification/QEDFV/HOL/KernelState.lean::LineageCode.admissible`"
 msgstr ""
 
-#: manual/conformance.md:352
+#: manual/conformance.md:354
 msgid "Verification: Lean model of kernel states, theorem objects and lineage (KernelState.lean); Deterministic adversarial regression corpus"
 msgstr ""
 
-#: manual/conformance.md:353
+#: manual/conformance.md:355
 msgid "Evidence: `formal_verification/QEDFV/HOL/KernelState.lean`, `src/kernel/kernel_audit_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`, `src/kernel/kernel_immutability_test.mbt`, `src/logic/lineage_identity_test.mbt`"
 msgstr ""
 
-#: manual/conformance.md:354
+#: manual/conformance.md:356
 msgid "Assumptions: Constant and type-constructor ids are allocated from monotone counters, so a theorem of a state mentions only ids below its bounds and later steps introduce only ids at or above them (KState.Scoped, KStep).; The kernel's lineage comparison implies reachability of the states (LineageCode.sound)."
 msgstr ""
 
-#: manual/conformance.md:355
+#: manual/conformance.md:357
 msgid "Exclusions: The Lean model does not prove that the MoonBit lineage nodes satisfy LineageCode.sound or that MoonBit theorem objects are scoped; that is part of REFINEMENT-001.; Name resolution and scopes are not modelled; states are identified by histories and id bounds."
 msgstr ""
 
-#: manual/conformance.md:361
-msgid "Specification: `doc/attachments/qed_formal_spec.typ::Elaboration and Core Typing Judgments`"
-msgstr ""
-
-#: manual/conformance.md:362
-msgid "MoonBit API: `src/parser/parser.mbt`, `src/elab/resolved.mbt`"
-msgstr ""
-
-#: manual/conformance.md:364
-msgid "Verification: Parser/elaborator regression corpus"
+#: manual/conformance.md:363
+msgid "Specification: `doc/attachments/qed_formal_spec.typ::Comparing Constants by Name`"
 msgstr ""
 
 #: manual/conformance.md:365
-msgid "Evidence: `src/parser/parser_test.mbt`, `src/elab/elab_test.mbt`"
+msgid "Lean: `formal_verification/QEDFV/HOL/NameResolution.lean::Term.eq_of_named_eq`, `formal_verification/QEDFV/HOL/NameResolution.lean::Sequent.mem_hyps_of_named`"
+msgstr ""
+
+#: manual/conformance.md:366
+msgid "Verification: Lean injectivity of name comparison on resolved terms; Deterministic adversarial regression corpus"
 msgstr ""
 
 #: manual/conformance.md:367
-msgid "Exclusions: Frontend tests do not prove kernel soundness or semantic refinement."
+msgid "Evidence: `formal_verification/QEDFV/HOL/NameResolution.lean`, `src/kernel/kernel_sig_test.mbt`"
 msgstr ""
 
-#: manual/conformance.md:373
-msgid "Specification: `doc/attachments/qed_formal_spec.typ::Engineering Correspondence`"
+#: manual/conformance.md:368
+msgid "Assumptions: Each constant id has one name, and a state's scopes map a name to at most one id (Term.Resolved)."
 msgstr ""
 
-#: manual/conformance.md:374
-msgid "MoonBit API: `src/kernel/types.mbt`, `src/kernel/terms.mbt`, `src/kernel/thm.mbt`, `src/kernel/sig.mbt`"
+#: manual/conformance.md:369
+msgid "Exclusions: That ensure_thm_admissible establishes Term.Resolved for every MoonBit theorem object is part of REFINEMENT-001."
+msgstr ""
+
+#: manual/conformance.md:375
+msgid "Specification: `doc/attachments/qed_formal_spec.typ::Elaboration and Core Typing Judgments`"
 msgstr ""
 
 #: manual/conformance.md:376
-msgid "Verification: Not yet implemented"
+msgid "MoonBit API: `src/parser/parser.mbt`, `src/elab/resolved.mbt`"
 msgstr ""
 
-#: manual/conformance.md:377
-msgid "Evidence: `research/qed-verification/2026-10-14-initial-audit.md`, `formal_verification/theory-proof-plan.md`"
+#: manual/conformance.md:378
+msgid "Verification: Parser/elaborator regression corpus"
 msgstr ""
 
 #: manual/conformance.md:379
+msgid "Evidence: `src/parser/parser_test.mbt`, `src/elab/elab_test.mbt`"
+msgstr ""
+
+#: manual/conformance.md:381
+msgid "Exclusions: Frontend tests do not prove kernel soundness or semantic refinement."
+msgstr ""
+
+#: manual/conformance.md:387
+msgid "Specification: `doc/attachments/qed_formal_spec.typ::Engineering Correspondence`"
+msgstr ""
+
+#: manual/conformance.md:388
+msgid "MoonBit API: `src/kernel/types.mbt`, `src/kernel/terms.mbt`, `src/kernel/thm.mbt`, `src/kernel/sig.mbt`"
+msgstr ""
+
+#: manual/conformance.md:390
+msgid "Verification: Not yet implemented"
+msgstr ""
+
+#: manual/conformance.md:391
+msgid "Evidence: `research/qed-verification/2026-10-14-initial-audit.md`, `formal_verification/theory-proof-plan.md`"
+msgstr ""
+
+#: manual/conformance.md:393
 msgid "Exclusions: Passing MoonBit and Lean builds is not refinement evidence."
 msgstr ""
 
-#: manual/conformance.md:383
+#: manual/conformance.md:397
 msgid "The broader formal and documentation gates are listed in the dated [initial verification audit](../../research/qed-verification/2026-10-14-initial-audit.md). Do not lower strictness, discard failed cases or change denominators to make a conformance result pass."
 msgstr ""
 

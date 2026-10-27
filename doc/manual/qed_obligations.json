@@ -505,6 +505,52 @@
       ]
     },
     {
+      "id": "KERNEL-NAMES-001",
+      "category": "trusted-kernel",
+      "normative_statement": "Checked rules that compare constants by name rather than by identity stamp are sound: a theorem admissible in a state resolves each constant name it mentions to the identity it carries, so within one state equal names mean equal constants.",
+      "requirement_level": "required",
+      "severity": "critical",
+      "spec": "doc/attachments/qed_formal_spec.typ",
+      "spec_anchor": "Comparing Constants by Name",
+      "moonbit_api": [
+        "src/kernel/thm.mbt"
+      ],
+      "lean": [
+        {
+          "path": "formal_verification/QEDFV/HOL/NameResolution.lean",
+          "symbol": "Term.eq_of_named_eq"
+        },
+        {
+          "path": "formal_verification/QEDFV/HOL/NameResolution.lean",
+          "symbol": "Sequent.mem_hyps_of_named"
+        }
+      ],
+      "verification": [
+        "Lean injectivity of name comparison on resolved terms",
+        "Deterministic adversarial regression corpus"
+      ],
+      "evidence": [
+        "formal_verification/QEDFV/HOL/NameResolution.lean",
+        "src/kernel/kernel_sig_test.mbt"
+      ],
+      "status": {
+        "lean": "proved-abstractly",
+        "moonbit": "implemented-unverified",
+        "refinement": "not-implemented",
+        "tests": "tested-only"
+      },
+      "issues": [
+        2,
+        69
+      ],
+      "assumptions": [
+        "Each constant id has one name, and a state's scopes map a name to at most one id (Term.Resolved)."
+      ],
+      "exclusions": [
+        "That ensure_thm_admissible establishes Term.Resolved for every MoonBit theorem object is part of REFINEMENT-001."
+      ]
+    },
+    {
       "id": "FRONTEND-LOWERING-001",
       "category": "frontend-boundary",
       "normative_statement": "Parsing and elaboration preserve the proposition and resolved constant identity supplied to the kernel, or fail closed.",
