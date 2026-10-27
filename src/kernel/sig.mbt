@@ -612,7 +612,7 @@ pub fn ks_add_const(
           Ok(
             advance_lineage(
               next,
-              lineage_event("add_const", [name, hol_type_to_string(ty)]),
+              lineage_event("add_const", [name, ty_key(ty)]),
             ),
           )
         }
@@ -933,7 +933,7 @@ pub fn ks_register_ind_infinity_axiom(
             Ok(
               advance_lineage(
                 next,
-                lineage_event("ind_infinity_anchor", [thm_to_string(anchor)]),
+                lineage_event("ind_infinity_anchor", [thm_key(anchor)]),
               ),
             )
           }
@@ -1235,8 +1235,8 @@ pub fn ks_register_type_definition(
     typedef_parts.push(param)
   }
   typedef_parts.push(rep_name)
-  typedef_parts.push(term_to_string(predicate))
-  typedef_parts.push(thm_to_string(witness))
+  typedef_parts.push(term_key(predicate))
+  typedef_parts.push(thm_key(witness))
   let typedef_lineage = advance_lineage(
     state,
     lineage_event("type_definition", typedef_parts),
@@ -1317,7 +1317,7 @@ pub fn ks_register_type_definition(
       state2,
       TypeDefOK,
       [tycon, rep_name, abs_name],
-      thm_to_string(witness),
+      thm_key(witness),
     ),
   )
 }
@@ -1401,8 +1401,8 @@ pub fn ks_define_const(
                     state2,
                     lineage_event("definition", [
                       name,
-                      hol_type_to_string(decl_ty),
-                      term_to_string(rhs),
+                      ty_key(decl_ty),
+                      term_key(rhs),
                     ]),
                   )
                   let digest = match to_db_term(def_eq) {
@@ -1411,7 +1411,7 @@ pub fn ks_define_const(
                         thm_bind_const_ids(state2, mk_def_thm(name, eq_db)) {
                         Ok(def_th) => {
                           def_theorems = def_theorems.add(name, def_th)
-                          thm_to_string(def_th)
+                          thm_key(def_th)
                         }
                         Err(_) => return Err(InvalidConstRhs)
                       }
@@ -1550,7 +1550,7 @@ pub fn ks_specify_const(
                         state2,
                         SpecOK,
                         [name],
-                        thm_to_string(witness),
+                        thm_key(witness),
                       ),
                       pc_th,
                     ),
