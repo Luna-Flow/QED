@@ -17,3 +17,5 @@ keywords = [ ]
 description = ""
 
 source = "src"
+
+warnings = "-result_error_return"
