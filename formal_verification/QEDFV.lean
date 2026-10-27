@@ -22,3 +22,4 @@ import QEDFV.HOL.TdGood
 import QEDFV.HOL.TdAll
 import QEDFV.HOL.KernelState
 import QEDFV.HOL.SpecAsDefinition
+import QEDFV.HOL.NameResolution

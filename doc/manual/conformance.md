@@ -165,16 +165,16 @@ Generated from [`qed_obligations.json`](qed_obligations.json). The dimensions ar
 
 A checked checklist item requires `proved-and-refined` in the refinement dimension. Open means an applicable obligation lacks checked implementation refinement; it does not mean a soundness defect has been demonstrated. Severity records the impact if the obligation is unsatisfied.
 
-Total: **12**; complete: **0**; not applicable: **0**; open: **12**.
+Total: **13**; complete: **0**; not applicable: **0**; open: **13**.
 
 ### Status Counts
 
 | Dimension | proved and refined | proved abstractly | tested only | implemented unverified | partial | not implemented | known deviation | not applicable |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| lean | 0 | 8 | 0 | 0 | 1 | 1 | 0 | 2 |
-| moonbit | 0 | 0 | 4 | 6 | 1 | 1 | 0 | 0 |
-| refinement | 0 | 0 | 0 | 0 | 0 | 12 | 0 | 0 |
-| tests | 0 | 0 | 10 | 0 | 0 | 1 | 0 | 1 |
+| lean | 0 | 9 | 0 | 0 | 1 | 1 | 0 | 2 |
+| moonbit | 0 | 0 | 4 | 7 | 1 | 1 | 0 | 0 |
+| refinement | 0 | 0 | 0 | 0 | 0 | 13 | 0 | 0 |
+| tests | 0 | 0 | 11 | 0 | 0 | 1 | 0 | 1 |
 
 ### Counts by Logical Subsystem
 
@@ -185,19 +185,19 @@ Total: **12**; complete: **0**; not applicable: **0**; open: **12**.
 | implementation-correspondence | 1 | 0 | 0 | 1 |
 | logical-core | 3 | 0 | 0 | 3 |
 | theory-extension | 4 | 0 | 0 | 4 |
-| trusted-kernel | 2 | 0 | 0 | 2 |
+| trusted-kernel | 3 | 0 | 0 | 3 |
 
 ### Counts by Requirement Level
 
 | Group | Total | Complete | Not applicable | Open |
 | --- | ---: | ---: | ---: | ---: |
-| required | 12 | 0 | 0 | 12 |
+| required | 13 | 0 | 0 | 13 |
 
 ### Counts by Severity if Unsatisfied
 
 | Group | Total | Complete | Not applicable | Open |
 | --- | ---: | ---: | ---: | ---: |
-| critical | 7 | 0 | 0 | 7 |
+| critical | 8 | 0 | 0 | 8 |
 | high | 5 | 0 | 0 | 5 |
 
 ### Checklist
@@ -212,6 +212,7 @@ Total: **12**; complete: **0**; not applicable: **0**; open: **12**.
 - [ ] `HOL-INFINITY-001` [required; high] The executable infinity registration is an audit marker; the canonical object-language infinity sentence is established by the Lean rule, not by the MoonBit gate. (open)
 - [ ] `KERNEL-BOUNDARY-001` [required; critical] Only checked kernel constructors and extension gates can produce theorem objects; frontend code cannot forge them. (open)
 - [ ] `KERNEL-PROVENANCE-001` [required; critical] A theorem is admissible only in a compatible declaration lineage; divergent sibling histories cannot exchange theorem evidence. (open)
+- [ ] `KERNEL-NAMES-001` [required; critical] Checked rules that compare constants by name rather than by identity stamp are sound: a theorem admissible in a state resolves each constant name it mentions to the identity it carries, so within one state equal names mean equal constants. (open)
 - [ ] `FRONTEND-LOWERING-001` [required; high] Parsing and elaboration preserve the proposition and resolved constant identity supplied to the kernel, or fail closed. (open)
 - [ ] `REFINEMENT-001` [required; critical] MoonBit types, terms, theorem objects, state transitions, and theorem constructors are connected to the Typed HOL calculus by a checked refinement or proof-producing translation. (open)
 
@@ -229,6 +230,7 @@ Total: **12**; complete: **0**; not applicable: **0**; open: **12**.
 | `HOL-INFINITY-001` | axiom-admission | required | high | The executable infinity registration is an audit marker; the canonical object-language infinity sentence is established by the Lean rule, not by the MoonBit gate. | proved-abstractly | tested-only | not-implemented | tested-only | [#7](https://github.com/Luna-Flow/QED/issues/7) |
 | `KERNEL-BOUNDARY-001` | trusted-kernel | required | critical | Only checked kernel constructors and extension gates can produce theorem objects; frontend code cannot forge them. | not-applicable | implemented-unverified | not-implemented | tested-only | [#17](https://github.com/Luna-Flow/QED/issues/17) |
 | `KERNEL-PROVENANCE-001` | trusted-kernel | required | critical | A theorem is admissible only in a compatible declaration lineage; divergent sibling histories cannot exchange theorem evidence. | proved-abstractly | tested-only | not-implemented | tested-only | [#15](https://github.com/Luna-Flow/QED/issues/15), [#22](https://github.com/Luna-Flow/QED/issues/22), [#69](https://github.com/Luna-Flow/QED/issues/69), [#70](https://github.com/Luna-Flow/QED/issues/70) |
+| `KERNEL-NAMES-001` | trusted-kernel | required | critical | Checked rules that compare constants by name rather than by identity stamp are sound: a theorem admissible in a state resolves each constant name it mentions to the identity it carries, so within one state equal names mean equal constants. | proved-abstractly | implemented-unverified | not-implemented | tested-only | [#2](https://github.com/Luna-Flow/QED/issues/2), [#69](https://github.com/Luna-Flow/QED/issues/69) |
 | `FRONTEND-LOWERING-001` | frontend-boundary | required | high | Parsing and elaboration preserve the proposition and resolved constant identity supplied to the kernel, or fail closed. | not-applicable | tested-only | not-implemented | tested-only | [#3](https://github.com/Luna-Flow/QED/issues/3), [#4](https://github.com/Luna-Flow/QED/issues/4), [#5](https://github.com/Luna-Flow/QED/issues/5), [#6](https://github.com/Luna-Flow/QED/issues/6) |
 | `REFINEMENT-001` | implementation-correspondence | required | critical | MoonBit types, terms, theorem objects, state transitions, and theorem constructors are connected to the Typed HOL calculus by a checked refinement or proof-producing translation. | not-implemented | implemented-unverified | not-implemented | tested-only | [#17](https://github.com/Luna-Flow/QED/issues/17) |
 
@@ -353,6 +355,18 @@ A theorem is admissible only in a compatible declaration lineage; divergent sibl
 - Evidence: `formal_verification/QEDFV/HOL/KernelState.lean`, `src/kernel/kernel_audit_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`, `src/kernel/kernel_immutability_test.mbt`, `src/logic/lineage_identity_test.mbt`
 - Assumptions: Constant and type-constructor ids are allocated from monotone counters, so a theorem of a state mentions only ids below its bounds and later steps introduce only ids at or above them (KState.Scoped, KStep).; The kernel's lineage comparison implies reachability of the states (LineageCode.sound).
 - Exclusions: The Lean model does not prove that the MoonBit lineage nodes satisfy LineageCode.sound or that MoonBit theorem objects are scoped; that is part of REFINEMENT-001.; Name resolution and scopes are not modelled; states are identified by histories and id bounds.
+
+#### `KERNEL-NAMES-001`
+
+Checked rules that compare constants by name rather than by identity stamp are sound: a theorem admissible in a state resolves each constant name it mentions to the identity it carries, so within one state equal names mean equal constants.
+
+- Specification: `doc/attachments/qed_formal_spec.typ::Comparing Constants by Name`
+- MoonBit API: `src/kernel/thm.mbt`
+- Lean: `formal_verification/QEDFV/HOL/NameResolution.lean::Term.eq_of_named_eq`, `formal_verification/QEDFV/HOL/NameResolution.lean::Sequent.mem_hyps_of_named`
+- Verification: Lean injectivity of name comparison on resolved terms; Deterministic adversarial regression corpus
+- Evidence: `formal_verification/QEDFV/HOL/NameResolution.lean`, `src/kernel/kernel_sig_test.mbt`
+- Assumptions: Each constant id has one name, and a state's scopes map a name to at most one id (Term.Resolved).
+- Exclusions: That ensure_thm_admissible establishes Term.Resolved for every MoonBit theorem object is part of REFINEMENT-001.
 
 #### `FRONTEND-LOWERING-001`
 

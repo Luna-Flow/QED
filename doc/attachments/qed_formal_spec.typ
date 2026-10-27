@@ -938,6 +938,34 @@ are not part of this model: states are identified by histories and id bounds.
 
 #lean-proof("KernelState", ("LineageCode.admissible",))
 
+=== Comparing Constants by Name
+
+Every constant occurrence in a kernel theorem carries an identity stamp, but
+`TRANS`, `EQ_MP`, hypothesis union and `DEDUCT_ANTISYM_RULE` compare terms
+ignoring the stamps, that is, by constant names (issue \#2). This is sound
+because admissibility in a state requires each constant name of the theorem to
+resolve, in that state's scopes, to the identity it carries. Let $"nm"(c)$ be
+the name of identity $c$ and $r$ the state's resolution from names to
+identities. A term is _resolved_ when $r("nm"(c)) = c$ for each identity $c$ it
+mentions.
+
+#theorem([Name comparison is identity comparison])[If $t$ and $u$ are resolved
+under the same $r$ and are equal after replacing every identity by its name,
+then $t = u$. In particular, hypothesis membership by names agrees with
+membership for resolved sequents.
+
+*Proof.* On the identities of $t$ and $u$ the name map has the left inverse
+$r$, so replacing identities by names is injective on them; erasure of typed
+terms is injective.]
+
+#lean-proof("NameResolution", ("UTerm.named_inj", "Term.eq_of_named_eq", "Sequent.mem_hyps_of_named"))
+
+Shadowing changes $r$. A theorem whose stamped identity is no longer what its
+name resolves to is not admissible, so it never meets a term of the other
+identity in a name comparison. The definition gate must respect the same
+discipline: a right-hand side checked against an outer constant must not be
+published under a name that now resolves to the new constant (issue \#69).
+
 = Substitution and Alpha-Equivalence
 
 == Type Substitution
