@@ -164,6 +164,10 @@
         {
           "path": "formal_verification/QEDFV/HOL/ModelExtension.lean",
           "symbol": "valid_interpretModels_iff"
+        },
+        {
+          "path": "formal_verification/QEDFV/HOL/SpecAsDefinition.lean",
+          "symbol": "SpecificationExtension.spec_of_definition"
         }
       ],
       "verification": [
@@ -173,7 +177,8 @@
       "evidence": [
         "formal_verification/QEDFV/HOL/TypeDefGate.lean",
         "formal_verification/QEDFV/HOL/ExtensionDerivation.lean",
-        "src/kernel/kernel_sig_test.mbt"
+        "src/kernel/kernel_sig_test.mbt",
+        "formal_verification/QEDFV/HOL/SpecAsDefinition.lean"
       ],
       "status": {
         "lean": "proved-abstractly",
@@ -187,7 +192,8 @@
         17
       ],
       "assumptions": [
-        "Type-definition derivations are interpreted through model pairs."
+        "Type-definition derivations are interpreted through model pairs.",
+        "The kernel's specification is the definition c := ε P followed by P c; both published theorems are derivable from the definition step (SpecificationExtension.spec_of_definition)."
       ],
       "exclusions": [
         "Growing-signature syntax and syntactic erasure remain open."
@@ -452,28 +458,50 @@
         "src/kernel/sig.mbt",
         "src/kernel/thm.mbt"
       ],
-      "lean": [],
+      "lean": [
+        {
+          "path": "formal_verification/QEDFV/HOL/KernelState.lean",
+          "symbol": "KReach.lift"
+        },
+        {
+          "path": "formal_verification/QEDFV/HOL/KernelState.lean",
+          "symbol": "KThm.sound_at"
+        },
+        {
+          "path": "formal_verification/QEDFV/HOL/KernelState.lean",
+          "symbol": "LineageCode.admissible"
+        }
+      ],
       "verification": [
+        "Lean model of kernel states, theorem objects and lineage (KernelState.lean)",
         "Deterministic adversarial regression corpus"
       ],
       "evidence": [
+        "formal_verification/QEDFV/HOL/KernelState.lean",
         "src/kernel/kernel_audit_test.mbt",
         "src/kernel/kernel_thm_wbtest.mbt",
-        "src/kernel/kernel_immutability_test.mbt"
+        "src/kernel/kernel_immutability_test.mbt",
+        "src/logic/lineage_identity_test.mbt"
       ],
       "status": {
-        "lean": "not-applicable",
+        "lean": "proved-abstractly",
         "moonbit": "tested-only",
         "refinement": "not-implemented",
         "tests": "tested-only"
       },
       "issues": [
         15,
-        22
+        22,
+        69,
+        70
       ],
-      "assumptions": [],
+      "assumptions": [
+        "Constant and type-constructor ids are allocated from monotone counters, so a theorem of a state mentions only ids below its bounds and later steps introduce only ids at or above them (KState.Scoped, KStep).",
+        "The kernel's lineage comparison implies reachability of the states (LineageCode.sound)."
+      ],
       "exclusions": [
-        "Formalization does not model MoonBit state lineage."
+        "The Lean model does not prove that the MoonBit lineage nodes satisfy LineageCode.sound or that MoonBit theorem objects are scoped; that is part of REFINEMENT-001.",
+        "Name resolution and scopes are not modelled; states are identified by histories and id bounds."
       ]
     },
     {

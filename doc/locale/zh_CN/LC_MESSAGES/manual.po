@@ -3253,6 +3253,7 @@ msgstr "HOL 类型、类型构造子、非空载体和类型替换都是良构�
 #: manual/conformance.md:226
 #: manual/conformance.md:228
 #: manual/conformance.md:229
+#: manual/conformance.md:231
 msgid "proved-abstractly"
 msgstr "proved-abstractly"
 
@@ -3325,7 +3326,6 @@ msgstr "有限声明表记录新常量的分配，并保持与固定总签名的
 
 #: manual/conformance.md:228
 #: manual/conformance.md:230
-#: manual/conformance.md:231
 #: manual/conformance.md:232
 msgid "not-applicable"
 msgstr "not-applicable"
@@ -3408,7 +3408,6 @@ msgstr "证据：`formal_verification/QEDFV/HOL/Evaluation.lean`, `src/kernel/ke
 #: manual/conformance.md:294
 #: manual/conformance.md:306
 #: manual/conformance.md:330
-#: manual/conformance.md:354
 #: manual/conformance.md:366
 #: manual/conformance.md:378
 msgid "Assumptions: -"
@@ -3454,20 +3453,20 @@ msgid "MoonBit API: `src/kernel/sig.mbt`"
 msgstr "MoonBit API：`src/kernel/sig.mbt`"
 
 #: manual/conformance.md:279
-msgid "Lean: `formal_verification/QEDFV/HOL/ExtensionDerivation.lean::extension_derivation_sound`, `formal_verification/QEDFV/HOL/ModelExtension.lean::valid_interpretModels_iff`"
-msgstr "Lean: `formal_verification/QEDFV/HOL/ExtensionDerivation.lean::extension_derivation_sound`, `formal_verification/QEDFV/HOL/ModelExtension.lean::valid_interpretModels_iff`"
+msgid "Lean: `formal_verification/QEDFV/HOL/ExtensionDerivation.lean::extension_derivation_sound`, `formal_verification/QEDFV/HOL/ModelExtension.lean::valid_interpretModels_iff`, `formal_verification/QEDFV/HOL/SpecAsDefinition.lean::SpecificationExtension.spec_of_definition`"
+msgstr "Lean: `formal_verification/QEDFV/HOL/ExtensionDerivation.lean::extension_derivation_sound`, `formal_verification/QEDFV/HOL/ModelExtension.lean::valid_interpretModels_iff`, `formal_verification/QEDFV/HOL/SpecAsDefinition.lean::SpecificationExtension.spec_of_definition`"
 
 #: manual/conformance.md:280
 msgid "Verification: Lean model-extension proofs; MoonBit gate tests"
 msgstr "验证：Lean 模型扩张证明；MoonBit 闸门测试"
 
 #: manual/conformance.md:281
-msgid "Evidence: `formal_verification/QEDFV/HOL/TypeDefGate.lean`, `formal_verification/QEDFV/HOL/ExtensionDerivation.lean`, `src/kernel/kernel_sig_test.mbt`"
-msgstr "证据：`formal_verification/QEDFV/HOL/TypeDefGate.lean`, `formal_verification/QEDFV/HOL/ExtensionDerivation.lean`, `src/kernel/kernel_sig_test.mbt`"
+msgid "Evidence: `formal_verification/QEDFV/HOL/TypeDefGate.lean`, `formal_verification/QEDFV/HOL/ExtensionDerivation.lean`, `src/kernel/kernel_sig_test.mbt`, `formal_verification/QEDFV/HOL/SpecAsDefinition.lean`"
+msgstr "证据：`formal_verification/QEDFV/HOL/TypeDefGate.lean`, `formal_verification/QEDFV/HOL/ExtensionDerivation.lean`, `src/kernel/kernel_sig_test.mbt`, `formal_verification/QEDFV/HOL/SpecAsDefinition.lean`"
 
 #: manual/conformance.md:282
-msgid "Assumptions: Type-definition derivations are interpreted through model pairs."
-msgstr "假设：类型定义推导通过模型对来解释。"
+msgid "Assumptions: Type-definition derivations are interpreted through model pairs.; The kernel's specification is the definition c := ε P followed by P c; both published theorems are derivable from the definition step (SpecificationExtension.spec_of_definition)."
+msgstr "假设：类型定义推导通过模型对来解释。；内核的规范即定义 c := ε P 之后发布 P c；两条发布的定理都可由该定义步骤推导（SpecificationExtension.spec_of_definition）。"
 
 #: manual/conformance.md:283
 msgid "Exclusions: Growing-signature syntax and syntactic erasure remain open."
@@ -3568,7 +3567,6 @@ msgid "MoonBit API: `src/kernel/pkg.generated.mbti`, `src/kernel/thm.mbt`, `src/
 msgstr "MoonBit API：`src/kernel/pkg.generated.mbti`, `src/kernel/thm.mbt`, `src/kernel/sig.mbt`"
 
 #: manual/conformance.md:339
-#: manual/conformance.md:351
 #: manual/conformance.md:363
 #: manual/conformance.md:375
 msgid "Lean: -"
@@ -3594,17 +3592,25 @@ msgstr "排除项：尚未发布独立的证明检查器。"
 msgid "Specification: `doc/attachments/qed_formal_spec.typ::Stability Theorem for Scope Mutation`"
 msgstr "规范：`doc/attachments/qed_formal_spec.typ::Stability Theorem for Scope Mutation`"
 
+#: manual/conformance.md:351
+msgid "Lean: `formal_verification/QEDFV/HOL/KernelState.lean::KReach.lift`, `formal_verification/QEDFV/HOL/KernelState.lean::KThm.sound_at`, `formal_verification/QEDFV/HOL/KernelState.lean::LineageCode.admissible`"
+msgstr "Lean: `formal_verification/QEDFV/HOL/KernelState.lean::KReach.lift`, `formal_verification/QEDFV/HOL/KernelState.lean::KThm.sound_at`, `formal_verification/QEDFV/HOL/KernelState.lean::LineageCode.admissible`"
+
 #: manual/conformance.md:352
-msgid "Verification: Deterministic adversarial regression corpus"
-msgstr "验证：确定性的对抗式回归语料"
+msgid "Verification: Lean model of kernel states, theorem objects and lineage (KernelState.lean); Deterministic adversarial regression corpus"
+msgstr "验证：内核状态、定理对象与谱系的 Lean 模型（KernelState.lean）；确定性的对抗回归语料"
 
 #: manual/conformance.md:353
-msgid "Evidence: `src/kernel/kernel_audit_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`, `src/kernel/kernel_immutability_test.mbt`"
-msgstr "证据：`src/kernel/kernel_audit_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`, `src/kernel/kernel_immutability_test.mbt`"
+msgid "Evidence: `formal_verification/QEDFV/HOL/KernelState.lean`, `src/kernel/kernel_audit_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`, `src/kernel/kernel_immutability_test.mbt`, `src/logic/lineage_identity_test.mbt`"
+msgstr "证据：`formal_verification/QEDFV/HOL/KernelState.lean`, `src/kernel/kernel_audit_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`, `src/kernel/kernel_immutability_test.mbt`, `src/logic/lineage_identity_test.mbt`"
+
+#: manual/conformance.md:354
+msgid "Assumptions: Constant and type-constructor ids are allocated from monotone counters, so a theorem of a state mentions only ids below its bounds and later steps introduce only ids at or above them (KState.Scoped, KStep).; The kernel's lineage comparison implies reachability of the states (LineageCode.sound)."
+msgstr "假设：常量与类型构造子的 id 由单调计数器分配，因此一个状态的定理只提及低于其界的 id，而后续步骤只引入不低于该界的 id（KState.Scoped、KStep）。；内核的谱系比较蕴含状态间的可达性（LineageCode.sound）。"
 
 #: manual/conformance.md:355
-msgid "Exclusions: Formalization does not model MoonBit state lineage."
-msgstr "排除项：形式化不对 MoonBit 的状态谱系建模。"
+msgid "Exclusions: The Lean model does not prove that the MoonBit lineage nodes satisfy LineageCode.sound or that MoonBit theorem objects are scoped; that is part of REFINEMENT-001.; Name resolution and scopes are not modelled; states are identified by histories and id bounds."
+msgstr "排除项：Lean 模型不证明 MoonBit 的谱系节点满足 LineageCode.sound，也不证明 MoonBit 定理对象满足作用域条件；这属于 REFINEMENT-001。；名称解析与作用域未建模；状态由历史与 id 界确定。"
 
 #: manual/conformance.md:361
 msgid "Specification: `doc/attachments/qed_formal_spec.typ::Elaboration and Core Typing Judgments`"
@@ -8754,6 +8760,15 @@ msgstr "[tactics 设计](../design/tactics.md)解释了论证 (justification)，
 #: manual/tutorial/tactics.md:179
 msgid "The [prover tutorial](prover.md) runs the same proofs from scripts."
 msgstr "[prover 教程](prover.md)从脚本运行相同的证明。"
+
+#~ msgid "Assumptions: Type-definition derivations are interpreted through model pairs."
+#~ msgstr "假设：类型定义推导通过模型对来解释。"
+
+#~ msgid "Verification: Deterministic adversarial regression corpus"
+#~ msgstr "验证：确定性的对抗式回归语料"
+
+#~ msgid "Exclusions: Formalization does not model MoonBit state lineage."
+#~ msgstr "排除项：形式化不对 MoonBit 的状态谱系建模。"
 
 #~ msgid "Exclusions: Type-definition erasure is not proved.; Lean does not certify the MoonBit kernel."
 #~ msgstr "排除项：类型定义的擦除未证明；Lean 不认证 MoonBit 内核。"

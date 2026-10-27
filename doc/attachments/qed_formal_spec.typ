@@ -891,6 +891,53 @@ This argument establishes an abstract lookup invariant for fixed identities.
 A concrete refinement must also prove that identifiers denote the same
 declaration history; the argument alone cannot justify sibling-state reuse.
 
+== Kernel States, Theorem Objects and Lineage
+
+The kernel threads a state through every extension and stamps each theorem with
+the lineage of the state that produced it. The abstract model has three parts.
+
+- A state is a history $H$, newest step first, with bounds $n_c, n_k$ for
+  constant and type-constructor ids. A step either appends an extension $e$
+  whose new ids lie in $[n_c, n'_c)$ and $[n_k, n'_k)$ and moves the bounds to
+  $n'_c, n'_k$, or allocates an opaque constant and moves $n_c$ only.
+  Reachability $sigma arrow.r.double sigma'$ is the reflexive-transitive closure
+  of steps.
+- A theorem object is a sequent $s$ with a derivation at the history of its
+  origin state $sigma$ and with every id of $s$ below the bounds of $sigma$.
+- A theorem is admissible in $sigma'$ when $sigma arrow.r.double sigma'$.
+
+#theorem([Admissibility is sound])[If a theorem object with origin $sigma$ is
+admissible in $sigma'$, its sequent is derivable at the history of $sigma'$
+and scoped below its bounds. Hence it is valid in every local model of that
+history.
+
+*Proof.* Induct on the steps. An extension step introduces only ids at or above
+the bounds, which the sequent does not mention, so the sequent is in the old
+language of the step and the history rule `weaken` applies. An allocation step
+leaves the history unchanged. Bounds only grow.]
+
+#lean-proof("KernelState", ("KReach.lift", "KThm.sound_at"))
+
+The extension steps produce theorem objects from gates whose new ids are at the
+bounds; freshness follows from the invariant that every id of a history lies
+below its bounds (`KState.WF`). Witnesses of specifications and type
+definitions may come from any older state in which they are admissible.
+
+#lean-def("KernelState", ("KThm.ofDefinition", "KThm.ofSpecification", "KThm.ofTypeDef"))
+
+The executable kernel does not compare histories; it compares interned lineage
+nodes. The design obligation on that representation is that a lineage
+comparison implies reachability of the states (`LineageCode.sound`). Equal
+lineage values must therefore belong to states reachable from each other:
+identical sibling histories may share a node, but different extensions of one
+parent may not. Building nodes from non-injective event printouts violated this
+(issue \#70); events are now built from injective encodings. That the MoonBit
+lineage satisfies the obligation, and that its theorem objects are scoped as
+above, belongs to the refinement (`REFINEMENT-001`). Name resolution and scopes
+are not part of this model: states are identified by histories and id bounds.
+
+#lean-proof("KernelState", ("LineageCode.admissible",))
+
 = Substitution and Alpha-Equivalence
 
 == Type Substitution
@@ -1836,11 +1883,33 @@ the produced theorem $P(c)$ through its explicit extension contract. The
 Hilbert-choice rule below is an internal inference rule: it concludes
 $P(epsilon P)$ from a derivation of $P(w)$. It is not the `ks_specify_const`
 declaration extension, which introduces a fresh constant $c$ and a theorem
-$P(c)$ under its witness contract. The current Lean gate proves that the
-selected interpretation satisfies $P(c)$, but does not connect the updated
-signature and theorem handle to a growing-theory derivation. The exact witness
-certificate expected by the MoonBit gate also remains an implementation
-boundary (issue #8).]
+$P(c)$ under its witness contract. The exact witness
+certificate expected by the MoonBit gate remains an implementation boundary
+(issue #8).]
+
+=== The Kernel Specification Is a Definition by Choice
+
+`ks_specify_const` does not use a separate gate: it defines $c := epsilon P$
+through the definition path, publishing the equation $c = epsilon P$, and then
+publishes $P(c)$. In the history calculus this is the definition step for the
+gate with right-hand side $epsilon_(tau)(lambda_tau P)$; its freshness and
+annotation conditions follow from those of the specification gate.
+
+#theorem([Specification as definition])[Let $E$ be a specification step whose
+identifier is fresh for a history $H$, and let $D$ be the definition
+$c := epsilon P$. Then $c = epsilon P$ is derivable at $D :: H$, and if
+$[] tack.r P[w]$ is derivable at $H$, so is $[] tack.r P[c]$ at $D :: H$.
+
+*Proof.* The equation is the definition rule. Weaken the witness to $D :: H$
+($c$ occurs in neither $P$ nor $w$, hence not in $P[w]$); the choice rule gives
+$P[epsilon P]$. From the equation, congruence and two beta steps give
+$P[c] = P[epsilon P]$, and rewriting yields $P[c]$.]
+
+#lean-proof("SpecAsDefinition", ("SpecificationExtension.asDefinition", "SpecificationExtension.choice_eq", "SpecificationExtension.spec_of_definition"))
+
+So both theorems the kernel publishes for a specification are covered by the
+definition gate, and the dedicated `specification` step of the history
+calculus is a derived form for the purposes of the kernel.
 
 == Rule Schema: Hilbert Choice from a Witness
 
@@ -2490,10 +2559,11 @@ complete row-by-row mapping is recorded in
   constant has a fresh identity, and an occurrence of its name that does not denote
   a declared constant is refused as a self-reference (`DefinitionIsCyclic`), which
   matches the gate's freshness condition (issue #9).
-- `ks_specify_const` maps to `SpecificationGate` and the witness-based
-  `specification` constructor of `ExtensionDerivation`. It requires the witness
-  body to be derived at the preceding history, then admits the fresh named
-  constant theorem. `Derivation.chooseWitness` remains a distinct Hilbert-choice
+- `ks_specify_const` maps to the definition step
+  `SpecificationExtension.asDefinition` ($c := epsilon P$), which yields both
+  published theorems, $c = epsilon P$ and $P(c)$
+  (`SpecificationExtension.spec_of_definition`). It requires the witness body
+  to be derived at the preceding history. `Derivation.chooseWitness` remains a distinct Hilbert-choice
   inference rule. The proof does not certify the MoonBit witness representation
   (issue #8).
 - `ks_register_type_definition` maps to `TypeDefGate`, its model step
