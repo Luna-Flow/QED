@@ -891,6 +891,53 @@ This argument establishes an abstract lookup invariant for fixed identities.
 A concrete refinement must also prove that identifiers denote the same
 declaration history; the argument alone cannot justify sibling-state reuse.
 
+== Kernel States, Theorem Objects and Lineage
+
+The kernel threads a state through every extension and stamps each theorem with
+the lineage of the state that produced it. The abstract model has three parts.
+
+- A state is a history $H$, newest step first, with bounds $n_c, n_k$ for
+  constant and type-constructor ids. A step either appends an extension $e$
+  whose new ids lie in $[n_c, n'_c)$ and $[n_k, n'_k)$ and moves the bounds to
+  $n'_c, n'_k$, or allocates an opaque constant and moves $n_c$ only.
+  Reachability $sigma arrow.r.double sigma'$ is the reflexive-transitive closure
+  of steps.
+- A theorem object is a sequent $s$ with a derivation at the history of its
+  origin state $sigma$ and with every id of $s$ below the bounds of $sigma$.
+- A theorem is admissible in $sigma'$ when $sigma arrow.r.double sigma'$.
+
+#theorem([Admissibility is sound])[If a theorem object with origin $sigma$ is
+admissible in $sigma'$, its sequent is derivable at the history of $sigma'$
+and scoped below its bounds. Hence it is valid in every local model of that
+history.
+
+*Proof.* Induct on the steps. An extension step introduces only ids at or above
+the bounds, which the sequent does not mention, so the sequent is in the old
+language of the step and the history rule `weaken` applies. An allocation step
+leaves the history unchanged. Bounds only grow.]
+
+#lean-proof("KernelState", ("KReach.lift", "KThm.sound_at"))
+
+The extension steps produce theorem objects from gates whose new ids are at the
+bounds; freshness follows from the invariant that every id of a history lies
+below its bounds (`KState.WF`). Witnesses of specifications and type
+definitions may come from any older state in which they are admissible.
+
+#lean-def("KernelState", ("KThm.ofDefinition", "KThm.ofSpecification", "KThm.ofTypeDef"))
+
+The executable kernel does not compare histories; it compares interned lineage
+nodes. The design obligation on that representation is that a lineage
+comparison implies reachability of the states (`LineageCode.sound`). Equal
+lineage values must therefore belong to states reachable from each other:
+identical sibling histories may share a node, but different extensions of one
+parent may not. Building nodes from non-injective event printouts violated this
+(issue \#70); events are now built from injective encodings. That the MoonBit
+lineage satisfies the obligation, and that its theorem objects are scoped as
+above, belongs to the refinement (`REFINEMENT-001`). Name resolution and scopes
+are not part of this model: states are identified by histories and id bounds.
+
+#lean-proof("KernelState", ("LineageCode.admissible",))
+
 = Substitution and Alpha-Equivalence
 
 == Type Substitution

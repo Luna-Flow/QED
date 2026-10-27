@@ -3243,6 +3243,7 @@ msgstr ""
 #: manual/conformance.md:226
 #: manual/conformance.md:228
 #: manual/conformance.md:229
+#: manual/conformance.md:231
 msgid "proved-abstractly"
 msgstr ""
 
@@ -3315,7 +3316,6 @@ msgstr ""
 
 #: manual/conformance.md:228
 #: manual/conformance.md:230
-#: manual/conformance.md:231
 #: manual/conformance.md:232
 msgid "not-applicable"
 msgstr ""
@@ -3398,7 +3398,6 @@ msgstr ""
 #: manual/conformance.md:294
 #: manual/conformance.md:306
 #: manual/conformance.md:330
-#: manual/conformance.md:354
 #: manual/conformance.md:366
 #: manual/conformance.md:378
 msgid "Assumptions: -"
@@ -3558,7 +3557,6 @@ msgid "MoonBit API: `src/kernel/pkg.generated.mbti`, `src/kernel/thm.mbt`, `src/
 msgstr ""
 
 #: manual/conformance.md:339
-#: manual/conformance.md:351
 #: manual/conformance.md:363
 #: manual/conformance.md:375
 msgid "Lean: -"
@@ -3584,16 +3582,24 @@ msgstr ""
 msgid "Specification: `doc/attachments/qed_formal_spec.typ::Stability Theorem for Scope Mutation`"
 msgstr ""
 
+#: manual/conformance.md:351
+msgid "Lean: `formal_verification/QEDFV/HOL/KernelState.lean::KReach.lift`, `formal_verification/QEDFV/HOL/KernelState.lean::KThm.sound_at`, `formal_verification/QEDFV/HOL/KernelState.lean::LineageCode.admissible`"
+msgstr ""
+
 #: manual/conformance.md:352
-msgid "Verification: Deterministic adversarial regression corpus"
+msgid "Verification: Lean model of kernel states, theorem objects and lineage (KernelState.lean); Deterministic adversarial regression corpus"
 msgstr ""
 
 #: manual/conformance.md:353
-msgid "Evidence: `src/kernel/kernel_audit_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`, `src/kernel/kernel_immutability_test.mbt`"
+msgid "Evidence: `formal_verification/QEDFV/HOL/KernelState.lean`, `src/kernel/kernel_audit_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`, `src/kernel/kernel_immutability_test.mbt`"
+msgstr ""
+
+#: manual/conformance.md:354
+msgid "Assumptions: Constant and type-constructor ids are allocated from monotone counters, so a theorem of a state mentions only ids below its bounds and later steps introduce only ids at or above them (KState.Scoped, KStep).; The kernel's lineage comparison implies reachability of the states (LineageCode.sound)."
 msgstr ""
 
 #: manual/conformance.md:355
-msgid "Exclusions: Formalization does not model MoonBit state lineage."
+msgid "Exclusions: The Lean model does not prove that the MoonBit lineage nodes satisfy LineageCode.sound or that MoonBit theorem objects are scoped; that is part of REFINEMENT-001.; Name resolution and scopes are not modelled; states are identified by histories and id bounds."
 msgstr ""
 
 #: manual/conformance.md:361

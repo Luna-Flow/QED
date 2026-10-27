@@ -10,6 +10,7 @@ import QEDFV.HOL.TdAll
 import QEDFV.HOL.TdGood
 import QEDFV.HOL.ConnectiveExamples
 import QEDFV.HOL.SpecErasure
+import QEDFV.HOL.KernelState
 
 /-! Reproducible foundation audit for the public Typed HOL core results. -/
 
@@ -97,3 +98,6 @@ import QEDFV.HOL.SpecErasure
 #print axioms QEDFV.HOL.unit_laws_valid
 #print axioms QEDFV.HOL.unit_old_language_valid
 #print axioms QEDFV.HOL.unit_model_nontrivial
+#print axioms QEDFV.HOL.KReach.lift
+#print axioms QEDFV.HOL.KThm.sound_at
+#print axioms QEDFV.HOL.LineageCode.admissible

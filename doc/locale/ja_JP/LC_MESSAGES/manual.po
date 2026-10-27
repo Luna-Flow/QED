@@ -3253,6 +3253,7 @@ msgstr "HOL の型、型コンストラクタ、空でない台集合、型の�
 #: manual/conformance.md:226
 #: manual/conformance.md:228
 #: manual/conformance.md:229
+#: manual/conformance.md:231
 msgid "proved-abstractly"
 msgstr "proved-abstractly"
 
@@ -3325,7 +3326,6 @@ msgstr "有限の宣言表は新しい定数の割り当てを記録し、固定
 
 #: manual/conformance.md:228
 #: manual/conformance.md:230
-#: manual/conformance.md:231
 #: manual/conformance.md:232
 msgid "not-applicable"
 msgstr "not-applicable"
@@ -3408,7 +3408,6 @@ msgstr "根拠：`formal_verification/QEDFV/HOL/Evaluation.lean`, `src/kernel/ke
 #: manual/conformance.md:294
 #: manual/conformance.md:306
 #: manual/conformance.md:330
-#: manual/conformance.md:354
 #: manual/conformance.md:366
 #: manual/conformance.md:378
 msgid "Assumptions: -"
@@ -3568,7 +3567,6 @@ msgid "MoonBit API: `src/kernel/pkg.generated.mbti`, `src/kernel/thm.mbt`, `src/
 msgstr "MoonBit API：`src/kernel/pkg.generated.mbti`, `src/kernel/thm.mbt`, `src/kernel/sig.mbt`"
 
 #: manual/conformance.md:339
-#: manual/conformance.md:351
 #: manual/conformance.md:363
 #: manual/conformance.md:375
 msgid "Lean: -"
@@ -3594,17 +3592,25 @@ msgstr "除外：独立した証明チェッカーはまだ出荷されていな
 msgid "Specification: `doc/attachments/qed_formal_spec.typ::Stability Theorem for Scope Mutation`"
 msgstr "仕様：`doc/attachments/qed_formal_spec.typ::Stability Theorem for Scope Mutation`"
 
+#: manual/conformance.md:351
+msgid "Lean: `formal_verification/QEDFV/HOL/KernelState.lean::KReach.lift`, `formal_verification/QEDFV/HOL/KernelState.lean::KThm.sound_at`, `formal_verification/QEDFV/HOL/KernelState.lean::LineageCode.admissible`"
+msgstr "Lean: `formal_verification/QEDFV/HOL/KernelState.lean::KReach.lift`, `formal_verification/QEDFV/HOL/KernelState.lean::KThm.sound_at`, `formal_verification/QEDFV/HOL/KernelState.lean::LineageCode.admissible`"
+
 #: manual/conformance.md:352
-msgid "Verification: Deterministic adversarial regression corpus"
-msgstr "検証：決定的な敵対的回帰コーパス"
+msgid "Verification: Lean model of kernel states, theorem objects and lineage (KernelState.lean); Deterministic adversarial regression corpus"
+msgstr "検証：カーネルの状態、定理オブジェクト、系譜の Lean モデル（KernelState.lean）、決定的な敵対的回帰コーパス"
 
 #: manual/conformance.md:353
-msgid "Evidence: `src/kernel/kernel_audit_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`, `src/kernel/kernel_immutability_test.mbt`"
-msgstr "根拠：`src/kernel/kernel_audit_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`, `src/kernel/kernel_immutability_test.mbt`"
+msgid "Evidence: `formal_verification/QEDFV/HOL/KernelState.lean`, `src/kernel/kernel_audit_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`, `src/kernel/kernel_immutability_test.mbt`"
+msgstr "根拠：`formal_verification/QEDFV/HOL/KernelState.lean`, `src/kernel/kernel_audit_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`, `src/kernel/kernel_immutability_test.mbt`"
+
+#: manual/conformance.md:354
+msgid "Assumptions: Constant and type-constructor ids are allocated from monotone counters, so a theorem of a state mentions only ids below its bounds and later steps introduce only ids at or above them (KState.Scoped, KStep).; The kernel's lineage comparison implies reachability of the states (LineageCode.sound)."
+msgstr "仮定：定数と型コンストラクタの id は単調なカウンタから割り当てられるため、ある状態の定理はその上限未満の id のみに言及し、後続のステップは上限以上の id のみを導入する（KState.Scoped、KStep）。；カーネルの系譜比較は状態間の到達可能性を含意する（LineageCode.sound）。"
 
 #: manual/conformance.md:355
-msgid "Exclusions: Formalization does not model MoonBit state lineage."
-msgstr "除外：形式化は MoonBit の状態の系統をモデル化しない。"
+msgid "Exclusions: The Lean model does not prove that the MoonBit lineage nodes satisfy LineageCode.sound or that MoonBit theorem objects are scoped; that is part of REFINEMENT-001.; Name resolution and scopes are not modelled; states are identified by histories and id bounds."
+msgstr "除外：Lean モデルは MoonBit の系譜ノードが LineageCode.sound を満たすことも、MoonBit の定理オブジェクトがスコープ条件を満たすことも証明しない。これは REFINEMENT-001 の一部である。；名前解決とスコープはモデル化しない。状態は履歴と id の上限で識別される。"
 
 #: manual/conformance.md:361
 msgid "Specification: `doc/attachments/qed_formal_spec.typ::Elaboration and Core Typing Judgments`"
@@ -8754,6 +8760,12 @@ msgstr "[tactics 設計](../design/tactics.md)は、正当化と、不正なス�
 #: manual/tutorial/tactics.md:179
 msgid "The [prover tutorial](prover.md) runs the same proofs from scripts."
 msgstr "[prover チュートリアル](prover.md)は、同じ証明をスクリプトから実行する。"
+
+#~ msgid "Verification: Deterministic adversarial regression corpus"
+#~ msgstr "検証：決定的な敵対的回帰コーパス"
+
+#~ msgid "Exclusions: Formalization does not model MoonBit state lineage."
+#~ msgstr "除外：形式化は MoonBit の状態の系統をモデル化しない。"
 
 #~ msgid "Exclusions: Type-definition erasure is not proved.; Lean does not certify the MoonBit kernel."
 #~ msgstr "除外：型定義の消去は未証明。Lean は MoonBit カーネルを認証しない。"

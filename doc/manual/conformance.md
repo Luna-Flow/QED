@@ -171,7 +171,7 @@ Total: **12**; complete: **0**; not applicable: **0**; open: **12**.
 
 | Dimension | proved and refined | proved abstractly | tested only | implemented unverified | partial | not implemented | known deviation | not applicable |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| lean | 0 | 7 | 0 | 0 | 1 | 1 | 0 | 3 |
+| lean | 0 | 8 | 0 | 0 | 1 | 1 | 0 | 2 |
 | moonbit | 0 | 0 | 4 | 6 | 1 | 1 | 0 | 0 |
 | refinement | 0 | 0 | 0 | 0 | 0 | 12 | 0 | 0 |
 | tests | 0 | 0 | 10 | 0 | 0 | 1 | 0 | 1 |
@@ -228,7 +228,7 @@ Total: **12**; complete: **0**; not applicable: **0**; open: **12**.
 | `HOL-GROW-001` | theory-extension | required | high | A finite declaration table records fresh constant allocation and preserves compatibility with the fixed total signature; old declarations remain available after a fresh allocation. | proved-abstractly | partial | not-implemented | not-applicable | [#17](https://github.com/Luna-Flow/QED/issues/17) |
 | `HOL-INFINITY-001` | axiom-admission | required | high | The executable infinity registration is an audit marker; the canonical object-language infinity sentence is established by the Lean rule, not by the MoonBit gate. | proved-abstractly | tested-only | not-implemented | tested-only | [#7](https://github.com/Luna-Flow/QED/issues/7) |
 | `KERNEL-BOUNDARY-001` | trusted-kernel | required | critical | Only checked kernel constructors and extension gates can produce theorem objects; frontend code cannot forge them. | not-applicable | implemented-unverified | not-implemented | tested-only | [#17](https://github.com/Luna-Flow/QED/issues/17) |
-| `KERNEL-PROVENANCE-001` | trusted-kernel | required | critical | A theorem is admissible only in a compatible declaration lineage; divergent sibling histories cannot exchange theorem evidence. | not-applicable | tested-only | not-implemented | tested-only | [#15](https://github.com/Luna-Flow/QED/issues/15), [#22](https://github.com/Luna-Flow/QED/issues/22) |
+| `KERNEL-PROVENANCE-001` | trusted-kernel | required | critical | A theorem is admissible only in a compatible declaration lineage; divergent sibling histories cannot exchange theorem evidence. | proved-abstractly | tested-only | not-implemented | tested-only | [#15](https://github.com/Luna-Flow/QED/issues/15), [#22](https://github.com/Luna-Flow/QED/issues/22), [#69](https://github.com/Luna-Flow/QED/issues/69), [#70](https://github.com/Luna-Flow/QED/issues/70) |
 | `FRONTEND-LOWERING-001` | frontend-boundary | required | high | Parsing and elaboration preserve the proposition and resolved constant identity supplied to the kernel, or fail closed. | not-applicable | tested-only | not-implemented | tested-only | [#3](https://github.com/Luna-Flow/QED/issues/3), [#4](https://github.com/Luna-Flow/QED/issues/4), [#5](https://github.com/Luna-Flow/QED/issues/5), [#6](https://github.com/Luna-Flow/QED/issues/6) |
 | `REFINEMENT-001` | implementation-correspondence | required | critical | MoonBit types, terms, theorem objects, state transitions, and theorem constructors are connected to the Typed HOL calculus by a checked refinement or proof-producing translation. | not-implemented | implemented-unverified | not-implemented | tested-only | [#17](https://github.com/Luna-Flow/QED/issues/17) |
 
@@ -348,11 +348,11 @@ A theorem is admissible only in a compatible declaration lineage; divergent sibl
 
 - Specification: `doc/attachments/qed_formal_spec.typ::Stability Theorem for Scope Mutation`
 - MoonBit API: `src/kernel/sig.mbt`, `src/kernel/thm.mbt`
-- Lean: -
-- Verification: Deterministic adversarial regression corpus
-- Evidence: `src/kernel/kernel_audit_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`, `src/kernel/kernel_immutability_test.mbt`
-- Assumptions: -
-- Exclusions: Formalization does not model MoonBit state lineage.
+- Lean: `formal_verification/QEDFV/HOL/KernelState.lean::KReach.lift`, `formal_verification/QEDFV/HOL/KernelState.lean::KThm.sound_at`, `formal_verification/QEDFV/HOL/KernelState.lean::LineageCode.admissible`
+- Verification: Lean model of kernel states, theorem objects and lineage (KernelState.lean); Deterministic adversarial regression corpus
+- Evidence: `formal_verification/QEDFV/HOL/KernelState.lean`, `src/kernel/kernel_audit_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`, `src/kernel/kernel_immutability_test.mbt`
+- Assumptions: Constant and type-constructor ids are allocated from monotone counters, so a theorem of a state mentions only ids below its bounds and later steps introduce only ids at or above them (KState.Scoped, KStep).; The kernel's lineage comparison implies reachability of the states (LineageCode.sound).
+- Exclusions: The Lean model does not prove that the MoonBit lineage nodes satisfy LineageCode.sound or that MoonBit theorem objects are scoped; that is part of REFINEMENT-001.; Name resolution and scopes are not modelled; states are identified by histories and id bounds.
 
 #### `FRONTEND-LOWERING-001`
 
