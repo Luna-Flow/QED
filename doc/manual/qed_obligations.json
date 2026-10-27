@@ -480,7 +480,8 @@
         "formal_verification/QEDFV/HOL/KernelState.lean",
         "src/kernel/kernel_audit_test.mbt",
         "src/kernel/kernel_thm_wbtest.mbt",
-        "src/kernel/kernel_immutability_test.mbt"
+        "src/kernel/kernel_immutability_test.mbt",
+        "src/logic/lineage_identity_test.mbt"
       ],
       "status": {
         "lean": "proved-abstractly",

@@ -350,7 +350,7 @@ A theorem is admissible only in a compatible declaration lineage; divergent sibl
 - MoonBit API: `src/kernel/sig.mbt`, `src/kernel/thm.mbt`
 - Lean: `formal_verification/QEDFV/HOL/KernelState.lean::KReach.lift`, `formal_verification/QEDFV/HOL/KernelState.lean::KThm.sound_at`, `formal_verification/QEDFV/HOL/KernelState.lean::LineageCode.admissible`
 - Verification: Lean model of kernel states, theorem objects and lineage (KernelState.lean); Deterministic adversarial regression corpus
-- Evidence: `formal_verification/QEDFV/HOL/KernelState.lean`, `src/kernel/kernel_audit_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`, `src/kernel/kernel_immutability_test.mbt`
+- Evidence: `formal_verification/QEDFV/HOL/KernelState.lean`, `src/kernel/kernel_audit_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`, `src/kernel/kernel_immutability_test.mbt`, `src/logic/lineage_identity_test.mbt`
 - Assumptions: Constant and type-constructor ids are allocated from monotone counters, so a theorem of a state mentions only ids below its bounds and later steps introduce only ids at or above them (KState.Scoped, KStep).; The kernel's lineage comparison implies reachability of the states (LineageCode.sound).
 - Exclusions: The Lean model does not prove that the MoonBit lineage nodes satisfy LineageCode.sound or that MoonBit theorem objects are scoped; that is part of REFINEMENT-001.; Name resolution and scopes are not modelled; states are identified by histories and id bounds.
 

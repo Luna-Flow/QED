@@ -3601,8 +3601,8 @@ msgid "Verification: Lean model of kernel states, theorem objects and lineage (K
 msgstr "検証：カーネルの状態、定理オブジェクト、系譜の Lean モデル（KernelState.lean）、決定的な敵対的回帰コーパス"
 
 #: manual/conformance.md:353
-msgid "Evidence: `formal_verification/QEDFV/HOL/KernelState.lean`, `src/kernel/kernel_audit_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`, `src/kernel/kernel_immutability_test.mbt`"
-msgstr "根拠：`formal_verification/QEDFV/HOL/KernelState.lean`, `src/kernel/kernel_audit_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`, `src/kernel/kernel_immutability_test.mbt`"
+msgid "Evidence: `formal_verification/QEDFV/HOL/KernelState.lean`, `src/kernel/kernel_audit_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`, `src/kernel/kernel_immutability_test.mbt`, `src/logic/lineage_identity_test.mbt`"
+msgstr "根拠：`formal_verification/QEDFV/HOL/KernelState.lean`, `src/kernel/kernel_audit_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`, `src/kernel/kernel_immutability_test.mbt`, `src/logic/lineage_identity_test.mbt`"
 
 #: manual/conformance.md:354
 msgid "Assumptions: Constant and type-constructor ids are allocated from monotone counters, so a theorem of a state mentions only ids below its bounds and later steps introduce only ids at or above them (KState.Scoped, KStep).; The kernel's lineage comparison implies reachability of the states (LineageCode.sound)."

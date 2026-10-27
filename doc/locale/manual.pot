@@ -3591,7 +3591,7 @@ msgid "Verification: Lean model of kernel states, theorem objects and lineage (K
 msgstr ""
 
 #: manual/conformance.md:353
-msgid "Evidence: `formal_verification/QEDFV/HOL/KernelState.lean`, `src/kernel/kernel_audit_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`, `src/kernel/kernel_immutability_test.mbt`"
+msgid "Evidence: `formal_verification/QEDFV/HOL/KernelState.lean`, `src/kernel/kernel_audit_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`, `src/kernel/kernel_immutability_test.mbt`, `src/logic/lineage_identity_test.mbt`"
 msgstr ""
 
 #: manual/conformance.md:354
