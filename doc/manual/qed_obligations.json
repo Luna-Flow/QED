@@ -603,11 +603,14 @@
       ],
       "lean": [],
       "verification": [
-        "Not yet implemented"
+        "Lean-derived MoonBit conformance tests: every Derivation constructor has tests of its conclusion, hypotheses and premises, or a recorded reason it is not implemented (tools/qed_lean_conformance.py)"
       ],
       "evidence": [
         "research/qed-verification/2026-10-14-initial-audit.md",
-        "formal_verification/theory-proof-plan.md"
+        "formal_verification/theory-proof-plan.md",
+        "tools/qed_lean_conformance.py",
+        "src/kernel/lean_derivation_conformance_test.mbt",
+        "src/logic/lean_connective_conformance_test.mbt"
       ],
       "status": {
         "lean": "not-implemented",
@@ -620,7 +623,8 @@
       ],
       "assumptions": [],
       "exclusions": [
-        "Passing MoonBit and Lean builds is not refinement evidence."
+        "Passing MoonBit and Lean builds is not refinement evidence.",
+        "Conformance tests constrain the implementation on chosen inputs; they are not a refinement proof."
       ]
     }
   ]
