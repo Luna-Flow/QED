@@ -449,8 +449,15 @@ pub fn logic_prop_imp_intro_thm(
     Ok(v) => v
     Err(e) => return Err(e)
   }
-  if !has_hyp {
-    return Err(logic_bool_type_mismatch())
+  // Like Lean `Derivation.impIntro` and HOL Light `DISCH`, the antecedent need
+  // not be a hypothesis: `Γ ⊢ q` gives `Γ ⊢ p ⇒ q` by adding p first.
+  let th_body = if has_hyp {
+    th_body
+  } else {
+    match logic_add_assum(state, antecedent, th_body) {
+      Ok(v) => v
+      Err(e) => return Err(e)
+    }
   }
   let th_p = match logic_assume(state, antecedent) {
     Ok(v) => v
