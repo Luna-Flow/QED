@@ -39,6 +39,11 @@ class LeanConformanceTests(unittest.TestCase):
     def test_theorems_include_attributes_and_skip_comments(self):
         self.assertEqual(theorems(LEAN), {"t", "Ty.subst_id"})
 
+    def test_theorems_are_qualified_by_namespaces_below_the_root(self):
+        source = ("namespace QEDFV.HOL\nnamespace T\ntheorem a : True := trivial\nend T\n"
+                  "theorem b : True := trivial\nend QEDFV.HOL\n")
+        self.assertEqual(theorems(source), {"T.a", "b"})
+
     def test_test_names_are_collected(self):
         found = tested(['test "D.a: x" {\n}\n', 'async test "D.b: y" {}',
                         'test "Ty.IsInst.refl: z" {}', 'test "other: w" {}'])
