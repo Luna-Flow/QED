@@ -3388,8 +3388,8 @@ msgid "Verification: Lean theorem; MoonBit tests"
 msgstr "検証：Lean の定理、MoonBit のテスト"
 
 #: manual/conformance.md:247
-msgid "Evidence: `formal_verification/QEDFV/HOL/Types.lean`, `src/kernel/kernel_types_test.mbt`"
-msgstr "根拠：`formal_verification/QEDFV/HOL/Types.lean`, `src/kernel/kernel_types_test.mbt`"
+msgid "Evidence: `formal_verification/QEDFV/HOL/Types.lean`, `src/kernel/kernel_types_test.mbt`, `src/kernel/lean_term_laws_test.mbt`"
+msgstr "根拠：`formal_verification/QEDFV/HOL/Types.lean`, `src/kernel/kernel_types_test.mbt`, `src/kernel/lean_term_laws_test.mbt`"
 
 #: manual/conformance.md:248
 msgid "Assumptions: The fixed total signature and admissible constructor interpretation are explicit Lean parameters."
@@ -3416,8 +3416,8 @@ msgid "Verification: Lean theorem; MoonBit regression tests"
 msgstr "検証：Lean の定理、MoonBit の回帰テスト"
 
 #: manual/conformance.md:259
-msgid "Evidence: `formal_verification/QEDFV/HOL/Evaluation.lean`, `src/kernel/kernel_terms_test.mbt`"
-msgstr "根拠：`formal_verification/QEDFV/HOL/Evaluation.lean`, `src/kernel/kernel_terms_test.mbt`"
+msgid "Evidence: `formal_verification/QEDFV/HOL/Evaluation.lean`, `src/kernel/kernel_terms_test.mbt`, `src/kernel/lean_term_laws_test.mbt`"
+msgstr "根拠：`formal_verification/QEDFV/HOL/Evaluation.lean`, `src/kernel/kernel_terms_test.mbt`, `src/kernel/lean_term_laws_test.mbt`"
 
 #: manual/conformance.md:260
 #: manual/conformance.md:272
@@ -3451,8 +3451,8 @@ msgid "Verification: Lean induction; MoonBit kernel tests"
 msgstr "検証：Lean の帰納法、MoonBit のカーネルテスト"
 
 #: manual/conformance.md:271
-msgid "Evidence: `formal_verification/QEDFV/HOL/Derivation.lean`, `src/kernel/kernel_thm_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`, `formal_verification/QEDFV/HOL/ConnectiveRules.lean`"
-msgstr "証拠：`formal_verification/QEDFV/HOL/Derivation.lean`, `src/kernel/kernel_thm_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`, `formal_verification/QEDFV/HOL/ConnectiveRules.lean`"
+msgid "Evidence: `formal_verification/QEDFV/HOL/Derivation.lean`, `src/kernel/kernel_thm_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`, `formal_verification/QEDFV/HOL/ConnectiveRules.lean`, `src/kernel/lean_derivation_conformance_test.mbt`, `src/logic/lean_connective_conformance_test.mbt`"
+msgstr "証拠：`formal_verification/QEDFV/HOL/Derivation.lean`, `src/kernel/kernel_thm_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`, `formal_verification/QEDFV/HOL/ConnectiveRules.lean`, `src/kernel/lean_derivation_conformance_test.mbt`, `src/logic/lean_connective_conformance_test.mbt`"
 
 #: manual/conformance.md:273
 msgid "Exclusions: The Lean derivation constructors are not a source-level refinement of MoonBit constructors."
@@ -3682,12 +3682,12 @@ msgid "MoonBit API: `src/kernel/types.mbt`, `src/kernel/terms.mbt`, `src/kernel/
 msgstr "MoonBit API：`src/kernel/types.mbt`, `src/kernel/terms.mbt`, `src/kernel/thm.mbt`, `src/kernel/sig.mbt`"
 
 #: manual/conformance.md:390
-msgid "Verification: Lean-derived MoonBit conformance tests: every Derivation constructor has tests of its conclusion, hypotheses and premises, or a recorded reason it is not implemented (tools/qed_lean_conformance.py)"
-msgstr "検証：Lean から導いた MoonBit 適合テスト：Derivation の各コンストラクタについて、結論・仮定・前提を確かめるテストがあるか、未実装の理由が記録されている（tools/qed_lean_conformance.py）"
+msgid "Verification: Lean-derived MoonBit conformance tests: every Derivation constructor and every tracked type and term law has tests named after it, or a recorded reason it is not implemented (tools/qed_lean_conformance.py)"
+msgstr "検証：Lean から導いた MoonBit 適合テスト：Derivation の各コンストラクタと、登録した型・項の各法則について、その名前を付けたテストがあるか、未実装の理由が記録されている（tools/qed_lean_conformance.py）"
 
 #: manual/conformance.md:391
-msgid "Evidence: `research/qed-verification/2026-10-14-initial-audit.md`, `formal_verification/theory-proof-plan.md`, `tools/qed_lean_conformance.py`, `src/kernel/lean_derivation_conformance_test.mbt`, `src/logic/lean_connective_conformance_test.mbt`"
-msgstr "根拠：`research/qed-verification/2026-10-14-initial-audit.md`、`formal_verification/theory-proof-plan.md`、`tools/qed_lean_conformance.py`、`src/kernel/lean_derivation_conformance_test.mbt`、`src/logic/lean_connective_conformance_test.mbt`"
+msgid "Evidence: `research/qed-verification/2026-10-14-initial-audit.md`, `formal_verification/theory-proof-plan.md`, `tools/qed_lean_conformance.py`, `src/kernel/lean_derivation_conformance_test.mbt`, `src/logic/lean_connective_conformance_test.mbt`, `src/kernel/lean_term_laws_test.mbt`"
+msgstr "根拠：`research/qed-verification/2026-10-14-initial-audit.md`, `formal_verification/theory-proof-plan.md`, `tools/qed_lean_conformance.py`, `src/kernel/lean_derivation_conformance_test.mbt`, `src/logic/lean_connective_conformance_test.mbt`, `src/kernel/lean_term_laws_test.mbt`"
 
 #: manual/conformance.md:393
 msgid "Exclusions: Passing MoonBit and Lean builds is not refinement evidence.; Conformance tests constrain the implementation on chosen inputs; they are not a refinement proof."

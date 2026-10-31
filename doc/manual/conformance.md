@@ -244,7 +244,7 @@ HOL types, type constructors, non-empty carriers, and type substitution are well
 - MoonBit API: `src/kernel/types.mbt`
 - Lean: `formal_verification/QEDFV/HOL/Types.lean::Ty.carrier_nonempty`
 - Verification: Lean theorem; MoonBit tests
-- Evidence: `formal_verification/QEDFV/HOL/Types.lean`, `src/kernel/kernel_types_test.mbt`
+- Evidence: `formal_verification/QEDFV/HOL/Types.lean`, `src/kernel/kernel_types_test.mbt`, `src/kernel/lean_term_laws_test.mbt`
 - Assumptions: The fixed total signature and admissible constructor interpretation are explicit Lean parameters.
 - Exclusions: No MoonBit-to-Lean refinement theorem exists.
 
@@ -256,7 +256,7 @@ Typed terms, alpha-equivalence, capture-avoiding substitution, beta evaluation, 
 - MoonBit API: `src/kernel/terms.mbt`
 - Lean: `formal_verification/QEDFV/HOL/Terms.lean::Term`, `formal_verification/QEDFV/HOL/Evaluation.lean::Term.eval_substitute`
 - Verification: Lean theorem; MoonBit regression tests
-- Evidence: `formal_verification/QEDFV/HOL/Evaluation.lean`, `src/kernel/kernel_terms_test.mbt`
+- Evidence: `formal_verification/QEDFV/HOL/Evaluation.lean`, `src/kernel/kernel_terms_test.mbt`, `src/kernel/lean_term_laws_test.mbt`
 - Assumptions: -
 - Exclusions: Frontend lowering is outside this proof.
 
@@ -268,7 +268,7 @@ Every primitive theorem rule preserves semantic validity under its stated side c
 - MoonBit API: `src/kernel/thm.mbt`
 - Lean: `formal_verification/QEDFV/HOL/Rules.lean::valid_refl`, `formal_verification/QEDFV/HOL/Derivation.lean::derivation_sound`, `formal_verification/QEDFV/HOL/ConnectiveRules.lean::valid_classical`
 - Verification: Lean induction; MoonBit kernel tests
-- Evidence: `formal_verification/QEDFV/HOL/Derivation.lean`, `src/kernel/kernel_thm_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`, `formal_verification/QEDFV/HOL/ConnectiveRules.lean`
+- Evidence: `formal_verification/QEDFV/HOL/Derivation.lean`, `src/kernel/kernel_thm_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`, `formal_verification/QEDFV/HOL/ConnectiveRules.lean`, `src/kernel/lean_derivation_conformance_test.mbt`, `src/logic/lean_connective_conformance_test.mbt`
 - Assumptions: -
 - Exclusions: The Lean derivation constructors are not a source-level refinement of MoonBit constructors.
 
@@ -387,8 +387,8 @@ MoonBit types, terms, theorem objects, state transitions, and theorem constructo
 - Specification: `doc/attachments/qed_formal_spec.typ::Engineering Correspondence`
 - MoonBit API: `src/kernel/types.mbt`, `src/kernel/terms.mbt`, `src/kernel/thm.mbt`, `src/kernel/sig.mbt`
 - Lean: -
-- Verification: Lean-derived MoonBit conformance tests: every Derivation constructor has tests of its conclusion, hypotheses and premises, or a recorded reason it is not implemented (tools/qed_lean_conformance.py)
-- Evidence: `research/qed-verification/2026-10-14-initial-audit.md`, `formal_verification/theory-proof-plan.md`, `tools/qed_lean_conformance.py`, `src/kernel/lean_derivation_conformance_test.mbt`, `src/logic/lean_connective_conformance_test.mbt`
+- Verification: Lean-derived MoonBit conformance tests: every Derivation constructor and every tracked type and term law has tests named after it, or a recorded reason it is not implemented (tools/qed_lean_conformance.py)
+- Evidence: `research/qed-verification/2026-10-14-initial-audit.md`, `formal_verification/theory-proof-plan.md`, `tools/qed_lean_conformance.py`, `src/kernel/lean_derivation_conformance_test.mbt`, `src/logic/lean_connective_conformance_test.mbt`, `src/kernel/lean_term_laws_test.mbt`
 - Assumptions: -
 - Exclusions: Passing MoonBit and Lean builds is not refinement evidence.; Conformance tests constrain the implementation on chosen inputs; they are not a refinement proof.
 
