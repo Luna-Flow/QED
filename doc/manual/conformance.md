@@ -174,7 +174,7 @@ Total: **13**; complete: **0**; not applicable: **0**; open: **13**.
 | lean | 0 | 9 | 0 | 0 | 1 | 1 | 0 | 2 |
 | moonbit | 0 | 0 | 4 | 7 | 1 | 1 | 0 | 0 |
 | refinement | 0 | 0 | 0 | 0 | 0 | 13 | 0 | 0 |
-| tests | 0 | 0 | 11 | 0 | 0 | 1 | 0 | 1 |
+| tests | 0 | 0 | 12 | 0 | 0 | 1 | 0 | 0 |
 
 ### Counts by Logical Subsystem
 
@@ -226,7 +226,7 @@ Total: **13**; complete: **0**; not applicable: **0**; open: **13**.
 | `HOL-EXT-001` | theory-extension | required | critical | Definition, specification, and type-definition extensions have their stated local semantic laws and preserve validity of old-language sequents. | proved-abstractly | implemented-unverified | not-implemented | tested-only | [#7](https://github.com/Luna-Flow/QED/issues/7), [#8](https://github.com/Luna-Flow/QED/issues/8), [#17](https://github.com/Luna-Flow/QED/issues/17) |
 | `HOL-EXT-002` | theory-extension | required | high | History-indexed derivations require extension witnesses at the preceding history and preserve old-language validity across supported histories. | proved-abstractly | tested-only | not-implemented | tested-only | [#15](https://github.com/Luna-Flow/QED/issues/15), [#22](https://github.com/Luna-Flow/QED/issues/22) |
 | `HOL-ERASE-001` | theory-extension | required | high | A derivation at a history that begins with a definition, a specification or a type definition yields a derivation at the preceding history in which every occurrence of the declared constant is replaced by its instantiated definition, by the choice term of its instantiated predicate, or (for a type definition) in which the defined type is translated to its representation type; sequents not mentioning the declared symbols are derivable unchanged. | partial | not-implemented | not-implemented | not-implemented | [#17](https://github.com/Luna-Flow/QED/issues/17), [#50](https://github.com/Luna-Flow/QED/issues/50) |
-| `HOL-GROW-001` | theory-extension | required | high | A finite declaration table records fresh constant allocation and preserves compatibility with the fixed total signature; old declarations remain available after a fresh allocation. | proved-abstractly | partial | not-implemented | not-applicable | [#17](https://github.com/Luna-Flow/QED/issues/17) |
+| `HOL-GROW-001` | theory-extension | required | high | A finite declaration table records fresh constant allocation and preserves compatibility with the fixed total signature; old declarations remain available after a fresh allocation. | proved-abstractly | partial | not-implemented | tested-only | [#17](https://github.com/Luna-Flow/QED/issues/17) |
 | `HOL-INFINITY-001` | axiom-admission | required | high | The executable infinity registration is an audit marker; the canonical object-language infinity sentence is established by the Lean rule, not by the MoonBit gate. | proved-abstractly | tested-only | not-implemented | tested-only | [#7](https://github.com/Luna-Flow/QED/issues/7) |
 | `KERNEL-BOUNDARY-001` | trusted-kernel | required | critical | Only checked kernel constructors and extension gates can produce theorem objects; frontend code cannot forge them. | not-applicable | implemented-unverified | not-implemented | tested-only | [#17](https://github.com/Luna-Flow/QED/issues/17) |
 | `KERNEL-PROVENANCE-001` | trusted-kernel | required | critical | A theorem is admissible only in a compatible declaration lineage; divergent sibling histories cannot exchange theorem evidence. | proved-abstractly | tested-only | not-implemented | tested-only | [#15](https://github.com/Luna-Flow/QED/issues/15), [#22](https://github.com/Luna-Flow/QED/issues/22), [#69](https://github.com/Luna-Flow/QED/issues/69), [#70](https://github.com/Luna-Flow/QED/issues/70) |
@@ -316,7 +316,7 @@ A finite declaration table records fresh constant allocation and preserves compa
 - MoonBit API: `src/kernel/sig.mbt`
 - Lean: `formal_verification/QEDFV/HOL/DeclarationAllocation.lean::DeclTable.compatible_add`, `formal_verification/QEDFV/HOL/DeclarationAllocationExamples.lean::trueTable2_compatible`
 - Verification: Lean finite-allocation lemmas; Concrete Rep/Abs allocation example
-- Evidence: `formal_verification/QEDFV/HOL/DeclarationAllocation.lean`, `formal_verification/QEDFV/HOL/DeclarationAllocationExamples.lean`
+- Evidence: `formal_verification/QEDFV/HOL/DeclarationAllocation.lean`, `formal_verification/QEDFV/HOL/DeclarationAllocationExamples.lean`, `src/kernel/lean_state_conformance_test.mbt`
 - Assumptions: The fixed total signature supplies the declared type slot.
 - Exclusions: This does not prove constructor allocation, growing-signature model transport, committed-equation preservation, or MoonBit refinement.
 
@@ -352,7 +352,7 @@ A theorem is admissible only in a compatible declaration lineage; divergent sibl
 - MoonBit API: `src/kernel/sig.mbt`, `src/kernel/thm.mbt`
 - Lean: `formal_verification/QEDFV/HOL/KernelState.lean::KReach.lift`, `formal_verification/QEDFV/HOL/KernelState.lean::KThm.sound_at`, `formal_verification/QEDFV/HOL/KernelState.lean::LineageCode.admissible`
 - Verification: Lean model of kernel states, theorem objects and lineage (KernelState.lean); Deterministic adversarial regression corpus
-- Evidence: `formal_verification/QEDFV/HOL/KernelState.lean`, `src/kernel/kernel_audit_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`, `src/kernel/kernel_immutability_test.mbt`, `src/logic/lineage_identity_test.mbt`
+- Evidence: `formal_verification/QEDFV/HOL/KernelState.lean`, `src/kernel/kernel_audit_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`, `src/kernel/kernel_immutability_test.mbt`, `src/logic/lineage_identity_test.mbt`, `src/kernel/lean_state_conformance_test.mbt`
 - Assumptions: Constant and type-constructor ids are allocated from monotone counters, so a theorem of a state mentions only ids below its bounds and later steps introduce only ids at or above them (KState.Scoped, KStep).; The kernel's lineage comparison implies reachability of the states (LineageCode.sound).
 - Exclusions: The Lean model does not prove that the MoonBit lineage nodes satisfy LineageCode.sound or that MoonBit theorem objects are scoped; that is part of REFINEMENT-001.; Name resolution and scopes are not modelled; states are identified by histories and id bounds.
 
@@ -364,7 +364,7 @@ Checked rules that compare constants by name rather than by identity stamp are s
 - MoonBit API: `src/kernel/thm.mbt`
 - Lean: `formal_verification/QEDFV/HOL/NameResolution.lean::Term.eq_of_named_eq`, `formal_verification/QEDFV/HOL/NameResolution.lean::Sequent.mem_hyps_of_named`
 - Verification: Lean injectivity of name comparison on resolved terms; Deterministic adversarial regression corpus
-- Evidence: `formal_verification/QEDFV/HOL/NameResolution.lean`, `src/kernel/kernel_sig_test.mbt`
+- Evidence: `formal_verification/QEDFV/HOL/NameResolution.lean`, `src/kernel/kernel_sig_test.mbt`, `src/kernel/lean_state_conformance_test.mbt`
 - Assumptions: Each constant id has one name, and a state's scopes map a name to at most one id (Term.Resolved).
 - Exclusions: That ensure_thm_admissible establishes Term.Resolved for every MoonBit theorem object is part of REFINEMENT-001.
 
@@ -387,8 +387,8 @@ MoonBit types, terms, theorem objects, state transitions, and theorem constructo
 - Specification: `doc/attachments/qed_formal_spec.typ::Engineering Correspondence`
 - MoonBit API: `src/kernel/types.mbt`, `src/kernel/terms.mbt`, `src/kernel/thm.mbt`, `src/kernel/sig.mbt`
 - Lean: -
-- Verification: Lean-derived MoonBit conformance tests: every Derivation and TypeDefLaw constructor, the extension steps of HistoryDerivation, every field of the three extension gates and every tracked type and term law has tests named after it, or a recorded reason it is not implemented (tools/qed_lean_conformance.py)
-- Evidence: `research/qed-verification/2026-10-14-initial-audit.md`, `formal_verification/theory-proof-plan.md`, `tools/qed_lean_conformance.py`, `src/kernel/lean_derivation_conformance_test.mbt`, `src/logic/lean_connective_conformance_test.mbt`, `src/kernel/lean_term_laws_test.mbt`, `src/kernel/lean_extension_conformance_test.mbt`
+- Verification: Lean-derived MoonBit conformance tests: every Derivation, TypeDefLaw and KStep constructor, the extension steps of HistoryDerivation, every field of the three extension gates, and every tracked law of types, terms, kernel states, lineage, name resolution and declaration tables has tests named after it, or a recorded reason it is not implemented (tools/qed_lean_conformance.py)
+- Evidence: `research/qed-verification/2026-10-14-initial-audit.md`, `formal_verification/theory-proof-plan.md`, `tools/qed_lean_conformance.py`, `src/kernel/lean_derivation_conformance_test.mbt`, `src/logic/lean_connective_conformance_test.mbt`, `src/kernel/lean_term_laws_test.mbt`, `src/kernel/lean_extension_conformance_test.mbt`, `src/kernel/lean_state_conformance_test.mbt`
 - Assumptions: -
 - Exclusions: Passing MoonBit and Lean builds is not refinement evidence.; Conformance tests constrain the implementation on chosen inputs; they are not a refinement proof.
 

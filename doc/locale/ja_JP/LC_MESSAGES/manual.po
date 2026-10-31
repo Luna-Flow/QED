@@ -3296,6 +3296,7 @@ msgstr "not-implemented"
 #: manual/conformance.md:225
 #: manual/conformance.md:226
 #: manual/conformance.md:227
+#: manual/conformance.md:229
 #: manual/conformance.md:230
 #: manual/conformance.md:231
 #: manual/conformance.md:232
@@ -3335,12 +3336,6 @@ msgstr "定義、仕様または型定義で始まる履歴上の導出から、
 msgid "A finite declaration table records fresh constant allocation and preserves compatibility with the fixed total signature; old declarations remain available after a fresh allocation."
 msgstr "有限の宣言表は新しい定数の割り当てを記録し、固定された全体シグネチャとの互換性を保つ。新たな割り当ての後も、古い宣言は引き続き利用できる。"
 
-#: manual/conformance.md:229
-#: manual/conformance.md:231
-#: manual/conformance.md:234
-msgid "not-applicable"
-msgstr "not-applicable"
-
 #: manual/conformance.md:230
 #: manual/conformance.md:325
 msgid "The executable infinity registration is an audit marker; the canonical object-language infinity sentence is established by the Lean rule, not by the MoonBit gate."
@@ -3350,6 +3345,11 @@ msgstr "実行可能な無限性の登録は監査用のマーカーである。
 #: manual/conformance.md:337
 msgid "Only checked kernel constructors and extension gates can produce theorem objects; frontend code cannot forge them."
 msgstr "定理オブジェクトを生成できるのは、検査済みのカーネルのコンストラクタと拡張ゲートだけであり、フロントエンドのコードはそれらを偽造できない。"
+
+#: manual/conformance.md:231
+#: manual/conformance.md:234
+msgid "not-applicable"
+msgstr "not-applicable"
 
 #: manual/conformance.md:232
 #: manual/conformance.md:349
@@ -3544,8 +3544,8 @@ msgid "Verification: Lean finite-allocation lemmas; Concrete Rep/Abs allocation 
 msgstr "検証：Lean の有限割り当て補題、具体的な Rep/Abs の割り当て例"
 
 #: manual/conformance.md:319
-msgid "Evidence: `formal_verification/QEDFV/HOL/DeclarationAllocation.lean`, `formal_verification/QEDFV/HOL/DeclarationAllocationExamples.lean`"
-msgstr "根拠：`formal_verification/QEDFV/HOL/DeclarationAllocation.lean`, `formal_verification/QEDFV/HOL/DeclarationAllocationExamples.lean`"
+msgid "Evidence: `formal_verification/QEDFV/HOL/DeclarationAllocation.lean`, `formal_verification/QEDFV/HOL/DeclarationAllocationExamples.lean`, `src/kernel/lean_state_conformance_test.mbt`"
+msgstr "根拠：`formal_verification/QEDFV/HOL/DeclarationAllocation.lean`, `formal_verification/QEDFV/HOL/DeclarationAllocationExamples.lean`, `src/kernel/lean_state_conformance_test.mbt`"
 
 #: manual/conformance.md:320
 msgid "Assumptions: The fixed total signature supplies the declared type slot."
@@ -3618,8 +3618,8 @@ msgid "Verification: Lean model of kernel states, theorem objects and lineage (K
 msgstr "検証：カーネルの状態、定理オブジェクト、系譜の Lean モデル（KernelState.lean）、決定的な敵対的回帰コーパス"
 
 #: manual/conformance.md:355
-msgid "Evidence: `formal_verification/QEDFV/HOL/KernelState.lean`, `src/kernel/kernel_audit_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`, `src/kernel/kernel_immutability_test.mbt`, `src/logic/lineage_identity_test.mbt`"
-msgstr "根拠：`formal_verification/QEDFV/HOL/KernelState.lean`, `src/kernel/kernel_audit_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`, `src/kernel/kernel_immutability_test.mbt`, `src/logic/lineage_identity_test.mbt`"
+msgid "Evidence: `formal_verification/QEDFV/HOL/KernelState.lean`, `src/kernel/kernel_audit_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`, `src/kernel/kernel_immutability_test.mbt`, `src/logic/lineage_identity_test.mbt`, `src/kernel/lean_state_conformance_test.mbt`"
+msgstr "根拠：`formal_verification/QEDFV/HOL/KernelState.lean`, `src/kernel/kernel_audit_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`, `src/kernel/kernel_immutability_test.mbt`, `src/logic/lineage_identity_test.mbt`, `src/kernel/lean_state_conformance_test.mbt`"
 
 #: manual/conformance.md:356
 msgid "Assumptions: Constant and type-constructor ids are allocated from monotone counters, so a theorem of a state mentions only ids below its bounds and later steps introduce only ids at or above them (KState.Scoped, KStep).; The kernel's lineage comparison implies reachability of the states (LineageCode.sound)."
@@ -3642,8 +3642,8 @@ msgid "Verification: Lean injectivity of name comparison on resolved terms; Dete
 msgstr "検証：解決済みの項における名前比較の単射性の Lean 証明、決定的な敵対的回帰コーパス"
 
 #: manual/conformance.md:367
-msgid "Evidence: `formal_verification/QEDFV/HOL/NameResolution.lean`, `src/kernel/kernel_sig_test.mbt`"
-msgstr "根拠：`formal_verification/QEDFV/HOL/NameResolution.lean`, `src/kernel/kernel_sig_test.mbt`"
+msgid "Evidence: `formal_verification/QEDFV/HOL/NameResolution.lean`, `src/kernel/kernel_sig_test.mbt`, `src/kernel/lean_state_conformance_test.mbt`"
+msgstr "根拠：`formal_verification/QEDFV/HOL/NameResolution.lean`, `src/kernel/kernel_sig_test.mbt`, `src/kernel/lean_state_conformance_test.mbt`"
 
 #: manual/conformance.md:368
 msgid "Assumptions: Each constant id has one name, and a state's scopes map a name to at most one id (Term.Resolved)."
@@ -3682,12 +3682,12 @@ msgid "MoonBit API: `src/kernel/types.mbt`, `src/kernel/terms.mbt`, `src/kernel/
 msgstr "MoonBit API：`src/kernel/types.mbt`, `src/kernel/terms.mbt`, `src/kernel/thm.mbt`, `src/kernel/sig.mbt`"
 
 #: manual/conformance.md:390
-msgid "Verification: Lean-derived MoonBit conformance tests: every Derivation and TypeDefLaw constructor, the extension steps of HistoryDerivation, every field of the three extension gates and every tracked type and term law has tests named after it, or a recorded reason it is not implemented (tools/qed_lean_conformance.py)"
-msgstr "検証：Lean から導いた MoonBit 適合テスト：Derivation と TypeDefLaw の各コンストラクタ、HistoryDerivation の拡張ステップ、三つの拡張ゲートの各フィールド、登録した型・項の各法則について、その名前を付けたテストがあるか、未実装の理由が記録されている（tools/qed_lean_conformance.py）"
+msgid "Verification: Lean-derived MoonBit conformance tests: every Derivation, TypeDefLaw and KStep constructor, the extension steps of HistoryDerivation, every field of the three extension gates, and every tracked law of types, terms, kernel states, lineage, name resolution and declaration tables has tests named after it, or a recorded reason it is not implemented (tools/qed_lean_conformance.py)"
+msgstr "検証：Lean から導いた MoonBit 適合テスト：Derivation・TypeDefLaw・KStep の各コンストラクタ、HistoryDerivation の拡張ステップ、三つの拡張ゲートの各フィールド、そして型・項・カーネル状態・系譜・名前解決・宣言表について登録した各法則に、その名前を付けたテストがあるか、未実装の理由が記録されている（tools/qed_lean_conformance.py）"
 
 #: manual/conformance.md:391
-msgid "Evidence: `research/qed-verification/2026-10-14-initial-audit.md`, `formal_verification/theory-proof-plan.md`, `tools/qed_lean_conformance.py`, `src/kernel/lean_derivation_conformance_test.mbt`, `src/logic/lean_connective_conformance_test.mbt`, `src/kernel/lean_term_laws_test.mbt`, `src/kernel/lean_extension_conformance_test.mbt`"
-msgstr "根拠：`research/qed-verification/2026-10-14-initial-audit.md`, `formal_verification/theory-proof-plan.md`, `tools/qed_lean_conformance.py`, `src/kernel/lean_derivation_conformance_test.mbt`, `src/logic/lean_connective_conformance_test.mbt`, `src/kernel/lean_term_laws_test.mbt`, `src/kernel/lean_extension_conformance_test.mbt`"
+msgid "Evidence: `research/qed-verification/2026-10-14-initial-audit.md`, `formal_verification/theory-proof-plan.md`, `tools/qed_lean_conformance.py`, `src/kernel/lean_derivation_conformance_test.mbt`, `src/logic/lean_connective_conformance_test.mbt`, `src/kernel/lean_term_laws_test.mbt`, `src/kernel/lean_extension_conformance_test.mbt`, `src/kernel/lean_state_conformance_test.mbt`"
+msgstr "根拠：`research/qed-verification/2026-10-14-initial-audit.md`, `formal_verification/theory-proof-plan.md`, `tools/qed_lean_conformance.py`, `src/kernel/lean_derivation_conformance_test.mbt`, `src/logic/lean_connective_conformance_test.mbt`, `src/kernel/lean_term_laws_test.mbt`, `src/kernel/lean_extension_conformance_test.mbt`, `src/kernel/lean_state_conformance_test.mbt`"
 
 #: manual/conformance.md:393
 msgid "Exclusions: Passing MoonBit and Lean builds is not refinement evidence.; Conformance tests constrain the implementation on chosen inputs; they are not a refinement proof."

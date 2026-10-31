@@ -37,6 +37,7 @@ TRACKED_INDUCTIVES: dict[str, tuple[str, ...] | None] = {
     # The extension steps and the lifting of older theorems; the other
     # constructors repeat the rules of `Derivation`.
     "HistoryDerivation": ("definition", "specification", "typedef", "weaken"),
+    "KStep": None,
 }
 
 TRACKED_STRUCTURES = ("DefinitionGate", "SpecificationGate", "TypeDefGate")
@@ -56,6 +57,14 @@ TRACKED_THEOREMS = (
     "Term.substitute_var",
     "Term.substitute_substitute",
     "Term.substitute_instType",
+    "KStep.bounds",
+    "KReach.lift",
+    "KState.WF.fresh",
+    "LineageCode.admissible",
+    "Term.eq_of_named_eq",
+    "Sequent.mem_hyps_of_named",
+    "DeclTable.old_declares_after_add",
+    "DeclTable.declared_type_unique",
 )
 
 NOT_IMPLEMENTED: dict[str, str] = {
@@ -76,7 +85,10 @@ DECLARATION = re.compile(
 )
 FIELD = re.compile(r"^  ([A-Za-z_][A-Za-z0-9_']*)\s*:", re.MULTILINE)
 CONSTRUCTOR = re.compile(r"^\s*\|\s*([A-Za-z_][A-Za-z0-9_']*)", re.MULTILINE)
-THEOREM = re.compile(r"^(?:@\[[^\]]*\]\s*)?(?:theorem|lemma)\s+([A-Za-z_][A-Za-z0-9_.']*)", re.MULTILINE)
+THEOREM = re.compile(r"^(?:@\[[^\]]*\]\s*)?(?:theorem|lemma)\s+([A-Za-z_][A-Za-z0-9_.']*)")
+NAMESPACE = re.compile(r"^namespace\s+(\S+)")
+END = re.compile(r"^end\s+(\S+)")
+ROOT_NAMESPACE = "QEDFV.HOL"
 # A test prefix that looks like a qualified Lean name: `Ty.subst_id:`.
 TEST_NAME = re.compile(r'^\s*(?:async\s+)?test\s+"([A-Z][A-Za-z0-9_\']*(?:\.[A-Za-z0-9_\']+)+):',
                        re.MULTILINE)
@@ -119,7 +131,20 @@ def declared_once(lean: dict[Path, str], keyword: str, name: str) -> str:
 
 
 def theorems(source: str) -> set[str]:
-    return set(THEOREM.findall(lean_source_without_comments_and_strings(source)))
+    """Theorem names, qualified by the namespaces opened below the root `QEDFV.HOL`."""
+    names: set[str] = set()
+    stack: list[str] = []
+    for line in lean_source_without_comments_and_strings(source).splitlines():
+        opened = NAMESPACE.match(line)
+        closed = END.match(line)
+        if opened:
+            stack.append(opened[1])
+        elif closed and stack and stack[-1] == closed[1]:
+            stack.pop()
+        elif theorem := THEOREM.match(line):
+            prefix = [part for part in stack if part != ROOT_NAMESPACE]
+            names.add(".".join(prefix + [theorem[1]]))
+    return names
 
 
 def tested(test_sources: list[str]) -> set[str]:

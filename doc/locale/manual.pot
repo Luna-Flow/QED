@@ -3286,6 +3286,7 @@ msgstr ""
 #: manual/conformance.md:225
 #: manual/conformance.md:226
 #: manual/conformance.md:227
+#: manual/conformance.md:229
 #: manual/conformance.md:230
 #: manual/conformance.md:231
 #: manual/conformance.md:232
@@ -3325,12 +3326,6 @@ msgstr ""
 msgid "A finite declaration table records fresh constant allocation and preserves compatibility with the fixed total signature; old declarations remain available after a fresh allocation."
 msgstr ""
 
-#: manual/conformance.md:229
-#: manual/conformance.md:231
-#: manual/conformance.md:234
-msgid "not-applicable"
-msgstr ""
-
 #: manual/conformance.md:230
 #: manual/conformance.md:325
 msgid "The executable infinity registration is an audit marker; the canonical object-language infinity sentence is established by the Lean rule, not by the MoonBit gate."
@@ -3339,6 +3334,11 @@ msgstr ""
 #: manual/conformance.md:231
 #: manual/conformance.md:337
 msgid "Only checked kernel constructors and extension gates can produce theorem objects; frontend code cannot forge them."
+msgstr ""
+
+#: manual/conformance.md:231
+#: manual/conformance.md:234
+msgid "not-applicable"
 msgstr ""
 
 #: manual/conformance.md:232
@@ -3534,7 +3534,7 @@ msgid "Verification: Lean finite-allocation lemmas; Concrete Rep/Abs allocation 
 msgstr ""
 
 #: manual/conformance.md:319
-msgid "Evidence: `formal_verification/QEDFV/HOL/DeclarationAllocation.lean`, `formal_verification/QEDFV/HOL/DeclarationAllocationExamples.lean`"
+msgid "Evidence: `formal_verification/QEDFV/HOL/DeclarationAllocation.lean`, `formal_verification/QEDFV/HOL/DeclarationAllocationExamples.lean`, `src/kernel/lean_state_conformance_test.mbt`"
 msgstr ""
 
 #: manual/conformance.md:320
@@ -3608,7 +3608,7 @@ msgid "Verification: Lean model of kernel states, theorem objects and lineage (K
 msgstr ""
 
 #: manual/conformance.md:355
-msgid "Evidence: `formal_verification/QEDFV/HOL/KernelState.lean`, `src/kernel/kernel_audit_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`, `src/kernel/kernel_immutability_test.mbt`, `src/logic/lineage_identity_test.mbt`"
+msgid "Evidence: `formal_verification/QEDFV/HOL/KernelState.lean`, `src/kernel/kernel_audit_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`, `src/kernel/kernel_immutability_test.mbt`, `src/logic/lineage_identity_test.mbt`, `src/kernel/lean_state_conformance_test.mbt`"
 msgstr ""
 
 #: manual/conformance.md:356
@@ -3632,7 +3632,7 @@ msgid "Verification: Lean injectivity of name comparison on resolved terms; Dete
 msgstr ""
 
 #: manual/conformance.md:367
-msgid "Evidence: `formal_verification/QEDFV/HOL/NameResolution.lean`, `src/kernel/kernel_sig_test.mbt`"
+msgid "Evidence: `formal_verification/QEDFV/HOL/NameResolution.lean`, `src/kernel/kernel_sig_test.mbt`, `src/kernel/lean_state_conformance_test.mbt`"
 msgstr ""
 
 #: manual/conformance.md:368
@@ -3672,11 +3672,11 @@ msgid "MoonBit API: `src/kernel/types.mbt`, `src/kernel/terms.mbt`, `src/kernel/
 msgstr ""
 
 #: manual/conformance.md:390
-msgid "Verification: Lean-derived MoonBit conformance tests: every Derivation and TypeDefLaw constructor, the extension steps of HistoryDerivation, every field of the three extension gates and every tracked type and term law has tests named after it, or a recorded reason it is not implemented (tools/qed_lean_conformance.py)"
+msgid "Verification: Lean-derived MoonBit conformance tests: every Derivation, TypeDefLaw and KStep constructor, the extension steps of HistoryDerivation, every field of the three extension gates, and every tracked law of types, terms, kernel states, lineage, name resolution and declaration tables has tests named after it, or a recorded reason it is not implemented (tools/qed_lean_conformance.py)"
 msgstr ""
 
 #: manual/conformance.md:391
-msgid "Evidence: `research/qed-verification/2026-10-14-initial-audit.md`, `formal_verification/theory-proof-plan.md`, `tools/qed_lean_conformance.py`, `src/kernel/lean_derivation_conformance_test.mbt`, `src/logic/lean_connective_conformance_test.mbt`, `src/kernel/lean_term_laws_test.mbt`, `src/kernel/lean_extension_conformance_test.mbt`"
+msgid "Evidence: `research/qed-verification/2026-10-14-initial-audit.md`, `formal_verification/theory-proof-plan.md`, `tools/qed_lean_conformance.py`, `src/kernel/lean_derivation_conformance_test.mbt`, `src/logic/lean_connective_conformance_test.mbt`, `src/kernel/lean_term_laws_test.mbt`, `src/kernel/lean_extension_conformance_test.mbt`, `src/kernel/lean_state_conformance_test.mbt`"
 msgstr ""
 
 #: manual/conformance.md:393
