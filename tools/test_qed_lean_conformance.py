@@ -46,8 +46,13 @@ class LeanConformanceTests(unittest.TestCase):
 
     def test_test_names_are_collected(self):
         found = tested(['test "D.a: x" {\n}\n', 'async test "D.b: y" {}',
-                        'test "Ty.IsInst.refl: z" {}', 'test "other: w" {}'])
-        self.assertEqual(found, {"D.a", "D.b", "Ty.IsInst.refl"})
+                        'test "Ty.IsInst.refl: z" {}', 'test "other: w" {}',
+                        'test "two words: v" {}'])
+        self.assertEqual(found, {"D.a", "D.b", "Ty.IsInst.refl", "other"})
+
+    def test_unqualified_untracked_labels_are_allowed(self):
+        self.assertEqual(check(["D.a", "law"], {"D.a", "law", "label"}, {}), [])
+        self.assertTrue(check(["D.a", "law"], {"D.a"}, {}))
 
     def test_complete_coverage_passes(self):
         self.assertEqual(check(["D.a", "D.b", "T.law"], {"D.a", "T.law"}, {"D.b": "why"}), [])

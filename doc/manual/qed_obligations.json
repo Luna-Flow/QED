@@ -125,7 +125,8 @@
       ],
       "verification": [
         "Lean induction",
-        "MoonBit kernel tests"
+        "MoonBit kernel tests",
+        "Randomized derivations with the checked primitive rules, each derived sequent checked valid by enumeration in the finite model over bool"
       ],
       "evidence": [
         "formal_verification/QEDFV/HOL/Derivation.lean",
@@ -133,7 +134,8 @@
         "src/kernel/kernel_thm_wbtest.mbt",
         "formal_verification/QEDFV/HOL/ConnectiveRules.lean",
         "src/kernel/lean_derivation_conformance_test.mbt",
-        "src/logic/lean_connective_conformance_test.mbt"
+        "src/logic/lean_connective_conformance_test.mbt",
+        "src/kernel/lean_soundness_fuzz_test.mbt"
       ],
       "status": {
         "lean": "proved-abstractly",
@@ -621,7 +623,8 @@
         "src/logic/lean_connective_conformance_test.mbt",
         "src/kernel/lean_term_laws_test.mbt",
         "src/kernel/lean_extension_conformance_test.mbt",
-        "src/kernel/lean_state_conformance_test.mbt"
+        "src/kernel/lean_state_conformance_test.mbt",
+        "src/kernel/lean_soundness_fuzz_test.mbt"
       ],
       "status": {
         "lean": "not-implemented",
