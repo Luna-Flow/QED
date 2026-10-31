@@ -387,10 +387,10 @@ MoonBit types, terms, theorem objects, state transitions, and theorem constructo
 - Specification: `doc/attachments/qed_formal_spec.typ::Engineering Correspondence`
 - MoonBit API: `src/kernel/types.mbt`, `src/kernel/terms.mbt`, `src/kernel/thm.mbt`, `src/kernel/sig.mbt`
 - Lean: -
-- Verification: Not yet implemented
-- Evidence: `research/qed-verification/2026-10-14-initial-audit.md`, `formal_verification/theory-proof-plan.md`
+- Verification: Lean-derived MoonBit conformance tests: every Derivation constructor has tests of its conclusion, hypotheses and premises, or a recorded reason it is not implemented (tools/qed_lean_conformance.py)
+- Evidence: `research/qed-verification/2026-10-14-initial-audit.md`, `formal_verification/theory-proof-plan.md`, `tools/qed_lean_conformance.py`, `src/kernel/lean_derivation_conformance_test.mbt`, `src/logic/lean_connective_conformance_test.mbt`
 - Assumptions: -
-- Exclusions: Passing MoonBit and Lean builds is not refinement evidence.
+- Exclusions: Passing MoonBit and Lean builds is not refinement evidence.; Conformance tests constrain the implementation on chosen inputs; they are not a refinement proof.
 
 <!-- END GENERATED OBLIGATION MATRIX -->
 

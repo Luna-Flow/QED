@@ -12,6 +12,8 @@ on:
       - 'tools/qed_formal_gate.py'
       - 'tools/test_qed_formal_gate.py'
       - 'tools/test_qed_obligations.py'
+      - 'tools/qed_lean_conformance.py'
+      - 'tools/test_qed_lean_conformance.py'
       - 'src/**'
       - '.github/workflows/lean.yml'
   push:
@@ -26,6 +28,8 @@ on:
       - 'tools/qed_formal_gate.py'
       - 'tools/test_qed_formal_gate.py'
       - 'tools/test_qed_obligations.py'
+      - 'tools/qed_lean_conformance.py'
+      - 'tools/test_qed_lean_conformance.py'
       - 'src/**'
       - '.github/workflows/lean.yml'
 
@@ -38,6 +42,8 @@ jobs:
         run: python3 tools/qed_obligations.py
       - name: Test formal gate rejection paths
         run: python3 -m unittest discover -s tools -p 'test_*.py'
+      - name: Check Lean constructor coverage by MoonBit tests
+        run: python3 tools/qed_lean_conformance.py
       - uses: leanprover/lean-action@v1
         with:
           lake-package-directory: formal_verification

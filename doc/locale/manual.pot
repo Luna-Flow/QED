@@ -3672,15 +3672,15 @@ msgid "MoonBit API: `src/kernel/types.mbt`, `src/kernel/terms.mbt`, `src/kernel/
 msgstr ""
 
 #: manual/conformance.md:390
-msgid "Verification: Not yet implemented"
+msgid "Verification: Lean-derived MoonBit conformance tests: every Derivation constructor has tests of its conclusion, hypotheses and premises, or a recorded reason it is not implemented (tools/qed_lean_conformance.py)"
 msgstr ""
 
 #: manual/conformance.md:391
-msgid "Evidence: `research/qed-verification/2026-10-14-initial-audit.md`, `formal_verification/theory-proof-plan.md`"
+msgid "Evidence: `research/qed-verification/2026-10-14-initial-audit.md`, `formal_verification/theory-proof-plan.md`, `tools/qed_lean_conformance.py`, `src/kernel/lean_derivation_conformance_test.mbt`, `src/logic/lean_connective_conformance_test.mbt`"
 msgstr ""
 
 #: manual/conformance.md:393
-msgid "Exclusions: Passing MoonBit and Lean builds is not refinement evidence."
+msgid "Exclusions: Passing MoonBit and Lean builds is not refinement evidence.; Conformance tests constrain the implementation on chosen inputs; they are not a refinement proof."
 msgstr ""
 
 #: manual/conformance.md:397
