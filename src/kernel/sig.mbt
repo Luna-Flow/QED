@@ -1258,8 +1258,15 @@ pub fn ks_register_type_definition(
     },
   }
 
-  let rep_const = mk_const(rep_name, rep_ty_schema)
-  let abs_const = mk_const(abs_name, abs_ty_schema)
+  // The laws mention the new constants by identity, as definitions do.
+  let rep_const = match sig_mk_const(sig2, rep_name) {
+    Some(c) => c
+    None => return Err(InvalidTypeDefinitionProduct)
+  }
+  let abs_const = match sig_mk_const(sig2, abs_name) {
+    Some(c) => c
+    None => return Err(InvalidTypeDefinitionProduct)
+  }
   let a = mk_var("a", new_ty)
   let r = mk_var("r", rep_ty)
 
