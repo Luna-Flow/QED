@@ -3437,11 +3437,11 @@ msgid "Lean: `formal_verification/QEDFV/HOL/Rules.lean::valid_refl`, `formal_ver
 msgstr ""
 
 #: manual/conformance.md:270
-msgid "Verification: Lean induction; MoonBit kernel tests"
+msgid "Verification: Lean induction; MoonBit kernel tests; Randomized derivations with the checked primitive rules, each derived sequent checked valid by enumeration in the finite model over bool"
 msgstr ""
 
 #: manual/conformance.md:271
-msgid "Evidence: `formal_verification/QEDFV/HOL/Derivation.lean`, `src/kernel/kernel_thm_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`, `formal_verification/QEDFV/HOL/ConnectiveRules.lean`, `src/kernel/lean_derivation_conformance_test.mbt`, `src/logic/lean_connective_conformance_test.mbt`"
+msgid "Evidence: `formal_verification/QEDFV/HOL/Derivation.lean`, `src/kernel/kernel_thm_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`, `formal_verification/QEDFV/HOL/ConnectiveRules.lean`, `src/kernel/lean_derivation_conformance_test.mbt`, `src/logic/lean_connective_conformance_test.mbt`, `src/kernel/lean_soundness_fuzz_test.mbt`"
 msgstr ""
 
 #: manual/conformance.md:273
@@ -3676,7 +3676,7 @@ msgid "Verification: Lean-derived MoonBit conformance tests: every Derivation, T
 msgstr ""
 
 #: manual/conformance.md:391
-msgid "Evidence: `research/qed-verification/2026-10-14-initial-audit.md`, `formal_verification/theory-proof-plan.md`, `tools/qed_lean_conformance.py`, `src/kernel/lean_derivation_conformance_test.mbt`, `src/logic/lean_connective_conformance_test.mbt`, `src/kernel/lean_term_laws_test.mbt`, `src/kernel/lean_extension_conformance_test.mbt`, `src/kernel/lean_state_conformance_test.mbt`"
+msgid "Evidence: `research/qed-verification/2026-10-14-initial-audit.md`, `formal_verification/theory-proof-plan.md`, `tools/qed_lean_conformance.py`, `src/kernel/lean_derivation_conformance_test.mbt`, `src/logic/lean_connective_conformance_test.mbt`, `src/kernel/lean_term_laws_test.mbt`, `src/kernel/lean_extension_conformance_test.mbt`, `src/kernel/lean_state_conformance_test.mbt`, `src/kernel/lean_soundness_fuzz_test.mbt`"
 msgstr ""
 
 #: manual/conformance.md:393

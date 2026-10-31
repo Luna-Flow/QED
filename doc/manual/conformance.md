@@ -267,8 +267,8 @@ Every primitive theorem rule preserves semantic validity under its stated side c
 - Specification: `doc/attachments/qed_formal_spec.typ::Primitive Inference Rules`
 - MoonBit API: `src/kernel/thm.mbt`
 - Lean: `formal_verification/QEDFV/HOL/Rules.lean::valid_refl`, `formal_verification/QEDFV/HOL/Derivation.lean::derivation_sound`, `formal_verification/QEDFV/HOL/ConnectiveRules.lean::valid_classical`
-- Verification: Lean induction; MoonBit kernel tests
-- Evidence: `formal_verification/QEDFV/HOL/Derivation.lean`, `src/kernel/kernel_thm_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`, `formal_verification/QEDFV/HOL/ConnectiveRules.lean`, `src/kernel/lean_derivation_conformance_test.mbt`, `src/logic/lean_connective_conformance_test.mbt`
+- Verification: Lean induction; MoonBit kernel tests; Randomized derivations with the checked primitive rules, each derived sequent checked valid by enumeration in the finite model over bool
+- Evidence: `formal_verification/QEDFV/HOL/Derivation.lean`, `src/kernel/kernel_thm_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`, `formal_verification/QEDFV/HOL/ConnectiveRules.lean`, `src/kernel/lean_derivation_conformance_test.mbt`, `src/logic/lean_connective_conformance_test.mbt`, `src/kernel/lean_soundness_fuzz_test.mbt`
 - Assumptions: -
 - Exclusions: The Lean derivation constructors are not a source-level refinement of MoonBit constructors.
 
@@ -388,7 +388,7 @@ MoonBit types, terms, theorem objects, state transitions, and theorem constructo
 - MoonBit API: `src/kernel/types.mbt`, `src/kernel/terms.mbt`, `src/kernel/thm.mbt`, `src/kernel/sig.mbt`
 - Lean: -
 - Verification: Lean-derived MoonBit conformance tests: every Derivation, TypeDefLaw and KStep constructor, the extension steps of HistoryDerivation, every field of the three extension gates, and every tracked law of types, terms, kernel states, lineage, name resolution and declaration tables has tests named after it, or a recorded reason it is not implemented (tools/qed_lean_conformance.py)
-- Evidence: `research/qed-verification/2026-10-14-initial-audit.md`, `formal_verification/theory-proof-plan.md`, `tools/qed_lean_conformance.py`, `src/kernel/lean_derivation_conformance_test.mbt`, `src/logic/lean_connective_conformance_test.mbt`, `src/kernel/lean_term_laws_test.mbt`, `src/kernel/lean_extension_conformance_test.mbt`, `src/kernel/lean_state_conformance_test.mbt`
+- Evidence: `research/qed-verification/2026-10-14-initial-audit.md`, `formal_verification/theory-proof-plan.md`, `tools/qed_lean_conformance.py`, `src/kernel/lean_derivation_conformance_test.mbt`, `src/logic/lean_connective_conformance_test.mbt`, `src/kernel/lean_term_laws_test.mbt`, `src/kernel/lean_extension_conformance_test.mbt`, `src/kernel/lean_state_conformance_test.mbt`, `src/kernel/lean_soundness_fuzz_test.mbt`
 - Assumptions: -
 - Exclusions: Passing MoonBit and Lean builds is not refinement evidence.; Conformance tests constrain the implementation on chosen inputs; they are not a refinement proof.
 

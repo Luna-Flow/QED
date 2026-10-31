@@ -11,6 +11,9 @@ kinds of names are tracked:
   premises of the extension gates;
 - the theorems in TRACKED_THEOREMS, which must exist in the Lean sources.
 
+A qualified test prefix (`A.b:`) that is not tracked is rejected as a likely
+typo; an unqualified one is an ordinary label unless it is tracked.
+
 The check fails closed: an uncovered name, a stale NOT_IMPLEMENTED entry, a
 tracked theorem missing from Lean, and a test whose prefix looks like a Lean
 name but is not tracked (usually a typo) are all errors. This is a coverage
@@ -65,6 +68,7 @@ TRACKED_THEOREMS = (
     "Sequent.mem_hyps_of_named",
     "DeclTable.old_declares_after_add",
     "DeclTable.declared_type_unique",
+    "derivation_sound",
 )
 
 NOT_IMPLEMENTED: dict[str, str] = {
@@ -89,8 +93,8 @@ THEOREM = re.compile(r"^(?:@\[[^\]]*\]\s*)?(?:theorem|lemma)\s+([A-Za-z_][A-Za-z
 NAMESPACE = re.compile(r"^namespace\s+(\S+)")
 END = re.compile(r"^end\s+(\S+)")
 ROOT_NAMESPACE = "QEDFV.HOL"
-# A test prefix that looks like a qualified Lean name: `Ty.subst_id:`.
-TEST_NAME = re.compile(r'^\s*(?:async\s+)?test\s+"([A-Z][A-Za-z0-9_\']*(?:\.[A-Za-z0-9_\']+)+):',
+# A test prefix that may be a Lean name: `Ty.subst_id:` or `derivation_sound:`.
+TEST_NAME = re.compile(r'^\s*(?:async\s+)?test\s+"([A-Za-z_][A-Za-z0-9_\']*(?:\.[A-Za-z0-9_\']+)*):',
                        re.MULTILINE)
 
 
@@ -158,8 +162,11 @@ def check(required: list[str], tests: set[str], not_implemented: dict[str, str])
             errors.append(f"{name}: tested but listed as not implemented")
         elif name not in tests and name not in not_implemented:
             errors.append(f"{name}: no MoonBit test")
+    # A qualified prefix that is not tracked is usually a typo. An unqualified
+    # one is an ordinary test label unless it is tracked.
     for name in sorted(tests - set(required)):
-        errors.append(f"{name}: test names an untracked Lean name")
+        if "." in name:
+            errors.append(f"{name}: test names an untracked Lean name")
     for name in sorted(set(not_implemented) - set(required)):
         errors.append(f"{name}: stale NOT_IMPLEMENTED entry")
     return errors
