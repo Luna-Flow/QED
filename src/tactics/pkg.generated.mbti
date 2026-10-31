@@ -9,7 +9,7 @@ import {
 // Values
 pub fn goal_concl(Goal) -> @kernel.Term
 
-pub fn goal_hyp_count(Goal) -> Int
+pub fn goal_hyp_count(Goal) -> Int32
 
 pub fn goal_hyps(Goal) -> Array[@kernel.Term]
 
@@ -19,7 +19,7 @@ pub fn local_hyp_term(LocalHyp) -> @kernel.Term
 
 pub fn mk_goal(Array[@kernel.Term], @kernel.Term) -> Goal
 
-pub fn proof_goal_view_branch_path(ProofGoalView) -> Array[Int]
+pub fn proof_goal_view_branch_path(ProofGoalView) -> Array[Int32]
 
 pub fn proof_goal_view_goal(ProofGoalView) -> Goal
 
@@ -27,7 +27,7 @@ pub fn proof_goal_view_locals(ProofGoalView) -> Array[LocalHyp]
 
 pub fn proof_state_snapshot_current(ProofStateSnapshot) -> ProofGoalView?
 
-pub fn proof_state_snapshot_pending_goal_count(ProofStateSnapshot) -> Int
+pub fn proof_state_snapshot_pending_goal_count(ProofStateSnapshot) -> Int32
 
 pub fn proof_state_snapshot_root_goal(ProofStateSnapshot) -> Goal
 
@@ -39,7 +39,7 @@ pub fn ps_close_current_with_th(@kernel.KernelState, @logic.PropPrelude, ProofSt
 
 pub fn ps_close_frame(ProofState) -> Result[@kernel.Thm, TacticExecError]
 
-pub fn ps_current_branch_path(ProofState) -> Array[Int]
+pub fn ps_current_branch_path(ProofState) -> Array[Int32]
 
 pub fn ps_current_focus(ProofState) -> ProofGoalView?
 
@@ -49,15 +49,15 @@ pub fn ps_current_local_hyps(ProofState) -> Array[LocalHyp]
 
 pub fn ps_enter_frame(Goal) -> ProofState
 
-pub fn ps_goal_count(ProofState) -> Int
+pub fn ps_goal_count(ProofState) -> Int32
 
 pub fn ps_init(Goal) -> ProofState
 
-pub fn ps_isolate_pending_at(ProofState, Int) -> ProofState?
+pub fn ps_isolate_pending_at(ProofState, Int32) -> ProofState?
 
-pub fn ps_pending_focus_at(ProofState, Int) -> ProofGoalView?
+pub fn ps_pending_focus_at(ProofState, Int32) -> ProofGoalView?
 
-pub fn ps_pending_goal_at(ProofState, Int) -> Goal?
+pub fn ps_pending_goal_at(ProofState, Int32) -> Goal?
 
 pub fn ps_qed(ProofState) -> Result[@kernel.Thm, TacticExecError]
 

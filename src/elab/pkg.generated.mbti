@@ -68,7 +68,7 @@ pub fn elab_var(String, @kernel.HolType) -> @kernel.Term
 
 pub fn empty_elab_ctx() -> ElabCtx
 
-pub fn rconst_id(ResolvedConst) -> Int
+pub fn rconst_id(ResolvedConst) -> Int32
 
 pub fn rconst_inst_ty(ResolvedConst) -> @kernel.HolType
 
@@ -118,7 +118,7 @@ pub enum RTerm {
 
 pub struct ResolvedConst {
   name : String
-  const_id : Int
+  const_id : Int32
   inst_ty : @kernel.HolType
   schema_ty : @kernel.HolType
 }

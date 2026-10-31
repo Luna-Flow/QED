@@ -40,9 +40,9 @@ pub fn logic_eq_mp_bool(@kernel.KernelState, @kernel.Thm, @kernel.Thm) -> Result
 
 pub fn logic_eq_sym(@kernel.KernelState, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
 
-pub fn logic_extension_cert_at(@kernel.KernelState, Int) -> (@kernel.ExtensionGate, Array[String], String)?
+pub fn logic_extension_cert_at(@kernel.KernelState, Int32) -> (@kernel.ExtensionGate, Array[String], String)?
 
-pub fn logic_extension_cert_count(@kernel.KernelState) -> Int
+pub fn logic_extension_cert_count(@kernel.KernelState) -> Int32
 
 pub fn logic_ind_infinity_anchor(@kernel.KernelState) -> Result[@kernel.Thm, @kernel.SigError]
 
@@ -126,9 +126,9 @@ pub fn logic_prop_resolve_ref(@kernel.KernelState, PropPrelude, Array[(String, @
 
 pub fn logic_prop_strengthen_to_hyps(@kernel.KernelState, Array[@kernel.Term], @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
 
-pub fn logic_prop_theorem_at(Int) -> PropTheoremEntry?
+pub fn logic_prop_theorem_at(Int32) -> PropTheoremEntry?
 
-pub fn logic_prop_theorem_count() -> Int
+pub fn logic_prop_theorem_count() -> Int32
 
 pub fn logic_prop_theorem_entry(String) -> PropTheoremEntry?
 
@@ -180,9 +180,9 @@ pub fn prop_mk_or(@kernel.KernelState, PropPrelude, @kernel.Term, @kernel.Term) 
 
 pub fn prop_prelude_has_rule(PropPrelude, String) -> Bool
 
-pub fn prop_prelude_rule_at(PropPrelude, Int) -> PropRule?
+pub fn prop_prelude_rule_at(PropPrelude, Int32) -> PropRule?
 
-pub fn prop_prelude_rule_count(PropPrelude) -> Int
+pub fn prop_prelude_rule_count(PropPrelude) -> Int32
 
 pub fn prop_truth_name(PropPrelude) -> String
 
@@ -228,7 +228,7 @@ pub enum PropRefResolution {
 
 pub struct PropRule {
   name : String
-  premise_count : Int
+  premise_count : Int32
 }
 
 pub enum PropTheoremClass {
@@ -239,7 +239,7 @@ pub enum PropTheoremClass {
 
 pub struct PropTheoremEntry {
   name : String
-  premise_count : Int
+  premise_count : Int32
   exact_class : PropTheoremClass?
   apply_class : PropTheoremClass?
 }

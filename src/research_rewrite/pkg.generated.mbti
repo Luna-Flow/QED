@@ -33,7 +33,7 @@ pub fn research_rewrite_term_concl(@kernel.KernelState, @logic.PropPrelude, Arra
 
 pub fn research_right_to_left() -> RewriteDirection
 
-pub fn research_simplify_config(Int, Bool, Bool, Array[RewriteRequest]) -> SimplifyConfig
+pub fn research_simplify_config(Int32, Bool, Bool, Array[RewriteRequest]) -> SimplifyConfig
 
 pub fn research_simplify_term_concl(@kernel.KernelState, @logic.PropPrelude, Array[(String, @kernel.Term)], @kernel.Term, SimplifyConfig) -> RewriteResult
 
@@ -109,7 +109,7 @@ pub enum RewriteWitness {
 }
 
 pub struct SimplifyConfig {
-  step_limit : Int
+  step_limit : Int32
   allow_unfold : Bool
   allow_beta : Bool
   rewrite_requests : Array[RewriteRequest]

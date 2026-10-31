@@ -90,9 +90,9 @@ pub fn ks_define_const_thm(KernelState, String, HolType, Term) -> Result[(Kernel
 
 pub fn ks_definition_theorem(KernelState, String) -> Result[Thm, SigError]
 
-pub fn ks_extension_cert_at(KernelState, Int) -> (ExtensionGate, Array[String], String)?
+pub fn ks_extension_cert_at(KernelState, Int32) -> (ExtensionGate, Array[String], String)?
 
-pub fn ks_extension_cert_count(KernelState) -> Int
+pub fn ks_extension_cert_count(KernelState) -> Int32
 
 pub fn ks_has_def_head(KernelState, String) -> Bool
 
@@ -102,7 +102,7 @@ pub fn ks_has_type_abs_head(KernelState, String) -> Bool
 
 pub fn ks_has_type_rep_head(KernelState, String) -> Bool
 
-pub fn ks_has_type_witness(KernelState, String, Int) -> Bool
+pub fn ks_has_type_witness(KernelState, String, Int32) -> Bool
 
 pub fn ks_has_typedef_contract(KernelState, String) -> Bool
 
@@ -110,7 +110,7 @@ pub fn ks_ind_infinity_axiom(KernelState) -> Result[Thm, SigError]
 
 pub fn ks_lookup_const(KernelState, String) -> HolType?
 
-pub fn ks_lookup_const_id(KernelState, String) -> Int?
+pub fn ks_lookup_const_id(KernelState, String) -> Int32?
 
 pub fn ks_mk_const(KernelState, String) -> Result[Term, SigError]
 
@@ -146,7 +146,7 @@ pub fn mk_comb_rule_checked(KernelState, Thm, Thm) -> Result[Thm, LogicError]
 
 pub fn mk_const(String, HolType) -> Term
 
-pub fn mk_const_bound(String, HolType, Int) -> Term
+pub fn mk_const_bound(String, HolType, Int32) -> Term
 
 pub fn mk_eq(Term, Term) -> Result[Term, LogicError]
 
@@ -166,7 +166,7 @@ pub fn sig_has_const(GlobalSig, String) -> Bool
 
 pub fn sig_lookup_const(GlobalSig, String) -> HolType?
 
-pub fn sig_lookup_const_id(GlobalSig, String) -> Int?
+pub fn sig_lookup_const_id(GlobalSig, String) -> Int32?
 
 pub fn sig_mk_const_e(GlobalSig, String) -> Result[Term, SigError]
 
@@ -176,7 +176,7 @@ pub fn sig_pop_scope_e(GlobalSig) -> Result[GlobalSig, SigError]
 
 pub fn sig_push_scope(GlobalSig) -> GlobalSig
 
-pub fn sig_scopes(GlobalSig) -> Array[Array[(String, Int, HolType)]]
+pub fn sig_scopes(GlobalSig) -> Array[Array[(String, Int32, HolType)]]
 
 pub fn term_alpha_eq(Term, Term) -> Bool
 
@@ -200,7 +200,7 @@ pub fn thm_bind_const_ids(KernelState, Thm) -> Result[Thm, LogicError]
 
 pub fn thm_concl(Thm) -> Result[Term, LogicError]
 
-pub fn thm_hyp_count(Thm) -> Int
+pub fn thm_hyp_count(Thm) -> Int32
 
 pub fn thm_hyps(Thm) -> Result[Array[Term], LogicError]
 
@@ -275,9 +275,9 @@ pub suberror SigError {
 
 // Types and methods
 pub enum DbTerm {
-  DbBound(Int, HolType)
+  DbBound(Int32, HolType)
   DbFree(String, HolType)
-  DbConst(String, HolType, Int)
+  DbConst(String, HolType, Int32)
   DbComb(DbTerm, DbTerm)
   DbAbs(HolType, DbTerm)
 }
@@ -299,7 +299,7 @@ type KernelState
 
 pub enum Term {
   Var(String, HolType)
-  Const(String, HolType, Int)
+  Const(String, HolType, Int32)
   Comb(Term, Term)
   Abs(Term, Term)
 }
@@ -307,7 +307,7 @@ pub enum Term {
 type Thm
 
 // Type aliases
-pub type ConstId = Int
+pub type ConstId = Int32
 
 pub type ExtensionCert = (ExtensionGate, Array[String], String)
 
