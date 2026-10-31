@@ -35,7 +35,8 @@
       ],
       "evidence": [
         "formal_verification/QEDFV/HOL/Types.lean",
-        "src/kernel/kernel_types_test.mbt"
+        "src/kernel/kernel_types_test.mbt",
+        "src/kernel/lean_term_laws_test.mbt"
       ],
       "status": {
         "lean": "proved-abstractly",
@@ -80,7 +81,8 @@
       ],
       "evidence": [
         "formal_verification/QEDFV/HOL/Evaluation.lean",
-        "src/kernel/kernel_terms_test.mbt"
+        "src/kernel/kernel_terms_test.mbt",
+        "src/kernel/lean_term_laws_test.mbt"
       ],
       "status": {
         "lean": "proved-abstractly",
@@ -129,7 +131,9 @@
         "formal_verification/QEDFV/HOL/Derivation.lean",
         "src/kernel/kernel_thm_test.mbt",
         "src/kernel/kernel_thm_wbtest.mbt",
-        "formal_verification/QEDFV/HOL/ConnectiveRules.lean"
+        "formal_verification/QEDFV/HOL/ConnectiveRules.lean",
+        "src/kernel/lean_derivation_conformance_test.mbt",
+        "src/logic/lean_connective_conformance_test.mbt"
       ],
       "status": {
         "lean": "proved-abstractly",
@@ -603,14 +607,15 @@
       ],
       "lean": [],
       "verification": [
-        "Lean-derived MoonBit conformance tests: every Derivation constructor has tests of its conclusion, hypotheses and premises, or a recorded reason it is not implemented (tools/qed_lean_conformance.py)"
+        "Lean-derived MoonBit conformance tests: every Derivation constructor and every tracked type and term law has tests named after it, or a recorded reason it is not implemented (tools/qed_lean_conformance.py)"
       ],
       "evidence": [
         "research/qed-verification/2026-10-14-initial-audit.md",
         "formal_verification/theory-proof-plan.md",
         "tools/qed_lean_conformance.py",
         "src/kernel/lean_derivation_conformance_test.mbt",
-        "src/logic/lean_connective_conformance_test.mbt"
+        "src/logic/lean_connective_conformance_test.mbt",
+        "src/kernel/lean_term_laws_test.mbt"
       ],
       "status": {
         "lean": "not-implemented",

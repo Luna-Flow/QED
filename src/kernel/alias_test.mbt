@@ -4,12 +4,15 @@
 /// so this file only lists the package-local names blackbox tests use.
 /// Keep it limited to names the tests actually reference.
 using @kernel {
+  type DbTerm,
   type ExtensionCert,
   type HolType,
   type KernelState,
   type SigError,
   type Term,
   type Thm,
+  type_subst_unsafe,
+  tyvars,
   abs_rule_checked,
   assume_checked,
   add_assum_checked,
