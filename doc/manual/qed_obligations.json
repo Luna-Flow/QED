@@ -182,7 +182,8 @@
         "formal_verification/QEDFV/HOL/TypeDefGate.lean",
         "formal_verification/QEDFV/HOL/ExtensionDerivation.lean",
         "src/kernel/kernel_sig_test.mbt",
-        "formal_verification/QEDFV/HOL/SpecAsDefinition.lean"
+        "formal_verification/QEDFV/HOL/SpecAsDefinition.lean",
+        "src/kernel/lean_extension_conformance_test.mbt"
       ],
       "status": {
         "lean": "proved-abstractly",
@@ -607,7 +608,7 @@
       ],
       "lean": [],
       "verification": [
-        "Lean-derived MoonBit conformance tests: every Derivation constructor and every tracked type and term law has tests named after it, or a recorded reason it is not implemented (tools/qed_lean_conformance.py)"
+        "Lean-derived MoonBit conformance tests: every Derivation and TypeDefLaw constructor, the extension steps of HistoryDerivation, every field of the three extension gates and every tracked type and term law has tests named after it, or a recorded reason it is not implemented (tools/qed_lean_conformance.py)"
       ],
       "evidence": [
         "research/qed-verification/2026-10-14-initial-audit.md",
@@ -615,7 +616,8 @@
         "tools/qed_lean_conformance.py",
         "src/kernel/lean_derivation_conformance_test.mbt",
         "src/logic/lean_connective_conformance_test.mbt",
-        "src/kernel/lean_term_laws_test.mbt"
+        "src/kernel/lean_term_laws_test.mbt",
+        "src/kernel/lean_extension_conformance_test.mbt"
       ],
       "status": {
         "lean": "not-implemented",

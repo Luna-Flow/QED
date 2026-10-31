@@ -2,7 +2,7 @@
 
 import unittest
 
-from qed_lean_conformance import check, constructors, tested, theorems
+from qed_lean_conformance import check, constructors, fields, tested, theorems
 
 
 LEAN = """
@@ -11,6 +11,13 @@ inductive D : Nat → Prop where
   | /-- doc -/ b (n : Nat) : D n → D (n + 1)
   -- | c : commented out
   | c' : D 7
+
+structure G (S : Nat) where
+  id : Nat
+  -- note : a comment, not a field
+  fresh : id ∉ S
+    -- continuation lines are not fields
+  closed' : True
 
 theorem t : D 0 := .a
 @[simp] theorem Ty.subst_id : True := trivial
@@ -21,6 +28,9 @@ theorem t : D 0 := .a
 class LeanConformanceTests(unittest.TestCase):
     def test_constructors_skip_comments_and_stop_at_next_declaration(self):
         self.assertEqual(constructors(LEAN, "D"), ["D.a", "D.b", "D.c'"])
+
+    def test_fields_skip_comments_and_continuations(self):
+        self.assertEqual(fields(LEAN, "G"), ["G.id", "G.fresh", "G.closed'"])
 
     def test_missing_inductive_is_rejected(self):
         with self.assertRaises(ValueError):
