@@ -15,13 +15,13 @@ pub fn lower_syn_term_with_env(@kernel.KernelState, ParseEnv, SynTerm) -> Result
 
 pub fn normalize_parser_input(String) -> Result[NormalizedInput, ParseError]
 
-pub fn normalized_input_raw_offset_at(NormalizedInput, Int) -> Int
+pub fn normalized_input_raw_offset_at(NormalizedInput, Int32) -> Int32
 
 pub fn parse_def_function(@kernel.KernelState, ParseEnv, String) -> Result[(@kernel.KernelState, @kernel.Thm), ParseBridgeError]
 
-pub fn parse_env_local_at(ParseEnv, Int) -> (String, @kernel.HolType)?
+pub fn parse_env_local_at(ParseEnv, Int32) -> (String, @kernel.HolType)?
 
-pub fn parse_env_local_count(ParseEnv) -> Int
+pub fn parse_env_local_count(ParseEnv) -> Int32
 
 pub fn parse_env_push_local(ParseEnv, String, @kernel.HolType) -> ParseEnv
 
@@ -53,15 +53,15 @@ pub fn parsed_goal_concl(ParsedGoal) -> @kernel.Term
 
 pub fn parsed_goal_hyps(ParsedGoal) -> Array[@kernel.Term]
 
-pub fn source_span(Int, Int) -> SourceSpan
+pub fn source_span(Int32, Int32) -> SourceSpan
 
 // Errors
 
 // Types and methods
 pub struct NormalizedInput {
   text : String
-  raw_offsets : Array[Int]
-  raw_length : Int
+  raw_offsets : Array[Int32]
+  raw_length : Int32
 }
 
 pub enum ParseBridgeError {
@@ -77,7 +77,7 @@ pub struct ParseEnv {
 
 pub struct ParseError {
   code : ParseErrorCode
-  offset : Int
+  offset : Int32
   detail : String
 }
 
@@ -102,8 +102,8 @@ pub struct ResolvedGoal {
 }
 
 pub struct SourceSpan {
-  start_offset : Int
-  end_offset : Int
+  start_offset : Int32
+  end_offset : Int32
 }
 
 pub struct SynBinder {
@@ -123,7 +123,7 @@ pub struct SynScriptBody {
 }
 
 pub struct SynScriptBranch {
-  branch_path : Array[Int]
+  branch_path : Array[Int32]
   body : SynScriptBody
   span : SourceSpan
   src : String
@@ -131,8 +131,8 @@ pub struct SynScriptBranch {
 
 pub struct SynScriptStep {
   step : SynTacticStep
-  step_index : Int
-  branch_path : Array[Int]
+  step_index : Int32
+  branch_path : Array[Int32]
   span : SourceSpan
   src : String
   branches : Array[SynScriptBranch]

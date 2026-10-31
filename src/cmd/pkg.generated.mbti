@@ -7,7 +7,7 @@ import {
 }
 
 // Values
-pub fn cmd_exit_code(CmdRunResult) -> Int
+pub fn cmd_exit_code(CmdRunResult) -> Int32
 
 pub fn cmd_failure_kind_to_string(CmdFailureKind) -> String
 
@@ -23,7 +23,7 @@ pub fn cmd_run_argv(Array[String], CmdOptions) -> CmdRunResult
 
 pub fn cmd_run_script(String, String, CmdOptions) -> CmdRunResult
 
-pub fn cmd_unfinished(String, String, Int?, Array[Int], String, Array[CmdLocalHypSummary], String?, String) -> CmdRunResult
+pub fn cmd_unfinished(String, String, Int32?, Array[Int32], String, Array[CmdLocalHypSummary], String?, String) -> CmdRunResult
 
 pub fn cmd_unfinished_from_prover(String, @prover.ProverUnfinished) -> CmdRunResult
 
@@ -36,8 +36,8 @@ pub struct CmdFailure {
   path : String
   theorem_name : String?
   kind : CmdFailureKind
-  step_index : Int?
-  branch_path : Array[Int]
+  step_index : Int32?
+  branch_path : Array[Int32]
   current_goal_summary : String?
   local_hyps : Array[CmdLocalHypSummary]
   detail : String
@@ -93,8 +93,8 @@ pub struct CmdSuccess {
 pub struct CmdUnfinished {
   path : String
   theorem_name : String
-  step_index : Int?
-  branch_path : Array[Int]
+  step_index : Int32?
+  branch_path : Array[Int32]
   current_goal_summary : String
   local_hyps : Array[CmdLocalHypSummary]
   hole_name : String?
