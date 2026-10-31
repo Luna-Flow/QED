@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 """Check that the tracked Lean rules and laws have MoonBit tests.
 
-A MoonBit test covers the Lean name `N` when its name starts with `N:`. Two
+A MoonBit test covers the Lean name `N` when its name starts with `N:`. Three
 kinds of names are tracked:
 
-- every constructor `I.C` of the inductives in TRACKED_INDUCTIVES; one the
-  MoonBit code does not implement is listed in NOT_IMPLEMENTED with the reason;
+- the constructors `I.C` of the inductives in TRACKED_INDUCTIVES (all of them,
+  or the listed ones); one the MoonBit code does not implement is listed in
+  NOT_IMPLEMENTED with the reason;
+- every field `S.f` of the structures in TRACKED_STRUCTURES, the data and the
+  premises of the extension gates;
 - the theorems in TRACKED_THEOREMS, which must exist in the Lean sources.
 
 The check fails closed: an uncovered name, a stale NOT_IMPLEMENTED entry, a
@@ -27,7 +30,16 @@ ROOT = Path(__file__).resolve().parents[1]
 HOL = ROOT / "formal_verification/QEDFV/HOL"
 SRC = ROOT / "src"
 
-TRACKED_INDUCTIVES = ("Derivation",)
+# Inductive name -> the tracked constructors, or None for all of them.
+TRACKED_INDUCTIVES: dict[str, tuple[str, ...] | None] = {
+    "Derivation": None,
+    "TypeDefLaw": None,
+    # The extension steps and the lifting of older theorems; the other
+    # constructors repeat the rules of `Derivation`.
+    "HistoryDerivation": ("definition", "specification", "typedef", "weaken"),
+}
+
+TRACKED_STRUCTURES = ("DefinitionGate", "SpecificationGate", "TypeDefGate")
 
 TRACKED_THEOREMS = (
     "Ty.subst_id",
@@ -62,6 +74,7 @@ DECLARATION = re.compile(
     r"^(?:@\[[^\]]*\]\s*)?(?:theorem|lemma|def|abbrev|structure|inductive|instance|class|namespace|end|section)\b",
     re.MULTILINE,
 )
+FIELD = re.compile(r"^  ([A-Za-z_][A-Za-z0-9_']*)\s*:", re.MULTILINE)
 CONSTRUCTOR = re.compile(r"^\s*\|\s*([A-Za-z_][A-Za-z0-9_']*)", re.MULTILINE)
 THEOREM = re.compile(r"^(?:@\[[^\]]*\]\s*)?(?:theorem|lemma)\s+([A-Za-z_][A-Za-z0-9_.']*)", re.MULTILINE)
 # A test prefix that looks like a qualified Lean name: `Ty.subst_id:`.
@@ -81,6 +94,28 @@ def constructors(source: str, inductive: str) -> list[str]:
     if not names or len(set(names)) != len(names):
         raise ValueError(f"inductive {inductive}: empty or duplicate constructor list")
     return [f"{inductive}.{name}" for name in names]
+
+
+def fields(source: str, structure: str) -> list[str]:
+    code = lean_source_without_comments_and_strings(source)
+    start = re.search(rf"^structure\s+{re.escape(structure)}\b", code, re.MULTILINE)
+    if start is None:
+        raise ValueError(f"structure {structure} not found")
+    body_start = code.index(" where", start.end())
+    following = DECLARATION.search(code, body_start)
+    body = code[body_start:following.start() if following else len(code)]
+    names = FIELD.findall(body)
+    if not names or len(set(names)) != len(names):
+        raise ValueError(f"structure {structure}: empty or duplicate field list")
+    return [f"{structure}.{name}" for name in names]
+
+
+def declared_once(lean: dict[Path, str], keyword: str, name: str) -> str:
+    found = [text for text in lean.values()
+             if re.search(rf"^{keyword}\s+{re.escape(name)}\b", text, re.MULTILINE)]
+    if len(found) != 1:
+        raise ValueError(f"{keyword} {name}: expected one definition, found {len(found)}")
+    return found[0]
 
 
 def theorems(source: str) -> set[str]:
@@ -109,12 +144,16 @@ def main() -> int:
     try:
         lean = {path: path.read_text(encoding="utf-8") for path in sorted(HOL.rglob("*.lean"))}
         required: list[str] = []
-        for inductive in TRACKED_INDUCTIVES:
-            found = [constructors(text, inductive) for text in lean.values()
-                     if re.search(rf"^inductive\s+{re.escape(inductive)}\b", text, re.MULTILINE)]
-            if len(found) != 1:
-                raise ValueError(f"inductive {inductive}: expected one definition, found {len(found)}")
-            required += found[0]
+        for inductive, selected in TRACKED_INDUCTIVES.items():
+            names = constructors(declared_once(lean, "inductive", inductive), inductive)
+            if selected is not None:
+                unknown = [c for c in selected if f"{inductive}.{c}" not in names]
+                if unknown:
+                    raise ValueError(f"inductive {inductive}: no constructor {', '.join(unknown)}")
+                names = [f"{inductive}.{c}" for c in selected]
+            required += names
+        for structure in TRACKED_STRUCTURES:
+            required += fields(declared_once(lean, "structure", structure), structure)
         declared = set().union(*(theorems(text) for text in lean.values()))
         missing = [name for name in TRACKED_THEOREMS if name not in declared]
         if missing:

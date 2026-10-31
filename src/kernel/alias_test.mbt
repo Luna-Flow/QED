@@ -13,6 +13,7 @@ using @kernel {
   type Thm,
   type_subst_unsafe,
   tyvars,
+  ks_const_schema,
   abs_rule_checked,
   assume_checked,
   add_assum_checked,
