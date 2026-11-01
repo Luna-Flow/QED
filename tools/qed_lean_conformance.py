@@ -76,10 +76,6 @@ NOT_IMPLEMENTED: dict[str, str] = {
     "Derivation.chooseHyp": "src/logic has no derived Hilbert-choice rule yet",
     "Derivation.indInfinity": "the kernel has no infinity axiom; "
                               "ks_register_ind_infinity_axiom only records an already-proved anchor",
-    "Derivation.allIntro": "src/logic has no quantifier prelude yet",
-    "Derivation.allElim": "src/logic has no quantifier prelude yet",
-    "Derivation.exIntro": "src/logic has no quantifier prelude yet",
-    "Derivation.exElim": "src/logic has no quantifier prelude yet",
     "Derivation.classical": "src/logic has no derived classical rule yet",
 }
 
