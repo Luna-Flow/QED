@@ -98,7 +98,7 @@ $$
 \frac{\Gamma \cup \{p\} \vdash p \wedge q \qquad \{p \wedge q\} \vdash p}{\big((\Gamma \cup \{p\}) \setminus \{p\}\big) \cup (\{p \wedge q\} \setminus \{p \wedge q\}) \vdash (p \wedge q) = p}\;\textsf{DEDUCT\_ANTISYM\_RULE}
 $$
 
-and the hypothesis set is $\Gamma \setminus \{p\}$. The conclusion is $p \Rightarrow q$ by definition. The derivation works whether or not $p \in \Gamma$: when $p$ is absent, the conjunction step adds it and DEDUCT_ANTISYM_RULE removes it again, giving the vacuous implication $\Gamma \vdash p \Rightarrow q$. `logic_prop_imp_intro_thm` nevertheless refuses a $p$ that is not a hypothesis of the premise. This is a check on the caller, not a limit of the logic; for a vacuous implication, weaken with `logic_add_assum` first.
+and the hypothesis set is $\Gamma \setminus \{p\}$. The conclusion is $p \Rightarrow q$ by definition. The derivation works whether or not $p \in \Gamma$: when $p$ is absent, the conjunction step adds it and DEDUCT_ANTISYM_RULE removes it again, giving the vacuous implication $\Gamma \vdash p \Rightarrow q$. `logic_prop_imp_intro_thm` accepts both cases, as Lean `Derivation.impIntro` and HOL Light `DISCH` do: when $p$ is absent it first weakens the premise with ADD_ASSUM.
 
 **Ex falso.** From $\Gamma \vdash (\lambda p.\,p) = (\lambda p.\,t)$ and any proposition $q$, MK_COMB with $\vdash q = q$ and two BETA steps give $\Gamma \vdash q = t$, hence $\Gamma \vdash q$. Negation elimination is implication elimination with conclusion $\bot$.
 
@@ -108,7 +108,20 @@ $$
 \Gamma \setminus \{\neg p\} \vdash \neg p \Rightarrow q \;=\; p \vee q.
 $$
 
-The hypotheses are $\Gamma$ unless $\neg p$ was already among them. From $\Delta \vdash q$ the right introduction must discharge a $\neg p$ that the proof of $q$ does not use. Because `logic_prop_imp_intro_thm` only discharges a hypothesis that is present, it first conjoins $\{\neg p\} \vdash \neg p$ with $\Delta \vdash q$ and eliminates the conjunction again, which gives $\Delta \cup \{\neg p\} \vdash q$, and then discharges $\neg p$: $\Delta \setminus \{\neg p\} \vdash p \vee q$.
+The hypotheses are $\Gamma$ unless $\neg p$ was already among them. From $\Delta \vdash q$ the right introduction must discharge a $\neg p$ that the proof of $q$ does not use. The code first conjoins $\{\neg p\} \vdash \neg p$ with $\Delta \vdash q$ and eliminates the conjunction again, which gives $\Delta \cup \{\neg p\} \vdash q$, and then discharges $\neg p$: $\Delta \setminus \{\neg p\} \vdash p \vee q$.
+
+**Quantifiers.** The universal quantifier is the HOL Light definition $\forall P := (P = \lambda x.\,\top)$ unfolded, so $\forall x.\,\varphi$ is the term $(\lambda x.\,\varphi) = (\lambda x.\,\top)$ with $\top$ the prelude constant; this is also the shape the tactics layer introduces for a quantified goal. The existential is the impredicative encoding
+
+$$
+\exists x.\,\varphi \;:=\; \forall q.\,\big(\forall x.\,\varphi \Rightarrow q\big) \Rightarrow q
+$$
+
+for a boolean $q$ not free in $\varphi$. HOL Light instead defines $\exists P := P\,(\varepsilon P)$, which needs the choice constant; the encoding here needs nothing beyond the propositional rules, so the quantifier rules stay independent of choice. Both sides are definitions of terms only: no constant is added to the state. The four rules follow Lean `Derivation.allIntro`, `allElim`, `exIntro` and `exElim`:
+
+- *∀-introduction* (GEN). From $\Gamma \vdash \varphi$, EQT_INTRO gives $\Gamma \vdash \varphi = \top$ and ABS on $x$ gives $\Gamma \vdash (\lambda x.\,\varphi) = (\lambda x.\,\top)$. ABS fails when $x$ is free in $\Gamma$, which is Lean's weakening of the premise. EQT_INTRO is DEDUCT_ANTISYM_RULE against $\vdash \top$ and would drop a hypothesis $\top$; the code adds it back, so the hypotheses are exactly $\Gamma$.
+- *∀-elimination* (SPEC). MK_COMB with $\vdash t = t$ gives $\Gamma \vdash (\lambda x.\,\varphi)\,t = (\lambda x.\,\top)\,t$; one BETA step on each side and TRANS give $\Gamma \vdash \varphi[t/x] = \top$, and EQ_MP with $\vdash \top$ gives $\Gamma \vdash \varphi[t/x]$. Only the two outer redexes are contracted, so a redex inside $\varphi$ remains, as in Lean's `φ.substitute`.
+- *∃-introduction* (EXISTS). From $\Gamma \vdash \varphi[t/x]$, assume $\forall x.\,\varphi \Rightarrow q$, specialise it to $t$ and apply modus ponens to get $q$; discharge the assumption and generalise $q$. The $q$ is chosen fresh for $\Gamma$, so the generalisation applies.
+- *∃-elimination* (CHOOSE). From $A \vdash \exists x.\,\varphi$ and $\Delta \cup \{\varphi[v/x]\} \vdash B$, where $v$ is a variable not free in $\exists x.\,\varphi$, $B$ or $\Delta$: discharge $\varphi[v/x]$, generalise $v$ to get $\Delta \vdash \forall v.\,\varphi[v/x] \Rightarrow B$, which is $\forall x.\,\varphi \Rightarrow B$ up to α because $v$ is fresh; specialise the existential to $B$ and apply modus ponens: $A \cup \Delta \vdash B$. The side conditions are checked before the derivation, so a violation is reported as `VarFreeInHyp`.
 
 ### No disjunction elimination
 
@@ -153,7 +166,7 @@ Kernel error constructors are read-only outside the kernel. The package obtains 
 
 ## Boundaries
 
-- The package proves propositional facts only; it has no quantifier rules beyond what the tactics layer builds for theorem-header binders.
+- The package proves propositional facts and the four quantifier rules. It has no rules for Hilbert choice or the axiom of infinity, and the tactics layer does not use the quantifier rules yet.
 - It has no disjunction elimination, no excluded middle and no classical reasoning.
 - It does not store user theorems: the catalog is fixed in the source, and adding a name means adding code and a test.
 - It adds no authority. Any change to it is reviewed for usefulness, not for soundness.

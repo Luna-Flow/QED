@@ -426,14 +426,14 @@ pub fn logic_prop_imp_refl(@kernel.KernelState, PropPrelude, @kernel.Term) -> Re
 ```
 
 $$
-\frac{\Gamma \vdash q \quad p \in \Gamma}{\Gamma \setminus \{p\} \vdash p \Rightarrow q}
+\frac{\Gamma \vdash q}{\Gamma \setminus \{p\} \vdash p \Rightarrow q}
 \qquad
 \frac{\Gamma \vdash p \Rightarrow q \quad \Delta \vdash p}{\Gamma \cup \Delta \vdash q}
 \qquad
 \frac{}{\vdash p \Rightarrow p}
 $$
 
-`logic_prop_imp_intro_thm` fails when `p` is not a hypothesis of `th`. `logic_prop_imp_elim_thm` fails when the second theorem does not prove the antecedent.
+`p` need not be a hypothesis of `th`; then the implication is vacuous and the hypotheses are those of `th`. `logic_prop_imp_intro_thm` fails when `p` is not a proposition. `logic_prop_imp_elim_thm` fails when the second theorem does not prove the antecedent.
 
 ### `logic_prop_not_elim` and `logic_prop_ex_falso_thm`
 
@@ -508,6 +508,81 @@ test "negation and disjunction" {
     @kernel.term_alpha_eq(@kernel.thm_concl(th_or).unwrap(), @logic.prop_mk_or(st, pre, p, q).unwrap()),
     content="true",
   )
+}
+```
+
+## Quantifiers
+
+The quantifiers are definitions over the prelude: $\forall x.\,\varphi$ is $(\lambda x.\,\varphi) = (\lambda x.\,\top)$ and $\exists x.\,\varphi$ is $\forall q.\,(\forall x.\,\varphi \Rightarrow q) \Rightarrow q$. The [logic design](../design/logic.md) derives the rules. All functions need the prelude installed.
+
+### `logic_quant_mk_all`, `logic_quant_dest_all`, `logic_quant_mk_ex` and `logic_quant_dest_ex`
+
+`logic_quant_mk_all(state, pre, x, body)` builds $\forall x.\,\mathit{body}$ for a variable `x` and a proposition `body`, and `logic_quant_mk_ex` builds $\exists x.\,\mathit{body}$. The destructors return the binder and the body, or `None` when the term does not have the shape.
+
+```mbti
+pub fn logic_quant_mk_all(@kernel.KernelState, PropPrelude, @kernel.Term, @kernel.Term) -> Result[@kernel.Term, @kernel.LogicError]
+pub fn logic_quant_dest_all(@kernel.KernelState, PropPrelude, @kernel.Term) -> (@kernel.Term, @kernel.Term)?
+pub fn logic_quant_mk_ex(@kernel.KernelState, PropPrelude, @kernel.Term, @kernel.Term) -> Result[@kernel.Term, @kernel.LogicError]
+pub fn logic_quant_dest_ex(@kernel.KernelState, PropPrelude, @kernel.Term) -> (@kernel.Term, @kernel.Term)?
+```
+
+The builders fail when `x` is not a variable or `body` is not a proposition.
+
+### `logic_quant_all_intro_thm` and `logic_quant_all_elim_thm`
+
+`logic_quant_all_intro_thm(state, pre, x, th)` generalises `th` over `x`; `logic_quant_all_elim_thm(state, pre, t, th)` specialises a universal theorem to `t`.
+
+```mbti
+pub fn logic_quant_all_intro_thm(@kernel.KernelState, PropPrelude, @kernel.Term, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
+pub fn logic_quant_all_elim_thm(@kernel.KernelState, PropPrelude, @kernel.Term, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
+```
+
+$$
+\frac{\Gamma \vdash \varphi \quad x \notin \mathrm{FV}(\Gamma)}{\Gamma \vdash \forall x.\,\varphi}
+\qquad
+\frac{\Gamma \vdash \forall x.\,\varphi \quad t : \tau_x}{\Gamma \vdash \varphi[t/x]}
+$$
+
+Introduction fails with `VarFreeInHyp` when `x` is free in a hypothesis. Elimination fails when the conclusion is not universal or `t` has the wrong type; the substitution renames bound variables to avoid capture and leaves redexes inside $\varphi$ alone.
+
+### `logic_quant_ex_intro_thm` and `logic_quant_ex_elim_thm`
+
+`logic_quant_ex_intro_thm(state, pre, x, body, t, th)` proves $\exists x.\,\mathit{body}$ from a theorem of $\mathit{body}[t/x]$. `logic_quant_ex_elim_thm(state, pre, th_ex, v, th_b)` uses an existential: `th_b` proves `B` from the hypothesis $\varphi[v/x]$ for a fresh variable `v`.
+
+```mbti
+pub fn logic_quant_ex_intro_thm(@kernel.KernelState, PropPrelude, @kernel.Term, @kernel.Term, @kernel.Term, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
+pub fn logic_quant_ex_elim_thm(@kernel.KernelState, PropPrelude, @kernel.Thm, @kernel.Term, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
+```
+
+$$
+\frac{\Gamma \vdash \varphi[t/x]}{\Gamma \vdash \exists x.\,\varphi}
+\qquad
+\frac{A \vdash \exists x.\,\varphi \quad \Delta \cup \{\varphi[v/x]\} \vdash B \quad v \notin \mathrm{FV}(\exists x.\,\varphi,\ B,\ \Delta)}{A \cup \Delta \vdash B}
+$$
+
+Introduction fails when the conclusion of `th` is not $\mathit{body}[t/x]$ up to α. Elimination fails when `th_ex` is not existential, `v` is not a variable of the bound variable's type, or `v` is free in $\exists x.\,\varphi$, `B` or the other hypotheses of `th_b`.
+
+```moonbit
+test "quantifiers" {
+  let st = @logic.install_prop_prelude(@kernel.empty_kernel_state()).unwrap()
+  let pre = @logic.default_prop_prelude()
+  let a = @kernel.mk_tyvar("A")
+  let x = @kernel.mk_var("x", a)
+  let c = @kernel.mk_var("c", a)
+  // |- ∀x. x = x, then |- c = c
+  let th_all = @logic.logic_quant_all_intro_thm(st, pre, x, @logic.logic_refl(st, x).unwrap()).unwrap()
+  let th_c = @logic.logic_quant_all_elim_thm(st, pre, c, th_all).unwrap()
+  inspect(@kernel.term_alpha_eq(@kernel.thm_concl(th_c).unwrap(), @kernel.mk_eq(c, c).unwrap()), content="true")
+  // |- ∃x. x = x, from |- c = c
+  let x_eq = @kernel.mk_eq(x, x).unwrap()
+  let th_ex = @logic.logic_quant_ex_intro_thm(st, pre, x, x_eq, c, th_c).unwrap()
+  inspect(@logic.logic_quant_dest_ex(st, pre, @kernel.thm_concl(th_ex).unwrap()) is Some(_), content="true")
+  // from {v = v} |- T and the existential, |- T
+  let v = @kernel.mk_var("v", a)
+  let th_t = @logic.logic_prop_truth_const_thm(st, pre).unwrap()
+  let th_b = @logic.logic_add_assum(st, @kernel.mk_eq(v, v).unwrap(), th_t).unwrap()
+  let th = @logic.logic_quant_ex_elim_thm(st, pre, th_ex, v, th_b).unwrap()
+  inspect(@kernel.thm_hyp_count(th), content="0")
 }
 ```
 

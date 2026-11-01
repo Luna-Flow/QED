@@ -148,6 +148,22 @@ pub fn logic_prop_unfold_not(@kernel.KernelState, PropPrelude, @kernel.Thm) -> R
 
 pub fn logic_prop_unfold_or(@kernel.KernelState, PropPrelude, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
 
+pub fn logic_quant_all_elim_thm(@kernel.KernelState, PropPrelude, @kernel.Term, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
+
+pub fn logic_quant_all_intro_thm(@kernel.KernelState, PropPrelude, @kernel.Term, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
+
+pub fn logic_quant_dest_all(@kernel.KernelState, PropPrelude, @kernel.Term) -> (@kernel.Term, @kernel.Term)?
+
+pub fn logic_quant_dest_ex(@kernel.KernelState, PropPrelude, @kernel.Term) -> (@kernel.Term, @kernel.Term)?
+
+pub fn logic_quant_ex_elim_thm(@kernel.KernelState, PropPrelude, @kernel.Thm, @kernel.Term, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
+
+pub fn logic_quant_ex_intro_thm(@kernel.KernelState, PropPrelude, @kernel.Term, @kernel.Term, @kernel.Term, @kernel.Thm) -> Result[@kernel.Thm, @kernel.LogicError]
+
+pub fn logic_quant_mk_all(@kernel.KernelState, PropPrelude, @kernel.Term, @kernel.Term) -> Result[@kernel.Term, @kernel.LogicError]
+
+pub fn logic_quant_mk_ex(@kernel.KernelState, PropPrelude, @kernel.Term, @kernel.Term) -> Result[@kernel.Term, @kernel.LogicError]
+
 pub fn logic_refl(@kernel.KernelState, @kernel.Term) -> Result[@kernel.Thm, @kernel.LogicError]
 
 pub fn logic_register_ind_infinity_anchor(@kernel.KernelState, @kernel.Thm) -> Result[@kernel.KernelState, @kernel.SigError]

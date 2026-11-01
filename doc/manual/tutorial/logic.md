@@ -10,6 +10,7 @@ This tutorial uses the `logic` package to prove propositional theorems forwards:
 | Discharge a hypothesis or use an implication | `logic_prop_imp_intro_thm`, `logic_prop_imp_elim_thm` |
 | Reason with negation and falsity | `logic_prop_not_elim`, `logic_prop_ex_falso_thm` |
 | Prove a disjunction | `logic_prop_or_intro_l_thm`, `logic_prop_or_intro_r_thm` |
+| Generalise, specialise and use quantifiers | `logic_quant_all_intro_thm`, `logic_quant_all_elim_thm`, `logic_quant_ex_intro_thm`, `logic_quant_ex_elim_thm` |
 | List the theorem names scripts may cite | `logic_prop_theorem_count`, `logic_prop_theorem_at` |
 | Reduce the β-redexes left by unfolding | `logic_normalize_prop_beta` |
 
@@ -174,7 +175,7 @@ test "unfold and normalise" {
 
 - **Forgetting the prelude.** Builders work on any state, but `logic_prop_truth_const_thm`, the `logic_prop_def_*` functions and recognition of connective constants need `install_prop_prelude` first.
 - **Squatting a connective name.** A state that already declares `and` without its canonical definition cannot take the prelude; `install_prop_prelude` refuses it.
-- **Discharging a hypothesis that is not there.** `logic_prop_imp_intro_thm(state, pre, p, th)` needs `p` among the hypotheses of `th`. Weaken first with `logic_add_assum` if you want a vacuous implication.
+- **Generalising over a variable that a hypothesis mentions.** `logic_quant_all_intro_thm` fails with `VarFreeInHyp`; discharge the hypothesis first or pick another variable. In `logic_quant_ex_elim_thm` the witness variable must also be absent from the conclusion and the other hypotheses.
 - **Expecting basis form after unfolding a binary connective.** `logic_prop_unfold_and`, `_imp` and `_or` leave $(\lambda p\,q.\,\dots)\,a\,b$ unreduced; call `logic_normalize_prop_beta`.
 - **Reading error constructors literally.** Helper failures are reported with generic kernel errors such as `TypeMismatch`. Check the shape of your premises when a helper fails.
 

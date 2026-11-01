@@ -1523,8 +1523,8 @@ msgid "`logic_prop_imp_intro_thm(state, pre, p, th)` discharges the hypothesis `
 msgstr "`logic_prop_imp_intro_thm(state, pre, p, th)` 解除假设 `p`；`logic_prop_imp_elim_thm` 是肯定前件式（modus ponens）；`logic_prop_imp_refl` 证明 $\\vdash p \\Rightarrow p$。"
 
 #: manual/api/logic.md:436
-msgid "`logic_prop_imp_intro_thm` fails when `p` is not a hypothesis of `th`. `logic_prop_imp_elim_thm` fails when the second theorem does not prove the antecedent."
-msgstr "当 `p` 不是 `th` 的假设时，`logic_prop_imp_intro_thm` 失败。当第二个定理没有证明前件时，`logic_prop_imp_elim_thm` 失败。"
+msgid "`p` need not be a hypothesis of `th`; then the implication is vacuous and the hypotheses are those of `th`. `logic_prop_imp_intro_thm` fails when `p` is not a proposition. `logic_prop_imp_elim_thm` fails when the second theorem does not prove the antecedent."
+msgstr "`p` 不必是 `th` 的假设；此时得到空真的蕴含，假设与 `th` 相同。当 `p` 不是命题时，`logic_prop_imp_intro_thm` 失败。当第二个定理没有证明前件时，`logic_prop_imp_elim_thm` 失败。"
 
 #: manual/api/logic.md:438
 msgid "`logic_prop_not_elim` and `logic_prop_ex_falso_thm`"
@@ -1551,107 +1551,151 @@ msgstr ""
 "eg p \\Rightarrow q$，它需要排中律，而前奏并不推导排中律。[logic 设计](../design/logic.md)对此有说明。"
 
 #: manual/api/logic.md:514
+msgid "Quantifiers"
+msgstr "量词"
+
+#: manual/api/logic.md:516
+msgid "The quantifiers are definitions over the prelude: $\\forall x.\\,\\varphi$ is $(\\lambda x.\\,\\varphi) = (\\lambda x.\\,\\top)$ and $\\exists x.\\,\\varphi$ is $\\forall q.\\,(\\forall x.\\,\\varphi \\Rightarrow q) \\Rightarrow q$. The [logic design](../design/logic.md) derives the rules. All functions need the prelude installed."
+msgstr "量词是在前导之上的定义：$\\forall x.\\,\\varphi$ 是 $(\\lambda x.\\,\\varphi) = (\\lambda x.\\,\\top)$，$\\exists x.\\,\\varphi$ 是 $\\forall q.\\,(\\forall x.\\,\\varphi \\Rightarrow q) \\Rightarrow q$。[logic 设计](../design/logic.md)给出了这些规则的推导。所有函数都需要先安装前导。"
+
+#: manual/api/logic.md:518
+msgid "`logic_quant_mk_all`, `logic_quant_dest_all`, `logic_quant_mk_ex` and `logic_quant_dest_ex`"
+msgstr "`logic_quant_mk_all`、`logic_quant_dest_all`、`logic_quant_mk_ex` 和 `logic_quant_dest_ex`"
+
+#: manual/api/logic.md:520
+msgid "`logic_quant_mk_all(state, pre, x, body)` builds $\\forall x.\\,\\mathit{body}$ for a variable `x` and a proposition `body`, and `logic_quant_mk_ex` builds $\\exists x.\\,\\mathit{body}$. The destructors return the binder and the body, or `None` when the term does not have the shape."
+msgstr "`logic_quant_mk_all(state, pre, x, body)` 对变量 `x` 和命题 `body` 构造 $\\forall x.\\,\\mathit{body}$，`logic_quant_mk_ex` 构造 $\\exists x.\\,\\mathit{body}$。析构函数返回约束变量和体；若项不具有该形状，返回 `None`。"
+
+#: manual/api/logic.md:529
+msgid "The builders fail when `x` is not a variable or `body` is not a proposition."
+msgstr "当 `x` 不是变量或 `body` 不是命题时，构造函数失败。"
+
+#: manual/api/logic.md:531
+msgid "`logic_quant_all_intro_thm` and `logic_quant_all_elim_thm`"
+msgstr "`logic_quant_all_intro_thm` 和 `logic_quant_all_elim_thm`"
+
+#: manual/api/logic.md:533
+msgid "`logic_quant_all_intro_thm(state, pre, x, th)` generalises `th` over `x`; `logic_quant_all_elim_thm(state, pre, t, th)` specialises a universal theorem to `t`."
+msgstr "`logic_quant_all_intro_thm(state, pre, x, th)` 把 `th` 对 `x` 全称化；`logic_quant_all_elim_thm(state, pre, t, th)` 把全称定理特化到 `t`。"
+
+#: manual/api/logic.md:546
+msgid "Introduction fails with `VarFreeInHyp` when `x` is free in a hypothesis. Elimination fails when the conclusion is not universal or `t` has the wrong type; the substitution renames bound variables to avoid capture and leaves redexes inside $\\varphi$ alone."
+msgstr "当 `x` 在某个假设中自由出现时，引入以 `VarFreeInHyp` 失败。当结论不是全称式或 `t` 的类型不对时，消去失败；代换会重命名约束变量以避免捕获，并保留 $\\varphi$ 内部的 redex 不动。"
+
+#: manual/api/logic.md:548
+msgid "`logic_quant_ex_intro_thm` and `logic_quant_ex_elim_thm`"
+msgstr "`logic_quant_ex_intro_thm` 和 `logic_quant_ex_elim_thm`"
+
+#: manual/api/logic.md:550
+msgid "`logic_quant_ex_intro_thm(state, pre, x, body, t, th)` proves $\\exists x.\\,\\mathit{body}$ from a theorem of $\\mathit{body}[t/x]$. `logic_quant_ex_elim_thm(state, pre, th_ex, v, th_b)` uses an existential: `th_b` proves `B` from the hypothesis $\\varphi[v/x]$ for a fresh variable `v`."
+msgstr "`logic_quant_ex_intro_thm(state, pre, x, body, t, th)` 由 $\\mathit{body}[t/x]$ 的定理证明 $\\exists x.\\,\\mathit{body}$。`logic_quant_ex_elim_thm(state, pre, th_ex, v, th_b)` 使用存在式：`th_b` 对新变量 `v` 由假设 $\\varphi[v/x]$ 证明 `B`。"
+
+#: manual/api/logic.md:563
+msgid "Introduction fails when the conclusion of `th` is not $\\mathit{body}[t/x]$ up to α. Elimination fails when `th_ex` is not existential, `v` is not a variable of the bound variable's type, or `v` is free in $\\exists x.\\,\\varphi$, `B` or the other hypotheses of `th_b`."
+msgstr "当 `th` 的结论在 α 等价意义下不是 $\\mathit{body}[t/x]$ 时，引入失败。当 `th_ex` 不是存在式、`v` 不是与约束变量同类型的变量，或 `v` 在 $\\exists x.\\,\\varphi$、`B` 或 `th_b` 的其他假设中自由出现时，消去失败。"
+
+#: manual/api/logic.md:589
 msgid "Replay helpers"
 msgstr "重放辅助函数"
 
-#: manual/api/logic.md:516
+#: manual/api/logic.md:591
 msgid "The tactics layer closes goals by replaying kernel steps. These helpers make a theorem fit a goal sequent exactly."
 msgstr "tactics 层通过重放内核步骤来关闭目标。这些辅助函数使定理恰好适配目标相继式。"
 
-#: manual/api/logic.md:520
+#: manual/api/logic.md:595
 msgid "`logic_prop_assume` is `logic_assume` under the name the replay code uses."
 msgstr "`logic_prop_assume` 是 `logic_assume`，采用重放代码使用的名字。"
 
-#: manual/api/logic.md:528
+#: manual/api/logic.md:603
 msgid "`logic_prop_strengthen_to_hyps(state, hyps, th)` adds the missing hypotheses of `hyps` to `th` by weakening, and checks that the result has exactly the hypotheses `hyps`."
 msgstr "`logic_prop_strengthen_to_hyps(state, hyps, th)` 通过弱化把 `hyps` 中缺失的假设加到 `th` 上，并检查结果的假设恰好是 `hyps`。"
 
-#: manual/api/logic.md:534
+#: manual/api/logic.md:609
 msgid "It fails when `th` has a hypothesis outside `hyps`: weakening can add hypotheses but never remove them."
 msgstr "当 `th` 含有 `hyps` 之外的假设时，它失败：弱化可以增加假设，但永远不能删除假设。"
 
-#: manual/api/logic.md:536
+#: manual/api/logic.md:611
 msgid "`logic_prop_close_hypothesis` and `logic_prop_ensure_sequent`"
 msgstr "`logic_prop_close_hypothesis` 与 `logic_prop_ensure_sequent`"
 
-#: manual/api/logic.md:538
+#: manual/api/logic.md:613
 msgid "`logic_prop_close_hypothesis(state, hyps, c)` proves the sequent $\\mathit{hyps} \\vdash c$ when `c` is one of `hyps`. `logic_prop_ensure_sequent(state, hyps, c, th)` checks that `th` concludes `c` and returns it with exactly the hypotheses `hyps`."
 msgstr "当 `c` 是 `hyps` 之一时，`logic_prop_close_hypothesis(state, hyps, c)` 证明相继式 $\\mathit{hyps} \\vdash c$。`logic_prop_ensure_sequent(state, hyps, c, th)` 检查 `th` 的结论是 `c`，并返回恰好带假设 `hyps` 的该定理。"
 
-#: manual/api/logic.md:547
+#: manual/api/logic.md:622
 msgid "`logic_prop_discharge_imp_prefix(state, pre, [a1, ..., an], th)` discharges the hypotheses $a_n, \\dots, a_1$ in turn, turning $\\Gamma \\vdash q$ into $\\Gamma \\setminus \\{a_1, \\dots, a_n\\} \\vdash a_1 \\Rightarrow \\dots \\Rightarrow a_n \\Rightarrow q$."
 msgstr "`logic_prop_discharge_imp_prefix(state, pre, [a1, ..., an], th)` 依次解除假设 $a_n, \\dots, a_1$，把 $\\Gamma \\vdash q$ 变为 $\\Gamma \\setminus \\{a_1, \\dots, a_n\\} \\vdash a_1 \\Rightarrow \\dots \\Rightarrow a_n \\Rightarrow q$。"
 
-#: manual/api/logic.md:553
+#: manual/api/logic.md:628
 msgid "`logic_prop_replay_imp_elim_backward` and `logic_prop_replay_imp_elim_backward_thm`"
 msgstr "`logic_prop_replay_imp_elim_backward` 与 `logic_prop_replay_imp_elim_backward_thm`"
 
-#: manual/api/logic.md:555
+#: manual/api/logic.md:630
 msgid "These functions finish a backward `apply` step. Given the goal hypotheses, an implication $a \\Rightarrow b$ (as a hypothesis term, or as a theorem) and a proof of $a$, they prove $b$ under exactly the goal hypotheses."
 msgstr "这些函数完成反向的 `apply` 步骤。给定目标假设、蕴含 $a \\Rightarrow b$（作为假设项或作为定理）以及 $a$ 的证明，它们在恰好为目标假设的条件下证明 $b$。"
 
-#: manual/api/logic.md:562
+#: manual/api/logic.md:637
 msgid "`logic_prop_replay_and_elim_l` and `logic_prop_replay_and_elim_r`"
 msgstr "`logic_prop_replay_and_elim_l` 与 `logic_prop_replay_and_elim_r`"
 
-#: manual/api/logic.md:564
+#: manual/api/logic.md:639
 msgid "These functions eliminate a conjunction and check that the result is the expected term."
 msgstr "这些函数消去合取，并检查结果是预期的项。"
 
-#: manual/api/logic.md:573
+#: manual/api/logic.md:648
 msgid "`logic_prop_merge_conjunction(state, pre, th_a, th_b, and_term)` introduces a conjunction and checks that it is `and_term`; `split` uses it to join its two branches."
 msgstr "`logic_prop_merge_conjunction(state, pre, th_a, th_b, and_term)` 引入合取并检查它就是 `and_term`；`split` 用它合并其两个分支。"
 
-#: manual/api/logic.md:579
+#: manual/api/logic.md:654
 msgid "`logic_prop_or_wrap_left` and `logic_prop_or_wrap_right`"
 msgstr "`logic_prop_or_wrap_left` 与 `logic_prop_or_wrap_right`"
 
-#: manual/api/logic.md:581
+#: manual/api/logic.md:656
 msgid "These functions introduce a disjunction from its left or right branch and check, up to β-normal form, that it is the expected disjunction; `left` and `right` use them."
 msgstr "这些函数由左分支或右分支引入析取，并在 β 正规形意义下检查它是预期的析取；`left` 和 `right` 使用它们。"
 
-#: manual/api/logic.md:588
+#: manual/api/logic.md:663
 msgid "The arguments are the full disjunction, the other branch and the proof of the chosen branch."
 msgstr "参数是完整的析取、另一个分支，以及所选分支的证明。"
 
-#: manual/api/logic.md:611
+#: manual/api/logic.md:686
 msgid "Theorem catalog"
 msgstr "定理目录"
 
-#: manual/api/logic.md:613
+#: manual/api/logic.md:688
 msgid "The catalog is the single list of theorem names that proof scripts may use with `exact` and `apply`."
 msgstr "目录是证明脚本可在 `exact` 和 `apply` 中使用的定理名的唯一列表。"
 
-#: manual/api/logic.md:615
+#: manual/api/logic.md:690
 msgid "`PropTheoremClass` and `PropTheoremEntry`"
 msgstr "`PropTheoremClass` 与 `PropTheoremEntry`"
 
-#: manual/api/logic.md:617
+#: manual/api/logic.md:692
 msgid "`PropTheoremEntry` describes a catalog name: its number of premises and how `exact` and `apply` may use it. `PropTheoremClass` says how a name closes a goal."
 msgstr "`PropTheoremEntry` 描述一个目录名：它的前提个数，以及 `exact` 与 `apply` 可以如何使用它。`PropTheoremClass` 说明一个名字如何关闭目标。"
 
-#: manual/api/logic.md:634
+#: manual/api/logic.md:709
 msgid "`DirectClose` closes a goal outright (`truth`, `imp_refl`, `eq_refl`). `ContextDerived` closes a goal using facts found among the hypotheses and locals (`and_elim_l` from a conjunction in context). `ImplicationBacked` turns a goal into the premise of an implication (`apply or_intro_l`). A `None` class means the name is not available in that mode."
 msgstr "`DirectClose` 直接关闭目标（`truth`、`imp_refl`、`eq_refl`）。`ContextDerived` 利用假设和局部量中找到的事实关闭目标（由上下文中的合取得到 `and_elim_l`）。`ImplicationBacked` 把目标变为某个蕴含的前提（`apply or_intro_l`）。类别为 `None` 表示该名字在此模式下不可用。"
 
-#: manual/api/logic.md:636
+#: manual/api/logic.md:711
 msgid "Name"
 msgstr "名字"
 
-#: manual/api/logic.md:636
+#: manual/api/logic.md:711
 msgid "Premises"
 msgstr "前提数"
 
-#: manual/api/logic.md:638
-#: manual/api/logic.md:639
-#: manual/api/logic.md:642
-#: manual/api/logic.md:643
-#: manual/api/logic.md:644
-#: manual/api/logic.md:645
-#: manual/api/logic.md:646
-#: manual/api/logic.md:647
-#: manual/api/logic.md:648
-#: manual/api/logic.md:650
+#: manual/api/logic.md:713
+#: manual/api/logic.md:714
+#: manual/api/logic.md:717
+#: manual/api/logic.md:718
+#: manual/api/logic.md:719
+#: manual/api/logic.md:720
+#: manual/api/logic.md:721
+#: manual/api/logic.md:722
+#: manual/api/logic.md:723
+#: manual/api/logic.md:725
 #: manual/api/parser.md:197
 #: manual/api/tactics.md:72
 #: manual/api/tactics.md:74
@@ -1661,47 +1705,47 @@ msgstr "前提数"
 msgid "none"
 msgstr "无"
 
-#: manual/api/logic.md:652
+#: manual/api/logic.md:727
 msgid "`logic_prop_theorem_count`, `logic_prop_theorem_at` and `logic_prop_theorem_entry`"
 msgstr "`logic_prop_theorem_count`、`logic_prop_theorem_at` 与 `logic_prop_theorem_entry`"
 
-#: manual/api/logic.md:654
+#: manual/api/logic.md:729
 msgid "These functions read the catalog, by index or by name."
 msgstr "这些函数按索引或按名字读取目录。"
 
-#: manual/api/logic.md:664
+#: manual/api/logic.md:739
 msgid "`logic_prop_named_theorem(state, pre, name, goal)` builds the theorem of a `DirectClose` name for the given goal conclusion, or returns `None` when the name does not close that goal."
 msgstr "`logic_prop_named_theorem(state, pre, name, goal)` 为给定的目标结论构造 `DirectClose` 名字对应的定理；当该名字不能关闭该目标时返回 `None`。"
 
-#: manual/api/logic.md:670
+#: manual/api/logic.md:745
 msgid "`logic_prop_context_theorem` and `logic_prop_context_apply_theorem`"
 msgstr "`logic_prop_context_theorem` 与 `logic_prop_context_apply_theorem`"
 
-#: manual/api/logic.md:672
+#: manual/api/logic.md:747
 msgid "`logic_prop_context_theorem(state, pre, name, pool, goal)` builds the theorem of a `ContextDerived` name from the facts in `pool`, together with the fact it used. `logic_prop_context_apply_theorem` builds the implication theorem of an `ImplicationBacked` name together with the antecedent that becomes the new goal."
 msgstr "`logic_prop_context_theorem(state, pre, name, pool, goal)` 根据 `pool` 中的事实构造 `ContextDerived` 名字对应的定理，并同时返回所用的事实。`logic_prop_context_apply_theorem` 构造 `ImplicationBacked` 名字对应的蕴含定理，并同时返回成为新目标的前件。"
 
-#: manual/api/logic.md:679
+#: manual/api/logic.md:754
 msgid "`PropExactWitness`, `PropExactWitnessResolution`, `PropExactTheoremResolution`, `PropApplyTheoremResolution` and `PropRefResolution`"
 msgstr "`PropExactWitness`、`PropExactWitnessResolution`、`PropExactTheoremResolution`、`PropApplyTheoremResolution` 和 `PropRefResolution`"
 
-#: manual/api/logic.md:681
+#: manual/api/logic.md:756
 msgid "The resolvers below return one of these types. `KnownButUnavailable` and its variants mean that the name is in the catalog but does not apply to this goal in this mode; the tactics layer reports that as a goal-shape or apply mismatch rather than as an unknown name."
 msgstr "下面的解析函数返回这些类型之一。`KnownButUnavailable` 及其变体表示该名字在目录中，但在此模式下不适用于该目标；tactics 层把这报告为目标形状或 apply 不匹配，而不是未知名字。"
 
-#: manual/api/logic.md:714
+#: manual/api/logic.md:789
 msgid "`logic_prop_resolve_exact_witness(state, pre, locals, hyps, goal, name)` resolves the argument of `exact`. A local name is looked up first and, once found, never falls back to a catalog name: it is applicable only when it is an active hypothesis equal to the goal. Otherwise the catalog is consulted in `exact` mode. Returns `None` for a name that is neither local nor in the catalog."
 msgstr "`logic_prop_resolve_exact_witness(state, pre, locals, hyps, goal, name)` 解析 `exact` 的参数。先查找局部名字，一旦找到就绝不回退到目录名：只有当它是与目标相等的活动假设时才适用。否则在 `exact` 模式下查询目录。对既非局部名字也不在目录中的名字返回 `None`。"
 
-#: manual/api/logic.md:720
+#: manual/api/logic.md:795
 msgid "`logic_prop_resolve_exact_theorem` and `logic_prop_resolve_apply_theorem`"
 msgstr "`logic_prop_resolve_exact_theorem` 与 `logic_prop_resolve_apply_theorem`"
 
-#: manual/api/logic.md:722
+#: manual/api/logic.md:797
 msgid "These functions resolve a catalog name in `exact` or `apply` mode against a pool of facts, without looking at locals. `None` means the name is not in the catalog."
 msgstr "这些函数针对事实池，在 `exact` 或 `apply` 模式下解析目录名，不查看局部量。`None` 表示该名字不在目录中。"
 
-#: manual/api/logic.md:731
+#: manual/api/logic.md:806
 msgid "`logic_prop_resolve_ref` is the older resolver that mixes modes; it is kept for tests and non-tactic callers. `ProofState` and `prover` use the mode-specific resolvers."
 msgstr "`logic_prop_resolve_ref` 是混合各模式的旧解析函数；保留它是为了测试和非策略调用方。`ProofState` 与 `prover` 使用按模式区分的解析函数。"
 
@@ -3451,8 +3495,8 @@ msgid "Verification: Lean induction; MoonBit kernel tests; Randomized derivation
 msgstr "验证：Lean 归纳证明；MoonBit 内核测试；用经检查的原始规则随机推导，每个推出的相继式都在 bool 上的有限模型中穷举验证有效"
 
 #: manual/conformance.md:271
-msgid "Evidence: `formal_verification/QEDFV/HOL/Derivation.lean`, `src/kernel/kernel_thm_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`, `formal_verification/QEDFV/HOL/ConnectiveRules.lean`, `src/kernel/lean_derivation_conformance_test.mbt`, `src/logic/lean_connective_conformance_test.mbt`, `src/kernel/lean_soundness_fuzz_test.mbt`"
-msgstr "证据：`formal_verification/QEDFV/HOL/Derivation.lean`, `src/kernel/kernel_thm_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`, `formal_verification/QEDFV/HOL/ConnectiveRules.lean`, `src/kernel/lean_derivation_conformance_test.mbt`, `src/logic/lean_connective_conformance_test.mbt`, `src/kernel/lean_soundness_fuzz_test.mbt`"
+msgid "Evidence: `formal_verification/QEDFV/HOL/Derivation.lean`, `src/kernel/kernel_thm_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`, `formal_verification/QEDFV/HOL/ConnectiveRules.lean`, `src/kernel/lean_derivation_conformance_test.mbt`, `src/logic/lean_connective_conformance_test.mbt`, `src/logic/lean_quant_conformance_test.mbt`, `src/kernel/lean_soundness_fuzz_test.mbt`"
+msgstr "证据：`formal_verification/QEDFV/HOL/Derivation.lean`, `src/kernel/kernel_thm_test.mbt`, `src/kernel/kernel_thm_wbtest.mbt`, `formal_verification/QEDFV/HOL/ConnectiveRules.lean`, `src/kernel/lean_derivation_conformance_test.mbt`, `src/logic/lean_connective_conformance_test.mbt`, `src/logic/lean_quant_conformance_test.mbt`, `src/kernel/lean_soundness_fuzz_test.mbt`"
 
 #: manual/conformance.md:273
 msgid "Exclusions: The Lean derivation constructors are not a source-level refinement of MoonBit constructors."
@@ -3686,8 +3730,8 @@ msgid "Verification: Lean-derived MoonBit conformance tests: every Derivation, T
 msgstr "验证：由 Lean 推出的 MoonBit 一致性测试：Derivation、TypeDefLaw 与 KStep 的每个构造子、HistoryDerivation 的各扩展步骤、三个扩展关卡的每个字段，以及类型、项、内核状态、谱系、名字解析和声明表的每条登记定律，都有以其命名的测试，或记录了未实现的理由（tools/qed_lean_conformance.py）"
 
 #: manual/conformance.md:391
-msgid "Evidence: `research/qed-verification/2026-10-14-initial-audit.md`, `formal_verification/theory-proof-plan.md`, `tools/qed_lean_conformance.py`, `src/kernel/lean_derivation_conformance_test.mbt`, `src/logic/lean_connective_conformance_test.mbt`, `src/kernel/lean_term_laws_test.mbt`, `src/kernel/lean_extension_conformance_test.mbt`, `src/kernel/lean_state_conformance_test.mbt`, `src/kernel/lean_soundness_fuzz_test.mbt`"
-msgstr "证据：`research/qed-verification/2026-10-14-initial-audit.md`, `formal_verification/theory-proof-plan.md`, `tools/qed_lean_conformance.py`, `src/kernel/lean_derivation_conformance_test.mbt`, `src/logic/lean_connective_conformance_test.mbt`, `src/kernel/lean_term_laws_test.mbt`, `src/kernel/lean_extension_conformance_test.mbt`, `src/kernel/lean_state_conformance_test.mbt`, `src/kernel/lean_soundness_fuzz_test.mbt`"
+msgid "Evidence: `research/qed-verification/2026-10-14-initial-audit.md`, `formal_verification/theory-proof-plan.md`, `tools/qed_lean_conformance.py`, `src/kernel/lean_derivation_conformance_test.mbt`, `src/logic/lean_connective_conformance_test.mbt`, `src/logic/lean_quant_conformance_test.mbt`, `src/kernel/lean_term_laws_test.mbt`, `src/kernel/lean_extension_conformance_test.mbt`, `src/kernel/lean_state_conformance_test.mbt`, `src/kernel/lean_soundness_fuzz_test.mbt`"
+msgstr "证据：`research/qed-verification/2026-10-14-initial-audit.md`, `formal_verification/theory-proof-plan.md`, `tools/qed_lean_conformance.py`, `src/kernel/lean_derivation_conformance_test.mbt`, `src/logic/lean_connective_conformance_test.mbt`, `src/logic/lean_quant_conformance_test.mbt`, `src/kernel/lean_term_laws_test.mbt`, `src/kernel/lean_extension_conformance_test.mbt`, `src/kernel/lean_state_conformance_test.mbt`, `src/kernel/lean_soundness_fuzz_test.mbt`"
 
 #: manual/conformance.md:393
 msgid "Exclusions: Passing MoonBit and Lean builds is not refinement evidence.; Conformance tests constrain the implementation on chosen inputs; they are not a refinement proof."
@@ -3821,7 +3865,7 @@ msgstr "未完成的证明是警告，不是 `ok`。默认情况下它会使运�
 #: manual/design/cmd.md:57
 #: manual/design/elab.md:61
 #: manual/design/kernel.md:251
-#: manual/design/logic.md:139
+#: manual/design/logic.md:152
 #: manual/design/parser.md:104
 #: manual/design/prover.md:72
 #: manual/design/research_rewrite.md:68
@@ -3848,7 +3892,7 @@ msgstr "**位置。** 步骤编号和分支路径来自 prover，因此与源文
 #: manual/design/cmd.md:64
 #: manual/design/elab.md:68
 #: manual/design/kernel.md:295
-#: manual/design/logic.md:148
+#: manual/design/logic.md:161
 #: manual/design/parser.md:112
 #: manual/design/prover.md:80
 #: manual/design/research_rewrite.md:74
@@ -3871,7 +3915,7 @@ msgstr "**用表面语法美化打印项。** 重新引入 `∧` 和 `->` 的打
 #: manual/design/cmd.md:70
 #: manual/design/elab.md:74
 #: manual/design/kernel.md:303
-#: manual/design/logic.md:154
+#: manual/design/logic.md:167
 #: manual/design/parser.md:119
 #: manual/design/prover.md:87
 #: manual/design/research_rewrite.md:79
@@ -4596,8 +4640,8 @@ msgid "**Implication introduction.** From $\\Gamma \\vdash q$: conjunction intro
 msgstr "**蕴含引入。** 由 $\\Gamma \\vdash q$：用 $\\{p\\} \\vdash p$ 做合取引入，得到 $\\Gamma \\cup \\{p\\} \\vdash p \\wedge q$，再从该假设做消去，得到 $\\{p \\wedge q\\} \\vdash p$。然后"
 
 #: manual/design/logic.md:101
-msgid "and the hypothesis set is $\\Gamma \\setminus \\{p\\}$. The conclusion is $p \\Rightarrow q$ by definition. The derivation works whether or not $p \\in \\Gamma$: when $p$ is absent, the conjunction step adds it and DEDUCT_ANTISYM_RULE removes it again, giving the vacuous implication $\\Gamma \\vdash p \\Rightarrow q$. `logic_prop_imp_intro_thm` nevertheless refuses a $p$ that is not a hypothesis of the premise. This is a check on the caller, not a limit of the logic; for a vacuous implication, weaken with `logic_add_assum` first."
-msgstr "假设集合为 $\\Gamma \\setminus \\{p\\}$。按定义，结论就是 $p \\Rightarrow q$。无论 $p \\in \\Gamma$ 是否成立，该推导都有效：当 $p$ 不在其中时，合取步骤加入它，DEDUCT_ANTISYM_RULE 再把它移除，得到空真的蕴含 $\\Gamma \\vdash p \\Rightarrow q$。尽管如此，`logic_prop_imp_intro_thm` 仍拒绝不是前提假设的 $p$。这是对调用者的检查，而不是逻辑上的限制；若要空真的蕴含，请先用 `logic_add_assum` 做弱化。"
+msgid "and the hypothesis set is $\\Gamma \\setminus \\{p\\}$. The conclusion is $p \\Rightarrow q$ by definition. The derivation works whether or not $p \\in \\Gamma$: when $p$ is absent, the conjunction step adds it and DEDUCT_ANTISYM_RULE removes it again, giving the vacuous implication $\\Gamma \\vdash p \\Rightarrow q$. `logic_prop_imp_intro_thm` accepts both cases, as Lean `Derivation.impIntro` and HOL Light `DISCH` do: when $p$ is absent it first weakens the premise with ADD_ASSUM."
+msgstr "假设集合为 $\\Gamma \\setminus \\{p\\}$。按定义，结论就是 $p \\Rightarrow q$。无论 $p \\in \\Gamma$ 是否成立，该推导都有效：当 $p$ 不在其中时，合取步骤加入它，DEDUCT_ANTISYM_RULE 再把它移除，得到空真的蕴含 $\\Gamma \\vdash p \\Rightarrow q$。`logic_prop_imp_intro_thm` 与 Lean 的 `Derivation.impIntro` 和 HOL Light 的 `DISCH` 一样接受这两种情况：当 $p$ 不在其中时，它先用 ADD_ASSUM 弱化前提。"
 
 #: manual/design/logic.md:103
 msgid "**Ex falso.** From $\\Gamma \\vdash (\\lambda p.\\,p) = (\\lambda p.\\,t)$ and any proposition $q$, MK_COMB with $\\vdash q = q$ and two BETA steps give $\\Gamma \\vdash q = t$, hence $\\Gamma \\vdash q$. Negation elimination is implication elimination with conclusion $\\bot$."
@@ -4619,7 +4663,7 @@ msgstr ""
 msgid ""
 "The hypotheses are $\\Gamma$ unless $\\n"
 "eg p$ was already among them. From $\\Delta \\vdash q$ the right introduction must discharge a $\\n"
-"eg p$ that the proof of $q$ does not use. Because `logic_prop_imp_intro_thm` only discharges a hypothesis that is present, it first conjoins $\\{\\n"
+"eg p$ that the proof of $q$ does not use. The code first conjoins $\\{\\n"
 "eg p\\} \\vdash \\n"
 "eg p$ with $\\Delta \\vdash q$ and eliminates the conjunction again, which gives $\\Delta \\cup \\{\\n"
 "eg p\\} \\vdash q$, and then discharges $\\n"
@@ -4628,7 +4672,7 @@ msgid ""
 msgstr ""
 "除非 $\\n"
 "eg p$ 原本就在其中，假设就是 $\\Gamma$。由 $\\Delta \\vdash q$ 出发，右引入必须解除一个 $q$ 的证明并未用到的 $\\n"
-"eg p$。由于 `logic_prop_imp_intro_thm` 只解除存在的假设，它先把 $\\{\\n"
+"eg p$。代码先把 $\\{\\n"
 "eg p\\} \\vdash \\n"
 "eg p$ 与 $\\Delta \\vdash q$ 合取，再把合取消去，得到 $\\Delta \\cup \\{\\n"
 "eg p\\} \\vdash q$，然后解除 $\\n"
@@ -4636,10 +4680,34 @@ msgstr ""
 "eg p\\} \\vdash p \\vee q$。"
 
 #: manual/design/logic.md:113
+msgid "**Quantifiers.** The universal quantifier is the HOL Light definition $\\forall P := (P = \\lambda x.\\,\\top)$ unfolded, so $\\forall x.\\,\\varphi$ is the term $(\\lambda x.\\,\\varphi) = (\\lambda x.\\,\\top)$ with $\\top$ the prelude constant; this is also the shape the tactics layer introduces for a quantified goal. The existential is the impredicative encoding"
+msgstr "**量词。** 全称量词是 HOL Light 的定义 $\\forall P := (P = \\lambda x.\\,\\top)$ 展开后的形式，因此 $\\forall x.\\,\\varphi$ 是项 $(\\lambda x.\\,\\varphi) = (\\lambda x.\\,\\top)$，其中 $\\top$ 是前导常量；这也是 tactics 层为量化目标引入的形状。存在量词采用非直谓编码"
+
+#: manual/design/logic.md:119
+msgid "for a boolean $q$ not free in $\\varphi$. HOL Light instead defines $\\exists P := P\\,(\\varepsilon P)$, which needs the choice constant; the encoding here needs nothing beyond the propositional rules, so the quantifier rules stay independent of choice. Both sides are definitions of terms only: no constant is added to the state. The four rules follow Lean `Derivation.allIntro`, `allElim`, `exIntro` and `exElim`:"
+msgstr "其中布尔变量 $q$ 不在 $\\varphi$ 中自由出现。HOL Light 则定义 $\\exists P := P\\,(\\varepsilon P)$，这需要选择常量；这里的编码只需要命题规则，因此量词规则不依赖选择。两者都只是项的定义：不向状态添加常量。四条规则对应 Lean 的 `Derivation.allIntro`、`allElim`、`exIntro` 和 `exElim`："
+
+#: manual/design/logic.md:121
+msgid "*∀-introduction* (GEN). From $\\Gamma \\vdash \\varphi$, EQT_INTRO gives $\\Gamma \\vdash \\varphi = \\top$ and ABS on $x$ gives $\\Gamma \\vdash (\\lambda x.\\,\\varphi) = (\\lambda x.\\,\\top)$. ABS fails when $x$ is free in $\\Gamma$, which is Lean's weakening of the premise. EQT_INTRO is DEDUCT_ANTISYM_RULE against $\\vdash \\top$ and would drop a hypothesis $\\top$; the code adds it back, so the hypotheses are exactly $\\Gamma$."
+msgstr "*∀ 引入*（GEN）。由 $\\Gamma \\vdash \\varphi$，EQT_INTRO 给出 $\\Gamma \\vdash \\varphi = \\top$，对 $x$ 做 ABS 给出 $\\Gamma \\vdash (\\lambda x.\\,\\varphi) = (\\lambda x.\\,\\top)$。当 $x$ 在 $\\Gamma$ 中自由出现时 ABS 失败，这对应 Lean 对前提的弱化。EQT_INTRO 是对 $\\vdash \\top$ 的 DEDUCT_ANTISYM_RULE，会丢掉假设 $\\top$；代码把它加回，因此假设恰为 $\\Gamma$。"
+
+#: manual/design/logic.md:122
+msgid "*∀-elimination* (SPEC). MK_COMB with $\\vdash t = t$ gives $\\Gamma \\vdash (\\lambda x.\\,\\varphi)\\,t = (\\lambda x.\\,\\top)\\,t$; one BETA step on each side and TRANS give $\\Gamma \\vdash \\varphi[t/x] = \\top$, and EQ_MP with $\\vdash \\top$ gives $\\Gamma \\vdash \\varphi[t/x]$. Only the two outer redexes are contracted, so a redex inside $\\varphi$ remains, as in Lean's `φ.substitute`."
+msgstr "*∀ 消去*（SPEC）。用 $\\vdash t = t$ 做 MK_COMB 得到 $\\Gamma \\vdash (\\lambda x.\\,\\varphi)\\,t = (\\lambda x.\\,\\top)\\,t$；两边各做一步 BETA，再用 TRANS 得到 $\\Gamma \\vdash \\varphi[t/x] = \\top$，与 $\\vdash \\top$ 做 EQ_MP 得到 $\\Gamma \\vdash \\varphi[t/x]$。只收缩两个外层 redex，因此 $\\varphi$ 内部的 redex 保留，与 Lean 的 `φ.substitute` 一致。"
+
+#: manual/design/logic.md:123
+msgid "*∃-introduction* (EXISTS). From $\\Gamma \\vdash \\varphi[t/x]$, assume $\\forall x.\\,\\varphi \\Rightarrow q$, specialise it to $t$ and apply modus ponens to get $q$; discharge the assumption and generalise $q$. The $q$ is chosen fresh for $\\Gamma$, so the generalisation applies."
+msgstr "*∃ 引入*（EXISTS）。由 $\\Gamma \\vdash \\varphi[t/x]$，假设 $\\forall x.\\,\\varphi \\Rightarrow q$，把它特化到 $t$ 并用肯定前件得到 $q$；解除该假设并对 $q$ 全称化。$q$ 选为对 $\\Gamma$ 新鲜的变量，因此全称化可以进行。"
+
+#: manual/design/logic.md:124
+msgid "*∃-elimination* (CHOOSE). From $A \\vdash \\exists x.\\,\\varphi$ and $\\Delta \\cup \\{\\varphi[v/x]\\} \\vdash B$, where $v$ is a variable not free in $\\exists x.\\,\\varphi$, $B$ or $\\Delta$: discharge $\\varphi[v/x]$, generalise $v$ to get $\\Delta \\vdash \\forall v.\\,\\varphi[v/x] \\Rightarrow B$, which is $\\forall x.\\,\\varphi \\Rightarrow B$ up to α because $v$ is fresh; specialise the existential to $B$ and apply modus ponens: $A \\cup \\Delta \\vdash B$. The side conditions are checked before the derivation, so a violation is reported as `VarFreeInHyp`."
+msgstr "*∃ 消去*（CHOOSE）。由 $A \\vdash \\exists x.\\,\\varphi$ 和 $\\Delta \\cup \\{\\varphi[v/x]\\} \\vdash B$，其中变量 $v$ 不在 $\\exists x.\\,\\varphi$、$B$ 或 $\\Delta$ 中自由出现：解除 $\\varphi[v/x]$，对 $v$ 全称化得到 $\\Delta \\vdash \\forall v.\\,\\varphi[v/x] \\Rightarrow B$，由于 $v$ 是新鲜的，它在 α 等价意义下就是 $\\forall x.\\,\\varphi \\Rightarrow B$；把存在式特化到 $B$ 并用肯定前件：$A \\cup \\Delta \\vdash B$。副条件在推导之前检查，违反时报告为 `VarFreeInHyp`。"
+
+#: manual/design/logic.md:126
 msgid "No disjunction elimination"
 msgstr "没有析取消去"
 
-#: manual/design/logic.md:115
+#: manual/design/logic.md:128
 msgid ""
 "The prelude defines $p \\vee q$ as $\\n"
 "eg p \\Rightarrow q$. Introduction is derivable, as shown. Elimination, from $p \\vee q$, $p \\Rightarrow r$ and $q \\Rightarrow r$ infer $r$, is not: it needs a case split on $p$, that is excluded middle $p \\vee \\n"
@@ -4649,103 +4717,103 @@ msgstr ""
 "eg p \\Rightarrow q$。如上所示，引入是可推导的。消去，即由 $p \\vee q$、$p \\Rightarrow r$ 和 $q \\Rightarrow r$ 推出 $r$，则不可推导：它需要对 $p$ 做情形分析，也就是排中律 $p \\vee \\n"
 "eg p$。在 HOL 中，排中律可由选择公理和外延性推出（Diaconescu 定理），[^diaconescu] 但内核没有暴露选择公理的定理，该包也不推导排中律。与其提供一条无法证成的规则，目录中只有 `or_intro_l` 和 `or_intro_r` 而没有 `or_elim`，策略层有 `left` 和 `right` 而没有情形分析。"
 
-#: manual/design/logic.md:117
+#: manual/design/logic.md:130
 msgid "R. Diaconescu, \"Axiom of choice and complementation\", Proc. AMS 51, 1975. HOL Light derives `EXCLUDED_MIDDLE` this way in `class.ml`."
 msgstr "R. Diaconescu，“Axiom of choice and complementation”，Proc. AMS 51，1975。HOL Light 在 `class.ml` 中以这种方式推导 `EXCLUDED_MIDDLE`。"
 
-#: manual/design/logic.md:119
+#: manual/design/logic.md:132
 msgid "Trusted recognition of connective constants"
 msgstr "对联结词常量的可信识别"
 
-#: manual/design/logic.md:121
+#: manual/design/logic.md:134
 msgid "**Problem.** A user can declare a constant named `and` that means something else. If `prop_dest_and` recognised any application of a constant called `and`, a tactic could treat an arbitrary term as a conjunction."
 msgstr "**问题。** 用户可以声明一个名为 `and` 但含义不同的常量。如果 `prop_dest_and` 识别任何名为 `and` 的常量的应用，策略就可能把任意项当作合取。"
 
-#: manual/design/logic.md:123
+#: manual/design/logic.md:136
 msgid "**Choice.** The destructors accept the basis form, which is checked structurally, and an application of a connective constant only when the state holds the canonical definition theorem for that constant (with the current identity). `install_prop_prelude` refuses to install over a placeholder constant with the right name and type but no definition."
 msgstr "**选择。** 析构函数接受基础形式（按结构检查），而仅当状态中持有该常量的规范定义定理（且标识为当前标识）时，才接受联结词常量的应用。`install_prop_prelude` 拒绝在名称和类型都正确但没有定义的占位常量之上安装。"
 
-#: manual/design/logic.md:125
+#: manual/design/logic.md:138
 msgid "**Why.** Recognition errors would not break soundness, because every rule is replayed through the kernel. They would produce confusing failures at replay time instead of clear failures at the tactic, and the specification requires connector recognition to be backed by definitions."
 msgstr "**原因。** 识别错误不会破坏可靠性，因为每条规则都经内核重放。但它们会在重放时产生令人困惑的失败，而不是在策略处给出清晰的失败；而规范要求联结词识别必须有定义支撑。"
 
-#: manual/design/logic.md:127
+#: manual/design/logic.md:140
 msgid "One catalog, two modes"
 msgstr "一个目录，两种模式"
 
-#: manual/design/logic.md:129
+#: manual/design/logic.md:142
 msgid "**Problem.** `exact th` and `apply th` mean different things. `exact` needs a theorem whose conclusion is the goal; `apply` needs an implication whose consequent is the goal and leaves its antecedent as the new goal. Letting a name be used in the wrong mode silently would either fail late or, worse, make `exact` quietly behave like `apply`."
 msgstr "**问题。** `exact th` 和 `apply th` 含义不同。`exact` 需要结论即目标的定理；`apply` 需要后件即目标的蕴含，并把其前件留作新目标。若允许名称被悄悄用于错误的模式，要么晚失败，要么更糟：让 `exact` 悄悄表现得像 `apply`。"
 
-#: manual/design/logic.md:131
+#: manual/design/logic.md:144
 msgid "**Choice.** Each catalog entry records an `exact_class` and an `apply_class`. `exact` consults only the first, `apply` only the second, and a name that exists but is unusable in a mode resolves to `KnownButUnavailable`, which the tactics layer reports as a shape or apply mismatch. A local hypothesis name always takes precedence over a catalog name and never falls back to it."
 msgstr "**选择。** 每个目录条目记录 `exact_class` 和 `apply_class`。`exact` 只查询前者，`apply` 只查询后者；存在但在某种模式下不可用的名称解析为 `KnownButUnavailable`，策略层将其报告为形状或 apply 不匹配。局部假设名称始终优先于目录名称，且绝不回退到目录名称。"
 
-#: manual/design/logic.md:133
+#: manual/design/logic.md:146
 msgid "**Why.** The table is the single source for the tactics layer, the prover's corpus, the mapping matrix and the documentation, so the theorem names a user may write cannot drift between them."
 msgstr "**原因。** 该表是策略层、证明器语料 (corpus)、映射矩阵和文档的唯一来源，因此用户可以书写的定理名称不会在它们之间漂移。"
 
-#: manual/design/logic.md:135
+#: manual/design/logic.md:148
 msgid "Errors from the kernel only"
 msgstr "错误仅来自内核"
 
-#: manual/design/logic.md:137
+#: manual/design/logic.md:150
 msgid "Kernel error constructors are read-only outside the kernel. The package obtains the `LogicError` and `SigError` values it returns by running small kernel operations that are known to fail in the required way. This keeps the error vocabulary owned by the kernel, at the cost of less specific errors: many helper failures surface as `TypeMismatch` or `AlphaMismatch`."
 msgstr "内核错误构造子在内核之外是只读的。该包通过运行已知会以所需方式失败的小型内核操作，来获得它所返回的 `LogicError` 和 `SigError` 值。这使错误词汇由内核掌握，代价是错误不够具体：许多辅助函数的失败会表现为 `TypeMismatch` 或 `AlphaMismatch`。"
 
-#: manual/design/logic.md:141
+#: manual/design/logic.md:154
 msgid "**Soundness.** Every `Thm` returned by this package is the result of kernel functions, so the kernel's soundness argument covers it."
 msgstr "**可靠性。** 该包返回的每个 `Thm` 都是内核函数的结果，因此内核的可靠性论证覆盖了它。"
 
-#: manual/design/logic.md:142
+#: manual/design/logic.md:155
 msgid "**Coverage, not completeness.** The derivations above show that each rule *can* succeed whenever its premises have the stated shapes. The code can still fail on such premises in corner cases: β-normalisation is bounded (see below), and the connective builders choose fixed binder names, so `prop_mk_and` captures a free variable of its arguments that is literally named `_p_and` and has type $\\mathit{bool} \\to \\mathit{bool} \\to \\mathit{bool}$; the resulting term is not $p \\wedge q$, and `logic_prop_and_intro_thm` then fails. Such failures are reported as errors, never as theorems."
 msgstr "**覆盖，而非完备。** 上面的推导表明，只要前提具有所述形状，每条规则*可以*成功。但在少数边角情形下，代码仍可能在这样的前提上失败：β 规范化有上限（见下文）；联结词构造函数使用固定的绑定子名称，因此 `prop_mk_and` 会捕获参数中恰好名为 `_p_and`、类型为 $\\mathit{bool} \\to \\mathit{bool} \\to \\mathit{bool}$ 的自由变量，所得的项不是 $p \\wedge q$，于是 `logic_prop_and_intro_thm` 失败。这类失败都以错误报告，绝不会成为定理。"
 
-#: manual/design/logic.md:143
+#: manual/design/logic.md:156
 msgid "**Conservativity of the prelude.** The six constants are admitted by `DefOK` with closed right-hand sides, no type variables and no cycles, so the prelude is a conservative extension of the empty theory."
 msgstr "**前奏的保守性。** 这六个常量通过 `DefOK` 接纳，右端为闭项，不含类型变量，也无环，因此前奏是空理论的保守扩张。"
 
-#: manual/design/logic.md:144
+#: manual/design/logic.md:157
 msgid "**Idempotence.** On a state that already holds the six canonical definitions, `install_prop_prelude` returns its argument unchanged, so installing twice is the same as installing once."
 msgstr "**幂等性。** 对已经包含这六个规范定义的状态，`install_prop_prelude` 原样返回其参数，因此安装两次与安装一次相同。"
 
-#: manual/design/logic.md:145
+#: manual/design/logic.md:158
 msgid "**Exact sequents.** The replay helpers check hypotheses as sets up to α-equivalence. `logic_prop_strengthen_to_hyps` only adds hypotheses, so a theorem that needs a hypothesis the goal does not have is rejected rather than accepted with extra assumptions."
 msgstr "**精确的相继式。** 重放辅助函数按 α 等价检查作为集合的假设。`logic_prop_strengthen_to_hyps` 只会增加假设，因此需要目标所没有的假设的定理会被拒绝，而不是带着额外假设被接受。"
 
-#: manual/design/logic.md:146
+#: manual/design/logic.md:159
 msgid "**β-normalisation is proof-producing.** `logic_beta_normalize_eq` and `logic_normalize_prop_beta` build kernel equations step by step; the term-level `logic_beta_nf_*` functions return the right-hand side of such an equation. `logic_beta_normalize_eq` contracts only head redexes, with no step bound; this terminates because simply typed terms are strongly normalising. `logic_normalize_prop_beta` and `logic_beta_nf_bool_term` contract leftmost-outermost redexes along application spines, never under an abstraction, and stop after 512 steps even if redexes remain; the deep form repeats such passes up to 32 times. These bounds suffice for the connective encodings."
 msgstr "**β 规范化会产生证明。** `logic_beta_normalize_eq` 和 `logic_normalize_prop_beta` 逐步构造内核等式；项层面的 `logic_beta_nf_*` 函数返回这种等式的右边。`logic_beta_normalize_eq` 只收缩头部 redex，没有步数上限；由于简单类型项是强规范化的，它总会终止。`logic_normalize_prop_beta` 和 `logic_beta_nf_bool_term` 沿应用脊收缩最左最外的 redex，从不进入抽象内部，并在 512 步后停止，即使还剩 redex；深层形式最多重复这样的遍历 32 次。这些上限对联结词编码已经足够。"
 
-#: manual/design/logic.md:150
+#: manual/design/logic.md:163
 msgid "**Connectives as kernel primitives.** This would add rules to the kernel and to its soundness proof. Definitions cost nothing in trust."
 msgstr "**将联结词作为内核原语。** 这会给内核及其可靠性证明增加规则。而定义在信任上没有任何代价。"
 
-#: manual/design/logic.md:151
+#: manual/design/logic.md:164
 msgid "**HOL Light's disjunction** $\\forall r.\\,(p \\Rightarrow r) \\Rightarrow (q \\Rightarrow r) \\Rightarrow r$. With it, elimination is derivable without excluded middle, at the cost of a universal quantifier over propositions inside every disjunction. The prelude uses the shorter encoding and states its limit instead; switching would change every disjunction term and the corpus built on them."
 msgstr "**HOL Light 的析取** $\\forall r.\\,(p \\Rightarrow r) \\Rightarrow (q \\Rightarrow r) \\Rightarrow r$。使用它时，无需排中律即可推导消去，代价是每个析取内部都要对命题做全称量化。前奏使用更短的编码并明确声明其限制；改用前者会改变每个析取项以及建立在其上的语料。"
 
-#: manual/design/logic.md:152
+#: manual/design/logic.md:165
 msgid "**A mixed resolver.** `logic_prop_resolve_ref` resolves names without distinguishing modes; it is kept for tests, while the tactics layer uses the mode-specific resolvers."
 msgstr "**混合解析器。** `logic_prop_resolve_ref` 解析名称时不区分模式；保留它是为了测试，而策略层使用按模式区分的解析器。"
 
-#: manual/design/logic.md:156
-msgid "The package proves propositional facts only; it has no quantifier rules beyond what the tactics layer builds for theorem-header binders."
-msgstr "该包只证明命题事实；除策略层为定理头部绑定子构建的规则外，它没有量词规则。"
+#: manual/design/logic.md:169
+msgid "The package proves propositional facts and the four quantifier rules. It has no rules for Hilbert choice or the axiom of infinity, and the tactics layer does not use the quantifier rules yet."
+msgstr "本包证明命题事实和四条量词规则。它没有希尔伯特选择或无穷公理的规则，tactics 层目前也还没有使用量词规则。"
 
-#: manual/design/logic.md:157
+#: manual/design/logic.md:170
 msgid "It has no disjunction elimination, no excluded middle and no classical reasoning."
 msgstr "它没有析取消去、排中律，也没有经典推理。"
 
-#: manual/design/logic.md:158
+#: manual/design/logic.md:171
 msgid "It does not store user theorems: the catalog is fixed in the source, and adding a name means adding code and a test."
 msgstr "它不存储用户定理：目录固定在源码中，添加名称意味着添加代码和测试。"
 
-#: manual/design/logic.md:159
+#: manual/design/logic.md:172
 msgid "It adds no authority. Any change to it is reviewed for usefulness, not for soundness."
 msgstr "它不增加任何权限。对它的任何修改都是审查其有用性，而非可靠性。"
 
-#: manual/design/logic.md:160
+#: manual/design/logic.md:173
 msgid "It does not parse or print formulas; terms are built by the [parser](parser.md) and printed by the kernel's structural printer."
 msgstr "它不解析或打印公式；项由 [parser](parser.md) 构建，由内核的结构化打印器打印。"
 
@@ -6020,7 +6088,7 @@ msgstr "最后再看支持矩阵、failure matrix 和实现合同，理解哪些
 #: manual/tutorial/cmd.md:12
 #: manual/tutorial/elab.md:14
 #: manual/tutorial/kernel.md:16
-#: manual/tutorial/logic.md:16
+#: manual/tutorial/logic.md:17
 #: manual/tutorial/parser.md:14
 #: manual/tutorial/prover.md:13
 #: manual/tutorial/research_rewrite.md:13
@@ -7699,7 +7767,7 @@ msgstr "`moon run src/cmd` 构建并运行该工具。工具自身的参数写�
 #: manual/tutorial/cmd.md:32
 #: manual/tutorial/elab.md:45
 #: manual/tutorial/kernel.md:48
-#: manual/tutorial/logic.md:40
+#: manual/tutorial/logic.md:41
 #: manual/tutorial/parser.md:39
 #: manual/tutorial/prover.md:43
 #: manual/tutorial/research_rewrite.md:50
@@ -7762,7 +7830,7 @@ msgstr "输出相同，只有状态不同。"
 #: manual/tutorial/cmd.md:137
 #: manual/tutorial/elab.md:107
 #: manual/tutorial/kernel.md:207
-#: manual/tutorial/logic.md:150
+#: manual/tutorial/logic.md:151
 #: manual/tutorial/parser.md:133
 #: manual/tutorial/prover.md:135
 #: manual/tutorial/research_rewrite.md:131
@@ -7785,7 +7853,7 @@ msgstr "**超越该子集。** 工具接受证明器 (prover) 所接受的内容
 #: manual/tutorial/cmd.md:145
 #: manual/tutorial/elab.md:117
 #: manual/tutorial/kernel.md:236
-#: manual/tutorial/logic.md:173
+#: manual/tutorial/logic.md:174
 #: manual/tutorial/parser.md:152
 #: manual/tutorial/prover.md:153
 #: manual/tutorial/research_rewrite.md:139
@@ -7816,7 +7884,7 @@ msgstr "**引用前面的定理。** 文件中的定理相互独立；`exact bef
 #: manual/tutorial/cmd.md:153
 #: manual/tutorial/elab.md:124
 #: manual/tutorial/kernel.md:245
-#: manual/tutorial/logic.md:181
+#: manual/tutorial/logic.md:182
 #: manual/tutorial/parser.md:161
 #: manual/tutorial/prover.md:161
 #: manual/tutorial/research_rewrite.md:146
@@ -8147,62 +8215,66 @@ msgid "Prove a disjunction"
 msgstr "证明一个析取"
 
 #: manual/tutorial/logic.md:13
+msgid "Generalise, specialise and use quantifiers"
+msgstr "全称化、特化和使用量词"
+
+#: manual/tutorial/logic.md:14
 msgid "List the theorem names scripts may cite"
 msgstr "列出脚本可以引用的定理名"
 
-#: manual/tutorial/logic.md:14
+#: manual/tutorial/logic.md:15
 msgid "Reduce the β-redexes left by unfolding"
 msgstr "约简展开后留下的 β-redex"
 
-#: manual/tutorial/logic.md:18
+#: manual/tutorial/logic.md:19
 msgid "Import the kernel and the logic package in `moon.pkg`:"
 msgstr "在 `moon.pkg` 中导入内核和 logic 包："
 
-#: manual/tutorial/logic.md:27
+#: manual/tutorial/logic.md:28
 msgid "Install the propositional prelude into a kernel state, then prove $\\vdash \\top$:"
 msgstr "把命题序言 (prelude) 安装到内核状态中，然后证明 $\\vdash \\top$："
 
-#: manual/tutorial/logic.md:38
+#: manual/tutorial/logic.md:39
 msgid "The `#1` is the identity of the constant `T`, the first constant the prelude declares. `install_prop_prelude` defines `T`, `F`, `and`, `imp`, `not` and `or` through the kernel's definition gate. `default_prop_prelude()` is the record of those names that every function of the package takes."
 msgstr "`#1` 是常量 `T` 的标识，它是序言声明的第一个常量。`install_prop_prelude` 通过内核的定义闸门定义 `T`、`F`、`and`、`imp`、`not` 和 `or`。`default_prop_prelude()` 是这些名称的记录，包中每个函数都以它为参数。"
 
-#: manual/tutorial/logic.md:42
+#: manual/tutorial/logic.md:43
 msgid "Build formulas"
 msgstr "构造公式"
 
-#: manual/tutorial/logic.md:44
+#: manual/tutorial/logic.md:45
 msgid "Connective builders take propositions and return terms. They check that their arguments are of type `bool`."
 msgstr "联结词构造器接受命题并返回项。它们会检查参数是 `bool` 类型。"
 
-#: manual/tutorial/logic.md:63
+#: manual/tutorial/logic.md:64
 msgid "The terms are large, because each connective is its definition expanded down to equality; compare them with `term_alpha_eq` and take them apart with the `prop_dest_*` functions rather than printing them."
 msgstr "这些项很大，因为每个联结词都被展开为其定义，一直到等式；请用 `term_alpha_eq` 比较它们，并用 `prop_dest_*` 函数拆解，而不要打印它们。"
 
-#: manual/tutorial/logic.md:65
+#: manual/tutorial/logic.md:66
 msgid "Prove commutativity of conjunction"
 msgstr "证明合取的交换律"
 
-#: manual/tutorial/logic.md:67
+#: manual/tutorial/logic.md:68
 msgid "Assume $p \\wedge q$, take it apart, put it back together the other way round, and discharge the assumption:"
 msgstr "假设 $p \\wedge q$，将其拆开，换个顺序重新组合，然后解除假设："
 
-#: manual/tutorial/logic.md:87
+#: manual/tutorial/logic.md:88
 msgid "This is the theorem that the script `and_comm` in the [prover tutorial](prover.md) proves; the tactic layer performs the same calls."
 msgstr "这正是 [prover 教程](prover.md)中脚本 `and_comm` 所证明的定理；tactic 层执行相同的调用。"
 
-#: manual/tutorial/logic.md:89
+#: manual/tutorial/logic.md:90
 msgid "Chain implications"
 msgstr "串联蕴含"
 
-#: manual/tutorial/logic.md:91
+#: manual/tutorial/logic.md:92
 msgid "Modus ponens is `logic_prop_imp_elim_thm`. From $p \\Rightarrow q$ and $q \\Rightarrow r$ and $p$, derive $r$:"
 msgstr "肯定前件式为 `logic_prop_imp_elim_thm`。由 $p \\Rightarrow q$、$q \\Rightarrow r$ 和 $p$，推出 $r$："
 
-#: manual/tutorial/logic.md:113
+#: manual/tutorial/logic.md:114
 msgid "Use negation and falsity"
 msgstr "使用否定与假"
 
-#: manual/tutorial/logic.md:115
+#: manual/tutorial/logic.md:116
 msgid ""
 "$\\n"
 "eg p$ is $p \\Rightarrow \\bot$, so a proof of $p$ and a proof of $\\n"
@@ -8212,59 +8284,59 @@ msgstr ""
 "eg p$ 即 $p \\Rightarrow \\bot$，所以 $p$ 的证明和 $\\n"
 "eg p$ 的证明合起来得到 $\\bot$，而由 $\\bot$ 可推出任何结论："
 
-#: manual/tutorial/logic.md:132
+#: manual/tutorial/logic.md:133
 msgid "Look up catalog names"
 msgstr "查找目录名称"
 
-#: manual/tutorial/logic.md:134
+#: manual/tutorial/logic.md:135
 msgid "Proof scripts cite theorems by name. The catalog says which names exist and in which mode they work:"
 msgstr "证明脚本按名称引用定理。目录说明存在哪些名称以及它们在哪种模式下可用："
 
-#: manual/tutorial/logic.md:152
+#: manual/tutorial/logic.md:153
 msgid "**Fit a theorem to a goal.** Backward proof needs theorems whose hypotheses are exactly those of a goal. `logic_prop_ensure_sequent(state, hyps, concl, th)` checks the conclusion and weakens `th` to exactly `hyps`, and fails if `th` depends on something the goal does not provide. The [tactics](tactics.md) layer calls it every time it closes a goal."
 msgstr "**使定理适配目标。** 反向证明需要其假设恰为目标假设的定理。`logic_prop_ensure_sequent(state, hyps, concl, th)` 检查结论，并把 `th` 弱化为恰好 `hyps`，若 `th` 依赖目标未提供的内容则失败。[tactics](tactics.md) 层每次关闭目标时都会调用它。"
 
-#: manual/tutorial/logic.md:154
+#: manual/tutorial/logic.md:155
 msgid "**Normalise.** Unfolding a connective constant leaves a β-redex. `logic_normalize_prop_beta` reduces it with kernel steps:"
 msgstr "**规范化。** 展开联结词常量会留下 β 可约式。`logic_normalize_prop_beta` 用内核步骤将其归约："
 
-#: manual/tutorial/logic.md:169
+#: manual/tutorial/logic.md:170
 msgid "**Extend the theory.** The extension wrappers (`logic_specify_const`, `logic_register_typedef`) are the kernel gates under names that belong to this layer; upper layers call them so they need not import the kernel's gate functions directly."
 msgstr "**扩展理论。** 扩展封装函数（`logic_specify_const`、`logic_register_typedef`）是以本层名称提供的内核闸门；上层调用它们，就无需直接导入内核的闸门函数。"
 
-#: manual/tutorial/logic.md:171
+#: manual/tutorial/logic.md:172
 msgid "**Mind the missing rule.** There is no disjunction elimination; the [logic design](../design/logic.md) explains why. Prove a disjunction with `logic_prop_or_intro_l_thm` or `logic_prop_or_intro_r_thm`, and avoid designs that need case analysis on one."
 msgstr "**注意缺失的规则。** 没有析取消去规则；[logic 设计](../design/logic.md)解释了原因。请用 `logic_prop_or_intro_l_thm` 或 `logic_prop_or_intro_r_thm` 证明析取，并避免需要对析取做情形分析的设计。"
 
-#: manual/tutorial/logic.md:175
+#: manual/tutorial/logic.md:176
 msgid "**Forgetting the prelude.** Builders work on any state, but `logic_prop_truth_const_thm`, the `logic_prop_def_*` functions and recognition of connective constants need `install_prop_prelude` first."
 msgstr "**忘记序言。** 构造器可在任何状态上工作，但 `logic_prop_truth_const_thm`、`logic_prop_def_*` 函数以及对联结词常量的识别，需要先执行 `install_prop_prelude`。"
 
-#: manual/tutorial/logic.md:176
+#: manual/tutorial/logic.md:177
 msgid "**Squatting a connective name.** A state that already declares `and` without its canonical definition cannot take the prelude; `install_prop_prelude` refuses it."
 msgstr "**占用联结词名称。** 若某状态已声明 `and` 但没有其规范定义，则无法安装序言；`install_prop_prelude` 会拒绝它。"
 
-#: manual/tutorial/logic.md:177
-msgid "**Discharging a hypothesis that is not there.** `logic_prop_imp_intro_thm(state, pre, p, th)` needs `p` among the hypotheses of `th`. Weaken first with `logic_add_assum` if you want a vacuous implication."
-msgstr "**解除不存在的假设。** `logic_prop_imp_intro_thm(state, pre, p, th)` 要求 `p` 在 `th` 的假设之中。若想得到空泛的蕴含，请先用 `logic_add_assum` 弱化。"
-
 #: manual/tutorial/logic.md:178
+msgid "**Generalising over a variable that a hypothesis mentions.** `logic_quant_all_intro_thm` fails with `VarFreeInHyp`; discharge the hypothesis first or pick another variable. In `logic_quant_ex_elim_thm` the witness variable must also be absent from the conclusion and the other hypotheses."
+msgstr "**对某个假设提到的变量做全称化。** `logic_quant_all_intro_thm` 以 `VarFreeInHyp` 失败；请先解除该假设，或换一个变量。在 `logic_quant_ex_elim_thm` 中，见证变量还必须不出现在结论和其他假设中。"
+
+#: manual/tutorial/logic.md:179
 msgid "**Expecting basis form after unfolding a binary connective.** `logic_prop_unfold_and`, `_imp` and `_or` leave $(\\lambda p\\,q.\\,\\dots)\\,a\\,b$ unreduced; call `logic_normalize_prop_beta`."
 msgstr "**以为展开二元联结词后是基本形式。** `logic_prop_unfold_and`、`_imp` 和 `_or` 会留下未归约的 $(\\lambda p\\,q.\\,\\dots)\\,a\\,b$；请调用 `logic_normalize_prop_beta`。"
 
-#: manual/tutorial/logic.md:179
+#: manual/tutorial/logic.md:180
 msgid "**Reading error constructors literally.** Helper failures are reported with generic kernel errors such as `TypeMismatch`. Check the shape of your premises when a helper fails."
 msgstr "**按字面理解错误构造子。** 辅助函数的失败以通用的内核错误报告，如 `TypeMismatch`。辅助函数失败时，请检查前提的形状。"
 
-#: manual/tutorial/logic.md:183
+#: manual/tutorial/logic.md:184
 msgid "The [logic API](../api/logic.md) lists every function, including the replay helpers."
 msgstr "[logic API](../api/logic.md) 列出每个函数，包括重放辅助函数。"
 
-#: manual/tutorial/logic.md:184
+#: manual/tutorial/logic.md:185
 msgid "The [logic design](../design/logic.md) derives each rule from the kernel rules."
 msgstr "[logic 设计](../design/logic.md)由内核规则推导出每条规则。"
 
-#: manual/tutorial/logic.md:185
+#: manual/tutorial/logic.md:186
 msgid "The [tactics tutorial](tactics.md) uses these rules backwards, from goals."
 msgstr "[tactics 教程](tactics.md)从目标出发，反向使用这些规则。"
 
@@ -8801,6 +8873,12 @@ msgstr "[tactics 设计](../design/tactics.md)解释了论证 (justification)，
 #: manual/tutorial/tactics.md:179
 msgid "The [prover tutorial](prover.md) runs the same proofs from scripts."
 msgstr "[prover 教程](prover.md)从脚本运行相同的证明。"
+
+#~ msgid "The package proves propositional facts only; it has no quantifier rules beyond what the tactics layer builds for theorem-header binders."
+#~ msgstr "该包只证明命题事实；除策略层为定理头部绑定子构建的规则外，它没有量词规则。"
+
+#~ msgid "**Discharging a hypothesis that is not there.** `logic_prop_imp_intro_thm(state, pre, p, th)` needs `p` among the hypotheses of `th`. Weaken first with `logic_add_assum` if you want a vacuous implication."
+#~ msgstr "**解除不存在的假设。** `logic_prop_imp_intro_thm(state, pre, p, th)` 要求 `p` 在 `th` 的假设之中。若想得到空泛的蕴含，请先用 `logic_add_assum` 弱化。"
 
 #~ msgid "Verification: Lean induction; MoonBit kernel tests"
 #~ msgstr "验证：Lean 归纳；MoonBit 内核测试"

@@ -135,6 +135,7 @@
         "formal_verification/QEDFV/HOL/ConnectiveRules.lean",
         "src/kernel/lean_derivation_conformance_test.mbt",
         "src/logic/lean_connective_conformance_test.mbt",
+        "src/logic/lean_quant_conformance_test.mbt",
         "src/kernel/lean_soundness_fuzz_test.mbt"
       ],
       "status": {
@@ -621,6 +622,7 @@
         "tools/qed_lean_conformance.py",
         "src/kernel/lean_derivation_conformance_test.mbt",
         "src/logic/lean_connective_conformance_test.mbt",
+        "src/logic/lean_quant_conformance_test.mbt",
         "src/kernel/lean_term_laws_test.mbt",
         "src/kernel/lean_extension_conformance_test.mbt",
         "src/kernel/lean_state_conformance_test.mbt",
