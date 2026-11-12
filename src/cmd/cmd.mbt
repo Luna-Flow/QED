@@ -210,7 +210,7 @@ fn usage_string(argv0 : String) -> String {
 
 ///|
 fn string_starts_with_dash(s : String) -> Bool {
-  match s.view() {
+  match s[:] {
     ['-', ..] => true
     _ => false
   }

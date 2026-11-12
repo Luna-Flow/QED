@@ -260,7 +260,7 @@ fn raw_source_slice(
   let start = if start_offset < 0 { 0 } else { start_offset }
   let end = if end_offset < start { start } else { end_offset }
   let chars : Array[Char] = []
-  let mut view = src.view()
+  let mut view = src[:]
   let mut off = 0
   while true {
     match view {
@@ -286,7 +286,7 @@ fn normalize_theorem_script_input(
 ) -> Result[NormalizedInput, ParseError] {
   let out_chars : Array[Char] = []
   let raw_offsets : Array[Int32] = []
-  let mut view = src.view()
+  let mut view = src[:]
   let mut off = 0
   let mut pending_space = false
   let mut space_off = 0
@@ -400,7 +400,7 @@ pub fn normalize_parser_input(
 ) -> Result[NormalizedInput, ParseError] {
   let out_chars : Array[Char] = []
   let raw_offsets : Array[Int32] = []
-  let mut view = src.view()
+  let mut view = src[:]
   let mut off = 0
   let mut pending_space = false
   let mut space_off = 0
@@ -616,7 +616,7 @@ fn lex_tokens_layout(
   keep_newlines : Bool,
 ) -> Result[Array[Token], ParseError] {
   let out : Array[Token] = []
-  let mut view = src.view()
+  let mut view = src[:]
   let mut off = 0
   while true {
     match view {
@@ -810,7 +810,7 @@ fn is_atom_start(kind : TokKind) -> Bool {
 
 ///|
 fn name_is_tyvar(name : String) -> Bool {
-  match name.view() {
+  match name[:] {
     [c, ..] => c.is_ascii_uppercase() || c == '_'
     _ => false
   }
