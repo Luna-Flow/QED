@@ -21,7 +21,7 @@ implementation contract.
 
 ## Install
 
-The library requires MoonBit `moonc` 0.10 or later:
+The library requires MoonBit `moonc` 0.10.20 or later (verified with `moon 0.1.20261104` and `moonc v0.10.20`):
 
 ```bash
 moon add Luna-Flow/QED@0.1.0
