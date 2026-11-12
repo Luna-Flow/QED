@@ -14,7 +14,7 @@ The shipped proof language covers propositional logic with equality, theorem-hea
 moon add Luna-Flow/QED@0.1.0
 ```
 
-Then import the packages you need in your `moon.pkg`, for example `"Luna-Flow/QED/prover"` to run theorem scripts or `"Luna-Flow/QED/kernel"` to build theorems directly. QED needs the MoonBit toolchain 0.10 or later (`moonc` ≥ 0.10), and depends on `moonbitlang/x` for file access in the command-line tool.
+Then import the packages you need in your `moon.pkg`, for example `"Luna-Flow/QED/prover"` to run theorem scripts or `"Luna-Flow/QED/kernel"` to build theorems directly. QED needs the MoonBit toolchain 0.10.20 or later (`moonc` ≥ 0.10.20), and depends on `moonbitlang/x` for file access in the command-line tool.
 
 To work in the repository:
 

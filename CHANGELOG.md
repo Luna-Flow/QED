@@ -6,6 +6,7 @@ All notable changes to QED are recorded here. The format follows [Keep a Changel
 
 ### Changed
 
+- Verified with `moon 0.1.20261104` and `moonc v0.10.20`; replace the deprecated whole-string `String::view()` with `[:]`.
 - Lean (`formal_verification`): **breaking change to the core syntax.** A constant occurrence `Term.const c τ h` now stores its instance *type* `τ` with a proof `h : (S c).IsInst τ`, instead of a total type substitution. Two occurrences at the same type are now the same term, which removes the "instance junk" (distinct terms differing only off the schema's support) that blocked the typedef erasure from older steps. Evaluation recovers the instance by `Ty.constSub`; the locality of the constant interpretation is now an explicit hypothesis of `valid_definition_equation`, `SpecificationGate.valid_constant` and `SpecificationExtension.valid_gate` (all callers have it from `Model.IsLocal`). The canonical-substitution machinery of the erasure (`canonSub`, `SigClean`, the `pred_clean` field) is deleted; `ConstRepl` is now `∀ c τ, (S c).IsInst τ → Term S [] τ`, and `Term.instType_congr` shows instantiation of a closed term depends only on its annotation variables. `eval_congr` takes the interpretation hypothesis per instance type.
 
 ### Added
